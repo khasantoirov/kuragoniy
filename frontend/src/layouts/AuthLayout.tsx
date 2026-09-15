@@ -20,9 +20,9 @@ export function AuthLayout() {
     <div className="gate">
       <div className="gate__card">
         <div className="gate__brand">
-          <img className="gate__logo" src="/logo.png" alt="Amaliy Fizika" />
+          <img className="gate__logo" src="/logo.png" alt="STEM LMS" />
           <div className="gate__bx">
-            <span className="gate__name">Amaliy Fizika</span>
+            <span className="gate__name">STEM LMS</span>
             <img className="gate__sign gate__sign--day" src="/sign-day.png" alt="Muhandis D" />
             <img className="gate__sign gate__sign--night" src="/sign-night.png" alt="Muhandis D" />
           </div>

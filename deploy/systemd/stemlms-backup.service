@@ -1,0 +1,11 @@
+[Unit]
+Description=STEM LMS — daily SQLite backup
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/stem-lms/backend
+EnvironmentFile=/opt/stem-lms/backend/.env
+Environment=DJANGO_SETTINGS_MODULE=config.settings.prod
+ExecStart=/opt/stem-lms/backend/venv/bin/python manage.py backup_db

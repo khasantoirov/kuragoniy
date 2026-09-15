@@ -1,10 +1,13 @@
-# Amaliy Fizika · Muhandis_D laboratoriyasi
+# STEM LMS · Muhandis_D laboratoriyasi
 
-Fizika o'qituvchilari uchun dars, jurnal, jadval va interaktiv laboratoriya platformasi.
+STEM (fan, texnika, muhandislik, matematika) o'qituvchilari uchun dars, jurnal, jadval
+va o'quv platformasi — Amaliy-Fizika-V2'dan fork qilingan.
 
 Django + DRF + Channels backend va React + TypeScript frontend, VPS'da systemd orqali
-joylashtirilgan (`amaliyfizika.uz`). Eski Firebase/vanilla-JS versiya butunlay olib
-tashlangan — migratsiya yakunlangan.
+joylashtiriladi (`stemlms.uz` — haqiqiy domeningizga almashtiring). `src/features/lab/`
+hozircha asl loyihadan meros bo'lib qolgan fizika simulyatsiyalarini saqlaydi — STEM'ga
+mos kontent (robototexnika, elektronika va h.k.) bilan almashtirish yoki olib tashlash
+hali qaror qilinmagan.
 
 ## Tuzilishi
 
@@ -22,7 +25,7 @@ backend/    — Django loyihasi (API + Channels + Telegram bot)
 
 frontend/   — React + TypeScript (Vite)
   src/features/   — har bo'lim uchun alohida papka (lessons, journal, lab, ...)
-  src/features/lab/sims.ts — fizika simulyatsiyalari
+  src/features/lab/sims.ts — meros bo'lib qolgan fizika simulyatsiyalari (qarang: yuqoridagi izoh)
 
 deploy/     — systemd unit fayllari, nginx config
 ```

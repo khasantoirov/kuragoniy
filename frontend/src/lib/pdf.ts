@@ -29,7 +29,7 @@ export async function tablePdf(
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i)
     doc.setFontSize(8)
-    doc.text(`Amaliy Fizika · ${stamp}`, 14, doc.internal.pageSize.getHeight() - 8)
+    doc.text(`STEM LMS · ${stamp}`, 14, doc.internal.pageSize.getHeight() - 8)
   }
 
   doc.save(`${title}.pdf`)

@@ -125,9 +125,9 @@ export function AppShell() {
       <header className="topbar" ref={topbarRef}>
         <div className="topbar__inner">
           <Link className="brand" to="/" onClick={closeAll}>
-            <img className="brand__logo" src="/logo.png" alt="Amaliy Fizika" width={48} height={48} />
+            <img className="brand__logo" src="/logo.png" alt="STEM LMS" width={48} height={48} />
             <span className="brand__text">
-              <span className="brand__name">Amaliy Fizika</span>
+              <span className="brand__name">STEM LMS</span>
               <img className="brand__sig brand__sig--day" src="/sign-day.png" alt="Muhandis D" height={14} />
               <img className="brand__sig brand__sig--night" src="/sign-night.png" alt="Muhandis D" height={14} />
             </span>

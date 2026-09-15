@@ -44,11 +44,11 @@ export function AboutPage() {
             {t("Innovatsion o'quv platformasi")}
           </span>
           <h2 className="abhero__title">
-            <span className="abhero__accent">Amaliy Fizika</span> {t('laboratoriyasi')}
+            <span className="abhero__accent">STEM LMS</span> {t('platformasi')}
           </h2>
           <p className="abhero__sub">
             {t(
-              "Muhandis_D uchun ishlab chiqilgan zamonaviy fizika laboratoriyasi. 7–9-sinflar uchun amaliy tajribalar, WOW-namoyishlar va o'yinli mashg'ulotlar — barchasi bitta interaktiv platformada. Fizikani ko'rsatib, his qildirib o'rgatish uchun.",
+              "Muhandis_D uchun ishlab chiqilgan zamonaviy STEM ta'lim platformasi. 7–9-sinflar uchun amaliy tajribalar, WOW-namoyishlar va o'yinli mashg'ulotlar — barchasi bitta interaktiv platformada. Fan-texnikani ko'rsatib, his qildirib o'rgatish uchun.",
             )}
           </p>
           <div className="abhero__credit">
@@ -59,7 +59,7 @@ export function AboutPage() {
             </span>
           </div>
         </div>
-        <img className="abhero__logo" src="/logo.png" alt="Amaliy Fizika" />
+        <img className="abhero__logo" src="/logo.png" alt="STEM LMS" />
       </div>
 
       <div className="abstats">
@@ -76,7 +76,7 @@ export function AboutPage() {
         <h3 className="panel__title">{IC.info} {t('Platforma haqida')}</h3>
         <p className="prose">
           {t(
-            "Amaliy Fizika — fizikani quruq formulalar emas, balki jonli tajribalar orqali o'rgatishga qaratilgan platforma. Maqsad: o'quvchida hayrat uyg'otish, hodisani o'z ko'zi bilan ko'rsatish va “nega bunday bo'ldi?” degan savolni tug'dirish.",
+            "STEM LMS — fan-texnikani quruq formulalar emas, balki jonli tajribalar orqali o'rgatishga qaratilgan platforma. Maqsad: o'quvchida hayrat uyg'otish, hodisani o'z ko'zi bilan ko'rsatish va “nega bunday bo'ldi?” degan savolni tug'dirish.",
           )}
         </p>
         <p className="prose">

@@ -53,14 +53,14 @@ const ru = {
   'Platforma haqida': 'О платформе', "Bo'limlar va imkoniyatlar": 'Разделы и возможности',
   'Dastur yaratuvchisi': 'Разработчик программы', 'Loyiha': 'Проект',
   'Bizni kuzatib boring': 'Подписывайтесь на нас', 'Instagram': 'Instagram', 'YouTube': 'YouTube',
-  "Innovatsion o'quv platformasi": 'Инновационная образовательная платформа', 'laboratoriyasi': 'лаборатория',
+  "Innovatsion o'quv platformasi": 'Инновационная образовательная платформа', 'platformasi': 'платформа',
   'Jami dars (7–9)': 'Всего уроков (7–9)', 'Amaliy tajriba': 'Практических опытов',
   'WOW-namoyish': 'WOW-демонстраций', "O'yinli tajriba": 'Игровых занятий',
   "ta'limiy yo'nalishi doirasida tayyorlangan.": 'подготовлен в рамках образовательного направления.',
-  "Amaliy Fizika — fizikani quruq formulalar emas, balki jonli tajribalar orqali o'rgatishga qaratilgan platforma. Maqsad: o'quvchida hayrat uyg'otish, hodisani o'z ko'zi bilan ko'rsatish va “nega bunday bo'ldi?” degan savolni tug'dirish.":
-    'Amaliy Fizika — платформа, нацеленная не на сухие формулы, а на обучение физике через живые эксперименты. Цель: вызвать у ученика удивление, показать явление собственными глазами и породить вопрос «почему так произошло?».',
-  "Muhandis_D uchun ishlab chiqilgan zamonaviy fizika laboratoriyasi. 7–9-sinflar uchun amaliy tajribalar, WOW-namoyishlar va o'yinli mashg'ulotlar — barchasi bitta interaktiv platformada. Fizikani ko'rsatib, his qildirib o'rgatish uchun.":
-    'Современная физическая лаборатория, разработанная для Muhandis_D. Практические опыты, WOW-демонстрации и игровые занятия для 7–9 классов — всё на одной интерактивной платформе. Чтобы показывать физику и дать её прочувствовать.',
+  "STEM LMS — fan-texnikani quruq formulalar emas, balki jonli tajribalar orqali o'rgatishga qaratilgan platforma. Maqsad: o'quvchida hayrat uyg'otish, hodisani o'z ko'zi bilan ko'rsatish va “nega bunday bo'ldi?” degan savolni tug'dirish.":
+    'STEM LMS — платформа, нацеленная не на сухие формулы, а на обучение точным и естественным наукам через живые эксперименты. Цель: вызвать у ученика удивление, показать явление собственными глазами и породить вопрос «почему так произошло?».',
+  "Muhandis_D uchun ishlab chiqilgan zamonaviy STEM ta'lim platformasi. 7–9-sinflar uchun amaliy tajribalar, WOW-namoyishlar va o'yinli mashg'ulotlar — barchasi bitta interaktiv platformada. Fan-texnikani ko'rsatib, his qildirib o'rgatish uchun.":
+    'Современная STEM-образовательная платформа, разработанная для Muhandis_D. Практические опыты, WOW-демонстрации и игровые занятия для 7–9 классов — всё на одной интерактивной платформе. Чтобы показывать науку и технику и дать их прочувствовать.',
   'Rejimni almashtirish': 'Переключить режим', 'Rejim': 'Режим',
   'Bildirishnomalar': 'Уведомления', "O'qilgan": 'Прочитано',
   'Profil': 'Профиль', "Ilovani o'rnatish": 'Установить приложение',
@@ -547,14 +547,14 @@ const en = {
   'Platforma haqida': 'About the platform', "Bo'limlar va imkoniyatlar": 'Sections and features',
   'Dastur yaratuvchisi': 'App developer', 'Loyiha': 'The project',
   'Bizni kuzatib boring': 'Follow us', 'Instagram': 'Instagram', 'YouTube': 'YouTube',
-  "Innovatsion o'quv platformasi": 'Innovative learning platform', 'laboratoriyasi': 'lab',
+  "Innovatsion o'quv platformasi": 'Innovative learning platform', 'platformasi': 'platform',
   'Jami dars (7–9)': 'Total lessons (7–9)', 'Amaliy tajriba': 'Hands-on experiments',
   'WOW-namoyish': 'WOW demos', "O'yinli tajriba": 'Playful activities',
   "ta'limiy yo'nalishi doirasida tayyorlangan.": 'was built as part of an educational initiative.',
-  "Amaliy Fizika — fizikani quruq formulalar emas, balki jonli tajribalar orqali o'rgatishga qaratilgan platforma. Maqsad: o'quvchida hayrat uyg'otish, hodisani o'z ko'zi bilan ko'rsatish va “nega bunday bo'ldi?” degan savolni tug'dirish.":
-    "Amaliy Fizika is a platform focused not on dry formulas, but on teaching physics through live experiments. The goal: to spark a student's sense of wonder, show them a phenomenon with their own eyes, and raise the question “why did that happen?”",
-  "Muhandis_D uchun ishlab chiqilgan zamonaviy fizika laboratoriyasi. 7–9-sinflar uchun amaliy tajribalar, WOW-namoyishlar va o'yinli mashg'ulotlar — barchasi bitta interaktiv platformada. Fizikani ko'rsatib, his qildirib o'rgatish uchun.":
-    "A modern physics lab built for Muhandis_D. Hands-on experiments, WOW demonstrations, and playful activities for grades 7–9 — all in one interactive platform. To teach physics by showing it and making it felt.",
+  "STEM LMS — fan-texnikani quruq formulalar emas, balki jonli tajribalar orqali o'rgatishga qaratilgan platforma. Maqsad: o'quvchida hayrat uyg'otish, hodisani o'z ko'zi bilan ko'rsatish va “nega bunday bo'ldi?” degan savolni tug'dirish.":
+    "STEM LMS is a platform focused not on dry formulas, but on teaching science and technology through live experiments. The goal: to spark a student's sense of wonder, show them a phenomenon with their own eyes, and raise the question “why did that happen?”",
+  "Muhandis_D uchun ishlab chiqilgan zamonaviy STEM ta'lim platformasi. 7–9-sinflar uchun amaliy tajribalar, WOW-namoyishlar va o'yinli mashg'ulotlar — barchasi bitta interaktiv platformada. Fan-texnikani ko'rsatib, his qildirib o'rgatish uchun.":
+    "A modern STEM learning platform built for Muhandis_D. Hands-on experiments, WOW demonstrations, and playful activities for grades 7–9 — all in one interactive platform. To teach science and technology by showing it and making it felt.",
   'Rejimni almashtirish': 'Toggle mode', 'Rejim': 'Mode',
   'Bildirishnomalar': 'Notifications', "O'qilgan": 'Mark read',
   'Profil': 'Profile', "Ilovani o'rnatish": 'Install app',

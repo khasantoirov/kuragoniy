@@ -27,8 +27,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
       },
       manifest: {
-        name: 'Amaliy Fizika · Muhandis_D laboratoriyasi',
-        short_name: 'Amaliy Fizika',
+        name: 'STEM LMS · Muhandis_D laboratoriyasi',
+        short_name: 'STEM LMS',
         lang: 'uz',
         display: 'standalone',
         orientation: 'portrait-primary',

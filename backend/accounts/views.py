@@ -130,7 +130,7 @@ class TwoFactorSetupView(generics.GenericAPIView):
         user.totp_secret = secret
         user.totp_enabled = False
         user.save(update_fields=['totp_secret', 'totp_enabled'])
-        uri = pyotp.TOTP(secret).provisioning_uri(name=user.email, issuer_name="Amaliy Fizika")
+        uri = pyotp.TOTP(secret).provisioning_uri(name=user.email, issuer_name="STEM LMS")
         return Response({'secret': secret, 'otpauth_url': uri})
 
 
