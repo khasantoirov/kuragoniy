@@ -1,0 +1,42 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${{ secrets.DEPLOY_PORT || '22' }}" -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy over SSH
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT || '22' }}" \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" 'bash -s' <<'EOF'
+          set -euo pipefail
+          cd /opt/stem-lms
+          git pull --ff-only
+          cd backend
+          ./venv/bin/pip install -r requirements.txt
+          ./venv/bin/python manage.py migrate --noinput
+          ./venv/bin/python manage.py collectstatic --noinput
+          cd ../frontend
+          npm ci
+          npm run build
+          sudo systemctl restart stemlms-backend stemlms-bot
+          EOF
+
+      - name: Clean up key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

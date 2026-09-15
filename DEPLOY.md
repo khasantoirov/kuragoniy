@@ -86,3 +86,40 @@ cd /opt/stem-lms/backend && ./venv/bin/python manage.py backup_db
 sudo journalctl -u stemlms-backend -f
 sudo journalctl -u stemlms-bot -f
 ```
+
+### 8. Avtomatik deploy (GitHub Actions)
+
+`main`'ga har push'da `.github/workflows/deploy.yml` serverga SSH orqali ulanib
+"6. Yangilash" qadamlarini bajaradi. Bir martalik sozlash:
+
+**Serverda:**
+
+```bash
+# Deploy uchun alohida foydalanuvchi (yoki mavjudini ishlating)
+sudo adduser --disabled-password deploy
+sudo usermod -aG www-data deploy
+sudo chmod -R g+w /opt/stem-lms   # deploy foydalanuvchisi yoza olishi uchun
+
+# SSH kalit juftligi (local mashinada yarating, private qismini GitHub Secrets'ga qo'shasiz)
+ssh-keygen -t ed25519 -C "github-actions-deploy" -f deploy_key -N ""
+# deploy_key.pub ni serverda:
+sudo -u deploy mkdir -p /home/deploy/.ssh
+echo "<deploy_key.pub mazmuni>" | sudo -u deploy tee -a /home/deploy/.ssh/authorized_keys
+sudo chmod 700 /home/deploy/.ssh && sudo chmod 600 /home/deploy/.ssh/authorized_keys
+
+# systemctl restart uchun parolsiz sudo (faqat shu ikki xizmatga)
+echo 'deploy ALL=(root) NOPASSWD: /bin/systemctl restart stemlms-backend, /bin/systemctl restart stemlms-bot' | sudo tee /etc/sudoers.d/deploy-restart
+sudo visudo -c   # sintaksisni tekshirish
+```
+
+**GitHub repo sozlamalarida** (Settings → Secrets and variables → Actions → New repository secret):
+
+| Secret | Qiymat |
+|---|---|
+| `DEPLOY_HOST` | server IP yoki domen (masalan `kuragoniy.uz`) |
+| `DEPLOY_USER` | `deploy` |
+| `DEPLOY_SSH_KEY` | `deploy_key` faylining **to'liq mazmuni** (private key) |
+| `DEPLOY_PORT` | SSH porti (ixtiyoriy, standart `22`) |
+
+Sozlangandan so'ng `main`'ga push qilinganda deploy avtomatik ishga tushadi;
+qo'lda ishga tushirish uchun GitHub → Actions → Deploy → "Run workflow".
