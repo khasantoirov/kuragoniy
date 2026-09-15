@@ -1,5 +1,5 @@
 [Unit]
-Description=STEM LMS — daily SQLite backup
+Description=KO'RAGONIY EDU — daily SQLite backup
 
 [Service]
 Type=oneshot

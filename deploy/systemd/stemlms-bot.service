@@ -1,5 +1,5 @@
 [Unit]
-Description=STEM LMS — Telegram bot
+Description=KO'RAGONIY EDU — Telegram bot (kuragoniybot)
 After=network.target redis-server.service stemlms-backend.service
 Wants=redis-server.service
 

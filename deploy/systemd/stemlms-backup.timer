@@ -1,5 +1,5 @@
 [Unit]
-Description=Run STEM LMS SQLite backup daily at 03:00
+Description=Run KO'RAGONIY EDU SQLite backup daily at 03:00
 
 [Timer]
 OnCalendar=*-*-* 03:00:00
