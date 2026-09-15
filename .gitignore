@@ -1,0 +1,27 @@
+# Maxfiy muhit fayllari — hech qachon commit qilinmasin
+.env
+*.env
+!*.env.example
+firebase-service-account.json
+backend/firebase-service-account.json
+
+# Node
+node_modules/
+
+# Python / Django backend
+backend/venv/
+backend/db.sqlite3
+backend/db.sqlite3-*
+backend/media/
+backend/staticfiles/
+backend/backups/
+__pycache__/
+*.pyc
+
+# React frontend
+frontend/node_modules/
+frontend/dist/
+
+# OS/editor
+.DS_Store
+Thumbs.db

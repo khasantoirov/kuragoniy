@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-heading: 'IBM Plex Sans Condensed', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --color-bg: #f7f8fa;
+  --color-surface: #ffffff;
+  --color-surface-2: #eef1f5;
+  --color-border: #dde1e7;
+  --color-ink: #12212e;
+  --color-ink-muted: #5b6774;
+  --color-accent: #1f6feb;
+  --color-accent-ink: #ffffff;
+  --color-ok: #1a8a4a;
+  --color-warn: #b8860b;
+  --color-danger: #d0342c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --color-bg: #0d1620;
+    --color-surface: #12212e;
+    --color-surface-2: #182c3c;
+    --color-border: #22384a;
+    --color-ink: #eef3f8;
+    --color-ink-muted: #9db0c0;
+    --color-accent: #4d9bff;
+    --color-accent-ink: #06131d;
+    --color-ok: #35c17a;
+    --color-warn: #e0b23d;
+    --color-danger: #ff6b61;
+  }
+}
+
+:root[data-theme='dark'] {
+  --color-bg: #0d1620;
+  --color-surface: #12212e;
+  --color-surface-2: #182c3c;
+  --color-border: #22384a;
+  --color-ink: #eef3f8;
+  --color-ink-muted: #9db0c0;
+  --color-accent: #4d9bff;
+  --color-accent-ink: #06131d;
+  --color-ok: #35c17a;
+  --color-warn: #e0b23d;
+  --color-danger: #ff6b61;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+#root {
+  min-height: 100svh;
+}

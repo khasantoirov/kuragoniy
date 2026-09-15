@@ -1,0 +1,11 @@
+[Unit]
+Description=Amaliy Fizika — daily SQLite backup
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/amaliy-fizika/backend
+EnvironmentFile=/opt/amaliy-fizika/backend/.env
+Environment=DJANGO_SETTINGS_MODULE=config.settings.prod
+ExecStart=/opt/amaliy-fizika/backend/venv/bin/python manage.py backup_db
