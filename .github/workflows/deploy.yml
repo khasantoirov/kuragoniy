@@ -34,7 +34,8 @@ jobs:
           cd ../frontend
           npm ci
           npm run build
-          sudo systemctl restart stemlms-backend stemlms-bot
+          sudo systemctl restart stemlms-backend
+          sudo systemctl restart stemlms-bot
           EOF
 
       - name: Clean up key
