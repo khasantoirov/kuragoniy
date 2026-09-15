@@ -64,7 +64,7 @@ self.addEventListener('push', (event) => {
     data = { body: event.data?.text() }
   }
 
-  const title = data.title || 'STEM LMS'
+  const title = data.title || "KO'RAGONIY EDU"
   event.waitUntil(
     self.registration.showNotification(title, {
       body: data.body || '',

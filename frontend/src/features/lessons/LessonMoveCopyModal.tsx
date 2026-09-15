@@ -4,10 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/Modal'
 import { useUIStore } from '@/store/uiStore'
 
-import { gradeLabel, quarterLabel } from './labels'
+import { GRADES, type Grade, gradeLabel, quarterLabel } from './labels'
 import type { Lesson } from './types'
 
-const GRADES = [7, 8, 9]
 const CHORAKS = [1, 2, 3, 4]
 
 export function LessonMoveCopyModal({
@@ -19,13 +18,13 @@ export function LessonMoveCopyModal({
   lesson: Lesson
   mode: 'move' | 'copy'
   onClose: () => void
-  onConfirm: (grade: number, chorak: number) => Promise<void>
+  onConfirm: (grade: Grade, chorak: number) => Promise<void>
 }) {
   const { t } = useTranslation()
   const { lang } = useUIStore()
   const isMove = mode === 'move'
 
-  const [grade, setGrade] = useState<number>(lesson.grade)
+  const [grade, setGrade] = useState<Grade>(lesson.grade)
   const [chorak, setChorak] = useState<number>(lesson.chorak)
   const [saving, setSaving] = useState(false)
 
@@ -60,7 +59,7 @@ export function LessonMoveCopyModal({
       <div className="row row--2">
         <label className="field">
           <span className="field__label">{t('Sinf')}</span>
-          <select className="input" value={grade} onChange={(e) => setGrade(Number(e.target.value))}>
+          <select className="input" value={grade} onChange={(e) => setGrade(e.target.value as Grade)}>
             {GRADES.map((g) => (
               <option key={g} value={g}>{gradeLabel(g, lang)}</option>
             ))}

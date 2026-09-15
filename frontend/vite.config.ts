@@ -27,8 +27,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
       },
       manifest: {
-        name: 'STEM LMS · Muhandis_D laboratoriyasi',
-        short_name: 'STEM LMS',
+        name: "KO'RAGONIY EDU · Muhandis_D laboratoriyasi",
+        short_name: "KO'RAGONIY EDU",
         lang: 'uz',
         display: 'standalone',
         orientation: 'portrait-primary',

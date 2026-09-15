@@ -7,7 +7,7 @@ import { isAnyModalOpen } from '@/components/Modal'
 import { RoleBadge } from '@/components/RoleBadge'
 import { useToast } from '@/components/Toast'
 import { AnnouncementsBell } from '@/features/announcements/AnnouncementsBell'
-import { gradeLabel } from '@/features/lessons/labels'
+import { GRADES, gradeLabel } from '@/features/lessons/labels'
 import { IC, themeIconMoon, themeIconSun } from '@/icons'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { setupEnterKeyNav } from '@/lib/enterKeyNav'
@@ -22,10 +22,8 @@ const NAV_ITEMS: { to: string; label: string; icon: keyof typeof IC; adminOnly?:
   { to: '/journal', label: 'Jurnal', icon: 'clipboard' },
   { to: '/timetable', label: 'Jadval', icon: 'calendar' },
   { to: '/library', label: 'Kutubxona', icon: 'book' },
-  { to: '/lab', label: 'Laboratoriya', icon: 'flask' },
   { to: '/about', label: 'Platforma haqida', icon: 'info' },
   { to: '/admin', label: 'Boshqaruv', icon: 'settings', adminOnly: true },
-  { to: '/poster', label: 'Dars rasmi', icon: 'image', adminOnly: true },
 ]
 
 export function AppShell() {
@@ -125,9 +123,9 @@ export function AppShell() {
       <header className="topbar" ref={topbarRef}>
         <div className="topbar__inner">
           <Link className="brand" to="/" onClick={closeAll}>
-            <img className="brand__logo" src="/logo.png" alt="STEM LMS" width={48} height={48} />
+            <img className="brand__logo" src="/logo.png" alt="KO'RAGONIY EDU" width={48} height={48} />
             <span className="brand__text">
-              <span className="brand__name">STEM LMS</span>
+              <span className="brand__name">KO'RAGONIY EDU</span>
               <img className="brand__sig brand__sig--day" src="/sign-day.png" alt="Muhandis D" height={14} />
               <img className="brand__sig brand__sig--night" src="/sign-night.png" alt="Muhandis D" height={14} />
             </span>
@@ -185,7 +183,7 @@ export function AppShell() {
       <div className="shell">
         {onLessons && (
           <div className="grades">
-            {[7, 8, 9].map((g) => (
+            {GRADES.map((g) => (
               <button
                 key={g}
                 className={`grade ${g === grade ? 'is-on' : ''}`}

@@ -23,7 +23,7 @@ const PREVIEW_LABELS: [keyof typeof IC, string][] = [
   ['atom', 'Darslar'],
   ['clipboard', 'Jurnal'],
   ['calendar', 'Jadval'],
-  ['flask', 'Laboratoriya'],
+  ['book', 'Kutubxona'],
 ]
 
 export function SettingsPage() {

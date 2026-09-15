@@ -1,14 +1,13 @@
-import type { Experiment, ExperimentType, LessonCategory } from '@/features/lessons/types'
+import { GRADES, type Grade } from '@/features/lessons/labels'
+import type { Experiment, ExperimentType } from '@/features/lessons/types'
 
-const CAT_OK: LessonCategory[] = ['mexanika', 'termodinamika', 'elektr', 'optika', 'boshqa']
 const EXP_TYPE_OK: ExperimentType[] = ['oddiy', 'wow', 'oyin']
 
 export interface ImportLessonRow {
   title: string
-  grade: 7 | 8 | 9
+  grade: Grade
   chorak: 1 | 2 | 3 | 4
   hafta: number
-  cat: LessonCategory
   goal: string
   experiments: Omit<Experiment, 'id'>[]
 }
@@ -54,10 +53,9 @@ export function parseLessonsImport(text: string): ImportLessonRow[] {
   return (arr as Record<string, unknown>[])
     .map((l) => ({
       title: String(l.title ?? '').trim(),
-      grade: ([7, 8, 9].includes(Number(l.grade)) ? Number(l.grade) : 7) as 7 | 8 | 9,
+      grade: (GRADES.includes(l.grade as Grade) ? (l.grade as Grade) : GRADES[0]),
       chorak: ([1, 2, 3, 4].includes(Number(l.chorak)) ? Number(l.chorak) : 1) as 1 | 2 | 3 | 4,
       hafta: Number(l.hafta) || 1,
-      cat: CAT_OK.includes(l.cat as LessonCategory) ? (l.cat as LessonCategory) : 'boshqa',
       goal: String(l.goal ?? l.maqsad ?? '').trim(),
       experiments: (Array.isArray(l.experiments) ? l.experiments : []).map((e, i) => normalizeExp(e, i)),
     }))
@@ -103,7 +101,7 @@ export function parseTranslationsImport(text: string): TranslationRow[] {
 }
 
 export const lessonsByGrade = (rows: ImportLessonRow[]) => {
-  const byGrade: Record<number, number> = {}
+  const byGrade: Record<string, number> = {}
   rows.forEach((l) => {
     byGrade[l.grade] = (byGrade[l.grade] || 0) + 1
   })

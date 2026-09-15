@@ -13,37 +13,37 @@ pytestmark = pytest.mark.django_db
 
 
 def make_lesson(grade, chorak, hafta, title="Dars", with_experiment=True):
-    lesson = Lesson.objects.create(title=title, grade=grade, chorak=chorak, hafta=hafta, cat="mexanika")
+    lesson = Lesson.objects.create(title=title, grade=grade, chorak=chorak, hafta=hafta)
     if with_experiment:
         Experiment.objects.create(lesson=lesson, order=0, name="Tajriba", type="oddiy", desc="d")
     return lesson
 
 
 def test_teacher_cannot_move_copy(as_user, teacher):
-    lesson = make_lesson(8, 1, 1)
+    lesson = make_lesson("7-8", 1, 1)
     resp = as_user(teacher).post(
-        f"/api/lessons/{lesson.id}/move-copy/", {"mode": "copy", "grade": 9, "chorak": 1}, format="json"
+        f"/api/lessons/{lesson.id}/move-copy/", {"mode": "copy", "grade": "9", "chorak": 1}, format="json"
     )
     assert resp.status_code == 403
 
 
 def test_copy_duplicates_lesson_and_experiments_leaving_original(as_user, admin):
-    source = make_lesson(8, 1, 1, title="Kulon kuchi")
-    make_lesson(9, 1, 1, title="9-sinf boshqa dars")  # occupies (9, 1) hafta=1 already
+    source = make_lesson("7-8", 1, 1, title="Kulon kuchi")
+    make_lesson("9", 1, 1, title="9-sinf boshqa dars")  # occupies (9, 1) hafta=1 already
 
     resp = as_user(admin).post(
-        f"/api/lessons/{source.id}/move-copy/", {"mode": "copy", "grade": 9, "chorak": 1}, format="json"
+        f"/api/lessons/{source.id}/move-copy/", {"mode": "copy", "grade": "9", "chorak": 1}, format="json"
     )
     assert resp.status_code == 200
     new_id = resp.data["id"]
     assert new_id != source.id
 
     source.refresh_from_db()
-    assert source.grade == 8  # untouched by copy
-    assert Lesson.objects.filter(grade=8).count() == 1
+    assert source.grade == "7-8"  # untouched by copy
+    assert Lesson.objects.filter(grade="7-8").count() == 1
 
     copy = Lesson.objects.get(id=new_id)
-    assert copy.grade == 9 and copy.chorak == 1
+    assert copy.grade == "9" and copy.chorak == 1
     assert copy.title == "Kulon kuchi"
     assert copy.hafta == 2  # appended after the existing grade-9 lesson
     assert copy.experiments.count() == 1
@@ -53,48 +53,48 @@ def test_copy_duplicates_lesson_and_experiments_leaving_original(as_user, admin)
 
 
 def test_move_relocates_and_renumbers_both_grades(as_user, admin):
-    source = make_lesson(8, 1, 1, title="Ko'chiriladigan dars")
-    make_lesson(8, 1, 2, title="Grade8 qoladigan dars")
-    make_lesson(9, 2, 1, title="Grade9 mavjud dars")
+    source = make_lesson("7-8", 1, 1, title="Ko'chiriladigan dars")
+    make_lesson("7-8", 1, 2, title="Grade7-8 qoladigan dars")
+    make_lesson("9", 2, 1, title="Grade9 mavjud dars")
 
     resp = as_user(admin).post(
-        f"/api/lessons/{source.id}/move-copy/", {"mode": "move", "grade": 9, "chorak": 2}, format="json"
+        f"/api/lessons/{source.id}/move-copy/", {"mode": "move", "grade": "9", "chorak": 2}, format="json"
     )
     assert resp.status_code == 200
     assert resp.data["id"] == source.id
-    assert resp.data["grade"] == 9
+    assert resp.data["grade"] == "9"
     assert resp.data["chorak"] == 2
 
-    # only one lesson left in grade 8, renumbered to close the gap
-    grade8 = list(Lesson.objects.filter(grade=8).order_by("hafta"))
-    assert len(grade8) == 1
-    assert grade8[0].hafta == 1
+    # only one lesson left in grade 7-8, renumbered to close the gap
+    grade78 = list(Lesson.objects.filter(grade="7-8").order_by("hafta"))
+    assert len(grade78) == 1
+    assert grade78[0].hafta == 1
 
     # grade 9 now has both lessons, appended after the existing one
-    grade9 = list(Lesson.objects.filter(grade=9).order_by("hafta"))
+    grade9 = list(Lesson.objects.filter(grade="9").order_by("hafta"))
     assert [l.hafta for l in grade9] == [1, 2]
     assert grade9[1].id == source.id
 
 
 def test_move_within_same_grade_changes_only_chorak(as_user, admin):
-    source = make_lesson(8, 1, 1)
-    make_lesson(8, 2, 2)
+    source = make_lesson("7-8", 1, 1)
+    make_lesson("7-8", 2, 2)
 
     resp = as_user(admin).post(
-        f"/api/lessons/{source.id}/move-copy/", {"mode": "move", "grade": 8, "chorak": 2}, format="json"
+        f"/api/lessons/{source.id}/move-copy/", {"mode": "move", "grade": "7-8", "chorak": 2}, format="json"
     )
     assert resp.status_code == 200
-    assert Lesson.objects.filter(grade=8).count() == 2
+    assert Lesson.objects.filter(grade="7-8").count() == 2
     source.refresh_from_db()
     assert source.chorak == 2
 
 
 @pytest.mark.parametrize("payload", [
-    {"mode": "bogus", "grade": 8, "chorak": 1},
-    {"mode": "copy", "grade": 6, "chorak": 1},
-    {"mode": "copy", "grade": 8, "chorak": 5},
+    {"mode": "bogus", "grade": "7-8", "chorak": 1},
+    {"mode": "copy", "grade": "6", "chorak": 1},
+    {"mode": "copy", "grade": "7-8", "chorak": 5},
 ])
 def test_move_copy_rejects_invalid_input(as_user, admin, payload):
-    lesson = make_lesson(8, 1, 1)
+    lesson = make_lesson("7-8", 1, 1)
     resp = as_user(admin).post(f"/api/lessons/{lesson.id}/move-copy/", payload, format="json")
     assert resp.status_code == 400

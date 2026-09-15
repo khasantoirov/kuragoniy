@@ -2,7 +2,7 @@ import os
 
 from rest_framework import serializers
 
-from .models import Experiment, Lesson, LessonPoster, QuarterLock
+from .models import Experiment, Lesson, QuarterLock
 
 
 class ExperimentSerializer(serializers.ModelSerializer):
@@ -30,13 +30,6 @@ class QuarterLockSerializer(serializers.ModelSerializer):
         fields = ['chorak', 'is_open']
 
 
-class LessonPosterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = LessonPoster
-        fields = ['id', 'grade', 'hafta', 'topic', 'image', 'created_at']
-        read_only_fields = ['id', 'created_at']
-
-
 class LessonSerializer(serializers.ModelSerializer):
     experiments = ExperimentSerializer(many=True, required=False)
     file_name = serializers.SerializerMethodField()
@@ -46,8 +39,8 @@ class LessonSerializer(serializers.ModelSerializer):
         model = Lesson
         fields = [
             'id', 'title', 'title_ru', 'title_en', 'grade', 'chorak', 'hafta',
-            'cat', 'goal', 'goal_ru', 'goal_en', 'file_url', 'file', 'file_name',
-            'file_size', 'sim_id', 'updated_at', 'translated_at', 'experiments',
+            'goal', 'goal_ru', 'goal_en', 'file_url', 'file', 'file_name',
+            'file_size', 'updated_at', 'translated_at', 'experiments',
         ]
         # `file` is written only via LessonViewSet.upload_file (a dedicated
         # multipart action) — see the model field's comment for why it

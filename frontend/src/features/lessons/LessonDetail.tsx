@@ -2,7 +2,7 @@ import { closestCenter, DndContext, type DragEndEvent, KeyboardSensor, PointerSe
 import { rectSortingStrategy, SortableContext, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useNavigate, useParams } from 'react-router-dom'
 
 import { useConfirm } from '@/components/ConfirmProvider'
 import { Skeleton } from '@/components/Skeleton'
@@ -16,13 +16,14 @@ import { useUIStore } from '@/store/uiStore'
 import { useDeleteLesson, useLesson, useMoveCopyLesson, useRemoveLessonFile, useSaveLesson } from './api'
 import { ExperimentCard } from './ExperimentCard'
 import { ExperimentEditor } from './ExperimentEditor'
+import type { Grade } from './labels'
 import { quarterLabel, weekLabel } from './labels'
 import { LessonDocCard } from './LessonDocCard'
 import { LessonEditor } from './LessonEditor'
 import { LessonFileModal } from './LessonFileModal'
 import { LessonMoveCopyModal } from './LessonMoveCopyModal'
 import { MoveCopyExperimentModal } from './MoveCopyExperimentModal'
-import { CATEGORY_LABELS, type Experiment, type Lesson } from './types'
+import type { Experiment, Lesson } from './types'
 
 export function LessonDetail() {
   const { t } = useTranslation()
@@ -141,7 +142,7 @@ export function LessonDetail() {
     }
   }
 
-  const onMoveCopyLesson = async (grade: number, chorak: number) => {
+  const onMoveCopyLesson = async (grade: Grade, chorak: number) => {
     if (!movingLesson) return
     const mode = movingLesson
     const isMove = mode === 'move'
@@ -178,7 +179,7 @@ export function LessonDetail() {
     // Undo recreates the lesson under a fresh id (REST create can't reuse
     // the deleted one), so redo must delete THAT new id, not the original.
     let currentId = lesson.id
-    const snapshot = { title: lesson.title, grade: lesson.grade, chorak: lesson.chorak, hafta: lesson.hafta, cat: lesson.cat, goal: lesson.goal, file_url: lesson.file_url, experiments: lesson.experiments }
+    const snapshot = { title: lesson.title, grade: lesson.grade, chorak: lesson.chorak, hafta: lesson.hafta, goal: lesson.goal, file_url: lesson.file_url, experiments: lesson.experiments }
     record(
       t("O'chirildi"),
       async () => { const r = await save.mutateAsync(snapshot); currentId = r.id },
@@ -196,18 +197,12 @@ export function LessonDetail() {
 
       <header className="lhead">
         <div className="lhead__meta">
-          <span className="tag">{t(CATEGORY_LABELS[lesson.cat])}</span>
           <span className="lhead__q">{quarterLabel(lesson.chorak, lang)}</span>
           {lesson.hafta ? <span className="lhead__q">{weekLabel(lesson.hafta, lang)}</span> : null}
         </div>
         <h2 className="lhead__title">{lesson.title}</h2>
         {lesson.goal && <p className="lhead__goal">{lesson.goal}</p>}
         <div className="lhead__tools">
-          {lesson.sim_id && (
-            <Link className="btn btn--sm" to={`/lab/${lesson.sim_id}`}>
-              {IC.flask} {t('Simulyatsiya')}
-            </Link>
-          )}
           {admin && (
             <>
               <button className="btn btn--sm" onClick={() => setEditingLesson(true)}>

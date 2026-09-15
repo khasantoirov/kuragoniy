@@ -8,12 +8,13 @@ import { record } from '@/lib/history'
 import { useUIStore } from '@/store/uiStore'
 
 import { useDeleteLesson, useSaveLesson, useUploadLessonFile } from './api'
+import type { Grade } from './labels'
 import { quarterLabel } from './labels'
 import { LessonFileField, useLessonFileField } from './LessonFileField'
-import { CATEGORY_LABELS, type Lesson, type LessonCategory } from './types'
+import type { Lesson } from './types'
 
-function emptyLesson(grade: number, chorak: number): Partial<Lesson> {
-  return { title: '', grade: grade as Lesson['grade'], chorak: chorak as Lesson['chorak'], hafta: 1, cat: 'boshqa', goal: '', file_url: '', experiments: [] }
+function emptyLesson(grade: Grade, chorak: number): Partial<Lesson> {
+  return { title: '', grade, chorak: chorak as Lesson['chorak'], hafta: 1, goal: '', file_url: '', experiments: [] }
 }
 
 export function LessonEditor({
@@ -96,14 +97,6 @@ export function LessonEditor({
         <label className="field">
           <span className="field__label">{t('Hafta')}</span>
           <input className="input" type="number" min={1} max={99} value={draft.hafta ?? ''} onChange={(e) => setDraft({ ...draft, hafta: Number(e.target.value) })} />
-        </label>
-        <label className="field">
-          <span className="field__label">{t("Bo'lim")}</span>
-          <select className="input" value={draft.cat} onChange={(e) => setDraft({ ...draft, cat: e.target.value as LessonCategory })}>
-            {(Object.keys(CATEGORY_LABELS) as LessonCategory[]).map((c) => (
-              <option key={c} value={c}>{t(CATEGORY_LABELS[c])}</option>
-            ))}
-          </select>
         </label>
       </div>
       <label className="field">

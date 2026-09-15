@@ -1,13 +1,13 @@
-# STEM LMS · Muhandis_D laboratoriyasi
+# KO'RAGONIY EDU · Muhandis_D laboratoriyasi
 
 STEM (fan, texnika, muhandislik, matematika) o'qituvchilari uchun dars, jurnal, jadval
 va o'quv platformasi — Amaliy-Fizika-V2'dan fork qilingan.
 
 Django + DRF + Channels backend va React + TypeScript frontend, VPS'da systemd orqali
-joylashtiriladi (`stemlms.uz` — haqiqiy domeningizga almashtiring). `src/features/lab/`
-hozircha asl loyihadan meros bo'lib qolgan fizika simulyatsiyalarini saqlaydi — STEM'ga
-mos kontent (robototexnika, elektronika va h.k.) bilan almashtirish yoki olib tashlash
-hali qaror qilinmagan.
+joylashtiriladi (`kuragoniy.uz` — haqiqiy domeningizga almashtiring). Darslar sinf
+guruhlari bo'yicha tashkil etiladi (1-2, 3-4, 5-6, 7-8, 9-sinf) va har biriga turli
+modullardan (robototexnika, lego, elektronika va h.k.) dars o'tiladi — qat'iy modul
+ro'yxati yo'q, har bir dars erkin mavzu bilan qo'shiladi.
 
 ## Tuzilishi
 

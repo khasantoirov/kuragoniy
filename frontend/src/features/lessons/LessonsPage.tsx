@@ -32,7 +32,7 @@ import { useLessons, useQuarterLocks, useReorderLesson, useSetQuarterLock } from
 import { ExperimentRow } from './ExperimentRow'
 import { LessonEditor } from './LessonEditor'
 import { gradeLabel, quarterLabel, weekLabel } from './labels'
-import { CATEGORY_LABELS, type Lesson, type LessonCategory } from './types'
+import type { Lesson } from './types'
 
 type ViewMode = 'grid' | 'list'
 
@@ -52,31 +52,21 @@ export function LessonsPage() {
   const reorder = useReorderLesson()
 
   const [query, setQuery] = useState('')
-  const [catFilter, setCatFilter] = useState<LessonCategory | null>(null)
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [viewMenuOpen, setViewMenuOpen] = useState(false)
   const [creatingForQuarter, setCreatingForQuarter] = useState<number | null>(null)
 
-  const counts = useMemo(() => {
-    const c: Record<string, number> = {}
-    data?.forEach((l) => { c[l.cat] = (c[l.cat] ?? 0) + 1 })
-    return c
-  }, [data])
-
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return (data ?? []).filter((l) => {
-      if (catFilter && l.cat !== catFilter) return false
-      if (!q) return true
-      return (
-        l.title.toLowerCase().includes(q) ||
-        l.goal.toLowerCase().includes(q) ||
-        l.experiments.some((e) => e.name.toLowerCase().includes(q) || e.desc.toLowerCase().includes(q))
-      )
-    })
-  }, [data, query, catFilter])
+    if (!q) return data ?? []
+    return (data ?? []).filter((l) =>
+      l.title.toLowerCase().includes(q) ||
+      l.goal.toLowerCase().includes(q) ||
+      l.experiments.some((e) => e.name.toLowerCase().includes(q) || e.desc.toLowerCase().includes(q)),
+    )
+  }, [data, query])
 
-  const searching = !!(query.trim() || catFilter)
+  const searching = !!query.trim()
   const canDrag = admin && !searching
 
   const sensors = useSensors(
@@ -121,11 +111,16 @@ export function LessonsPage() {
 
   if (!data?.length) {
     return (
-      <EmptyState
-        title={`${gradeLabel(grade, lang)} — ${t("hali dars yo'q")}`}
-        hint={admin ? t("Birinchi darsni qo'shing.") : t("Administrator darslarni qo'shgach shu yerda ko'rinadi.")}
-        action={admin ? <button className="btn btn--primary" onClick={() => setCreatingForQuarter(1)}>{t("Dars qo'shish")}</button> : undefined}
-      />
+      <>
+        <EmptyState
+          title={`${gradeLabel(grade, lang)} — ${t("hali dars yo'q")}`}
+          hint={admin ? t("Birinchi darsni qo'shing.") : t("Administrator darslarni qo'shgach shu yerda ko'rinadi.")}
+          action={admin ? <button className="btn btn--primary" onClick={() => setCreatingForQuarter(1)}>{t("Dars qo'shish")}</button> : undefined}
+        />
+        {creatingForQuarter !== null && (
+          <LessonEditor lesson={null} presetChorak={creatingForQuarter} onClose={() => setCreatingForQuarter(null)} />
+        )}
+      </>
     )
   }
 
@@ -148,16 +143,6 @@ export function LessonsPage() {
           )}
         </div>
         <div className="chips chips--cat">
-          <button className={`chip ${!catFilter ? 'is-on' : ''}`} onClick={() => setCatFilter(null)}>
-            {t('Hammasi')}
-          </button>
-          {(Object.keys(CATEGORY_LABELS) as LessonCategory[])
-            .filter((c) => counts[c])
-            .map((c) => (
-              <button key={c} className={`chip ${catFilter === c ? 'is-on' : ''}`} onClick={() => setCatFilter(c)}>
-                {t(CATEGORY_LABELS[c])} <span className="chip__n">{counts[c]}</span>
-              </button>
-            ))}
           <div className="viewpick">
             <button className="btn btn--sm viewpick__btn" onClick={() => setViewMenuOpen((v) => !v)}>
               {viewMode === 'list' ? IC.list : IC.grid}
@@ -334,7 +319,6 @@ function LessonCard({ lesson, onOpen, canDrag = false }: { lesson: Lesson; onOpe
           </button>
         )}
         <span className="card__week">{lesson.hafta ? weekLabel(lesson.hafta, lang) : ''}</span>
-        <span className="tag">{t(CATEGORY_LABELS[lesson.cat])}</span>
       </div>
       <h4 className="card__title">
         {lesson.title}
@@ -387,7 +371,6 @@ function LessonRow({ lesson, onOpen, canDrag = false }: { lesson: Lesson; onOpen
         {lesson.file_url && <span className="lrow__file" title={t('Dars fayli biriktirilgan')}>{IC.file}</span>}
       </h4>
       <span className="lrow__x">{lesson.experiments.length} {t('ta tajriba')}</span>
-      <span className="tag">{t(CATEGORY_LABELS[lesson.cat])}</span>
     </article>
   )
 }

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
+import type { Grade } from '@/features/lessons/labels'
 import type { Lesson } from '@/features/lessons/types'
 import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
@@ -12,7 +13,7 @@ import type { ImportLessonRow, TranslationRow } from './importLessons'
 export async function runLessonsImport(
   rows: ImportLessonRow[],
   mode: 'add' | 'replace',
-  grades: number[],
+  grades: Grade[],
   onProgress?: (msg: string) => void,
 ) {
   if (mode === 'replace') {

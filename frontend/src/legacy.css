@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════
-   STEM LMS — Muhandis_D
+   KO'RAGONIY EDU — Muhandis_D
    Ko'rinish: texnik chizma (blueprint). Oq qog'oz, siyoh, o'lchov chiziqlari.
    ══════════════════════════════════════════════════════════ */
 
@@ -44,11 +44,6 @@ body {
   line-height: 1.55;
   color: var(--ink);
   background: var(--paper);
-  /* nozik chizma to'ri */
-  background-image:
-    linear-gradient(var(--rule-2) 1px, transparent 1px),
-    linear-gradient(90deg, var(--rule-2) 1px, transparent 1px);
-  background-size: 28px 28px;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -335,11 +330,6 @@ textarea.input { resize: vertical; }
   --solid:   #23364B;
   --on-solid:#EAF2FA;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.28);
-}
-[data-theme="dark"] body {
-  background-image:
-    linear-gradient(var(--rule-2) 1px, transparent 1px),
-    linear-gradient(90deg, var(--rule-2) 1px, transparent 1px);
 }
 [data-theme="dark"] [data-theme="dark"] .gate__mark { background: #0A121B; }
 [data-theme="dark"] .brand__sig { filter: none; opacity: 1; }
@@ -1500,95 +1490,6 @@ img.pf__av   { width: 72px; height: 72px; max-width: 72px; max-height: 72px; bor
 .tt__day, .tt__who { background: var(--paper); }
 .tt tbody tr:hover .tt__who { color: var(--ink); }
 
-/* ══ Animatsion orqa fon ══════════════════════════════════ */
-:root {
-  --bg-star: 90,125,175;
-  --bg-form: 30,70,130;
-}
-[data-theme="dark"] {
-  --bg-star: 150,185,230;
-  --bg-form: 150,190,240;
-}
-
-#bg {
-  position: fixed; inset: 0; z-index: -1;
-  overflow: hidden; pointer-events: none;
-  background:
-    radial-gradient(1100px 620px at 78% -8%,  rgba(120,175,255,.28), transparent 62%),
-    radial-gradient(900px  560px at 8%  102%, rgba(150,200,255,.22), transparent 60%),
-    linear-gradient(170deg, #EEF5FC 0%, #E3EEFA 48%, #F4F8FC 100%);
-}
-[data-theme="dark"] #bg {
-  background:
-    radial-gradient(1100px 620px at 78% -8%,  rgba(40,90,170,.42), transparent 62%),
-    radial-gradient(900px  560px at 8%  102%, rgba(25,60,120,.40), transparent 60%),
-    linear-gradient(170deg, #070E18 0%, #0B1626 45%, #0A1421 100%);
-}
-
-#bg-stars { position: absolute; inset: 0; display: block; }
-
-/* Formulalar */
-.bg-forms { position: absolute; inset: 0; }
-.bg-f {
-  position: absolute;
-  font-family: var(--f-mono);
-  color: rgba(var(--bg-form), .16);
-  white-space: nowrap; user-select: none;
-  animation: drift linear infinite;
-}
-[data-theme="dark"] .bg-f { color: rgba(var(--bg-form), .13); }
-@keyframes drift {
-  0%   { transform: translate3d(0,0,0)        scale(1);    opacity: 0; }
-  12%  { opacity: 1; }
-  50%  { transform: translate3d(28px,-46px,0) scale(1.06); }
-  88%  { opacity: 1; }
-  100% { transform: translate3d(-18px,-96px,0) scale(.96);  opacity: 0; }
-}
-
-/* Sahifa foni endi shaffof — orqa fon ko'rinsin */
-body { background: transparent; background-image: none; }
-[data-theme="dark"] body { background-image: none; }
-
-@media (prefers-reduced-motion: reduce) {
-  .bg-f { animation: none; }
-}
-@media (max-width: 760px) {
-  .bg-f { font-size: 12px !important; }
-}
-
-/* ══ Tungi rejim: fon bilan moslash (yakuniy) ═════════════ */
-[data-theme="dark"] {
-  --surface: rgba(19,30,44,.82);
-  --rule:    rgba(120,160,210,.20);
-  --rule-2:  rgba(120,160,210,.11);
-  --paper:   transparent;
-}
-[data-theme="dark"] .card,
-[data-theme="dark"] .xcard,
-[data-theme="dark"] .lbcard,
-[data-theme="dark"] .panel,
-[data-theme="dark"] .table-wrap,
-[data-theme="dark"] .modal,
-[data-theme="dark"] .acct__pop,
-[data-theme="dark"] .gate__panel {
-  background: rgba(17,27,40,.86);
-  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-  border-color: rgba(120,160,210,.20);
-}
-[data-theme="dark"] .iconbtn,
-[data-theme="dark"] .acct__btn,
-[data-theme="dark"] .btn,
-[data-theme="dark"] .chip,
-[data-theme="dark"] .grade,
-[data-theme="dark"] .search__input,
-[data-theme="dark"] .input {
-  background: rgba(19,30,44,.72);
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-}
-[data-theme="dark"] .tt__c--on,
-[data-theme="dark"] .tt__who { background: rgba(19,30,44,.66); }
-[data-theme="dark"] .tt__c--empty,
-[data-theme="dark"] .tt__day { background: rgba(10,18,28,.45); }
 [data-theme="dark"] .skeleton {
   background: linear-gradient(90deg, rgba(120,160,210,.10) 25%, rgba(120,160,210,.20) 50%, rgba(120,160,210,.10) 75%);
   background-size: 300% 100%;
@@ -1609,10 +1510,6 @@ body { background: transparent; background-image: none; }
 .lang.is-on { background: var(--solid); color: var(--on-solid); }
 [data-theme="dark"] .langs { background: rgba(19,30,44,.72); }
 [data-theme="dark"] .lang.is-on { background: var(--ok); color: #fff; }
-
-/* Fon biroz sokinroq — matn yaxshi o'qilsin */
-[data-theme="dark"] .bg-f { color: rgba(var(--bg-form), .10); }
-.bg-f { color: rgba(var(--bg-form), .12); }
 
 /* ══ Jadval — yangi tuzilma (v4) ══════════════════════════ */
 .tt__corner, .tt__soat {

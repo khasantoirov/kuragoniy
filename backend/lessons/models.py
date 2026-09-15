@@ -2,26 +2,20 @@ from django.db import models
 
 
 class Lesson(models.Model):
-    class Grade(models.IntegerChoices):
-        G7 = 7, '7-sinf'
-        G8 = 8, '8-sinf'
-        G9 = 9, '9-sinf'
-
-    class Category(models.TextChoices):
-        MEXANIKA = 'mexanika', 'Mexanika'
-        TERMODINAMIKA = 'termodinamika', 'Termodinamika'
-        ELEKTR = 'elektr', 'Elektr'
-        OPTIKA = 'optika', 'Optika'
-        BOSHQA = 'boshqa', 'Boshqa'
+    class Grade(models.TextChoices):
+        G1_2 = '1-2', "1-2-sinf"
+        G3_4 = '3-4', "3-4-sinf"
+        G5_6 = '5-6', "5-6-sinf"
+        G7_8 = '7-8', "7-8-sinf"
+        G9 = '9', "9-sinf"
 
     title = models.CharField(max_length=255)
     title_ru = models.CharField(max_length=255, blank=True)
     title_en = models.CharField(max_length=255, blank=True)
 
-    grade = models.PositiveSmallIntegerField(choices=Grade.choices)
+    grade = models.CharField(max_length=3, choices=Grade.choices)
     chorak = models.PositiveSmallIntegerField(choices=[(1, 1), (2, 2), (3, 3), (4, 4)])
     hafta = models.PositiveSmallIntegerField()
-    cat = models.CharField(max_length=20, choices=Category.choices, default=Category.BOSHQA)
 
     goal = models.TextField(blank=True)
     goal_ru = models.TextField(blank=True)
@@ -36,7 +30,6 @@ class Lesson(models.Model):
     # are set.
     file_url = models.URLField(blank=True)
     file = models.FileField(upload_to='lesson-files/', null=True, blank=True)
-    sim_id = models.CharField(max_length=64, blank=True)  # references frontend lab SIMS[id], not an FK
 
     updated_at = models.DateTimeField(auto_now=True)
     translated_at = models.DateTimeField(null=True, blank=True)
@@ -46,26 +39,6 @@ class Lesson(models.Model):
 
     def __str__(self):
         return self.title
-
-
-class LessonPoster(models.Model):
-    """A generated "N-sinf · N-hafta · Mavzu: ..." experiment-grid image
-    (see frontend/src/features/admin/LessonPosterPage.tsx), saved
-    server-side the moment an admin exports one, so it stays available as
-    a permanent gallery instead of only living in whoever's Downloads
-    folder happened to click the button."""
-
-    grade = models.PositiveSmallIntegerField(choices=Lesson.Grade.choices)
-    hafta = models.PositiveSmallIntegerField()
-    topic = models.CharField(max_length=255, blank=True)
-    image = models.FileField(upload_to='lesson-posters/')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['grade', 'hafta', '-created_at']
-
-    def __str__(self):
-        return f'{self.grade}-sinf, {self.hafta}-hafta — {self.topic}'
 
 
 class QuarterLock(models.Model):

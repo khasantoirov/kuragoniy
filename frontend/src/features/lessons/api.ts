@@ -3,9 +3,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
 
+import type { Grade } from './labels'
 import type { Lesson } from './types'
 
-export function useLessons(filters: { grade?: number; chorak?: number } = {}) {
+export function useLessons(filters: { grade?: Grade; chorak?: number } = {}) {
   return useQuery({
     queryKey: ['lessons', filters],
     queryFn: async () =>
@@ -118,7 +119,7 @@ export function useReorderLesson() {
 export function useMoveCopyLesson() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (payload: { id: number; mode: 'move' | 'copy'; grade: number; chorak: number }) =>
+    mutationFn: async (payload: { id: number; mode: 'move' | 'copy'; grade: Grade; chorak: number }) =>
       (await api.post<Lesson>(`/lessons/${payload.id}/move-copy/`, payload)).data,
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['lessons'] }) },
   })

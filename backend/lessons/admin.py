@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Experiment, Lesson, LessonPoster, QuarterLock
+from .models import Experiment, Lesson, QuarterLock
 
 
 class ExperimentInline(admin.TabularInline):
@@ -10,8 +10,8 @@ class ExperimentInline(admin.TabularInline):
 
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ['title', 'grade', 'chorak', 'hafta', 'cat', 'updated_at']
-    list_filter = ['grade', 'chorak', 'cat']
+    list_display = ['title', 'grade', 'chorak', 'hafta', 'updated_at']
+    list_filter = ['grade', 'chorak']
     search_fields = ['title']
     inlines = [ExperimentInline]
 
@@ -19,9 +19,3 @@ class LessonAdmin(admin.ModelAdmin):
 @admin.register(QuarterLock)
 class QuarterLockAdmin(admin.ModelAdmin):
     list_display = ['chorak', 'is_open']
-
-
-@admin.register(LessonPoster)
-class LessonPosterAdmin(admin.ModelAdmin):
-    list_display = ['grade', 'hafta', 'topic', 'created_at']
-    list_filter = ['grade']

@@ -216,4 +216,4 @@ CORS_ALLOW_CREDENTIALS = True
 # duplicated into a frontend build-time env var.
 VAPID_PUBLIC_KEY = env('VAPID_PUBLIC_KEY', default='')
 VAPID_PRIVATE_KEY = env('VAPID_PRIVATE_KEY', default='')
-VAPID_CONTACT_EMAIL = env('VAPID_CONTACT_EMAIL', default='admin@stemlms.uz')  # TODO: your real domain
+VAPID_CONTACT_EMAIL = env('VAPID_CONTACT_EMAIL', default='admin@kuragoniy.uz')  # TODO: your real domain

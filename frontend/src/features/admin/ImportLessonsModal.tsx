@@ -6,7 +6,7 @@ import { useConfirm } from '@/components/ConfirmProvider'
 import { Modal } from '@/components/Modal'
 import { useToast } from '@/components/Toast'
 import { quarterLabel } from '@/features/journal/labels'
-import { gradeLabel } from '@/features/lessons/labels'
+import { type Grade, gradeLabel } from '@/features/lessons/labels'
 import { useUIStore } from '@/store/uiStore'
 
 import { runLessonsImport } from './api'
@@ -39,7 +39,7 @@ export function ImportLessonsModal({ onClose }: { onClose: () => void }) {
 
   const onImport = async () => {
     if (!rows) return
-    const grades = Object.keys(lessonsByGrade(rows)).map(Number)
+    const grades = Object.keys(lessonsByGrade(rows)) as Grade[]
     if (mode === 'replace') {
       const list = grades.map((g) => gradeLabel(g, lang)).join(', ')
       if (!(await confirm({
@@ -100,7 +100,7 @@ export function ImportLessonsModal({ onClose }: { onClose: () => void }) {
         <div className="imstat__row"><span>{t('Darslar')}</span><b>{rows.length}</b></div>
         <div className="imstat__row"><span>{t('Tajribalar')}</span><b>{totalExperiments(rows)}</b></div>
         {Object.keys(byGrade).sort().map((g) => (
-          <div key={g} className="imstat__row"><span>{gradeLabel(Number(g), lang)}</span><b>{byGrade[Number(g)]}</b></div>
+          <div key={g} className="imstat__row"><span>{gradeLabel(g as Grade, lang)}</span><b>{byGrade[g]}</b></div>
         ))}
       </div>
       <p className="prose">{t('Dastlabki 5 ta dars:')}</p>

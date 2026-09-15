@@ -7,16 +7,25 @@ import { EmptyState } from '@/components/EmptyState'
 import { Modal } from '@/components/Modal'
 import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
-import { gradeLabel } from '@/features/lessons/labels'
 import { IC } from '@/icons'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { record } from '@/lib/history'
-import { useUIStore } from '@/store/uiStore'
+import { useUIStore, type Lang } from '@/store/uiStore'
 
 import { useDeleteLibraryItem, useLibraryItems, useRemoveLibraryFile, useSaveLibraryItem, useUploadLibraryFile } from './api'
 import { KIND_ICONS, KIND_LABELS, KINDS, type LibraryItem, type LibraryKind, UPLOADABLE_KINDS } from './types'
 
 const LIBRARY_FILE_ACCEPT = '.pdf,.doc,.docx,.epub,.jpg,.jpeg,.png,.webp'
+const LIBRARY_GRADES = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+// LibraryItem.grade is a single free-standing class number (unlike
+// Lesson.grade's 5-band scheme) — a book/resource is tagged for one
+// specific class, so it doesn't share lessons/labels.ts's `gradeLabel`.
+function libraryGradeLabel(n: number, lang: Lang) {
+  if (lang === 'ru') return `${n} класс`
+  if (lang === 'en') return `Grade ${n}`
+  return `${n}-sinf`
+}
 
 function emptyItem(): Partial<LibraryItem> {
   return { title: '', url: '', kind: 'havola', grade: null, note: '' }
@@ -113,8 +122,8 @@ function LibraryEditor({ item, onClose }: { item: LibraryItem | null; onClose: (
           <span className="field__label">{t('Sinf')} <span className="field__opt">({t('ixtiyoriy')})</span></span>
           <select className="input" value={draft.grade ?? ''} onChange={(e) => setDraft({ ...draft, grade: e.target.value ? Number(e.target.value) : null })}>
             <option value="">—</option>
-            {[7, 8, 9].map((g) => (
-              <option key={g} value={g}>{gradeLabel(g, lang)}</option>
+            {LIBRARY_GRADES.map((g) => (
+              <option key={g} value={g}>{libraryGradeLabel(g, lang)}</option>
             ))}
           </select>
         </label>
@@ -193,7 +202,7 @@ function LibraryCard({ item, admin, onEdit, onDelete }: { item: LibraryItem; adm
         <span className="lbcard__ic">{KIND_ICONS[item.kind]}</span>
         <span className="lbcard__body">
           <span className="lbcard__title">{item.title}</span>
-          <span className="lbcard__meta">{t(KIND_LABELS[item.kind])}{item.grade ? ' · ' + gradeLabel(item.grade, lang) : ''}</span>
+          <span className="lbcard__meta">{t(KIND_LABELS[item.kind])}{item.grade ? ' · ' + libraryGradeLabel(item.grade, lang) : ''}</span>
           {item.note && <span className="lbcard__note">{item.note}</span>}
         </span>
         <span className="lbcard__go" aria-hidden="true">{IC.external}</span>

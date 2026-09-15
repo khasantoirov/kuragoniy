@@ -21,7 +21,7 @@ def test_creating_a_lesson_notifies_dev(mock_notify, as_user, admin):
     client = as_user(admin)
     resp = client.post(
         '/api/lessons/',
-        {'title': 'Test dars', 'grade': 7, 'chorak': 1, 'hafta': 1, 'cat': 'boshqa', 'goal': ''},
+        {'title': 'Test dars', 'grade': '7-8', 'chorak': 1, 'hafta': 1, 'goal': ''},
         format='json',
     )
     assert resp.status_code == 201
@@ -33,7 +33,7 @@ def test_creating_a_lesson_notifies_dev(mock_notify, as_user, admin):
 
 @patch('lessons.views.notify_admin_action')
 def test_deleting_a_lesson_notifies_dev(mock_notify, as_user, admin):
-    lesson = Lesson.objects.create(title="O'chiriladigan", grade=7, chorak=1, hafta=1)
+    lesson = Lesson.objects.create(title="O'chiriladigan", grade='7-8', chorak=1, hafta=1)
     client = as_user(admin)
     resp = client.delete(f'/api/lessons/{lesson.id}/')
     assert resp.status_code == 204
@@ -43,7 +43,7 @@ def test_deleting_a_lesson_notifies_dev(mock_notify, as_user, admin):
 
 @patch('lessons.views.notify_admin_action')
 def test_editing_a_lesson_shows_before_and_after_per_field(mock_notify, as_user, admin):
-    lesson = Lesson.objects.create(title='Eski nom', grade=7, chorak=1, hafta=1, goal='Eski maqsad')
+    lesson = Lesson.objects.create(title='Eski nom', grade='7-8', chorak=1, hafta=1, goal='Eski maqsad')
     client = as_user(admin)
     resp = client.patch(f'/api/lessons/{lesson.id}/', {'title': 'Yangi nom', 'goal': 'Yangi maqsad'}, format='json')
     assert resp.status_code == 200
@@ -55,7 +55,7 @@ def test_editing_a_lesson_shows_before_and_after_per_field(mock_notify, as_user,
 
 @patch('lessons.views.notify_admin_action')
 def test_editing_a_lesson_without_real_changes_does_not_notify(mock_notify, as_user, admin):
-    lesson = Lesson.objects.create(title='O\'zgarmas', grade=7, chorak=1, hafta=1)
+    lesson = Lesson.objects.create(title='O\'zgarmas', grade='7-8', chorak=1, hafta=1)
     client = as_user(admin)
     resp = client.patch(f'/api/lessons/{lesson.id}/', {'title': "O'zgarmas"}, format='json')
     assert resp.status_code == 200
@@ -64,7 +64,7 @@ def test_editing_a_lesson_without_real_changes_does_not_notify(mock_notify, as_u
 
 @patch('lessons.views.notify_admin_action')
 def test_adding_an_experiment_via_lesson_update_notifies(mock_notify, as_user, admin):
-    lesson = Lesson.objects.create(title='Dars', grade=7, chorak=1, hafta=1)
+    lesson = Lesson.objects.create(title='Dars', grade='7-8', chorak=1, hafta=1)
     client = as_user(admin)
     resp = client.patch(
         f'/api/lessons/{lesson.id}/',
@@ -79,7 +79,7 @@ def test_adding_an_experiment_via_lesson_update_notifies(mock_notify, as_user, a
 
 @patch('lessons.views.notify_admin_action')
 def test_editing_an_experiment_field_shows_diff(mock_notify, as_user, admin):
-    lesson = Lesson.objects.create(title='Dars', grade=7, chorak=1, hafta=1)
+    lesson = Lesson.objects.create(title='Dars', grade='7-8', chorak=1, hafta=1)
     exp = Experiment.objects.create(lesson=lesson, name='Eski tajriba', desc='Eski tavsif')
     client = as_user(admin)
     resp = client.patch(
@@ -96,7 +96,7 @@ def test_editing_an_experiment_field_shows_diff(mock_notify, as_user, admin):
 
 @patch('lessons.views.notify_admin_action')
 def test_removing_an_experiment_via_lesson_update_notifies(mock_notify, as_user, admin):
-    lesson = Lesson.objects.create(title='Dars', grade=7, chorak=1, hafta=1)
+    lesson = Lesson.objects.create(title='Dars', grade='7-8', chorak=1, hafta=1)
     Experiment.objects.create(lesson=lesson, name="O'chiriladigan tajriba")
     client = as_user(admin)
     resp = client.patch(f'/api/lessons/{lesson.id}/', {'experiments': []}, format='json')
@@ -108,7 +108,7 @@ def test_removing_an_experiment_via_lesson_update_notifies(mock_notify, as_user,
 
 @patch('lessons.views.notify_admin_action')
 def test_deleting_a_lesson_lists_its_experiments_and_goal(mock_notify, as_user, admin):
-    lesson = Lesson.objects.create(title="O'chiriladigan", grade=7, chorak=1, hafta=1, goal='Muhim maqsad')
+    lesson = Lesson.objects.create(title="O'chiriladigan", grade='7-8', chorak=1, hafta=1, goal='Muhim maqsad')
     Experiment.objects.create(lesson=lesson, name='Ichidagi tajriba')
     client = as_user(admin)
     resp = client.delete(f'/api/lessons/{lesson.id}/')
@@ -121,14 +121,14 @@ def test_deleting_a_lesson_lists_its_experiments_and_goal(mock_notify, as_user, 
 
 @patch('lessons.views.notify_admin_action')
 def test_moving_a_lesson_shows_original_and_new_location(mock_notify, as_user, admin):
-    lesson = Lesson.objects.create(title='Ko\'chadigan', grade=7, chorak=1, hafta=1)
+    lesson = Lesson.objects.create(title='Ko\'chadigan', grade='7-8', chorak=1, hafta=1)
     client = as_user(admin)
-    resp = client.post(f'/api/lessons/{lesson.id}/move-copy/', {'mode': 'move', 'grade': 8, 'chorak': 3}, format='json')
+    resp = client.post(f'/api/lessons/{lesson.id}/move-copy/', {'mode': 'move', 'grade': '9', 'chorak': 3}, format='json')
     assert resp.status_code == 200
     mock_notify.assert_called_once()
     text = mock_notify.call_args[0][1]
-    assert '7-sinf, 1-chorak' in text
-    assert '8-sinf, 3-chorak' in text
+    assert '7-8-sinf, 1-chorak' in text
+    assert '9-sinf, 3-chorak' in text
 
 
 @patch('lessons.views.notify_admin_action')
@@ -203,7 +203,7 @@ def test_teacher_action_never_notifies_dev(mock_notify, as_user, teacher):
     client = as_user(teacher)
     resp = client.post(
         '/api/lessons/',
-        {'title': 'Ruxsatsiz', 'grade': 7, 'chorak': 1, 'hafta': 1, 'cat': 'boshqa', 'goal': ''},
+        {'title': 'Ruxsatsiz', 'grade': '7-8', 'chorak': 1, 'hafta': 1, 'goal': ''},
         format='json',
     )
     assert resp.status_code == 403

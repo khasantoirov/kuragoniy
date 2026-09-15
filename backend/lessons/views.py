@@ -3,7 +3,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 
@@ -11,11 +11,8 @@ from common.audit import diff_fields, notify_admin_action, snapshot
 from common.permissions import IsAdminOrDevSuperuser, IsApproved
 from common.uploads import delete_file_field, validate_upload
 
-from .models import Experiment, Lesson, LessonPoster, QuarterLock
-from .serializers import LessonPosterSerializer, LessonSerializer, QuarterLockSerializer
-
-LESSON_POSTER_EXTENSIONS = ('.jpg', '.jpeg')
-LESSON_POSTER_MAX_MB = 20
+from .models import Experiment, Lesson, QuarterLock
+from .serializers import LessonSerializer, QuarterLockSerializer
 
 LESSON_FILE_EXTENSIONS = ('.pdf', '.doc', '.docx')
 LESSON_FILE_MAX_MB = 20
@@ -23,10 +20,10 @@ LESSON_FILE_MAX_MB = 20
 # Tracked for the admin-audit diff (common/audit.py) — translations
 # (_ru/_en) and `file`/`updated_at`/`translated_at` are excluded since
 # they're bot/system-managed, not something an admin directly edits.
-LESSON_AUDIT_FIELDS = ['title', 'grade', 'chorak', 'hafta', 'cat', 'goal', 'file_url', 'sim_id']
+LESSON_AUDIT_FIELDS = ['title', 'grade', 'chorak', 'hafta', 'goal', 'file_url']
 LESSON_AUDIT_LABELS = {
     'title': 'Nomi', 'grade': 'Sinf', 'chorak': 'Chorak', 'hafta': 'Hafta',
-    'cat': "Bo'lim", 'goal': 'Maqsad', 'file_url': 'Fayl havolasi', 'sim_id': 'Simulyatsiya',
+    'goal': 'Maqsad', 'file_url': 'Fayl havolasi',
 }
 EXPERIMENT_AUDIT_FIELDS = ['name', 'type', 'desc', 'materials', 'steps', 'minutes', 'safety', 'image', 'video']
 EXPERIMENT_AUDIT_LABELS = {
@@ -265,8 +262,8 @@ class LessonViewSet(viewsets.ModelViewSet):
         if mode not in ('move', 'copy'):
             return Response({'detail': "mode must be 'move' or 'copy'"}, status=400)
         target_grade = request.data.get('grade')
-        if target_grade not in (7, 8, 9):
-            return Response({'detail': 'grade must be 7, 8 or 9'}, status=400)
+        if target_grade not in dict(Lesson.Grade.choices):
+            return Response({'detail': "grade must be one of: " + ', '.join(dict(Lesson.Grade.choices))}, status=400)
         target_chorak = request.data.get('chorak')
         if target_chorak not in (1, 2, 3, 4):
             return Response({'detail': 'chorak must be 1-4'}, status=400)
@@ -279,9 +276,8 @@ class LessonViewSet(viewsets.ModelViewSet):
                 result = Lesson.objects.create(
                     title=source.title,
                     grade=target_grade, chorak=target_chorak, hafta=0,
-                    cat=source.cat,
                     goal=source.goal,
-                    file_url=source.file_url, sim_id=source.sim_id,
+                    file_url=source.file_url,
                 )
                 for exp in source.experiments.all():
                     Experiment.objects.create(
@@ -382,28 +378,3 @@ class LessonViewSet(viewsets.ModelViewSet):
             ok += 1
 
         return Response({'ok': ok, 'skipped': skipped})
-
-
-class LessonPosterViewSet(viewsets.ModelViewSet):
-    """Saved poster images from LessonPosterPage.tsx's export button
-    (Meta.ordering already groups by grade then hafta for the list).
-    Editing only ever touches grade/hafta/topic — the frontend never
-    re-uploads `image` on PATCH, since the generated JPG itself isn't
-    re-editable after the fact, only its metadata is."""
-
-    queryset = LessonPoster.objects.all()
-    serializer_class = LessonPosterSerializer
-    permission_classes = [IsApproved, IsAdminOrDevSuperuser]
-    # Multipart for create (carries the image file); JSON too, since
-    # editing only ever PATCHes grade/hafta/topic — no file in that body.
-    parser_classes = [MultiPartParser, FormParser, JSONParser]
-
-    def perform_create(self, serializer):
-        image = serializer.validated_data.get('image')
-        if image:
-            validate_upload(image, LESSON_POSTER_EXTENSIONS, LESSON_POSTER_MAX_MB)
-        serializer.save()
-
-    def perform_destroy(self, instance):
-        delete_file_field(instance, 'image')
-        instance.delete()

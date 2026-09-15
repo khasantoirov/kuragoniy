@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+import type { Grade } from '@/features/lessons/labels'
 import i18n from '@/lib/i18n'
 import type { NavStyleKey } from '@/layouts/navStyles'
 
@@ -11,13 +12,13 @@ export type ViewMode = 'admin' | 'teacher'
 interface UIState {
   lang: Lang
   theme: Theme
-  grade: number
+  grade: Grade
   viewMode: ViewMode
   navStyle: NavStyleKey
   setLang: (lang: Lang) => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
-  setGrade: (grade: number) => void
+  setGrade: (grade: Grade) => void
   setViewMode: (mode: ViewMode) => void
   setNavStyle: (style: NavStyleKey) => void
 }
@@ -32,7 +33,7 @@ export const useUIStore = create<UIState>()(
     (set, get) => ({
       lang: 'uz',
       theme: 'light',
-      grade: 7,
+      grade: '1-2',
       viewMode: 'admin',
       navStyle: 'raised',
       setGrade: (grade) => set({ grade }),
@@ -59,10 +60,18 @@ export const useUIStore = create<UIState>()(
       // anyone whose browser already had 'orbit' (the old default) saved,
       // not just fresh installs. A user who deliberately picks a different
       // style afterward saves under version 1 and won't be migrated again.
-      version: 1,
+      // v2: `grade` changed from a bare physics grade number (7/8/9) to a
+      // grade-band code ('1-2'…'9') — map any old persisted number onto
+      // its nearest band so a returning browser doesn't carry an invalid
+      // grade into the new picker.
+      version: 2,
       migrate: (persisted, version) => {
         const state = persisted as UIState
         if (version < 1) state.navStyle = 'raised'
+        if (version < 2) {
+          const oldGrade = state.grade as unknown
+          state.grade = oldGrade === 9 || oldGrade === '9' ? '9' : oldGrade === 7 || oldGrade === 8 || oldGrade === '7' || oldGrade === '8' ? '7-8' : '1-2'
+        }
         return state
       },
       onRehydrateStorage: () => (state) => {

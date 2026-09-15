@@ -49,7 +49,7 @@ async def start_with_uid(message: Message, command):
 @router.message(CommandStart())
 async def start_plain(message: Message):
     await message.answer(
-        "Salom! Bu STEM LMS platformasining rasmiy boti.\n\n"
+        "Salom! Bu KO'RAGONIY EDU platformasining rasmiy boti.\n\n"
         "Hisobingizni ulash uchun platformada «Telegramni ulash» tugmasini bosing.",
         reply_markup=main_menu_keyboard(),
     )

@@ -25,10 +25,8 @@ const LINKS: { view: string; ic: keyof typeof IC; title: string; sub: string; ad
   { view: '/journal', ic: 'clipboard', title: 'Jurnal', sub: 'Baho, davomat, statistika' },
   { view: '/timetable', ic: 'calendar', title: 'Jadval', sub: 'Haftalik dars jadvali' },
   { view: '/library', ic: 'book', title: 'Kutubxona', sub: "Kitob, qo'llanma, video" },
-  { view: '/lab', ic: 'flask', title: 'Laboratoriya', sub: 'Interaktiv simulyatsiyalar' },
   { view: '/about', ic: 'info', title: 'Platforma haqida', sub: "Bo'limlar va imkoniyatlar" },
   { view: '/admin', ic: 'settings', title: 'Boshqaruv', sub: "Arizalar va o'qituvchilar", adminOnly: true },
-  { view: '/poster', ic: 'image', title: 'Dars rasmi', sub: "Tajribalar bilan dars rasmini yaratish", adminOnly: true },
 ]
 
 export function HomePage() {

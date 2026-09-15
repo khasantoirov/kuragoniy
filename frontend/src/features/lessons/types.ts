@@ -2,6 +2,8 @@ import type { ReactElement } from 'react'
 
 import { IC } from '@/icons'
 
+import type { Grade } from './labels'
+
 export type ExperimentType = 'oddiy' | 'wow' | 'oyin'
 
 export const EXP_TYPES: Record<ExperimentType, { label: string; icon: ReactElement }> = {
@@ -30,17 +32,14 @@ export interface Experiment {
   video?: string
 }
 
-export type LessonCategory = 'mexanika' | 'termodinamika' | 'elektr' | 'optika' | 'boshqa'
-
 export interface Lesson {
   id: number
   title: string
   title_ru?: string
   title_en?: string
-  grade: 7 | 8 | 9
+  grade: Grade
   chorak: 1 | 2 | 3 | 4
   hafta: number
-  cat: LessonCategory
   goal: string
   goal_ru?: string
   goal_en?: string
@@ -48,16 +47,7 @@ export interface Lesson {
   file?: string | null
   file_name?: string | null
   file_size?: number | null
-  sim_id?: string
   updated_at: string
   translated_at: string | null
   experiments: Experiment[]
-}
-
-export const CATEGORY_LABELS: Record<LessonCategory, string> = {
-  mexanika: 'Mexanika',
-  termodinamika: 'Termodinamika',
-  elektr: 'Elektromagnetizm',
-  optika: 'Optika',
-  boshqa: 'Boshqa',
 }

@@ -5,10 +5,8 @@ import { Modal } from '@/components/Modal'
 import { useUIStore } from '@/store/uiStore'
 
 import { useLessons } from './api'
-import { gradeLabel, quarterLabel, weekLabel } from './labels'
+import { GRADES, type Grade, gradeLabel, quarterLabel, weekLabel } from './labels'
 import type { Experiment, Lesson } from './types'
-
-const GRADES = [7, 8, 9]
 
 export function MoveCopyExperimentModal({
   exp,
@@ -27,7 +25,7 @@ export function MoveCopyExperimentModal({
   const { lang } = useUIStore()
   const isMove = mode === 'move'
 
-  const [grade, setGrade] = useState<number>(sourceLesson.grade)
+  const [grade, setGrade] = useState<Grade>(sourceLesson.grade)
   // Scoped to one grade at a time (rather than fetching every lesson
   // unfiltered) since the lessons list is paginated server-side — with
   // ~100 lessons across 3 grades, an unfiltered fetch would silently
@@ -81,7 +79,7 @@ export function MoveCopyExperimentModal({
             className="input"
             value={grade}
             onChange={(e) => {
-              setGrade(Number(e.target.value))
+              setGrade(e.target.value as Grade)
               setTargetId('')
             }}
           >

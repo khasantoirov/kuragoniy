@@ -26,7 +26,7 @@ def _link(user, chat_id):
 def test_first_ever_run_is_due_and_includes_lessons(make_user):
     admin = make_user('backup-admin@example.com', role='admin')
     _link(admin, 111)
-    lesson = Lesson.objects.create(title='Zaxira darsi', grade=7, chorak=1, hafta=1)
+    lesson = Lesson.objects.create(title='Zaxira darsi', grade='7-8', chorak=1, hafta=1)
     Experiment.objects.create(lesson=lesson, name='Tajriba')
 
     payload, filename, recipients = _prepare_if_due_sync()

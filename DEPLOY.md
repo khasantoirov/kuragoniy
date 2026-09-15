@@ -27,10 +27,10 @@ npm ci && npm run build   # natija: frontend/dist/
 
 Muhim `.env` qatorlari:
 - `DJANGO_SECRET_KEY` — yangi tasodifiy qiymat (`python -c "import secrets; print(secrets.token_urlsafe(50))"`)
-- `DJANGO_ALLOWED_HOSTS` — domeningiz (masalan `stemlms.uz`)
-- `CORS_ALLOWED_ORIGINS` — frontend manzili (`https://stemlms.uz`)
+- `DJANGO_ALLOWED_HOSTS` — domeningiz (masalan `kuragoniy.uz`)
+- `CORS_ALLOWED_ORIGINS` — frontend manzili (`https://kuragoniy.uz`)
 - `BOT_TOKEN` — Telegram bot tokeni (@BotFather'da yangi bot yarating)
-- `FRONTEND_URL` — parolni tiklash havolalari uchun (`https://stemlms.uz`)
+- `FRONTEND_URL` — parolni tiklash havolalari uchun (`https://kuragoniy.uz`)
 
 ### 3. systemd xizmatlarini o'rnatish
 
@@ -60,7 +60,7 @@ sudo nginx -t && sudo systemctl reload nginx
 
 ```bash
 sudo apt install certbot python3-certbot-nginx -y
-sudo certbot --nginx -d stemlms.uz -d www.stemlms.uz
+sudo certbot --nginx -d kuragoniy.uz -d www.kuragoniy.uz
 ```
 
 ### 6. Yangilash (keyingi deploy'lar)
