@@ -9,8 +9,8 @@ sudo apt update && sudo apt install -y python3.12 python3.12-venv nginx redis-se
 ### 2. Loyihani yuklash va sozlash
 
 ```bash
-sudo mkdir -p /opt/stem-lms && sudo chown $USER /opt/stem-lms
-git clone <repo-url> /opt/stem-lms && cd /opt/stem-lms
+sudo mkdir -p /opt/kuragoniy && sudo chown $USER /opt/kuragoniy
+git clone <repo-url> /opt/kuragoniy && cd /opt/kuragoniy
 
 # Backend
 cd backend
@@ -37,24 +37,24 @@ Muhim `.env` qatorlari:
 ```bash
 sudo cp deploy/systemd/*.service deploy/systemd/*.timer /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now stemlms-backend stemlms-bot stemlms-backup.timer
+sudo systemctl enable --now kuragoniy-backend kuragoniy-bot kuragoniy-backup.timer
 ```
 
 Fayl egaligini tekshiring — unit fayllar `www-data` foydalanuvchisi nomidan ishlaydi:
 
 ```bash
-sudo chown -R www-data:www-data /opt/stem-lms
+sudo chown -R www-data:www-data /opt/kuragoniy
 ```
 
 ### 4. Nginx
 
 ```bash
-sudo cp deploy/nginx/stemlms.conf /etc/nginx/sites-available/stemlms
-sudo ln -s /etc/nginx/sites-available/stemlms /etc/nginx/sites-enabled/
+sudo cp deploy/nginx/kuragoniy.conf /etc/nginx/sites-available/kuragoniy
+sudo ln -s /etc/nginx/sites-available/kuragoniy /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-`deploy/nginx/stemlms.conf` ichidagi `server_name` va yo'llarni (`/opt/stem-lms/...`) o'zingizga moslang.
+`deploy/nginx/kuragoniy.conf` ichidagi `server_name` va yo'llarni (`/opt/kuragoniy/...`) o'zingizga moslang.
 
 ### 5. HTTPS
 
@@ -66,25 +66,25 @@ sudo certbot --nginx -d kuragoniy.uz -d www.kuragoniy.uz
 ### 6. Yangilash (keyingi deploy'lar)
 
 ```bash
-cd /opt/stem-lms && git pull
+cd /opt/kuragoniy && git pull
 cd backend && ./venv/bin/pip install -r requirements.txt && ./venv/bin/python manage.py migrate
 cd ../frontend && npm ci && npm run build
-sudo systemctl restart stemlms-backend stemlms-bot
+sudo systemctl restart kuragoniy-backend kuragoniy-bot
 ```
 
 ### 7. Zaxira nusxalash (backup)
 
-`stemlms-backup.timer` orqali avtomatik ishlaydi (`manage.py backup_db`). Qo'lda ishga tushirish:
+`kuragoniy-backup.timer` orqali avtomatik ishlaydi (`manage.py backup_db`). Qo'lda ishga tushirish:
 
 ```bash
-cd /opt/stem-lms/backend && ./venv/bin/python manage.py backup_db
+cd /opt/kuragoniy/backend && ./venv/bin/python manage.py backup_db
 ```
 
 ### Monitoring
 
 ```bash
-sudo journalctl -u stemlms-backend -f
-sudo journalctl -u stemlms-bot -f
+sudo journalctl -u kuragoniy-backend -f
+sudo journalctl -u kuragoniy-bot -f
 ```
 
 ### 8. Avtomatik deploy (GitHub Actions)
@@ -98,7 +98,7 @@ sudo journalctl -u stemlms-bot -f
 # Deploy uchun alohida foydalanuvchi (yoki mavjudini ishlating)
 sudo adduser --disabled-password deploy
 sudo usermod -aG www-data deploy
-sudo chmod -R g+w /opt/stem-lms   # deploy foydalanuvchisi yoza olishi uchun
+sudo chmod -R g+w /opt/kuragoniy   # deploy foydalanuvchisi yoza olishi uchun
 
 # SSH kalit juftligi (local mashinada yarating, private qismini GitHub Secrets'ga qo'shasiz)
 ssh-keygen -t ed25519 -C "github-actions-deploy" -f deploy_key -N ""
@@ -108,7 +108,7 @@ echo "<deploy_key.pub mazmuni>" | sudo -u deploy tee -a /home/deploy/.ssh/author
 sudo chmod 700 /home/deploy/.ssh && sudo chmod 600 /home/deploy/.ssh/authorized_keys
 
 # systemctl restart uchun parolsiz sudo (faqat shu ikki xizmatga)
-echo 'deploy ALL=(root) NOPASSWD: /bin/systemctl restart stemlms-backend, /bin/systemctl restart stemlms-bot' | sudo tee /etc/sudoers.d/deploy-restart
+echo 'deploy ALL=(root) NOPASSWD: /bin/systemctl restart kuragoniy-backend, /bin/systemctl restart kuragoniy-bot' | sudo tee /etc/sudoers.d/deploy-restart
 sudo visudo -c   # sintaksisni tekshirish
 ```
 

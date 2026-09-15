@@ -25,7 +25,7 @@ jobs:
           ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT || '22' }}" \
             "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" 'bash -s' <<'EOF'
           set -euo pipefail
-          cd /opt/stem-lms
+          cd /opt/kuragoniy
           git pull --ff-only
           cd backend
           ./venv/bin/pip install -r requirements.txt
@@ -34,8 +34,8 @@ jobs:
           cd ../frontend
           npm ci
           npm run build
-          sudo systemctl restart stemlms-backend
-          sudo systemctl restart stemlms-bot
+          sudo systemctl restart kuragoniy-backend
+          sudo systemctl restart kuragoniy-bot
           EOF
 
       - name: Clean up key
