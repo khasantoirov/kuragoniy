@@ -459,6 +459,13 @@ label.btn { display: inline-flex; align-items: center; }
 /* ── Brend va hisob menyusi ──────────────────────────────── */
 .brand { display: flex; align-items: center; gap: 11px; text-decoration: none; color: inherit; }
 .brand__logo { border-radius: 9px; display: block; flex: none; }
+/* logo.png's petals are dark navy and all but disappear against the dark
+   surfaces — a light backdrop (showing through the art's own transparent
+   margin) keeps it legible without needing separate day/night artwork. */
+[data-theme="dark"] .brand__logo,
+[data-theme="dark"] .sidebar__logo,
+[data-theme="dark"] .gate__logo,
+[data-theme="dark"] .abhero__logo { background: #EAF1F6; }
 .brand__text { display: grid; gap: 3px; }
 .brand__name {
   font: 600 17px/1 var(--f-display); color: var(--ink); letter-spacing: .01em;
