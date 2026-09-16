@@ -526,6 +526,7 @@ label.btn { display: inline-flex; align-items: center; }
     padding: 4px 8px; margin-bottom: 18px; flex: none;
   }
   .sidebar__logo { border-radius: 9px; flex: none; }
+  .sidebar__brandtext { display: grid; gap: 3px; }
   .sidebar__name { font: 600 14.5px/1.25 var(--f-display); letter-spacing: .01em; }
 
   .sidebar__nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }

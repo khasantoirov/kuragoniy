@@ -173,7 +173,11 @@ export function AppShell() {
       <aside className="sidebar">
         <Link className="sidebar__brand" to="/" onClick={closeAll}>
           <img className="sidebar__logo" src="/logo.png" alt="KO'RAGONIY EDU" width={40} height={40} />
-          <span className="sidebar__name">KO'RAGONIY EDU</span>
+          <span className="sidebar__brandtext">
+            <span className="sidebar__name">KO'RAGONIY EDU</span>
+            <img className="brand__sig brand__sig--day" src="/sign-day.png" alt="Muhandis D" height={13} />
+            <img className="brand__sig brand__sig--night" src="/sign-night.png" alt="Muhandis D" height={13} />
+          </span>
         </Link>
 
         <nav className="sidebar__nav" aria-label={t('Asosiy navigatsiya')}>
