@@ -1,13 +1,24 @@
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 
 import { useLessonStats, type LessonStats } from '@/features/lessons/api'
 import { IC } from '@/icons'
+import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
+import { useUIStore } from '@/store/uiStore'
 
 const STAT_CARDS: { key: keyof LessonStats; ic: keyof typeof IC; label: string }[] = [
   { key: 'lessons', ic: 'atom', label: 'Jami dars' },
   { key: 'oddiy', ic: 'flask', label: 'Amaliy tajriba' },
   { key: 'wow', ic: 'star', label: 'WOW-namoyish' },
   { key: 'oyin', ic: 'dice', label: "O'yinli tajriba" },
+]
+
+const FEATURES: { to: string; ic: keyof typeof IC; label: string; desc: string; adminOnly?: boolean }[] = [
+  { to: '/lessons', ic: 'atom', label: 'Darslar', desc: '1–9-sinflar uchun tayyor darslar, amaliy tajribalar va WOW-namoyishlar.' },
+  { to: '/journal', ic: 'clipboard', label: 'Jurnal', desc: "Baho, davomat va sinf o'zlashtirish diagrammalari — barchasi bir joyda." },
+  { to: '/timetable', ic: 'calendar', label: 'Jadval', desc: 'Haftalik dars jadvalini tuzing, ko\'ring va boshqaring.' },
+  { to: '/library', ic: 'book', label: 'Kutubxona', desc: "Kitob, qo'llanma va video materiallar to'plami." },
+  { to: '/admin', ic: 'settings', label: 'Boshqaruv', desc: "O'qituvchi arizalari va tizim sozlamalarini boshqarish.", adminOnly: true },
 ]
 
 const SOCIAL_LINKS: { ic: keyof typeof IC; label: string; handle: string; url: string }[] = [
@@ -19,24 +30,13 @@ const SOCIAL_LINKS: { ic: keyof typeof IC; label: string; handle: string; url: s
 export function AboutPage() {
   const { t } = useTranslation()
   const { data: stats } = useLessonStats()
+  const { user } = useAuth()
+  const { viewMode } = useUIStore()
+  const admin = isAdminInView(user, viewMode)
+  const visibleFeatures = FEATURES.filter((f) => !f.adminOnly || admin)
 
   return (
     <div>
-      <div className="panel">
-        <h3 className="panel__title">{t('Bizni kuzatib boring')}</h3>
-        <div className="sociallinks">
-          {SOCIAL_LINKS.map((s) => (
-            <a key={s.ic} className="sociallink" href={s.url} target="_blank" rel="noreferrer">
-              <span className={`sociallink__ic sociallink__ic--${s.ic}`}>{IC[s.ic]}</span>
-              <span className="sociallink__tx">
-                <span className="sociallink__lb">{t(s.label)}</span>
-                <span className="sociallink__handle">{s.handle}</span>
-              </span>
-            </a>
-          ))}
-        </div>
-      </div>
-
       <div className="abhero">
         <div className="abhero__body">
           <span className="abhero__eyebrow">
@@ -62,6 +62,20 @@ export function AboutPage() {
         <img className="abhero__logo" src="/logo.png" alt="KO'RAGONIY EDU" />
       </div>
 
+      <div className="abfeat">
+        <h3 className="panel__title">{t("Bo'limlar va imkoniyatlar")}</h3>
+        <div className="abfeat__grid">
+          {visibleFeatures.map((f) => (
+            <Link key={f.to} to={f.to} className="abfeat__card">
+              <span className="abfeat__ic">{IC[f.ic]}</span>
+              <span className="abfeat__title">{t(f.label)}</span>
+              <span className="abfeat__desc">{t(f.desc)}</span>
+              <span className="abfeat__go">{t('Ochish')} →</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
       <div className="abstats">
         {STAT_CARDS.map((s) => (
           <div key={s.key} className="abstat">
@@ -82,6 +96,21 @@ export function AboutPage() {
         <p className="prose">
           {t('Loyiha')} <strong>Muhandis_D</strong> {t("ta'limiy yo'nalishi doirasida tayyorlangan.")} {t('Dastur yaratuvchisi')} — <strong>Hasan Toirov</strong> · {new Date().getFullYear()}.
         </p>
+      </div>
+
+      <div className="panel">
+        <h3 className="panel__title">{t('Bizni kuzatib boring')}</h3>
+        <div className="sociallinks">
+          {SOCIAL_LINKS.map((s) => (
+            <a key={s.ic} className="sociallink" href={s.url} target="_blank" rel="noreferrer">
+              <span className={`sociallink__ic sociallink__ic--${s.ic}`}>{IC[s.ic]}</span>
+              <span className="sociallink__tx">
+                <span className="sociallink__lb">{t(s.label)}</span>
+                <span className="sociallink__handle">{s.handle}</span>
+              </span>
+            </a>
+          ))}
+        </div>
       </div>
     </div>
   )
