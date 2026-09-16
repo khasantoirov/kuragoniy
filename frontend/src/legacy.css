@@ -16,6 +16,11 @@
   --mark:     #B3372B;   /* muhandis qalami — faqat urg'u uchun */
   --ok:       #1B6E5F;
 
+  /* O'zlashtirish darajasi (status) — svetofor ranglari, mavzudan mustaqil */
+  --band-good: #0CA30C;
+  --band-mid:  #FAB219;
+  --band-bad:  #D03B3B;
+
   --r:   4px;            /* burchak radiusi — texnik chizmadek keskin */
   --gap: 16px;
   --shadow: 0 1px 2px rgba(18,33,46,.06), 0 8px 24px rgba(18,33,46,.06);
@@ -1572,6 +1577,47 @@ img.pf__av   { width: 72px; height: 72px; max-width: 72px; max-height: 72px; bor
   .jsum__b span { font-size: 8px; letter-spacing: .05em; }
   .jsum__b b { font-size: 14px; margin-top: 3px; }
 }
+
+/* ══ O'zlashtirish diagrammasi ════════════════════════════ */
+.mastery { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--rule); }
+.mastery__title { margin: 0; font: 600 16px/1.2 var(--f-display); }
+.mastery__empty { color: var(--ink-3); }
+
+.mastery__kpis { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.mastery__kpi {
+  flex: 1; min-width: 90px;
+  border: 1px solid var(--rule); border-left: 3px solid var(--rule); border-radius: 10px;
+  padding: 8px 14px; background: var(--surface);
+}
+.mastery__kpi span { display: block; font: 500 10px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.mastery__kpi b { display: block; margin-top: 5px; font: 600 19px/1 var(--f-display); }
+.mastery__kpi--good { border-left-color: var(--band-good); }
+.mastery__kpi--mid  { border-left-color: var(--band-mid); }
+.mastery__kpi--bad  { border-left-color: var(--band-bad); }
+
+.mastery__legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; font-size: 12px; color: var(--ink-2); }
+.mastery__lg { display: inline-flex; align-items: center; gap: 6px; }
+.mastery__dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.mastery__dot--good { background: var(--band-good); }
+.mastery__dot--mid  { background: var(--band-mid); }
+.mastery__dot--bad  { background: var(--band-bad); }
+
+.mastery__scroll { overflow-x: auto; padding-bottom: 4px; }
+.mastery__chart { display: flex; align-items: flex-end; gap: 10px; height: 160px; min-width: min-content; }
+.mastery__col { display: flex; flex-direction: column; align-items: center; width: 34px; flex: none; height: 100%; }
+.mastery__bar {
+  width: 100%; flex: 1 1 auto; display: flex; flex-direction: column; justify-content: flex-end;
+  gap: 2px; cursor: default;
+}
+.mastery__seg { width: 100%; }
+.mastery__seg--good { background: var(--band-good); }
+.mastery__seg--mid  { background: var(--band-mid); }
+.mastery__seg--bad  { background: var(--band-bad); }
+.mastery__seg--empty { background: var(--rule); }
+.mastery__seg:first-child { border-radius: 4px 4px 0 0; }
+.mastery__collabel { margin-top: 8px; font: 500 10px/1.2 var(--f-mono); color: var(--ink-3); text-align: center; white-space: nowrap; }
+
+.mastery__table { margin-top: 16px; }
 
 .jt { width: 100%; border-collapse: collapse; font-size: 13px; }
 .jt th, .jt td { border: 1px solid var(--rule); }

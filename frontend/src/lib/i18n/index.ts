@@ -231,6 +231,10 @@ const ru = {
   "Sinf o'rtachasi": 'Средний балл класса', "O'zlashtirish": 'Успеваемость',
   'Darslar soni': 'Количество уроков', "O'rtacha": 'Средний балл',
   'Umumiy': 'Общий', 'Umumiy statistika': 'Общая статистика',
+  "O'zlashtirish diagrammasi": 'Диаграмма успеваемости', 'Davr': 'Период',
+  'Haftalik': 'По неделям', 'Oylik': 'По месяцам', 'Choraklik': 'По четвертям', 'Yillik': 'По годам',
+  'Yaxshi': 'Хорошо', 'Past': 'Низко', 'Baholanmagan': 'Не оценено',
+  "Bu davr uchun baholar hali kiritilmagan.": 'За этот период оценок пока нет.',
   'Dars kuni': 'День урока', "Dars kuni qo'shildi": 'День урока добавлен',
   "O'quvchilar ro'yxati": 'Список учеников',
   'Avval belgini bosib davomatni belgilang, so\'ng darsda bo\'lgan o\'quvchiga baho qo\'ying (davomat "Sababli"/"Sababsiz" bo\'lsa, baho maydoni bloklanadi):':
@@ -721,6 +725,10 @@ const en = {
   "Sinf o'rtachasi": 'Class average', "O'zlashtirish": 'Performance',
   'Darslar soni': 'Number of lessons', "O'rtacha": 'Average',
   'Umumiy': 'Overall', 'Umumiy statistika': 'Overall statistics',
+  "O'zlashtirish diagrammasi": 'Performance chart', 'Davr': 'Period',
+  'Haftalik': 'Weekly', 'Oylik': 'Monthly', 'Choraklik': 'Quarterly', 'Yillik': 'Yearly',
+  'Yaxshi': 'Good', 'Past': 'Low', 'Baholanmagan': 'Not graded',
+  "Bu davr uchun baholar hali kiritilmagan.": 'No grades entered for this period yet.',
   'Dars kuni': 'Lesson day', "Dars kuni qo'shildi": 'Lesson day added',
   "O'quvchilar ro'yxati": 'Student list',
   'Avval belgini bosib davomatni belgilang, so\'ng darsda bo\'lgan o\'quvchiga baho qo\'ying (davomat "Sababli"/"Sababsiz" bo\'lsa, baho maydoni bloklanadi):':

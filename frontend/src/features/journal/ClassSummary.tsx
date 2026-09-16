@@ -10,6 +10,7 @@ import { useDeleteClass, useGrid } from './api'
 import { ClassModal } from './ClassModal'
 import { EditStudentsModal } from './EditStudentsModal'
 import { quarterLabel } from './labels'
+import { MasteryPanel } from './MasteryPanel'
 import { computeStats } from './stats'
 import type { JournalClass } from './types'
 
@@ -97,6 +98,8 @@ export function ClassSummary({ cls }: { cls: JournalClass }) {
           </tbody>
         </table>
       </div>
+
+      <MasteryPanel grid={grid} />
     </div>
   )
 }
