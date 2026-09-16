@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useUIStore } from '@/store/uiStore'
 
-import { bucketDays, computeMastery, type PeriodType } from './masteryStats'
+import { bucketDays, computeMastery, type BucketStats, type PeriodType } from './masteryStats'
 import type { Grid } from './types'
 
 const PERIODS: { key: PeriodType; label: string }[] = [
@@ -12,6 +12,62 @@ const PERIODS: { key: PeriodType; label: string }[] = [
   { key: 'quarter', label: 'Choraklik' },
   { key: 'year', label: 'Yillik' },
 ]
+
+const BAND_COLOR: Record<'good' | 'mid' | 'bad', string> = {
+  good: 'var(--band-good)',
+  mid: 'var(--band-mid)',
+  bad: 'var(--band-bad)',
+}
+
+// Donut = latest bucket's part-to-whole snapshot; the bars below carry the
+// trend across buckets — the two are complementary, not duplicates.
+function MasteryDonut({ bucket, labels }: { bucket: BucketStats; labels: { good: string; mid: string; bad: string } }) {
+  const total = bucket.good + bucket.mid + bucket.bad
+  const r = 52
+  const circumference = 2 * Math.PI * r
+  const raw = (['good', 'mid', 'bad'] as const)
+    .map((key) => ({ key, value: bucket[key] }))
+    .filter((s) => s.value > 0)
+  const gap = raw.length > 1 ? 3 : 0
+
+  let offset = 0
+  const arcs = raw.map((s) => {
+    const share = s.value / total
+    const arc = { key: s.key, value: s.value, length: Math.max(share * circumference - gap, 0), offset }
+    offset += share * circumference
+    return arc
+  })
+
+  return (
+    <svg viewBox="0 0 120 120" className="mastery__donut" role="img" aria-label={`${labels.good} ${bucket.good}, ${labels.mid} ${bucket.mid}, ${labels.bad} ${bucket.bad}`}>
+      <circle cx="60" cy="60" r={r} className="mastery__donut-track" strokeWidth="14" fill="none" />
+      {arcs.map((a) => (
+        <circle
+          key={a.key}
+          cx="60"
+          cy="60"
+          r={r}
+          fill="none"
+          strokeWidth="14"
+          strokeLinecap="round"
+          style={{
+            stroke: BAND_COLOR[a.key],
+            strokeDasharray: `${a.length} ${circumference}`,
+            strokeDashoffset: -a.offset,
+            transform: 'rotate(-90deg)',
+            transformOrigin: '60px 60px',
+          }}
+        />
+      ))}
+      <text x="60" y="55" textAnchor="middle" className="mastery__donut-num">
+        {bucket.classPct !== null ? `${bucket.classPct}%` : '—'}
+      </text>
+      <text x="60" y="74" textAnchor="middle" className="mastery__donut-label">
+        {bucket.label}
+      </text>
+    </svg>
+  )
+}
 
 export function MasteryPanel({ grid }: { grid: Grid }) {
   const { t } = useTranslation()
@@ -48,22 +104,25 @@ export function MasteryPanel({ grid }: { grid: Grid }) {
         <p className="mastery__empty">{t("Bu davr uchun baholar hali kiritilmagan.")}</p>
       ) : (
         <>
-          <div className="mastery__kpis">
-            <div className="mastery__kpi">
-              <span>{t("O'zlashtirish")}</span>
-              <b>{latest && latest.classPct !== null ? `${latest.classPct}%` : '—'}</b>
-            </div>
-            <div className="mastery__kpi mastery__kpi--good">
-              <span>{t('Yaxshi')}</span>
-              <b>{latest?.good ?? 0}</b>
-            </div>
-            <div className="mastery__kpi mastery__kpi--mid">
-              <span>{t("O'rtacha")}</span>
-              <b>{latest?.mid ?? 0}</b>
-            </div>
-            <div className="mastery__kpi mastery__kpi--bad">
-              <span>{t('Past')}</span>
-              <b>{latest?.bad ?? 0}</b>
+          <div className="mastery__snapshot">
+            {latest && <MasteryDonut bucket={latest} labels={{ good: t('Yaxshi'), mid: t("O'rtacha"), bad: t('Past') }} />}
+            <div className="mastery__kpis">
+              <div className="mastery__kpi">
+                <span>{t("O'zlashtirish")}</span>
+                <b>{latest && latest.classPct !== null ? `${latest.classPct}%` : '—'}</b>
+              </div>
+              <div className="mastery__kpi mastery__kpi--good">
+                <span>{t('Yaxshi')}</span>
+                <b>{latest?.good ?? 0}</b>
+              </div>
+              <div className="mastery__kpi mastery__kpi--mid">
+                <span>{t("O'rtacha")}</span>
+                <b>{latest?.mid ?? 0}</b>
+              </div>
+              <div className="mastery__kpi mastery__kpi--bad">
+                <span>{t('Past')}</span>
+                <b>{latest?.bad ?? 0}</b>
+              </div>
             </div>
           </div>
 

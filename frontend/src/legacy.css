@@ -1583,7 +1583,13 @@ img.pf__av   { width: 72px; height: 72px; max-width: 72px; max-height: 72px; bor
 .mastery__title { margin: 0; font: 600 16px/1.2 var(--f-display); }
 .mastery__empty { color: var(--ink-3); }
 
-.mastery__kpis { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.mastery__snapshot { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 14px; }
+.mastery__donut { width: 120px; height: 120px; flex: none; }
+.mastery__donut-track { stroke: var(--rule-2); }
+.mastery__donut-num { font: 600 20px/1 var(--f-display); fill: var(--ink); }
+.mastery__donut-label { font: 500 9px/1 var(--f-mono); fill: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; }
+
+.mastery__kpis { display: flex; gap: 8px; flex-wrap: wrap; flex: 1 1 240px; margin-bottom: 0; }
 .mastery__kpi {
   flex: 1; min-width: 90px;
   border: 1px solid var(--rule); border-left: 3px solid var(--rule); border-radius: 10px;
