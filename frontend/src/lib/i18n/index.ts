@@ -56,8 +56,8 @@ const ru = {
   "Innovatsion o'quv platformasi": 'Инновационная образовательная платформа', 'platformasi': 'платформа',
   'Jami dars': 'Всего уроков', 'Amaliy tajriba': 'Практических опытов',
   'WOW-namoyish': 'WOW-демонстраций', "O'yinli tajriba": 'Игровых занятий',
-  '1–9-sinflar uchun tayyor darslar, amaliy tajribalar va WOW-namoyishlar.':
-    'Готовые уроки, практические опыты и WOW-демонстрации для 1–9 классов.',
+  "1–9-sinflar uchun tayyor darslar va o'quv materiallari.":
+    'Готовые уроки и учебные материалы для 1–9 классов.',
   "Baho, davomat va sinf o'zlashtirish diagrammalari — barchasi bir joyda.":
     'Оценки, посещаемость и диаграммы успеваемости класса — всё в одном месте.',
   "Haftalik dars jadvalini tuzing, ko'ring va boshqaring.": 'Составляйте, просматривайте и управляйте недельным расписанием уроков.',
@@ -66,8 +66,8 @@ const ru = {
   "ta'limiy yo'nalishi doirasida tayyorlangan.": 'подготовлен в рамках образовательного направления.',
   "KO'RAGONIY EDU — fan-texnikani quruq formulalar emas, balki jonli tajribalar orqali o'rgatishga qaratilgan platforma. Maqsad: o'quvchida hayrat uyg'otish, hodisani o'z ko'zi bilan ko'rsatish va “nega bunday bo'ldi?” degan savolni tug'dirish.":
     'KO\'RAGONIY EDU — платформа, нацеленная не на сухие формулы, а на обучение точным и естественным наукам через живые эксперименты. Цель: вызвать у ученика удивление, показать явление собственными глазами и породить вопрос «почему так произошло?».',
-  "Muhandis_D uchun ishlab chiqilgan zamonaviy STEM ta'lim platformasi. 1–9-sinflar uchun amaliy tajribalar, WOW-namoyishlar va o'yinli mashg'ulotlar — barchasi bitta interaktiv platformada. Fan-texnikani ko'rsatib, his qildirib o'rgatish uchun.":
-    'Современная STEM-образовательная платформа, разработанная для Muhandis_D. Практические опыты, WOW-демонстрации и игровые занятия для 1–9 классов — всё на одной интерактивной платформе. Чтобы показывать науку и технику и дать их прочувствовать.',
+  "Muhandis_D uchun ishlab chiqilgan zamonaviy STEM ta'lim platformasi. 1–9-sinflar uchun darslar, baholash, jadval va kutubxona — barchasi bitta interaktiv platformada.":
+    'Современная STEM-образовательная платформа, разработанная для Muhandis_D. Уроки, оценивание, расписание и библиотека для 1–9 классов — всё на одной интерактивной платформе.',
   'Rejimni almashtirish': 'Переключить режим', 'Rejim': 'Режим',
   'Bildirishnomalar': 'Уведомления', "O'qilgan": 'Прочитано',
   'Profil': 'Профиль', "Ilovani o'rnatish": 'Установить приложение',
@@ -562,8 +562,8 @@ const en = {
   "Innovatsion o'quv platformasi": 'Innovative learning platform', 'platformasi': 'platform',
   'Jami dars': 'Total lessons', 'Amaliy tajriba': 'Hands-on experiments',
   'WOW-namoyish': 'WOW demos', "O'yinli tajriba": 'Playful activities',
-  '1–9-sinflar uchun tayyor darslar, amaliy tajribalar va WOW-namoyishlar.':
-    'Ready-made lessons, hands-on experiments and WOW demonstrations for grades 1–9.',
+  "1–9-sinflar uchun tayyor darslar va o'quv materiallari.":
+    'Ready-made lessons and learning materials for grades 1–9.',
   "Baho, davomat va sinf o'zlashtirish diagrammalari — barchasi bir joyda.":
     "Grades, attendance and class performance charts — all in one place.",
   "Haftalik dars jadvalini tuzing, ko'ring va boshqaring.": 'Build, view and manage the weekly lesson timetable.',
@@ -572,8 +572,8 @@ const en = {
   "ta'limiy yo'nalishi doirasida tayyorlangan.": 'was built as part of an educational initiative.',
   "KO'RAGONIY EDU — fan-texnikani quruq formulalar emas, balki jonli tajribalar orqali o'rgatishga qaratilgan platforma. Maqsad: o'quvchida hayrat uyg'otish, hodisani o'z ko'zi bilan ko'rsatish va “nega bunday bo'ldi?” degan savolni tug'dirish.":
     "KO'RAGONIY EDU is a platform focused not on dry formulas, but on teaching science and technology through live experiments. The goal: to spark a student's sense of wonder, show them a phenomenon with their own eyes, and raise the question “why did that happen?”",
-  "Muhandis_D uchun ishlab chiqilgan zamonaviy STEM ta'lim platformasi. 1–9-sinflar uchun amaliy tajribalar, WOW-namoyishlar va o'yinli mashg'ulotlar — barchasi bitta interaktiv platformada. Fan-texnikani ko'rsatib, his qildirib o'rgatish uchun.":
-    "A modern STEM learning platform built for Muhandis_D. Hands-on experiments, WOW demonstrations, and playful activities for grades 1–9 — all in one interactive platform. To teach science and technology by showing it and making it felt.",
+  "Muhandis_D uchun ishlab chiqilgan zamonaviy STEM ta'lim platformasi. 1–9-sinflar uchun darslar, baholash, jadval va kutubxona — barchasi bitta interaktiv platformada.":
+    "A modern STEM learning platform built for Muhandis_D. Lessons, grading, timetable and library for grades 1–9 — all in one interactive platform.",
   'Rejimni almashtirish': 'Toggle mode', 'Rejim': 'Mode',
   'Bildirishnomalar': 'Notifications', "O'qilgan": 'Mark read',
   'Profil': 'Profile', "Ilovani o'rnatish": 'Install app',

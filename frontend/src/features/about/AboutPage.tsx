@@ -1,20 +1,13 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
-import { useLessonStats, type LessonStats } from '@/features/lessons/api'
+import { useLessonStats } from '@/features/lessons/api'
 import { IC } from '@/icons'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore } from '@/store/uiStore'
 
-const STAT_CARDS: { key: keyof LessonStats; ic: keyof typeof IC; label: string }[] = [
-  { key: 'lessons', ic: 'atom', label: 'Jami dars' },
-  { key: 'oddiy', ic: 'flask', label: 'Amaliy tajriba' },
-  { key: 'wow', ic: 'star', label: 'WOW-namoyish' },
-  { key: 'oyin', ic: 'dice', label: "O'yinli tajriba" },
-]
-
 const FEATURES: { to: string; ic: keyof typeof IC; label: string; desc: string; adminOnly?: boolean }[] = [
-  { to: '/lessons', ic: 'atom', label: 'Darslar', desc: '1–9-sinflar uchun tayyor darslar, amaliy tajribalar va WOW-namoyishlar.' },
+  { to: '/lessons', ic: 'atom', label: 'Darslar', desc: '1–9-sinflar uchun tayyor darslar va o\'quv materiallari.' },
   { to: '/journal', ic: 'clipboard', label: 'Jurnal', desc: "Baho, davomat va sinf o'zlashtirish diagrammalari — barchasi bir joyda." },
   { to: '/timetable', ic: 'calendar', label: 'Jadval', desc: 'Haftalik dars jadvalini tuzing, ko\'ring va boshqaring.' },
   { to: '/library', ic: 'book', label: 'Kutubxona', desc: "Kitob, qo'llanma va video materiallar to'plami." },
@@ -48,7 +41,7 @@ export function AboutPage() {
           </h2>
           <p className="abhero__sub">
             {t(
-              "Muhandis_D uchun ishlab chiqilgan zamonaviy STEM ta'lim platformasi. 1–9-sinflar uchun amaliy tajribalar, WOW-namoyishlar va o'yinli mashg'ulotlar — barchasi bitta interaktiv platformada. Fan-texnikani ko'rsatib, his qildirib o'rgatish uchun.",
+              "Muhandis_D uchun ishlab chiqilgan zamonaviy STEM ta'lim platformasi. 1–9-sinflar uchun darslar, baholash, jadval va kutubxona — barchasi bitta interaktiv platformada.",
             )}
           </p>
           <div className="abhero__credit">
@@ -76,22 +69,12 @@ export function AboutPage() {
         </div>
       </div>
 
-      <div className="abstat abstat--combined">
-        <div className="abstat__main">
-          <span className="abstat__ic">{IC.atom}</span>
-          <div>
-            <span className="abstat__n">{stats ? stats.lessons : '—'}</span>
-            <span className="abstat__lb">{t('Jami dars')}</span>
-          </div>
-        </div>
-        <div className="abstat__breakdown">
-          {STAT_CARDS.filter((s) => s.key !== 'lessons').map((s) => (
-            <span key={s.key} className="abstat__mini">
-              <span className="abstat__mini-ic">{IC[s.ic]}</span>
-              <b>{stats ? stats[s.key] : '—'}</b> {t(s.label)}
-            </span>
-          ))}
-        </div>
+      <div className="abstat">
+        <span className="abstat__ic">{IC.atom}</span>
+        <span>
+          <span className="abstat__n">{stats ? stats.lessons : '—'}</span>
+          <span className="abstat__lb">{t('Jami dars')}</span>
+        </span>
       </div>
 
       <div className="panel">
