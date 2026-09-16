@@ -1108,25 +1108,37 @@ tr.is-absent .table__name { color: var(--mark); text-decoration: line-through; o
 }
 .abfeat__card:hover .abfeat__go { color: var(--ink); }
 
-.abstats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
 .abstat {
   display: flex; flex-direction: column; gap: 8px;
   padding: 16px; border: 1px solid var(--rule); border-radius: var(--r); background: var(--surface);
 }
 .abstat__ic {
   width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 9px; background: var(--rule-2); color: var(--ok);
+  border-radius: 9px; background: var(--rule-2); color: var(--ok); flex: none;
 }
 .abstat__ic .svic { width: 18px; height: 18px; }
 .abstat__n { font: 700 26px/1 var(--f-display); color: var(--ink); }
 .abstat__lb { font-size: 12.5px; color: var(--ink-3); }
+
+.abstat--combined { flex-direction: row; align-items: center; gap: 22px; margin-bottom: 18px; flex-wrap: wrap; }
+.abstat__main { display: flex; align-items: center; gap: 12px; }
+.abstat__main > div { display: flex; flex-direction: column; gap: 2px; }
+.abstat__breakdown { display: flex; gap: 20px; flex-wrap: wrap; padding-left: 22px; border-left: 1px solid var(--rule-2); }
+.abstat__mini { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); }
+.abstat__mini b { font: 700 15px/1 var(--f-display); color: var(--ink); }
+.abstat__mini-ic { display: inline-flex; color: var(--ink-3); }
+.abstat__mini-ic .svic { width: 15px; height: 15px; }
+
+@media (max-width: 640px) {
+  .abstat--combined { flex-direction: column; align-items: flex-start; }
+  .abstat__breakdown { border-left: none; padding-left: 0; border-top: 1px solid var(--rule-2); padding-top: 12px; width: 100%; }
+}
 
 @media (max-width: 900px) {
   .abhero { flex-direction: column-reverse; text-align: center; padding: 26px; }
   .abhero__body { max-width: none; }
   .abhero__eyebrow, .abhero__credit { justify-content: center; }
   .abhero__title { font-size: 26px; }
-  .abstats { grid-template-columns: repeat(2, 1fr); }
 }
 
 .sociallinks { display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); }

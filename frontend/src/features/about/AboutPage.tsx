@@ -76,14 +76,22 @@ export function AboutPage() {
         </div>
       </div>
 
-      <div className="abstats">
-        {STAT_CARDS.map((s) => (
-          <div key={s.key} className="abstat">
-            <span className="abstat__ic">{IC[s.ic]}</span>
-            <span className="abstat__n">{stats ? stats[s.key] : '—'}</span>
-            <span className="abstat__lb">{t(s.label)}</span>
+      <div className="abstat abstat--combined">
+        <div className="abstat__main">
+          <span className="abstat__ic">{IC.atom}</span>
+          <div>
+            <span className="abstat__n">{stats ? stats.lessons : '—'}</span>
+            <span className="abstat__lb">{t('Jami dars')}</span>
           </div>
-        ))}
+        </div>
+        <div className="abstat__breakdown">
+          {STAT_CARDS.filter((s) => s.key !== 'lessons').map((s) => (
+            <span key={s.key} className="abstat__mini">
+              <span className="abstat__mini-ic">{IC[s.ic]}</span>
+              <b>{stats ? stats[s.key] : '—'}</b> {t(s.label)}
+            </span>
+          ))}
+        </div>
       </div>
 
       <div className="panel">
