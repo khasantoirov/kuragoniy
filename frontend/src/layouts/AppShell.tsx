@@ -118,9 +118,37 @@ export function AppShell() {
 
   const visibleNavItems = NAV_ITEMS.filter((item) => !item.adminOnly || isAdminInView(user, viewMode))
 
+  const acctPop = (align: 'up' | 'down') => (
+    <div className="acct">
+      <button className="acct__btn" onClick={() => setAcctOpen((v) => !v)}>
+        <Avatar name={user?.name ?? ''} photo={user?.photo} />
+        <span className="acct__nm">{user?.name}</span>
+      </button>
+      {acctOpen && (
+        <div className={`acct__pop ${align === 'up' ? 'acct__pop--up' : ''}`}>
+          <p className="acct__who">
+            {user?.name}
+            {user && <RoleBadge user={user} />}
+          </p>
+          <Link className="acct__item" to="/profile" onClick={closeAll}>
+            {IC.user} {t('Profil')}
+          </Link>
+          <Link className="acct__item" to="/settings" onClick={closeAll}>
+            {IC.gear} {t('Sozlamalar')}
+          </Link>
+          <button className="acct__item acct__item--out" onClick={() => logout()}>
+            {IC.logout} {t('Chiqish')}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+
   return (
     <>
-      <header className="topbar" ref={topbarRef}>
+      {/* Tor ekranlarda (mobil) yagona yuqori panel — .sidebar shu kenglikda
+          display:none bo'ladi, BottomNav navigatsiyani olib boradi. */}
+      <header className="topbar topbar--mobile" ref={topbarRef}>
         <div className="topbar__inner">
           <Link className="brand" to="/" onClick={closeAll}>
             <img className="brand__logo" src="/logo.png" alt="KO'RAGONIY EDU" width={48} height={48} />
@@ -131,80 +159,76 @@ export function AppShell() {
             </span>
           </Link>
 
-          <nav className="nav nav--icons nav--desktop">
-            {visibleNavItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === '/'}
-                className={({ isActive }) => `nav__item nav__item--icon ${isActive ? 'is-on' : ''}`}
-                title={t(item.label)}
-                aria-label={t(item.label)}
-              >
-                {IC[item.icon]}
-              </NavLink>
-            ))}
-          </nav>
-
           <div className="who">
             <button className="iconbtn" onClick={toggleTheme} title={t('Rejimni almashtirish')} aria-label={t('Rejim')}>
               {theme === 'dark' ? themeIconMoon() : themeIconSun()}
             </button>
-
             <AnnouncementsBell />
-
-            <div className="acct">
-              <button className="acct__btn" onClick={() => setAcctOpen((v) => !v)}>
-                <Avatar name={user?.name ?? ''} photo={user?.photo} />
-                <span className="acct__nm">{user?.name}</span>
-              </button>
-              {acctOpen && (
-                <div className="acct__pop">
-                  <p className="acct__who">
-                    {user?.name}
-                    {user && <RoleBadge user={user} />}
-                  </p>
-                  <Link className="acct__item" to="/profile" onClick={closeAll}>
-                    {IC.user} {t('Profil')}
-                  </Link>
-                  <Link className="acct__item" to="/settings" onClick={closeAll}>
-                    {IC.gear} {t('Sozlamalar')}
-                  </Link>
-                  <button className="acct__item acct__item--out" onClick={() => logout()}>
-                    {IC.logout} {t('Chiqish')}
-                  </button>
-                </div>
-              )}
-            </div>
+            {acctPop('down')}
           </div>
         </div>
       </header>
 
-      <div className="shell">
-        {onLessons && (
-          <div className="grades">
-            {GRADES.map((g) => (
-              <button
-                key={g}
-                className={`grade ${g === grade ? 'is-on' : ''}`}
-                onClick={() => {
-                  setGrade(g)
-                  // Switching grade while viewing a specific lesson
-                  // (/lessons/:id) should land back on the list — same as
-                  // pressing "Barcha darslar" — rather than silently
-                  // changing the grade behind an unrelated lesson page.
-                  if (location.pathname !== '/lessons') navigate('/lessons')
-                }}
-              >
-                {gradeLabel(g, lang)}
-              </button>
-            ))}
-          </div>
-        )}
+      {/* Keng ekranlarda (desktop) chap tomondagi doimiy yon menyu. */}
+      <aside className="sidebar">
+        <Link className="sidebar__brand" to="/" onClick={closeAll}>
+          <img className="sidebar__logo" src="/logo.png" alt="KO'RAGONIY EDU" width={40} height={40} />
+          <span className="sidebar__name">KO'RAGONIY EDU</span>
+        </Link>
 
-        <main className="main" onClick={closeAll}>
-          <Outlet />
-        </main>
+        <nav className="sidebar__nav" aria-label={t('Asosiy navigatsiya')}>
+          {visibleNavItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
+              className={({ isActive }) => `sidebar__item ${isActive ? 'is-on' : ''}`}
+              onClick={closeAll}
+            >
+              <span className="sidebar__ic">{IC[item.icon]}</span>
+              <span className="sidebar__lb">{t(item.label)}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="sidebar__foot">
+          <div className="sidebar__utils">
+            <button className="iconbtn" onClick={toggleTheme} title={t('Rejimni almashtirish')} aria-label={t('Rejim')}>
+              {theme === 'dark' ? themeIconMoon() : themeIconSun()}
+            </button>
+            <AnnouncementsBell />
+          </div>
+          {acctPop('up')}
+        </div>
+      </aside>
+
+      <div className="appmain">
+        <div className="shell">
+          {onLessons && (
+            <div className="grades">
+              {GRADES.map((g) => (
+                <button
+                  key={g}
+                  className={`grade ${g === grade ? 'is-on' : ''}`}
+                  onClick={() => {
+                    setGrade(g)
+                    // Switching grade while viewing a specific lesson
+                    // (/lessons/:id) should land back on the list — same as
+                    // pressing "Barcha darslar" — rather than silently
+                    // changing the grade behind an unrelated lesson page.
+                    if (location.pathname !== '/lessons') navigate('/lessons')
+                  }}
+                >
+                  {gradeLabel(g, lang)}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <main className="main" onClick={closeAll}>
+            <Outlet />
+          </main>
+        </div>
       </div>
 
       <BottomNav items={visibleNavItems} />

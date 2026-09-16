@@ -501,8 +501,53 @@ label.btn { display: inline-flex; align-items: center; }
 }
 .acct__item:hover { background: var(--rule-2); }
 .acct__item--out { color: var(--mark); }
+.acct__pop--up { top: auto; right: auto; left: 0; bottom: calc(100% + 7px); }
 
 .panel__acts { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ══ Yon menyu (sidebar) — keng ekranlarda asosiy navigatsiya ══ */
+.sidebar { display: none; }
+.appmain { width: 100%; }
+
+@media (min-width: 761px) {
+  :root { --sidebar-w: 232px; }
+
+  .topbar--mobile { display: none; }
+
+  .sidebar {
+    display: flex; flex-direction: column;
+    position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w);
+    padding: 18px 12px;
+    border-right: 1px solid var(--rule); background: var(--surface);
+    overflow-y: auto; z-index: 90;
+  }
+  .sidebar__brand {
+    display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit;
+    padding: 4px 8px; margin-bottom: 18px; flex: none;
+  }
+  .sidebar__logo { border-radius: 9px; flex: none; }
+  .sidebar__name { font: 600 14.5px/1.25 var(--f-display); letter-spacing: .01em; }
+
+  .sidebar__nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+  .sidebar__item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px; border-radius: var(--r);
+    font: 500 14px/1 var(--f-body); color: var(--ink-2); text-decoration: none;
+  }
+  .sidebar__item:hover { background: var(--rule-2); color: var(--ink); }
+  .sidebar__item.is-on { background: var(--solid); color: var(--on-solid); }
+  .sidebar__ic { display: flex; flex: none; }
+  .sidebar__ic .svic { width: 18px; height: 18px; }
+  .sidebar__lb { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .sidebar__foot { flex: none; padding-top: 12px; border-top: 1px solid var(--rule-2); }
+  .sidebar__utils { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .sidebar__foot .acct { width: 100%; }
+  .sidebar__foot .acct__btn { width: 100%; }
+  .sidebar__foot .acct__nm { display: block; }
+
+  .appmain { margin-left: var(--sidebar-w); width: calc(100% - var(--sidebar-w)); }
+}
 
 @media (max-width: 760px) {
   .brand__name { font-size: 14px; }
