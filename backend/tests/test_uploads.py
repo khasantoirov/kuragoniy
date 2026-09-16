@@ -13,7 +13,7 @@ from lessons.models import Lesson
 
 pytestmark = pytest.mark.django_db
 
-LESSON_PAYLOAD = {"title": "T", "grade": "7-8", "chorak": 1, "hafta": 1}
+LESSON_PAYLOAD = {"title": "T", "grade": "7-8-9", "chorak": 1, "hafta": 1}
 
 
 def make_lesson():

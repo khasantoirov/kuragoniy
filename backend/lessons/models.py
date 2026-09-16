@@ -6,14 +6,13 @@ class Lesson(models.Model):
         G1_2 = '1-2', "1-2-sinf"
         G3_4 = '3-4', "3-4-sinf"
         G5_6 = '5-6', "5-6-sinf"
-        G7_8 = '7-8', "7-8-sinf"
-        G9 = '9', "9-sinf"
+        G7_8_9 = '7-8-9', "7-8-9-sinf"
 
     title = models.CharField(max_length=255)
     title_ru = models.CharField(max_length=255, blank=True)
     title_en = models.CharField(max_length=255, blank=True)
 
-    grade = models.CharField(max_length=3, choices=Grade.choices)
+    grade = models.CharField(max_length=5, choices=Grade.choices)
     chorak = models.PositiveSmallIntegerField(choices=[(1, 1), (2, 2), (3, 3), (4, 4)])
     hafta = models.PositiveSmallIntegerField()
 

@@ -38,7 +38,7 @@ def test_creating_a_lesson_sends_a_backup(mock_post, make_user, monkeypatch):
     admin = make_user('backup-edit-admin1@example.com', role='admin')
     _link(admin, 999)
 
-    Lesson.objects.create(title='Yangi dars', grade='7-8', chorak=2, hafta=3)
+    Lesson.objects.create(title='Yangi dars', grade='7-8-9', chorak=2, hafta=3)
 
     _wait_for_calls(mock_post)
     assert mock_post.call_count == 1
@@ -60,13 +60,13 @@ def test_editing_a_lesson_with_new_experiments_sends_exactly_one_backup(mock_pos
     admin = make_user('backup-edit-admin2@example.com', role='admin')
     _link(admin, 888)
 
-    lesson = Lesson.objects.create(title='Dars', grade='7-8', chorak=1, hafta=1)
+    lesson = Lesson.objects.create(title='Dars', grade='7-8-9', chorak=1, hafta=1)
     _wait_for_calls(mock_post)
     mock_post.reset_mock()
 
     from lessons.serializers import LessonSerializer
     serializer = LessonSerializer(lesson, data={
-        'title': 'Yangilangan dars', 'grade': '7-8', 'chorak': 1, 'hafta': 1,
+        'title': 'Yangilangan dars', 'grade': '7-8-9', 'chorak': 1, 'hafta': 1,
         'experiments': [
             {'name': 'Tajriba 1', 'type': 'oddiy'},
             {'name': 'Tajriba 2', 'type': 'oddiy'},
@@ -104,7 +104,7 @@ def test_no_bot_token_means_no_send_attempt(mock_post, make_user, monkeypatch):
     admin = make_user('backup-edit-admin4@example.com', role='admin')
     _link(admin, 666)
 
-    Lesson.objects.create(title="Token yo'q", grade='7-8', chorak=1, hafta=1)
+    Lesson.objects.create(title="Token yo'q", grade='7-8-9', chorak=1, hafta=1)
 
     time.sleep(0.3)
     assert mock_post.call_count == 0
@@ -120,7 +120,7 @@ def test_boshliq_does_not_receive_the_on_edit_backup(mock_post, make_user, monke
     admin = make_user('backup-edit-admin5@example.com', role='admin')
     _link(admin, 555555)
 
-    Lesson.objects.create(title='Boshliqsiz dars', grade='7-8', chorak=1, hafta=1)
+    Lesson.objects.create(title='Boshliqsiz dars', grade='7-8-9', chorak=1, hafta=1)
 
     _wait_for_calls(mock_post)
     time.sleep(0.3)  # let any extra (unwanted) sends to boshliq have a chance to land too

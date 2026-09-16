@@ -64,13 +64,18 @@ export const useUIStore = create<UIState>()(
       // grade-band code ('1-2'…'9') — map any old persisted number onto
       // its nearest band so a returning browser doesn't carry an invalid
       // grade into the new picker.
-      version: 2,
+      // v3: the '7-8' and '9' bands merged into one '7-8-9' band.
+      version: 3,
       migrate: (persisted, version) => {
         const state = persisted as UIState
         if (version < 1) state.navStyle = 'raised'
         if (version < 2) {
           const oldGrade = state.grade as unknown
-          state.grade = oldGrade === 9 || oldGrade === '9' ? '9' : oldGrade === 7 || oldGrade === 8 || oldGrade === '7' || oldGrade === '8' ? '7-8' : '1-2'
+          state.grade = (oldGrade === 9 || oldGrade === '9' ? '9' : oldGrade === 7 || oldGrade === 8 || oldGrade === '7' || oldGrade === '8' ? '7-8' : '1-2') as UIState['grade']
+        }
+        if (version < 3) {
+          const oldGrade = state.grade as unknown
+          state.grade = oldGrade === '7-8' || oldGrade === '9' ? '7-8-9' : (oldGrade as UIState['grade'])
         }
         return state
       },
