@@ -1,16 +1,4 @@
-import type { ReactElement } from 'react'
-
-import { IC } from '@/icons'
-
 import type { Grade } from './labels'
-
-export type ExperimentType = 'oddiy' | 'wow' | 'oyin'
-
-export const EXP_TYPES: Record<ExperimentType, { label: string; icon: ReactElement }> = {
-  oddiy: { label: 'Oddiy', icon: IC.atom },
-  wow: { label: 'WOW', icon: IC.star },
-  oyin: { label: "O'yin", icon: IC.dice },
-}
 
 export interface Experiment {
   id?: number
@@ -18,7 +6,6 @@ export interface Experiment {
   name: string
   name_ru?: string
   name_en?: string
-  type: ExperimentType
   desc: string
   desc_ru?: string
   desc_en?: string

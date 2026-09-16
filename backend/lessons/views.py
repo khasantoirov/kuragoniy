@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.db.models import Count, Q
 from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -25,9 +24,9 @@ LESSON_AUDIT_LABELS = {
     'title': 'Nomi', 'grade': 'Sinf', 'chorak': 'Chorak', 'hafta': 'Hafta',
     'goal': 'Maqsad', 'file_url': 'Fayl havolasi',
 }
-EXPERIMENT_AUDIT_FIELDS = ['name', 'type', 'desc', 'materials', 'steps', 'minutes', 'safety', 'image', 'video']
+EXPERIMENT_AUDIT_FIELDS = ['name', 'desc', 'materials', 'steps', 'minutes', 'safety', 'image', 'video']
 EXPERIMENT_AUDIT_LABELS = {
-    'name': 'Nomi', 'type': 'Turi', 'desc': 'Tavsif', 'materials': 'Jihozlar',
+    'name': 'Nomi', 'desc': 'Tavsif', 'materials': 'Jihozlar',
     'steps': 'Tartib', 'minutes': 'Vaqti', 'safety': 'Xavfsizlik', 'image': 'Rasm', 'video': 'Video',
 }
 
@@ -282,7 +281,7 @@ class LessonViewSet(viewsets.ModelViewSet):
                 for exp in source.experiments.all():
                     Experiment.objects.create(
                         lesson=result, order=exp.order,
-                        name=exp.name, type=exp.type, desc=exp.desc,
+                        name=exp.name, desc=exp.desc,
                         materials=exp.materials, steps=exp.steps,
                         minutes=exp.minutes, safety=exp.safety,
                         image=exp.image, video=exp.video,
@@ -306,18 +305,6 @@ class LessonViewSet(viewsets.ModelViewSet):
             f"• Endi: {target_grade}-sinf, {target_chorak}-chorak",
         )
         return Response(LessonSerializer(result, context={'request': request}).data)
-
-    @action(detail=False, methods=['get'])
-    def stats(self, request):
-        """Real counts for the 'Platforma haqida' page's stat cards —
-        computed live so they never drift from the actual lesson/experiment
-        data as content is added."""
-        exp_counts = Experiment.objects.aggregate(
-            oddiy=Count('id', filter=Q(type=Experiment.Type.ODDIY)),
-            wow=Count('id', filter=Q(type=Experiment.Type.WOW)),
-            oyin=Count('id', filter=Q(type=Experiment.Type.OYIN)),
-        )
-        return Response({'lessons': Lesson.objects.count(), **exp_counts})
 
     @action(detail=False, methods=['post'])
     def import_translations(self, request):

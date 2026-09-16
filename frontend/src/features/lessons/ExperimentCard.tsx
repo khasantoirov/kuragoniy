@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import { IC } from '@/icons'
 
-import { EXP_TYPES, type Experiment } from './types'
+import type { Experiment } from './types'
 
 export function ExperimentCard({
   exp,
@@ -25,7 +25,6 @@ export function ExperimentCard({
   onMove: () => void
 }) {
   const { t } = useTranslation()
-  const ty = EXP_TYPES[exp.type]
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `exp-${exp.id}`,
     disabled: !canDrag,
@@ -51,10 +50,6 @@ export function ExperimentCard({
               {IC.grip}
             </button>
           )}
-          <span className={`exp__type exp__type--${exp.type}`}>
-            {ty.icon}
-            <span>{t(ty.label)}</span>
-          </span>
           {exp.minutes ? <span className="xcard__min">{exp.minutes} {t('daqiqa')}</span> : null}
           {admin && (
             <span className="xcard__tools">

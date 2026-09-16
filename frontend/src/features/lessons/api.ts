@@ -14,21 +14,6 @@ export function useLessons(filters: { grade?: Grade; chorak?: number } = {}) {
   })
 }
 
-export interface LessonStats {
-  lessons: number
-  oddiy: number
-  wow: number
-  oyin: number
-}
-
-export function useLessonStats() {
-  return useQuery({
-    queryKey: ['lessons', 'stats'],
-    queryFn: async () => (await api.get<LessonStats>('/lessons/stats/')).data,
-    staleTime: 5 * 60_000,
-  })
-}
-
 export function useLesson(id: number) {
   return useQuery({
     queryKey: ['lessons', 'detail', id],

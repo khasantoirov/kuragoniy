@@ -1,7 +1,5 @@
 import { GRADES, type Grade } from '@/features/lessons/labels'
-import type { Experiment, ExperimentType } from '@/features/lessons/types'
-
-const EXP_TYPE_OK: ExperimentType[] = ['oddiy', 'wow', 'oyin']
+import type { Experiment } from '@/features/lessons/types'
 
 export interface ImportLessonRow {
   title: string
@@ -14,13 +12,12 @@ export interface ImportLessonRow {
 
 function normalizeExp(e: unknown, order: number): Omit<Experiment, 'id'> {
   if (typeof e === 'string') {
-    return { order, name: e, type: 'oddiy', desc: '', materials: [], steps: [], minutes: null, safety: '' }
+    return { order, name: e, desc: '', materials: [], steps: [], minutes: null, safety: '' }
   }
   const x = (e ?? {}) as Record<string, unknown>
   return {
     order,
     name: typeof x.name === 'string' ? x.name : '',
-    type: EXP_TYPE_OK.includes(x.type as ExperimentType) ? (x.type as ExperimentType) : 'oddiy',
     desc: typeof x.desc === 'string' ? x.desc : '',
     materials: Array.isArray(x.materials) ? x.materials : [],
     steps: Array.isArray(x.steps) ? x.steps : [],

@@ -15,7 +15,7 @@ pytestmark = pytest.mark.django_db
 def make_lesson(grade, chorak, hafta, title="Dars", with_experiment=True):
     lesson = Lesson.objects.create(title=title, grade=grade, chorak=chorak, hafta=hafta)
     if with_experiment:
-        Experiment.objects.create(lesson=lesson, order=0, name="Tajriba", type="oddiy", desc="d")
+        Experiment.objects.create(lesson=lesson, order=0, name="Tajriba", desc="d")
     return lesson
 
 

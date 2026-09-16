@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/Modal'
 import { useToast } from '@/components/Toast'
 
-import { EXP_TYPES, type Experiment, type ExperimentType } from './types'
+import type { Experiment } from './types'
 
 function emptyExperiment(): Experiment {
-  return { order: 0, name: '', type: 'oddiy', desc: '', materials: [], steps: [], minutes: null, safety: '' }
+  return { order: 0, name: '', desc: '', materials: [], steps: [], minutes: null, safety: '' }
 }
 
 function toUrl(v: string) {
@@ -77,20 +77,10 @@ export function ExperimentEditor({
         <input className="input" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder={t("Masalan: Chizg'ich orqali reaksiya vaqti")} />
       </label>
 
-      <div className="row row--2">
-        <label className="field">
-          <span className="field__label">{t('Turi')}</span>
-          <select className="input" value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value as ExperimentType })}>
-            {(Object.keys(EXP_TYPES) as ExperimentType[]).map((k) => (
-              <option key={k} value={k}>{t(EXP_TYPES[k].label)}</option>
-            ))}
-          </select>
-        </label>
-        <label className="field">
-          <span className="field__label">{t('Vaqti')} <span className="field__opt">{t('(daqiqa)')}</span></span>
-          <input className="input" type="number" min={1} max={120} value={draft.minutes ?? ''} onChange={(e) => setDraft({ ...draft, minutes: e.target.value ? Number(e.target.value) : null })} placeholder="10" />
-        </label>
-      </div>
+      <label className="field">
+        <span className="field__label">{t('Vaqti')} <span className="field__opt">{t('(daqiqa)')}</span></span>
+        <input className="input" type="number" min={1} max={120} value={draft.minutes ?? ''} onChange={(e) => setDraft({ ...draft, minutes: e.target.value ? Number(e.target.value) : null })} placeholder="10" />
+      </label>
 
       <label className="field">
         <span className="field__label">{t('Tavsif')} <span className="field__opt">({t("nima ko'rsatiladi")})</span></span>

@@ -11,7 +11,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Experiment
         fields = [
-            'id', 'order', 'name', 'name_ru', 'name_en', 'type',
+            'id', 'order', 'name', 'name_ru', 'name_en',
             'desc', 'desc_ru', 'desc_en',
             'materials', 'materials_ru', 'materials_en',
             'steps', 'steps_ru', 'steps_en',

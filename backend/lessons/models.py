@@ -58,19 +58,12 @@ class QuarterLock(models.Model):
 
 
 class Experiment(models.Model):
-    class Type(models.TextChoices):
-        ODDIY = 'oddiy', 'Oddiy'
-        WOW = 'wow', 'Wow'
-        OYIN = 'oyin', "O'yin"
-
     lesson = models.ForeignKey(Lesson, related_name='experiments', on_delete=models.CASCADE)
     order = models.PositiveSmallIntegerField(default=0)
 
     name = models.CharField(max_length=255)
     name_ru = models.CharField(max_length=255, blank=True)
     name_en = models.CharField(max_length=255, blank=True)
-
-    type = models.CharField(max_length=10, choices=Type.choices, default=Type.ODDIY)
 
     desc = models.TextField(blank=True)
     desc_ru = models.TextField(blank=True)
