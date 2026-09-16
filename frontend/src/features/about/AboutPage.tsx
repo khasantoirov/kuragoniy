@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
-import { useLessonStats } from '@/features/lessons/api'
 import { IC } from '@/icons'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore } from '@/store/uiStore'
@@ -14,7 +13,7 @@ const GRADE_TRACKS: { grades: string; name: string; desc: string }[] = [
 ]
 
 const FEATURES: { to: string; ic: keyof typeof IC; label: string; desc: string; adminOnly?: boolean }[] = [
-  { to: '/lessons', ic: 'atom', label: 'Darslar', desc: '1–9-sinflar uchun tayyor darslar va o\'quv materiallari.' },
+  { to: '/lessons', ic: 'robot', label: 'Darslar', desc: '1–9-sinflar uchun tayyor darslar va o\'quv materiallari.' },
   { to: '/journal', ic: 'clipboard', label: 'Jurnal', desc: "Baho, davomat va sinf o'zlashtirish diagrammalari — barchasi bir joyda." },
   { to: '/timetable', ic: 'calendar', label: 'Jadval', desc: 'Haftalik dars jadvalini tuzing, ko\'ring va boshqaring.' },
   { to: '/library', ic: 'book', label: 'Kutubxona', desc: "Kitob, qo'llanma va video materiallar to'plami." },
@@ -29,7 +28,6 @@ const SOCIAL_LINKS: { ic: keyof typeof IC; label: string; handle: string; url: s
 
 export function AboutPage() {
   const { t } = useTranslation()
-  const { data: stats } = useLessonStats()
   const { user } = useAuth()
   const { viewMode } = useUIStore()
   const admin = isAdminInView(user, viewMode)
@@ -63,7 +61,7 @@ export function AboutPage() {
       </div>
 
       <div className="abtracks">
-        <h3 className="panel__title">{IC.atom} {t('Sinf bosqichlari')}</h3>
+        <h3 className="panel__title">{IC.robot} {t('Sinf bosqichlari')}</h3>
         <div className="abtracks__list">
           {GRADE_TRACKS.map((g) => (
             <div key={g.grades} className="abtrack">
@@ -87,14 +85,6 @@ export function AboutPage() {
             </Link>
           ))}
         </div>
-      </div>
-
-      <div className="abstat">
-        <span className="abstat__ic">{IC.atom}</span>
-        <span>
-          <span className="abstat__n">{stats ? stats.lessons : '—'}</span>
-          <span className="abstat__lb">{t('Jami dars')}</span>
-        </span>
       </div>
 
       <div className="panel">
