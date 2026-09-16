@@ -56,6 +56,11 @@ const ru = {
   "Innovatsion o'quv platformasi": 'Инновационная образовательная платформа', 'platformasi': 'платформа',
   'Jami dars': 'Всего уроков', 'Amaliy tajriba': 'Практических опытов',
   'WOW-namoyish': 'WOW-демонстраций', "O'yinli tajriba": 'Игровых занятий',
+  'Sinf bosqichlari': 'Классы и направления',
+  "Lego konstruktorlaridan turli modellar yasash.": 'Сборка различных моделей из конструктора Lego.',
+  "Karton, cho'p va trubochkalardan amaliy loyihalar yasash.": 'Практические проекты из картона, палочек и трубочек.',
+  'Lazerda kesilgan detallardan modellar yasash.': 'Сборка моделей из деталей лазерной резки.',
+  'Elektronika va Arduino asosida loyihalar.': 'Проекты на основе электроники и Arduino.',
   "1–9-sinflar uchun tayyor darslar va o'quv materiallari.":
     'Готовые уроки и учебные материалы для 1–9 классов.',
   "Baho, davomat va sinf o'zlashtirish diagrammalari — barchasi bir joyda.":
@@ -562,6 +567,11 @@ const en = {
   "Innovatsion o'quv platformasi": 'Innovative learning platform', 'platformasi': 'platform',
   'Jami dars': 'Total lessons', 'Amaliy tajriba': 'Hands-on experiments',
   'WOW-namoyish': 'WOW demos', "O'yinli tajriba": 'Playful activities',
+  'Sinf bosqichlari': 'Grades and tracks',
+  "Lego konstruktorlaridan turli modellar yasash.": 'Building various models from Lego sets.',
+  "Karton, cho'p va trubochkalardan amaliy loyihalar yasash.": 'Hands-on projects from cardboard, sticks and straws.',
+  'Lazerda kesilgan detallardan modellar yasash.': 'Assembling models from laser-cut parts.',
+  'Elektronika va Arduino asosida loyihalar.': 'Electronics and Arduino-based projects.',
   "1–9-sinflar uchun tayyor darslar va o'quv materiallari.":
     'Ready-made lessons and learning materials for grades 1–9.',
   "Baho, davomat va sinf o'zlashtirish diagrammalari — barchasi bir joyda.":
