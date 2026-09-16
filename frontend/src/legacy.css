@@ -1608,12 +1608,21 @@ img.pf__av   { width: 72px; height: 72px; max-width: 72px; max-height: 72px; bor
 .mastery__dot--mid  { background: var(--band-mid); }
 .mastery__dot--bad  { background: var(--band-bad); }
 
+.mastery__hint { margin: 0 0 8px; font-size: 12px; color: var(--ink-3); }
+
 .mastery__scroll { overflow-x: auto; padding-bottom: 4px; }
 .mastery__chart { display: flex; align-items: flex-end; gap: 10px; height: 160px; min-width: min-content; }
-.mastery__col { display: flex; flex-direction: column; align-items: center; width: 34px; flex: none; height: 100%; }
+.mastery__col {
+  display: flex; flex-direction: column; align-items: center; width: 34px; flex: none; height: 100%;
+  border: 0; background: none; padding: 0 0 4px; border-radius: 6px; cursor: pointer;
+}
+.mastery__col:hover { background: var(--rule-2); }
+.mastery__col.is-sel { background: var(--rule-2); box-shadow: inset 0 0 0 1.5px var(--ink-3); }
+.mastery__col:disabled { cursor: default; }
+.mastery__col:disabled:hover { background: none; }
 .mastery__bar {
   width: 100%; flex: 1 1 auto; display: flex; flex-direction: column; justify-content: flex-end;
-  gap: 2px; cursor: default;
+  gap: 2px;
 }
 .mastery__seg { width: 100%; }
 .mastery__seg--good { background: var(--band-good); }
@@ -1624,6 +1633,9 @@ img.pf__av   { width: 72px; height: 72px; max-width: 72px; max-height: 72px; bor
 .mastery__collabel { margin-top: 8px; font: 500 10px/1.2 var(--f-mono); color: var(--ink-3); text-align: center; white-space: nowrap; }
 
 .mastery__table { margin-top: 16px; }
+.mastery__row.is-clickable { cursor: pointer; }
+.mastery__row.is-clickable:hover { background: var(--rule-2); }
+.mastery__row.is-sel { background: var(--rule-2); font-weight: 600; }
 
 .jt { width: 100%; border-collapse: collapse; font-size: 13px; }
 .jt th, .jt td { border: 1px solid var(--rule); }

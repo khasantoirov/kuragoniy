@@ -86,12 +86,13 @@ export function bucketLabel(b: Bucket, lang: Lang): string {
   return String(b.year)
 }
 
-// A 5-point mark maps onto a 100% scale (mark/5*100); these three bands
-// mirror the red/yellow/green split the school office already uses when
-// reading o'zlashtirish printouts by eye.
-export function bandOf(pct: number): 'good' | 'mid' | 'bad' {
-  if (pct >= 75) return 'good'
-  if (pct >= 50) return 'mid'
+// Bands follow the nearest whole grade a student's period average rounds
+// to, not an arbitrary percentage cut: Yaxshi = rounds to 5, O'rtacha =
+// rounds to 4, Past = rounds to 3 or below (2.5/1.5 aren't reachable
+// bucket boundaries here since grades only go down to 1).
+export function bandOfAvg(avg: number): 'good' | 'mid' | 'bad' {
+  if (avg >= 4.5) return 'good'
+  if (avg >= 3.5) return 'mid'
   return 'bad'
 }
 
@@ -107,9 +108,9 @@ export function computeMastery(grid: Pick<Grid, 'students'>, buckets: Bucket[], 
         ungraded++
         continue
       }
-      const pct = Math.round((p.avg / 5) * 100)
-      if (bandOf(pct) === 'good') good++
-      else if (bandOf(pct) === 'mid') mid++
+      const band = bandOfAvg(p.avg)
+      if (band === 'good') good++
+      else if (band === 'mid') mid++
       else bad++
     }
     return { ...b, label: bucketLabel(b, lang), classPct: s.pct, good, mid, bad, ungraded }

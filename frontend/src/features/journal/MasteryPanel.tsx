@@ -77,14 +77,18 @@ export function MasteryPanel({ grid }: { grid: Grid }) {
     return raw === 'week' || raw === 'month' || raw === 'quarter' || raw === 'year' ? raw : 'quarter'
   })
 
+  const [selectedKey, setSelectedKey] = useState<string | null>(null)
+
   const changePeriod = (p: PeriodType) => {
     setPeriod(p)
+    setSelectedKey(null)
     localStorage.setItem('afmd.mperiod', p)
   }
 
   const stats = useMemo(() => computeMastery(grid, bucketDays(grid.days, period), lang), [grid, period, lang])
   const graded = stats.filter((s) => s.good + s.mid + s.bad > 0)
   const latest = graded[graded.length - 1] ?? null
+  const selected = graded.find((s) => s.key === selectedKey) ?? latest
   const maxTotal = Math.max(1, ...stats.map((s) => s.good + s.mid + s.bad))
 
   return (
@@ -105,40 +109,49 @@ export function MasteryPanel({ grid }: { grid: Grid }) {
       ) : (
         <>
           <div className="mastery__snapshot">
-            {latest && <MasteryDonut bucket={latest} labels={{ good: t('Yaxshi'), mid: t("O'rtacha"), bad: t('Past') }} />}
+            {selected && <MasteryDonut bucket={selected} labels={{ good: t('Yaxshi'), mid: t("O'rtacha"), bad: t('Past') }} />}
             <div className="mastery__kpis">
               <div className="mastery__kpi">
-                <span>{t("O'zlashtirish")}</span>
-                <b>{latest && latest.classPct !== null ? `${latest.classPct}%` : '—'}</b>
+                <span>{selected?.label ?? t("O'zlashtirish")}</span>
+                <b>{selected && selected.classPct !== null ? `${selected.classPct}%` : '—'}</b>
               </div>
               <div className="mastery__kpi mastery__kpi--good">
                 <span>{t('Yaxshi')}</span>
-                <b>{latest?.good ?? 0}</b>
+                <b>{selected?.good ?? 0}</b>
               </div>
               <div className="mastery__kpi mastery__kpi--mid">
                 <span>{t("O'rtacha")}</span>
-                <b>{latest?.mid ?? 0}</b>
+                <b>{selected?.mid ?? 0}</b>
               </div>
               <div className="mastery__kpi mastery__kpi--bad">
                 <span>{t('Past')}</span>
-                <b>{latest?.bad ?? 0}</b>
+                <b>{selected?.bad ?? 0}</b>
               </div>
             </div>
           </div>
 
           <div className="mastery__legend">
-            <span className="mastery__lg"><i className="mastery__dot mastery__dot--good" />{t('Yaxshi')} (&ge;75%)</span>
-            <span className="mastery__lg"><i className="mastery__dot mastery__dot--mid" />{t("O'rtacha")} (50–74%)</span>
-            <span className="mastery__lg"><i className="mastery__dot mastery__dot--bad" />{t('Past')} (&lt;50%)</span>
+            <span className="mastery__lg"><i className="mastery__dot mastery__dot--good" />{t('Yaxshi')} (5)</span>
+            <span className="mastery__lg"><i className="mastery__dot mastery__dot--mid" />{t("O'rtacha")} (4)</span>
+            <span className="mastery__lg"><i className="mastery__dot mastery__dot--bad" />{t('Past')} (&le;3)</span>
           </div>
+
+          <p className="mastery__hint">{t('Muayyan davrni ko\'rish uchun ustunni yoki jadval qatorini bosing.')}</p>
 
           <div className="mastery__scroll">
             <div className="mastery__chart">
               {stats.map((s) => {
                 const total = s.good + s.mid + s.bad
                 const h = (n: number) => (n / maxTotal) * 100
+                const isSel = selected?.key === s.key
                 return (
-                  <div key={s.key} className="mastery__col">
+                  <button
+                    key={s.key}
+                    type="button"
+                    className={`mastery__col ${isSel ? 'is-sel' : ''}`}
+                    disabled={total === 0}
+                    onClick={() => setSelectedKey(s.key)}
+                  >
                     <div
                       className="mastery__bar"
                       title={`${s.label}: ${s.classPct !== null ? s.classPct + '%' : t('Baholanmagan')} · ${t('Yaxshi')} ${s.good} / ${t("O'rtacha")} ${s.mid} / ${t('Past')} ${s.bad}`}
@@ -154,7 +167,7 @@ export function MasteryPanel({ grid }: { grid: Grid }) {
                       )}
                     </div>
                     <div className="mastery__collabel">{s.label}</div>
-                  </div>
+                  </button>
                 )
               })}
             </div>
@@ -172,15 +185,23 @@ export function MasteryPanel({ grid }: { grid: Grid }) {
                 </tr>
               </thead>
               <tbody>
-                {stats.map((s) => (
-                  <tr key={s.key}>
-                    <td>{s.label}</td>
-                    <td className="table__q">{s.good}</td>
-                    <td className="table__q">{s.mid}</td>
-                    <td className="table__q">{s.bad}</td>
-                    <td className="table__q">{s.classPct !== null ? `${s.classPct}%` : '—'}</td>
-                  </tr>
-                ))}
+                {stats.map((s) => {
+                  const total = s.good + s.mid + s.bad
+                  const isSel = selected?.key === s.key
+                  return (
+                    <tr
+                      key={s.key}
+                      className={`mastery__row ${isSel ? 'is-sel' : ''} ${total ? 'is-clickable' : ''}`}
+                      onClick={() => total > 0 && setSelectedKey(s.key)}
+                    >
+                      <td>{s.label}</td>
+                      <td className="table__q">{s.good}</td>
+                      <td className="table__q">{s.mid}</td>
+                      <td className="table__q">{s.bad}</td>
+                      <td className="table__q">{s.classPct !== null ? `${s.classPct}%` : '—'}</td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

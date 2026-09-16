@@ -235,6 +235,7 @@ const ru = {
   'Haftalik': 'По неделям', 'Oylik': 'По месяцам', 'Choraklik': 'По четвертям', 'Yillik': 'По годам',
   'Yaxshi': 'Хорошо', 'Past': 'Низко', 'Baholanmagan': 'Не оценено',
   "Bu davr uchun baholar hali kiritilmagan.": 'За этот период оценок пока нет.',
+  "Muayyan davrni ko'rish uchun ustunni yoki jadval qatorini bosing.": 'Чтобы посмотреть конкретный период, нажмите на столбец или строку таблицы.',
   'Dars kuni': 'День урока', "Dars kuni qo'shildi": 'День урока добавлен',
   "O'quvchilar ro'yxati": 'Список учеников',
   'Avval belgini bosib davomatni belgilang, so\'ng darsda bo\'lgan o\'quvchiga baho qo\'ying (davomat "Sababli"/"Sababsiz" bo\'lsa, baho maydoni bloklanadi):':
@@ -729,6 +730,7 @@ const en = {
   'Haftalik': 'Weekly', 'Oylik': 'Monthly', 'Choraklik': 'Quarterly', 'Yillik': 'Yearly',
   'Yaxshi': 'Good', 'Past': 'Low', 'Baholanmagan': 'Not graded',
   "Bu davr uchun baholar hali kiritilmagan.": 'No grades entered for this period yet.',
+  "Muayyan davrni ko'rish uchun ustunni yoki jadval qatorini bosing.": 'Click a column or table row to view a specific period.',
   'Dars kuni': 'Lesson day', "Dars kuni qo'shildi": 'Lesson day added',
   "O'quvchilar ro'yxati": 'Student list',
   'Avval belgini bosib davomatni belgilang, so\'ng darsda bo\'lgan o\'quvchiga baho qo\'ying (davomat "Sababli"/"Sababsiz" bo\'lsa, baho maydoni bloklanadi):':
