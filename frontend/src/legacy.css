@@ -1072,13 +1072,18 @@ tr.is-absent .table__name { color: var(--mark); text-decoration: line-through; o
 .abhero__credit-av { width: 34px; height: 34px; border-radius: 9px; object-fit: cover; background: #fff; }
 .abhero__credit-role { display: block; font-size: 11.5px; color: rgba(224,236,252,.6); }
 .abhero__credit-name { display: block; font-size: 14px; color: #fff; }
-.abhero__social { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 14px; flex: none; }
+.abhero__social { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 10px; flex: none; }
+.abhero__social-link {
+  display: flex; align-items: center; gap: 10px;
+  color: #EAF2FC; text-decoration: none;
+}
+.abhero__social-handle { font: 500 12.5px/1 var(--f-mono); color: rgba(224,236,252,.8); }
 .abhero__social-ic {
-  width: 56px; height: 56px; border-radius: 16px;
+  width: 40px; height: 40px; flex: none; border-radius: 12px;
   display: grid; place-items: center; color: #fff;
   box-shadow: 0 8px 20px rgba(0,0,0,.3);
 }
-.abhero__social-ic .svic { width: 26px; height: 26px; }
+.abhero__social-ic .svic { width: 20px; height: 20px; }
 .abhero__social-ic--telegram { background: linear-gradient(135deg, #4fc3f7, #1d93d2); }
 .abhero__social-ic--instagram { background: radial-gradient(circle at 30% 110%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%); }
 .abhero__social-ic--youtube { background: linear-gradient(135deg, #ff5c52, #e02418); }

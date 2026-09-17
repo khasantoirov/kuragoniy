@@ -59,16 +59,9 @@ export function AboutPage() {
         </div>
         <div className="abhero__social">
           {SOCIAL_LINKS.map((s) => (
-            <a
-              key={s.ic}
-              className={`abhero__social-ic abhero__social-ic--${s.ic}`}
-              href={s.url}
-              target="_blank"
-              rel="noreferrer"
-              title={t(s.label)}
-              aria-label={t(s.label)}
-            >
-              {IC[s.ic]}
+            <a key={s.ic} className="abhero__social-link" href={s.url} target="_blank" rel="noreferrer">
+              <span className={`abhero__social-ic abhero__social-ic--${s.ic}`}>{IC[s.ic]}</span>
+              <span className="abhero__social-handle">{s.handle}</span>
             </a>
           ))}
         </div>
