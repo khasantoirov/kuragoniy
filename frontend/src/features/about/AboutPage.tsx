@@ -57,7 +57,21 @@ export function AboutPage() {
             </span>
           </div>
         </div>
-        <img className="abhero__logo" src="/logo.png" alt="KO'RAGONIY EDU" />
+        <div className="abhero__social">
+          {SOCIAL_LINKS.map((s) => (
+            <a
+              key={s.ic}
+              className={`abhero__social-ic abhero__social-ic--${s.ic}`}
+              href={s.url}
+              target="_blank"
+              rel="noreferrer"
+              title={t(s.label)}
+              aria-label={t(s.label)}
+            >
+              {IC[s.ic]}
+            </a>
+          ))}
+        </div>
       </div>
 
       <div className="abtracks">
@@ -83,21 +97,6 @@ export function AboutPage() {
               <span className="abfeat__desc">{t(f.desc)}</span>
               <span className="abfeat__go">{t('Ochish')} →</span>
             </Link>
-          ))}
-        </div>
-      </div>
-
-      <div className="panel">
-        <h3 className="panel__title">{t('Bizni kuzatib boring')}</h3>
-        <div className="sociallinks">
-          {SOCIAL_LINKS.map((s) => (
-            <a key={s.ic} className="sociallink" href={s.url} target="_blank" rel="noreferrer">
-              <span className={`sociallink__ic sociallink__ic--${s.ic}`}>{IC[s.ic]}</span>
-              <span className="sociallink__tx">
-                <span className="sociallink__lb">{t(s.label)}</span>
-                <span className="sociallink__handle">{s.handle}</span>
-              </span>
-            </a>
           ))}
         </div>
       </div>

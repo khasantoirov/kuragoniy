@@ -464,8 +464,7 @@ label.btn { display: inline-flex; align-items: center; }
    margin) keeps it legible without needing separate day/night artwork. */
 [data-theme="dark"] .brand__logo,
 [data-theme="dark"] .sidebar__logo,
-[data-theme="dark"] .gate__logo,
-[data-theme="dark"] .abhero__logo { background: #EAF1F6; }
+[data-theme="dark"] .gate__logo { background: #EAF1F6; }
 .brand__text { display: grid; gap: 3px; }
 .brand__name {
   font: 600 17px/1 var(--f-display); color: var(--ink); letter-spacing: .01em;
@@ -1073,7 +1072,16 @@ tr.is-absent .table__name { color: var(--mark); text-decoration: line-through; o
 .abhero__credit-av { width: 34px; height: 34px; border-radius: 9px; object-fit: cover; background: #fff; }
 .abhero__credit-role { display: block; font-size: 11.5px; color: rgba(224,236,252,.6); }
 .abhero__credit-name { display: block; font-size: 14px; color: #fff; }
-.abhero__logo { position: relative; z-index: 1; width: 130px; height: 130px; border-radius: 22px; object-fit: cover; flex: none; box-shadow: 0 14px 34px rgba(0,0,0,.35); }
+.abhero__social { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 14px; flex: none; }
+.abhero__social-ic {
+  width: 56px; height: 56px; border-radius: 16px;
+  display: grid; place-items: center; color: #fff;
+  box-shadow: 0 8px 20px rgba(0,0,0,.3);
+}
+.abhero__social-ic .svic { width: 26px; height: 26px; }
+.abhero__social-ic--telegram { background: linear-gradient(135deg, #4fc3f7, #1d93d2); }
+.abhero__social-ic--instagram { background: radial-gradient(circle at 30% 110%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%); }
+.abhero__social-ic--youtube { background: linear-gradient(135deg, #ff5c52, #e02418); }
 
 .abtracks { margin-bottom: 22px; }
 .abtracks__list {
@@ -1123,26 +1131,6 @@ tr.is-absent .table__name { color: var(--mark); text-decoration: line-through; o
   .abhero__title { font-size: 26px; }
 }
 
-.sociallinks { display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); }
-@media (max-width: 640px) { .sociallinks { grid-template-columns: 1fr; } }
-.sociallink {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 14px; border: 1px solid var(--rule); border-radius: var(--r);
-  background: var(--surface); color: inherit; text-decoration: none;
-  transition: border-color .15s, background .15s;
-}
-.sociallink:hover { border-color: var(--ink-3); background: var(--paper); }
-.sociallink__ic {
-  width: 38px; height: 38px; flex: none; display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 50%; color: #fff;
-}
-.sociallink__ic .svic { width: 20px; height: 20px; }
-.sociallink__ic--telegram { background: linear-gradient(135deg, #4fc3f7, #1d93d2); }
-.sociallink__ic--instagram { background: radial-gradient(circle at 30% 110%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%); }
-.sociallink__ic--youtube { background: linear-gradient(135deg, #ff5c52, #e02418); }
-.sociallink__tx { display: grid; gap: 2px; min-width: 0; }
-.sociallink__lb { font: 600 13px/1.2 var(--f-body); }
-.sociallink__handle { font: 400 12px/1 var(--f-mono); color: var(--ink-3); }
 
 /* ── Laboratoriya (simulyatsiyalar) ── */
 .labgrid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); margin-top: 14px; }
