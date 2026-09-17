@@ -88,13 +88,6 @@ export function AboutPage() {
       </div>
 
       <div className="panel">
-        <h3 className="panel__title">{IC.info} {t('Platforma haqida')}</h3>
-        <p className="prose">
-          {t("Muhandis_D uchun ishlab chiqilgan zamonaviy STEM ta'lim platformasi.")} {t('Dastur yaratuvchisi')} — <strong>Hasan Toirov</strong> · {new Date().getFullYear()}.
-        </p>
-      </div>
-
-      <div className="panel">
         <h3 className="panel__title">{t('Bizni kuzatib boring')}</h3>
         <div className="sociallinks">
           {SOCIAL_LINKS.map((s) => (
