@@ -63,7 +63,10 @@ export function AboutPage() {
             {SOCIAL_LINKS.map((s) => (
               <a key={s.ic} className="abhero__social-link" href={s.url} target="_blank" rel="noreferrer">
                 <span className={`abhero__social-ic abhero__social-ic--${s.ic}`}>{IC[s.ic]}</span>
-                <span className="abhero__social-handle">{s.handle}</span>
+                <span className="abhero__social-tx">
+                  <span className="abhero__social-lb">{t(s.label)}</span>
+                  <span className="abhero__social-handle">{s.handle}</span>
+                </span>
               </a>
             ))}
           </div>
