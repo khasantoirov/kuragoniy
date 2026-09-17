@@ -1,38 +1,38 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-import type { Grade } from '@/features/lessons/labels'
-import type { Lesson } from '@/features/lessons/types'
 import { api } from '@/lib/api/client'
-import type { Paginated } from '@/lib/api/types'
 
 import type { ImportLessonRow, TranslationRow } from './importLessons'
 
-/** Deletes existing lessons in the given grades (replace mode), then
- * creates every row from the parsed file — mirrors js/import.js's
- * runImport(), just against the Django API instead of Firestore. */
-export async function runLessonsImport(
-  rows: ImportLessonRow[],
-  mode: 'add' | 'replace',
-  grades: Grade[],
-  onProgress?: (msg: string) => void,
-) {
-  if (mode === 'replace') {
-    onProgress?.("Eskilari o'chirilmoqda…")
-    for (const grade of grades) {
-      const existing = (await api.get<Paginated<Lesson>>('/lessons/', { params: { grade } })).data.results
-      for (const lesson of existing) {
-        await api.delete(`/lessons/${lesson.id}/`)
-      }
-    }
-  }
+export interface BulkImportSkip {
+  row: number
+  title?: string
+  reason: string
+  grade?: string
+  chorak?: number
+  hafta?: number
+}
 
-  let n = 0
-  for (const row of rows) {
-    await api.post('/lessons/', row)
-    n++
-    if (n % 5 === 0) onProgress?.(`Yozilmoqda… ${n}/${rows.length}`)
-  }
-  return n
+export interface BulkImportError {
+  row: number
+  title?: string
+  errors: unknown
+}
+
+export interface BulkImportResult {
+  created: number
+  deleted: number
+  grades_replaced: string[]
+  skipped: BulkImportSkip[]
+  errors: BulkImportError[]
+}
+
+/** One request — the server deletes (replace mode) and creates every row
+ * itself, instead of the old client-side loop of N sequential
+ * GET/DELETE/POST calls (which had a pagination bug on >50-lesson grades
+ * and no per-row error isolation). See LessonViewSet.bulk_import. */
+export async function runLessonsImport(rows: ImportLessonRow[], mode: 'add' | 'replace') {
+  return (await api.post<BulkImportResult>('/lessons/bulk_import/', { mode, rows })).data
 }
 
 export function useImportTranslations() {

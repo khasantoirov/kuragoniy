@@ -1,7 +1,10 @@
+import logging
+
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
@@ -12,6 +15,9 @@ from common.uploads import delete_file_field, validate_upload
 
 from .models import Experiment, Lesson, QuarterLock
 from .serializers import LessonSerializer, QuarterLockSerializer
+from .signals import send_lessons_backup, suppress_lessons_backup
+
+logger = logging.getLogger(__name__)
 
 LESSON_FILE_EXTENSIONS = ('.pdf', '.doc', '.docx')
 LESSON_FILE_MAX_MB = 20
@@ -30,6 +36,13 @@ EXPERIMENT_AUDIT_LABELS = {
     'steps': 'Tartib', 'concepts': 'Tushunchalar',
     'minutes': 'Vaqti', 'safety': 'Xavfsizlik', 'image': 'Rasm', 'video': 'Video',
 }
+
+
+def _to_int(v):
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return None
 
 
 def _renumber_grade(grade, exclude_id=None):
@@ -318,7 +331,8 @@ class LessonViewSet(viewsets.ModelViewSet):
         Row shape (matches the old exportLessons()/admin.js format):
         {id?, grade, chorak, hafta, title, title_ru, title_en, goal_ru,
          goal_en, experiments: [{id, name_ru, name_en, desc_ru, desc_en,
-         safety_ru, safety_en, materials_ru, materials_en, steps_ru, steps_en}]}
+         safety_ru, safety_en, materials_ru, materials_en, steps_ru, steps_en,
+         concepts_ru, concepts_en}]}
         """
         rows = request.data if isinstance(request.data, list) else []
 
@@ -359,10 +373,133 @@ class LessonViewSet(viewsets.ModelViewSet):
                 exp.materials_en = tr.get('materials_en') if isinstance(tr.get('materials_en'), list) else []
                 exp.steps_ru = tr.get('steps_ru') if isinstance(tr.get('steps_ru'), list) else []
                 exp.steps_en = tr.get('steps_en') if isinstance(tr.get('steps_en'), list) else []
+                exp.concepts_ru = tr.get('concepts_ru') if isinstance(tr.get('concepts_ru'), list) else []
+                exp.concepts_en = tr.get('concepts_en') if isinstance(tr.get('concepts_en'), list) else []
                 exp.save(update_fields=[
                     'name_ru', 'name_en', 'desc_ru', 'desc_en', 'safety_ru', 'safety_en',
                     'materials_ru', 'materials_en', 'steps_ru', 'steps_en',
+                    'concepts_ru', 'concepts_en',
                 ])
             ok += 1
 
         return Response({'ok': ok, 'skipped': skipped})
+
+    @action(detail=False, methods=['post'])
+    def bulk_import(self, request):
+        """Bulk-create lessons from an admin-uploaded JSON file (the
+        AdminPage "Darslarni import qilish" flow) — replaces the old
+        approach of the frontend looping N sequential POST /lessons/ calls,
+        which had no per-row error isolation, no duplicate detection, and
+        triggered signals.backup_lessons_on_change's full-DB Telegram dump
+        once per row.
+
+        Body: {"mode": "add" | "replace", "rows": [<row matching
+        LessonSerializer's writable fields, e.g. title/grade/chorak/hafta/
+        goal/file_url/experiments>, ...]}.
+
+        mode='replace' deletes every existing Lesson in the grades present
+        in `rows` first — done here via a direct ORM filter().delete() loop
+        rather than the frontend's old GET-then-DELETE-per-row approach,
+        which silently missed lessons past the first paginated page.
+        _renumber_grade is deliberately NOT called after the delete or at
+        the end: hafta is caller-supplied data (ordinary single-lesson
+        create doesn't renumber either, see perform_create above), and
+        renumbering mid-batch would just be wasted work immediately
+        overwritten by the incoming rows, or worse, silently close a
+        gap the file left on purpose.
+
+        Each row is created in its own transaction.atomic() (mirroring
+        management/commands/import_steam_lessons.py's pattern) so one bad
+        row can't corrupt itself, but a failure doesn't abort the batch —
+        it's recorded in `errors` and the loop continues, since (unlike
+        that hand-vetted command's hardcoded data) this file comes from an
+        admin upload that may contain mistakes.
+
+        Duplicate (grade, chorak, hafta) slots are skipped, not created —
+        checked against both pre-existing DB rows (post-delete, so only
+        relevant in 'add' mode or for grades not part of a 'replace') and
+        rows already created earlier in this same request.
+
+        The whole operation happens inside suppress_lessons_backup() so
+        creating/deleting dozens of lessons sends exactly one backup dump
+        (and one notify_admin_action summary) instead of one per row."""
+        mode = request.data.get('mode')
+        if mode not in ('add', 'replace'):
+            return Response({'detail': "mode must be 'add' or 'replace'"}, status=400)
+        rows = request.data.get('rows')
+        if not isinstance(rows, list) or not rows:
+            return Response({'detail': 'rows must be a non-empty list'}, status=400)
+
+        valid_grades = dict(Lesson.Grade.choices)
+        grades_in_file = sorted({
+            row.get('grade') for row in rows
+            if isinstance(row, dict) and row.get('grade') in valid_grades
+        })
+
+        created_ids = []
+        skipped = []
+        errors = []
+        deleted_count = 0
+
+        with suppress_lessons_backup():
+            if mode == 'replace' and grades_in_file:
+                with transaction.atomic():
+                    for lesson in Lesson.objects.filter(grade__in=grades_in_file):
+                        delete_file_field(lesson, 'file')
+                        lesson.delete()
+                        deleted_count += 1
+
+            existing_keys = set(
+                Lesson.objects.filter(grade__in=grades_in_file).values_list('grade', 'chorak', 'hafta')
+            )
+            seen_keys = set()
+
+            for i, row in enumerate(rows):
+                if not isinstance(row, dict):
+                    errors.append({'row': i, 'title': None, 'errors': {'_row': ['Qator obyekt emas']}})
+                    continue
+
+                key = (row.get('grade'), _to_int(row.get('chorak')), _to_int(row.get('hafta')))
+                if key in existing_keys or key in seen_keys:
+                    skipped.append({
+                        'row': i, 'title': row.get('title'), 'reason': 'duplicate',
+                        'grade': key[0], 'chorak': key[1], 'hafta': key[2],
+                    })
+                    continue
+
+                try:
+                    with transaction.atomic():
+                        serializer = LessonSerializer(data=row)
+                        serializer.is_valid(raise_exception=True)
+                        lesson = serializer.save()
+                except ValidationError as e:
+                    errors.append({'row': i, 'title': row.get('title'), 'errors': e.detail})
+                    continue
+                except Exception:
+                    logger.exception('bulk_import: unexpected error on row %s', i)
+                    errors.append({'row': i, 'title': row.get('title'), 'errors': {'_row': ['Kutilmagan xato']}})
+                    continue
+
+                seen_keys.add(key)
+                created_ids.append(lesson.id)
+
+        if created_ids or deleted_count:
+            send_lessons_backup()
+            lines = [f"Darslarni import qildi ({mode}): {len(created_ids)} ta qo'shildi"]
+            if deleted_count:
+                lines.append(f"• O'chirildi: {deleted_count} ta")
+            if skipped:
+                lines.append(f"• O'tkazib yuborildi (dublikat): {len(skipped)} ta")
+            if errors:
+                lines.append(f"• Xato: {len(errors)} ta")
+            if grades_in_file:
+                lines.append(f"• Sinflar: {', '.join(grades_in_file)}")
+            notify_admin_action(request.user, '\n'.join(lines))
+
+        return Response({
+            'created': len(created_ids),
+            'deleted': deleted_count,
+            'grades_replaced': grades_in_file if mode == 'replace' else [],
+            'skipped': skipped,
+            'errors': errors,
+        })

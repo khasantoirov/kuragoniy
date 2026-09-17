@@ -1354,6 +1354,7 @@ tr.is-absent .table__name { color: var(--mark); text-decoration: line-through; o
 .imstat__row b { font-family: var(--f-mono); font-size: 15px; }
 .implist { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 7px; }
 .implist li { display: grid; gap: 2px; padding-left: 10px; border-left: 2px solid var(--rule); }
+.implist--danger li { border-left-color: var(--mark); }
 .implist b { font-size: 13.5px; font-weight: 600; }
 .implist span { font: 400 11.5px/1 var(--f-mono); color: var(--ink-3); }
 

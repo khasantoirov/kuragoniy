@@ -1,3 +1,4 @@
+import contextlib
 import logging
 import threading
 
@@ -9,6 +10,38 @@ from django.utils import timezone
 from .models import Lesson
 
 logger = logging.getLogger(__name__)
+
+_local = threading.local()
+
+
+def is_backup_suppressed() -> bool:
+    return getattr(_local, 'depth', 0) > 0
+
+
+@contextlib.contextmanager
+def suppress_lessons_backup():
+    """Scoped guard for bulk operations (e.g. LessonViewSet.bulk_import):
+    backup_lessons_on_change no-ops for every Lesson create/delete inside
+    this block, however many there are — the caller is expected to call
+    send_lessons_backup() itself exactly once after the block exits, if
+    anything actually changed. Depth-counted so nested use stays safe.
+
+    A thread-local flag rather than signal.disconnect()/reconnect() — the
+    latter is process-global, so a concurrent request's own lesson save
+    during another request's suppression window would silently lose its
+    backup."""
+    _local.depth = getattr(_local, 'depth', 0) + 1
+    try:
+        yield
+    finally:
+        _local.depth -= 1
+
+
+def send_lessons_backup():
+    """Public entry point for callers outside the signal itself (e.g. after
+    a suppress_lessons_backup() block) — defers the same way the signal
+    does."""
+    transaction.on_commit(lambda: threading.Thread(target=_build_and_send_lessons_backup, daemon=True).start())
 
 
 @receiver(post_save, sender=Lesson)
@@ -71,4 +104,6 @@ def backup_lessons_on_change(sender, **kwargs):
     so the query behind it never races the caller's still-open
     transaction, and building+serializing every lesson never adds latency
     to the save request itself."""
-    transaction.on_commit(lambda: threading.Thread(target=_build_and_send_lessons_backup, daemon=True).start())
+    if is_backup_suppressed():
+        return
+    send_lessons_backup()
