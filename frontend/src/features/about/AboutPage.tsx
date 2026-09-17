@@ -57,13 +57,16 @@ export function AboutPage() {
             </span>
           </div>
         </div>
-        <div className="abhero__social">
-          {SOCIAL_LINKS.map((s) => (
-            <a key={s.ic} className="abhero__social-link" href={s.url} target="_blank" rel="noreferrer">
-              <span className={`abhero__social-ic abhero__social-ic--${s.ic}`}>{IC[s.ic]}</span>
-              <span className="abhero__social-handle">{s.handle}</span>
-            </a>
-          ))}
+        <div className="abhero__side">
+          <img className="abhero__logo" src="/logo.png" alt="KO'RAGONIY EDU" />
+          <div className="abhero__social">
+            {SOCIAL_LINKS.map((s) => (
+              <a key={s.ic} className="abhero__social-link" href={s.url} target="_blank" rel="noreferrer">
+                <span className={`abhero__social-ic abhero__social-ic--${s.ic}`}>{IC[s.ic]}</span>
+                <span className="abhero__social-handle">{s.handle}</span>
+              </a>
+            ))}
+          </div>
         </div>
       </div>
 
