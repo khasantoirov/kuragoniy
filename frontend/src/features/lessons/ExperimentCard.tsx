@@ -97,6 +97,19 @@ export function ExperimentCard({
         </div>
       )}
 
+      {exp.concepts.length > 0 && (
+        <div className="xblock">
+          <p className="xblock__label">{t("O'rganiladigan tushunchalar")}</p>
+          <ul className="xlist xlist--tags">
+            {exp.concepts.map((c, i) => (
+              <li key={i} className="xtag xtag--concept">
+                {c}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {exp.safety && (
         <p className="xsafety">
           <span>{t('Xavfsizlik')}</span>

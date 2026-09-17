@@ -54,6 +54,8 @@ def _collect_texts(lesson: Lesson):
             add(exp.materials[i], lambda v, lang, e=exp, idx=i: _set_list_item(e, "materials", lang, idx, v))
         for i in range(len(exp.steps)):
             add(exp.steps[i], lambda v, lang, e=exp, idx=i: _set_list_item(e, "steps", lang, idx, v))
+        for i in range(len(exp.concepts)):
+            add(exp.concepts[i], lambda v, lang, e=exp, idx=i: _set_list_item(e, "concepts", lang, idx, v))
 
     return texts, setters, experiments
 

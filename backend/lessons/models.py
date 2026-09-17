@@ -79,6 +79,12 @@ class Experiment(models.Model):
     steps = models.JSONField(default=list, blank=True)
     steps_ru = models.JSONField(default=list, blank=True)
     steps_en = models.JSONField(default=list, blank=True)
+    # O'rganiladigan tushunchalar (concepts covered) — same list-of-strings
+    # shape as materials/steps, not to be confused with steps ("Bajarish
+    # tartibi" — an ordered how-to), since it holds unordered concept bullets.
+    concepts = models.JSONField(default=list, blank=True)
+    concepts_ru = models.JSONField(default=list, blank=True)
+    concepts_en = models.JSONField(default=list, blank=True)
 
     minutes = models.PositiveSmallIntegerField(null=True, blank=True)
 

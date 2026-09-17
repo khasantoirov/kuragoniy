@@ -12,7 +12,7 @@ export interface ImportLessonRow {
 
 function normalizeExp(e: unknown, order: number): Omit<Experiment, 'id'> {
   if (typeof e === 'string') {
-    return { order, name: e, desc: '', materials: [], steps: [], minutes: null, safety: '' }
+    return { order, name: e, desc: '', materials: [], steps: [], concepts: [], minutes: null, safety: '' }
   }
   const x = (e ?? {}) as Record<string, unknown>
   return {
@@ -21,6 +21,7 @@ function normalizeExp(e: unknown, order: number): Omit<Experiment, 'id'> {
     desc: typeof x.desc === 'string' ? x.desc : '',
     materials: Array.isArray(x.materials) ? x.materials : [],
     steps: Array.isArray(x.steps) ? x.steps : [],
+    concepts: Array.isArray(x.concepts) ? x.concepts : [],
     minutes: Number.isFinite(Number(x.minutes)) && x.minutes ? Number(x.minutes) : null,
     safety: typeof x.safety === 'string' ? x.safety : '',
     image: typeof x.image === 'string' ? x.image : '',

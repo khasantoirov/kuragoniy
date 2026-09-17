@@ -7,7 +7,7 @@ import { useToast } from '@/components/Toast'
 import type { Experiment } from './types'
 
 function emptyExperiment(): Experiment {
-  return { order: 0, name: '', desc: '', materials: [], steps: [], minutes: null, safety: '' }
+  return { order: 0, name: '', desc: '', materials: [], steps: [], concepts: [], minutes: null, safety: '' }
 }
 
 function toUrl(v: string) {
@@ -35,6 +35,7 @@ export function ExperimentEditor({
   // move to a second line. Only split into a real array at submit time.
   const [materialsText, setMaterialsText] = useState((exp ?? emptyExperiment()).materials.join('\n'))
   const [stepsText, setStepsText] = useState((exp ?? emptyExperiment()).steps.join('\n'))
+  const [conceptsText, setConceptsText] = useState((exp ?? emptyExperiment()).concepts.join('\n'))
   const [busy, setBusy] = useState(false)
   const toast = useToast()
   const isNew = !exp
@@ -50,6 +51,7 @@ export function ExperimentEditor({
         ...draft,
         materials: materialsText.split('\n').map((s) => s.trim()).filter(Boolean),
         steps: stepsText.split('\n').map((s) => s.trim()).filter(Boolean),
+        concepts: conceptsText.split('\n').map((s) => s.trim()).filter(Boolean),
         image: toUrl(draft.image ?? ''),
         video: toUrl(draft.video ?? ''),
       })
@@ -95,6 +97,11 @@ export function ExperimentEditor({
       <label className="field">
         <span className="field__label">{t('Bajarish tartibi')} <span className="field__opt">({t('har bir qadam yangi qatorda')})</span></span>
         <textarea className="input" rows={8} value={stepsText} onChange={(e) => setStepsText(e.target.value)} placeholder={`${t("O'quvchi qo'lini stol chetiga qo'yadi")}\n${t("Chizg'ich tushiriladi")}`} />
+      </label>
+
+      <label className="field">
+        <span className="field__label">{t('O\'rganiladigan tushunchalar')} <span className="field__opt">({t('har biri yangi qatorda, ixtiyoriy')})</span></span>
+        <textarea className="input" rows={4} value={conceptsText} onChange={(e) => setConceptsText(e.target.value)} placeholder={`${t('Om qonuni')}\n${t('Elektr qarshiligi')}`} />
       </label>
 
       <label className="field">

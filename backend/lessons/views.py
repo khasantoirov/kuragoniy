@@ -24,10 +24,11 @@ LESSON_AUDIT_LABELS = {
     'title': 'Nomi', 'grade': 'Sinf', 'chorak': 'Chorak', 'hafta': 'Hafta',
     'goal': 'Maqsad', 'file_url': 'Fayl havolasi',
 }
-EXPERIMENT_AUDIT_FIELDS = ['name', 'desc', 'materials', 'steps', 'minutes', 'safety', 'image', 'video']
+EXPERIMENT_AUDIT_FIELDS = ['name', 'desc', 'materials', 'steps', 'concepts', 'minutes', 'safety', 'image', 'video']
 EXPERIMENT_AUDIT_LABELS = {
     'name': 'Nomi', 'desc': 'Tavsif', 'materials': 'Jihozlar',
-    'steps': 'Tartib', 'minutes': 'Vaqti', 'safety': 'Xavfsizlik', 'image': 'Rasm', 'video': 'Video',
+    'steps': 'Tartib', 'concepts': 'Tushunchalar',
+    'minutes': 'Vaqti', 'safety': 'Xavfsizlik', 'image': 'Rasm', 'video': 'Video',
 }
 
 
@@ -282,7 +283,7 @@ class LessonViewSet(viewsets.ModelViewSet):
                     Experiment.objects.create(
                         lesson=result, order=exp.order,
                         name=exp.name, desc=exp.desc,
-                        materials=exp.materials, steps=exp.steps,
+                        materials=exp.materials, steps=exp.steps, concepts=exp.concepts,
                         minutes=exp.minutes, safety=exp.safety,
                         image=exp.image, video=exp.video,
                     )

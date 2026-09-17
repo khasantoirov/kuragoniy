@@ -15,11 +15,13 @@ class ExperimentSerializer(serializers.ModelSerializer):
             'desc', 'desc_ru', 'desc_en',
             'materials', 'materials_ru', 'materials_en',
             'steps', 'steps_ru', 'steps_en',
+            'concepts', 'concepts_ru', 'concepts_en',
             'minutes', 'safety', 'safety_ru', 'safety_en', 'image', 'video',
         ]
         read_only_fields = [
             'name_ru', 'name_en', 'desc_ru', 'desc_en',
             'materials_ru', 'materials_en', 'steps_ru', 'steps_en',
+            'concepts_ru', 'concepts_en',
             'safety_ru', 'safety_en',
         ]
 

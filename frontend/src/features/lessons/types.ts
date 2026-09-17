@@ -11,6 +11,7 @@ export interface Experiment {
   desc_en?: string
   materials: string[]
   steps: string[]
+  concepts: string[]
   minutes: number | null
   safety: string
   safety_ru?: string
