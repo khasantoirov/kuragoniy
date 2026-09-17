@@ -9,7 +9,7 @@ const GRADE_TRACKS: { grades: string; name: string; desc: string }[] = [
   { grades: '1-2-sinf', name: 'VEDO 2.0', desc: "Lego konstruktorlaridan turli modellar yasash." },
   { grades: '3-4-sinf', name: 'STEM loyihalari', desc: "Karton, cho'p va trubochkalardan amaliy loyihalar yasash." },
   { grades: '5-6-sinf', name: 'Muhandis D', desc: 'Lazerda kesilgan detallardan modellar yasash.' },
-  { grades: '7-8-9-sinf', name: 'Muhandis D 2.0', desc: 'Elektronika va Arduino asosida loyihalar.' },
+  { grades: '7-8-9-sinf', name: 'Muhandis D 2', desc: 'Elektronika va Arduino asosida loyihalar.' },
 ]
 
 const FEATURES: { to: string; ic: keyof typeof IC; label: string; desc: string; adminOnly?: boolean }[] = [
@@ -90,12 +90,7 @@ export function AboutPage() {
       <div className="panel">
         <h3 className="panel__title">{IC.info} {t('Platforma haqida')}</h3>
         <p className="prose">
-          {t(
-            "KO'RAGONIY EDU — fan-texnikani quruq formulalar emas, balki jonli tajribalar orqali o'rgatishga qaratilgan platforma. Maqsad: o'quvchida hayrat uyg'otish, hodisani o'z ko'zi bilan ko'rsatish va “nega bunday bo'ldi?” degan savolni tug'dirish.",
-          )}
-        </p>
-        <p className="prose">
-          {t('Loyiha')} <strong>Muhandis_D</strong> {t("ta'limiy yo'nalishi doirasida tayyorlangan.")} {t('Dastur yaratuvchisi')} — <strong>Hasan Toirov</strong> · {new Date().getFullYear()}.
+          {t("Muhandis_D uchun ishlab chiqilgan zamonaviy STEM ta'lim platformasi.")} {t('Dastur yaratuvchisi')} — <strong>Hasan Toirov</strong> · {new Date().getFullYear()}.
         </p>
       </div>
 
