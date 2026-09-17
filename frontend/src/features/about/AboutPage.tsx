@@ -6,10 +6,10 @@ import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore } from '@/store/uiStore'
 
 const GRADE_TRACKS: { grades: string; name: string; desc: string }[] = [
-  { grades: '1-2-sinf', name: 'VEDO 2.0', desc: "Lego konstruktorlaridan turli modellar yasash." },
-  { grades: '3-4-sinf', name: 'STEM loyihalari', desc: "Karton, cho'p va trubochkalardan amaliy loyihalar yasash." },
-  { grades: '5-6-sinf', name: 'Muhandis D', desc: 'Lazerda kesilgan detallardan modellar yasash.' },
-  { grades: '7-8-9-sinf', name: 'Muhandis D 2', desc: 'Elektronika va Arduino asosida loyihalar.' },
+  { grades: '1-2-sinf', name: 'WeDo 2.0', desc: "Lego konstruktorlaridan turli modellar yasash." },
+  { grades: '3-4-sinf', name: 'Muhandislik', desc: "Karton, cho'p va trubochkalardan amaliy loyihalar yasash." },
+  { grades: '5-6-sinf', name: 'Muhandislik 2', desc: 'Lazerda kesilgan detallardan modellar yasash.' },
+  { grades: '7-8-9-sinf', name: 'Elektronika', desc: 'Elektronika va Arduino asosida loyihalar.' },
 ]
 
 const FEATURES: { to: string; ic: keyof typeof IC; label: string; desc: string; adminOnly?: boolean }[] = [
