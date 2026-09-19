@@ -23,7 +23,7 @@ const NAV_ITEMS: { to: string; label: string; icon: keyof typeof IC; adminOnly?:
   { to: '/timetable', label: 'Jadval', icon: 'calendar' },
   { to: '/library', label: 'Kutubxona', icon: 'book' },
   { to: '/about', label: 'Platforma haqida', icon: 'info' },
-  { to: '/admin', label: 'Boshqaruv', icon: 'settings', adminOnly: true },
+  { to: '/admin', label: 'Boshqaruv', icon: 'settings' },
 ]
 
 export function AppShell() {

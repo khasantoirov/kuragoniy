@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'telegrambot',
     'realtime',
     'webpush',
+    'dashboard',
     'migration_tools',
 ]
 

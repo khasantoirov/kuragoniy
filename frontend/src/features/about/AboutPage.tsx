@@ -17,7 +17,7 @@ const FEATURES: { to: string; ic: keyof typeof IC; label: string; desc: string; 
   { to: '/journal', ic: 'clipboard', label: 'Jurnal', desc: "Baho, davomat va sinf o'zlashtirish diagrammalari — barchasi bir joyda." },
   { to: '/timetable', ic: 'calendar', label: 'Jadval', desc: 'Haftalik dars jadvalini tuzing, ko\'ring va boshqaring.' },
   { to: '/library', ic: 'book', label: 'Kutubxona', desc: "Kitob, qo'llanma va video materiallar to'plami." },
-  { to: '/admin', ic: 'settings', label: 'Boshqaruv', desc: "O'qituvchi arizalari va tizim sozlamalarini boshqarish.", adminOnly: true },
+  { to: '/admin', ic: 'settings', label: 'Boshqaruv', desc: "Statistika, o'zlashtirish va davomat ko'rsatkichlari — admin uchun boshqaruv imkoniyatlari bilan." },
 ]
 
 const SOCIAL_LINKS: { ic: keyof typeof IC; label: string; handle: string; url: string }[] = [

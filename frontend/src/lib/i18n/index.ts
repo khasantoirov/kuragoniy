@@ -523,6 +523,22 @@ const ru = {
   'yanvar': 'январь', 'fevral': 'февраль', 'mart': 'март', 'aprel': 'апрель',
   'may': 'май', 'iyun': 'июнь', 'iyul': 'июль', 'avgust': 'август',
   'sentyabr': 'сентябрь', 'oktyabr': 'октябрь', 'noyabr': 'ноябрь', 'dekabr': 'декабрь',
+
+  'Jami foydalanuvchilar': 'Всего пользователей', 'Jami darslar': 'Всего уроков',
+  'Sinflar': 'Классы', "Barcha o'qituvchilar bo'yicha": 'По всем учителям',
+  "O'quvchilar": 'Ученики',
+  "Faol ro'yxat qatorlari — bitta o'quvchi bir necha sinfda alohida hisoblanishi mumkin":
+    'Активные строки списка — один ученик может учитываться отдельно в нескольких классах',
+  "Yangi ro'yxatdan o'tishlar": 'Новые регистрации',
+  "Kunlik ro'yxatdan o'tishlar soni": 'Количество регистраций по дням',
+  "Xodimlar rol bo'yicha": 'Сотрудники по ролям',
+  "Xodimlar rol bo'yicha taqsimoti": 'Распределение сотрудников по ролям',
+  "Darslar sinf bandi bo'yicha": 'Уроки по группам классов',
+  "Darslar sinf bandi bo'yicha taqsimoti": 'Распределение уроков по группам классов',
+  'Push obunachilar': 'Push-подписчики',
+  "So'nggi 30 kunlik e'lonlar": 'Объявления за последние 30 дней',
+  'Kutayotgan tarjima ishlari': 'Ожидающие переводы',
+  'Boshliq': 'Руководитель',
 } as const
 
 const en = {
@@ -1022,6 +1038,22 @@ const en = {
   'yanvar': 'January', 'fevral': 'February', 'mart': 'March', 'aprel': 'April',
   'may': 'May', 'iyun': 'June', 'iyul': 'July', 'avgust': 'August',
   'sentyabr': 'September', 'oktyabr': 'October', 'noyabr': 'November', 'dekabr': 'December',
+
+  'Jami foydalanuvchilar': 'Total users', 'Jami darslar': 'Total lessons',
+  'Sinflar': 'Classes', "Barcha o'qituvchilar bo'yicha": 'Across all teachers',
+  "O'quvchilar": 'Students',
+  "Faol ro'yxat qatorlari — bitta o'quvchi bir necha sinfda alohida hisoblanishi mumkin":
+    'Active roster rows — the same student may be counted separately in several classes',
+  "Yangi ro'yxatdan o'tishlar": 'New signups',
+  "Kunlik ro'yxatdan o'tishlar soni": 'Daily signup count',
+  "Xodimlar rol bo'yicha": 'Staff by role',
+  "Xodimlar rol bo'yicha taqsimoti": 'Staff breakdown by role',
+  "Darslar sinf bandi bo'yicha": 'Lessons by grade band',
+  "Darslar sinf bandi bo'yicha taqsimoti": 'Lesson breakdown by grade band',
+  'Push obunachilar': 'Push subscribers',
+  "So'nggi 30 kunlik e'lonlar": 'Announcements in the last 30 days',
+  'Kutayotgan tarjima ishlari': 'Pending translation jobs',
+  'Boshliq': 'Head',
 } as const
 
 const resources = {

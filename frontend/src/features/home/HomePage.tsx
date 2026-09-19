@@ -26,7 +26,7 @@ const LINKS: { view: string; ic: keyof typeof IC; title: string; sub: string; ad
   { view: '/timetable', ic: 'calendar', title: 'Jadval', sub: 'Haftalik dars jadvali' },
   { view: '/library', ic: 'book', title: 'Kutubxona', sub: "Kitob, qo'llanma, video" },
   { view: '/about', ic: 'info', title: 'Platforma haqida', sub: "Bo'limlar va imkoniyatlar" },
-  { view: '/admin', ic: 'settings', title: 'Boshqaruv', sub: "Arizalar va o'qituvchilar", adminOnly: true },
+  { view: '/admin', ic: 'settings', title: 'Boshqaruv', sub: 'Statistika va boshqaruv paneli' },
 ]
 
 export function HomePage() {

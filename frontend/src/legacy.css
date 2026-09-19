@@ -21,6 +21,14 @@
   --band-mid:  #FAB219;
   --band-bad:  #D03B3B;
 
+  /* Kategorik seriyalar (dashboard: rol/sinf-bandi taqsimoti) — dataviz
+     skill validatori orqali shu ilovaning haqiqiy sirtiga (#FFFFFF)
+     nisbatan tasdiqlangan tartib, status ranglaridan mustaqil. */
+  --cat-1: #2a78d6;
+  --cat-2: #eb6834;
+  --cat-3: #1baf7a;
+  --cat-4: #eda100;
+
   --r:   4px;            /* burchak radiusi — texnik chizmadek keskin */
   --gap: 16px;
   --shadow: 0 1px 2px rgba(18,33,46,.06), 0 8px 24px rgba(18,33,46,.06);
@@ -334,6 +342,11 @@ textarea.input { resize: vertical; }
   --ok:      #4C8DF6;
   --solid:   #23364B;
   --on-solid:#EAF2FA;
+
+  --cat-1: #3987e5;
+  --cat-2: #d95926;
+  --cat-3: #199e70;
+  --cat-4: #c98500;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.28);
 }
 [data-theme="dark"] [data-theme="dark"] .gate__mark { background: #0A121B; }
@@ -2493,3 +2506,51 @@ input.input:-webkit-autofill:active {
 [data-theme="dark"] input.input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 1000px #131E2C inset !important;
 }
+
+/* ── Boshqaruv paneli — statistika/dashboard ────────────────── */
+.dash { margin-top: 0; }
+.dash__stats { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+.dash__row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.dash__card {
+  flex: 1 1 320px; min-width: 0;
+  border: 1px solid var(--rule); border-radius: var(--r);
+  padding: 16px; background: var(--surface);
+}
+.dash__card-title { margin: 0 0 12px; font: 600 13px/1.2 var(--f-display); color: var(--ink-2); }
+
+.stat-card {
+  flex: 1 1 160px; min-width: 140px;
+  border: 1px solid var(--rule); border-left: 3px solid var(--rule);
+  border-radius: var(--r); background: var(--surface);
+  padding: 12px 14px; display: flex; flex-direction: column; gap: 4px;
+}
+.stat-card--good { border-left-color: var(--band-good); }
+.stat-card--mid  { border-left-color: var(--band-mid); }
+.stat-card--bad  { border-left-color: var(--band-bad); }
+.stat-card__label { font: 500 10px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.stat-card__value { font: 600 24px/1.2 var(--f-display); color: var(--ink); }
+.stat-card__hint { font-size: 11px; color: var(--ink-3); }
+
+/* Bir seriyali ustunli diagramma (barchart) — rol/sinf-bandi taqsimoti */
+.barchart__cols { display: flex; align-items: flex-end; gap: 14px; height: 140px; }
+.barchart__col { display: flex; flex-direction: column; align-items: center; flex: 1 1 0; min-width: 0; height: 100%; justify-content: flex-end; }
+.barchart__val { font: 600 12px/1 var(--f-mono); color: var(--ink); margin-bottom: 4px; }
+.barchart__track { width: 100%; max-width: 44px; height: 100px; display: flex; align-items: flex-end; }
+.barchart__bar { width: 100%; border-radius: 4px 4px 0 0; min-height: 3px; }
+.barchart__lb { margin-top: 8px; font: 500 10px/1.2 var(--f-mono); color: var(--ink-3); text-align: center; }
+
+/* Trend chizig'i (signup trend) — yagona seriya, gover-kursor + izoh */
+.trendchart { position: relative; }
+.trendchart__svg { width: 100%; height: 160px; overflow: visible; cursor: crosshair; }
+.trendchart__axis { stroke: var(--rule); stroke-width: 1; }
+.trendchart__area { fill: var(--ok); opacity: .08; }
+.trendchart__line { stroke: var(--ok); stroke-width: 2; }
+.trendchart__cross { stroke: var(--rule-2); stroke-width: 1; }
+.trendchart__dot { fill: var(--ok); stroke: var(--surface); stroke-width: 2; }
+.trendchart__tip {
+  position: absolute; top: 4px; transform: translateX(-50%);
+  background: var(--solid); color: var(--on-solid); border-radius: var(--r);
+  padding: 4px 8px; font: 500 11px/1.3 var(--f-mono); white-space: nowrap;
+  pointer-events: none;
+}
+.trendchart__tip b { display: block; font: 600 13px/1.2 var(--f-display); }

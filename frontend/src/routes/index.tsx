@@ -18,7 +18,7 @@ import { TimetablePage } from '@/features/timetable/TimetablePage'
 import { AppShell } from '@/layouts/AppShell'
 import { AuthLayout } from '@/layouts/AuthLayout'
 
-import { RequireAdmin, RequireApproved, RequireAuth, RequireGuest, RequireNotApproved } from './guards'
+import { RequireApproved, RequireAuth, RequireGuest, RequireNotApproved } from './guards'
 
 export const router = createBrowserRouter([
   {
@@ -36,14 +36,7 @@ export const router = createBrowserRouter([
       { path: '/journal', element: <JournalPage /> },
       { path: '/timetable', element: <TimetablePage /> },
       { path: '/library', element: <LibraryPage /> },
-      {
-        path: '/admin',
-        element: (
-          <RequireAdmin>
-            <AdminPage />
-          </RequireAdmin>
-        ),
-      },
+      { path: '/admin', element: <AdminPage /> },
       { path: '/about', element: <AboutPage /> },
       { path: '/profile', element: <ProfilePage /> },
       { path: '/settings', element: <SettingsPage /> },

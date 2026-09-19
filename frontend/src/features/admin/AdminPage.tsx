@@ -12,8 +12,10 @@ import { useCreateAnnouncement } from '@/features/announcements/api'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import type { Paginated, User } from '@/lib/api/types'
-import { useAuth } from '@/lib/auth/AuthContext'
+import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
+import { useUIStore } from '@/store/uiStore'
 
+import { DashboardSection } from './dashboard/DashboardSection'
 import { ImportLessonsModal } from './ImportLessonsModal'
 import { ImportTranslationsModal } from './ImportTranslationsModal'
 
@@ -169,6 +171,8 @@ function AnnounceModal({ onClose }: { onClose: () => void }) {
 export function AdminPage() {
   const { t } = useTranslation()
   const { user: me } = useAuth()
+  const { viewMode } = useUIStore()
+  const admin = isAdminInView(me, viewMode)
   const toast = useToast()
   const confirm = useConfirm()
   const queryClient = useQueryClient()
@@ -180,6 +184,7 @@ export function AdminPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'users'],
     queryFn: async () => (await api.get<Paginated<User>>('/accounts/users/')).data.results,
+    enabled: admin,
   })
 
   const act = useMutation({
@@ -220,7 +225,7 @@ export function AdminPage() {
     }
   }
 
-  if (isLoading) return <Skeleton lines={5} />
+  if (admin && isLoading) return <Skeleton lines={5} />
 
   const users = data ?? []
   const pending = users.filter((u) => !u.approved && u.role !== 'admin' && u.role !== 'boshliq')
@@ -264,134 +269,140 @@ export function AdminPage() {
 
   return (
     <div>
-      <section className="panel">
-        <h3 className="panel__title">{t("Ma'lumot")}</h3>
-        <p className="prose" style={{ marginBottom: 12 }}>{t("Darslarni JSON fayldan ko'chirib olish.")}</p>
-        <div className="panel__acts">
-          <button className="btn" onClick={() => setImportingLessons(true)}>{IC.upload} {t('Darslarni import qilish')}</button>
-          <button className="btn" onClick={exportLessons}>{IC.download} {t('Darslarni eksport (JSON)')}</button>
-          <button className="btn" onClick={() => setImportingTranslations(true)}>{IC.upload} {t('Tarjimalarni import qilish')}</button>
-          <button className="btn" onClick={() => setAnnouncing(true)}>{IC.megaphone} {t("E'lon yuborish")}</button>
-        </div>
-      </section>
+      <DashboardSection admin={admin} />
 
-      {pending.length > 0 && (
-        <section className="panel panel--attention">
-          <h3 className="panel__title">{t('Tasdiq kutmoqda')} <span className="badge">{pending.length}</span></h3>
-          <ul className="people">
-            {pending.map((u) => (
-              <li key={u.id} className="person">
-                <div>
-                  <p className="person__name">{u.name || '—'}</p>
-                  <p className="person__mail">{u.email || ''}</p>
-                </div>
-                <div className="person__acts">
-                  <button className="btn btn--sm btn--primary" onClick={() => onApprove(u.id)}>{t('Tasdiqlash')}</button>
-                  <button className="btn btn--sm btn--ghost" onClick={() => onReject(u)}>{t('Rad etish')}</button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      {admin && (
+        <>
+          <section className="panel">
+            <h3 className="panel__title">{t("Ma'lumot")}</h3>
+            <p className="prose" style={{ marginBottom: 12 }}>{t("Darslarni JSON fayldan ko'chirib olish.")}</p>
+            <div className="panel__acts">
+              <button className="btn" onClick={() => setImportingLessons(true)}>{IC.upload} {t('Darslarni import qilish')}</button>
+              <button className="btn" onClick={exportLessons}>{IC.download} {t('Darslarni eksport (JSON)')}</button>
+              <button className="btn" onClick={() => setImportingTranslations(true)}>{IC.upload} {t('Tarjimalarni import qilish')}</button>
+              <button className="btn" onClick={() => setAnnouncing(true)}>{IC.megaphone} {t("E'lon yuborish")}</button>
+            </div>
+          </section>
 
-      {approved.length > 0 && (
-        <section className="panel">
-          <h3 className="panel__title">{t('Xodimlar')} <span className="badge">{approved.length}</span></h3>
-          <div className="staff">
-            {approved.map((u) => (
-              <article key={u.id} className="stf">
-                <div className="stf__av">
-                  <Avatar name={u.name} photo={u.photo} className="stf__img" />
-                </div>
-                <div className="stf__b">
-                  <p className="stf__nm">{u.name || '—'} <RoleBadge user={u} /></p>
-                  <p className="stf__row"><span>{t("Tug'ilgan sana")}</span><b>{fmtBday(u.bday)}</b></p>
-                  <p className="stf__row"><span>{t('Telefon')}</span><b>{u.phone || '—'}</b></p>
-                  <p className="stf__row"><span>{t('Email')}</span><b>{u.email || '—'}</b></p>
-                  <p className="stf__row">
-                    <span>Telegram</span>
-                    <b>
-                      {u.telegram_linked
-                        ? `✅ ${u.telegram_username ? '@' + u.telegram_username : t('Ulangan')}${u.telegram_chat_id ? ` (ID: ${u.telegram_chat_id})` : ''}`
-                        : `❌ ${t('Ulanmagan')}`}
-                    </b>
-                  </p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section className="panel">
-        <h3 className="panel__title">{t('Foydalanuvchilar')} <span className="badge">{approved.length}</span></h3>
-        {approved.length ? (
-          <ul className="people">
-            {approved.map((u) => {
-              const isSelf = u.id === me?.id
-              const targetIsDev = u.is_dev_superuser
-              const targetIsAdm = u.role === 'admin' || u.role === 'boshliq'
-              const canManage = !isSelf && !targetIsDev && (me?.is_dev_superuser || !targetIsAdm)
-              return (
-                <li key={u.id} className="person">
-                  <div>
-                    <p className="person__name">{u.name || '—'} <RoleBadge user={u} /></p>
-                    <p className="person__mail">{u.email || ''}</p>
-                  </div>
-                  {isSelf ? (
-                    <span className="person__you">{t('siz')}</span>
-                  ) : canManage ? (
-                    <div className="person__acts">
-                      {me?.is_dev_superuser &&
-                        (targetIsAdm ? (
-                          <button className="btn btn--sm btn--ghost" onClick={() => onDemote(u)}>
-                            {u.role === 'boshliq' ? t('Boshliqlikni olish') : t('Adminlikni olish')}
-                          </button>
-                        ) : (
-                          <>
-                            <button className="btn btn--sm btn--ghost" onClick={() => onPromote(u)}>{t('Admin qilish')}</button>
-                            <button className="btn btn--sm btn--ghost" onClick={() => onSetBoshliq(u)}>{t('Boshliq qilish')}</button>
-                          </>
-                        ))}
-                      <button className="btn btn--sm btn--ghost" onClick={() => onResetPassword(u)}>{t('Parolni tiklash')}</button>
-                      <button className="btn btn--sm btn--ghost" onClick={() => onBlock(u)}>{t("Kirishni to'xtatish")}</button>
+          {pending.length > 0 && (
+            <section className="panel panel--attention">
+              <h3 className="panel__title">{t('Tasdiq kutmoqda')} <span className="badge">{pending.length}</span></h3>
+              <ul className="people">
+                {pending.map((u) => (
+                  <li key={u.id} className="person">
+                    <div>
+                      <p className="person__name">{u.name || '—'}</p>
+                      <p className="person__mail">{u.email || ''}</p>
                     </div>
-                  ) : null}
-                </li>
-              )
-            })}
-          </ul>
-        ) : (
-          <p className="prose">{t("Hali tasdiqlangan foydalanuvchi yo'q.")}</p>
-        )}
-      </section>
+                    <div className="person__acts">
+                      <button className="btn btn--sm btn--primary" onClick={() => onApprove(u.id)}>{t('Tasdiqlash')}</button>
+                      <button className="btn btn--sm btn--ghost" onClick={() => onReject(u)}>{t('Rad etish')}</button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
-      {me?.is_dev_superuser && (
-        <section className="panel">
-          <h3 className="panel__title">{t('Rollar va vakolatlar')}</h3>
-          <div className="rolesref">
-            {ROLE_CAPABILITIES.map((r) => (
-              <div key={r.label} className="rolesref__row">
-                <p className="rolesref__role">
-                  <RoleBadge user={r.user} />
-                </p>
-                <ul className="rolesref__list">
-                  {r.items.map((item, i) => (
-                    <li key={i}>{t(item)}</li>
-                  ))}
-                </ul>
+          {approved.length > 0 && (
+            <section className="panel">
+              <h3 className="panel__title">{t('Xodimlar')} <span className="badge">{approved.length}</span></h3>
+              <div className="staff">
+                {approved.map((u) => (
+                  <article key={u.id} className="stf">
+                    <div className="stf__av">
+                      <Avatar name={u.name} photo={u.photo} className="stf__img" />
+                    </div>
+                    <div className="stf__b">
+                      <p className="stf__nm">{u.name || '—'} <RoleBadge user={u} /></p>
+                      <p className="stf__row"><span>{t("Tug'ilgan sana")}</span><b>{fmtBday(u.bday)}</b></p>
+                      <p className="stf__row"><span>{t('Telefon')}</span><b>{u.phone || '—'}</b></p>
+                      <p className="stf__row"><span>{t('Email')}</span><b>{u.email || '—'}</b></p>
+                      <p className="stf__row">
+                        <span>Telegram</span>
+                        <b>
+                          {u.telegram_linked
+                            ? `✅ ${u.telegram_username ? '@' + u.telegram_username : t('Ulangan')}${u.telegram_chat_id ? ` (ID: ${u.telegram_chat_id})` : ''}`
+                            : `❌ ${t('Ulanmagan')}`}
+                        </b>
+                      </p>
+                    </div>
+                  </article>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+            </section>
+          )}
 
-      {announcing && <AnnounceModal onClose={() => setAnnouncing(false)} />}
-      {importingLessons && <ImportLessonsModal onClose={() => setImportingLessons(false)} />}
-      {importingTranslations && <ImportTranslationsModal onClose={() => setImportingTranslations(false)} />}
-      {newPassword && (
-        <NewPasswordModal email={newPassword.email} password={newPassword.password} onClose={() => setNewPassword(null)} />
+          <section className="panel">
+            <h3 className="panel__title">{t('Foydalanuvchilar')} <span className="badge">{approved.length}</span></h3>
+            {approved.length ? (
+              <ul className="people">
+                {approved.map((u) => {
+                  const isSelf = u.id === me?.id
+                  const targetIsDev = u.is_dev_superuser
+                  const targetIsAdm = u.role === 'admin' || u.role === 'boshliq'
+                  const canManage = !isSelf && !targetIsDev && (me?.is_dev_superuser || !targetIsAdm)
+                  return (
+                    <li key={u.id} className="person">
+                      <div>
+                        <p className="person__name">{u.name || '—'} <RoleBadge user={u} /></p>
+                        <p className="person__mail">{u.email || ''}</p>
+                      </div>
+                      {isSelf ? (
+                        <span className="person__you">{t('siz')}</span>
+                      ) : canManage ? (
+                        <div className="person__acts">
+                          {me?.is_dev_superuser &&
+                            (targetIsAdm ? (
+                              <button className="btn btn--sm btn--ghost" onClick={() => onDemote(u)}>
+                                {u.role === 'boshliq' ? t('Boshliqlikni olish') : t('Adminlikni olish')}
+                              </button>
+                            ) : (
+                              <>
+                                <button className="btn btn--sm btn--ghost" onClick={() => onPromote(u)}>{t('Admin qilish')}</button>
+                                <button className="btn btn--sm btn--ghost" onClick={() => onSetBoshliq(u)}>{t('Boshliq qilish')}</button>
+                              </>
+                            ))}
+                          <button className="btn btn--sm btn--ghost" onClick={() => onResetPassword(u)}>{t('Parolni tiklash')}</button>
+                          <button className="btn btn--sm btn--ghost" onClick={() => onBlock(u)}>{t("Kirishni to'xtatish")}</button>
+                        </div>
+                      ) : null}
+                    </li>
+                  )
+                })}
+              </ul>
+            ) : (
+              <p className="prose">{t("Hali tasdiqlangan foydalanuvchi yo'q.")}</p>
+            )}
+          </section>
+
+          {me?.is_dev_superuser && (
+            <section className="panel">
+              <h3 className="panel__title">{t('Rollar va vakolatlar')}</h3>
+              <div className="rolesref">
+                {ROLE_CAPABILITIES.map((r) => (
+                  <div key={r.label} className="rolesref__row">
+                    <p className="rolesref__role">
+                      <RoleBadge user={r.user} />
+                    </p>
+                    <ul className="rolesref__list">
+                      {r.items.map((item, i) => (
+                        <li key={i}>{t(item)}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {announcing && <AnnounceModal onClose={() => setAnnouncing(false)} />}
+          {importingLessons && <ImportLessonsModal onClose={() => setImportingLessons(false)} />}
+          {importingTranslations && <ImportTranslationsModal onClose={() => setImportingTranslations(false)} />}
+          {newPassword && (
+            <NewPasswordModal email={newPassword.email} password={newPassword.password} onClose={() => setNewPassword(null)} />
+          )}
+        </>
       )}
     </div>
   )

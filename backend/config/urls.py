@@ -15,6 +15,7 @@ urlpatterns = [
     path('api/library/', include('library.urls')),
     path('api/announcements/', include('announcements.urls')),
     path('api/push/', include('webpush.urls')),
+    path('api/dashboard/', include('dashboard.urls')),
 ]
 
 if settings.DEBUG:

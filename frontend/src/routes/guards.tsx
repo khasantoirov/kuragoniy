@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 
-import { isAdminInView, isApproved, useAuth } from '@/lib/auth/AuthContext'
-import { useUIStore } from '@/store/uiStore'
+import { isApproved, useAuth } from '@/lib/auth/AuthContext'
 
 function FullScreenSpinner() {
   return (
@@ -29,13 +28,6 @@ export function RequireNotApproved({ children }: { children: ReactNode }) {
   // Already-approved users shouldn't get stuck on the pending screen.
   const { user } = useAuth()
   if (isApproved(user)) return <Navigate to="/" replace />
-  return children
-}
-
-export function RequireAdmin({ children }: { children: ReactNode }) {
-  const { user } = useAuth()
-  const viewMode = useUIStore((s) => s.viewMode)
-  if (!isAdminInView(user, viewMode)) return <Navigate to="/" replace />
   return children
 }
 
