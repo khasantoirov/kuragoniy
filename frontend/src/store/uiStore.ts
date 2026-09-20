@@ -67,7 +67,7 @@ export const useUIStore = create<UIState>()(
     (set, get) => ({
       lang: 'uz',
       theme: 'light',
-      skin: 'r1',
+      skin: 'r2',
       grade: '1-2',
       viewMode: 'admin',
       navStyle: 'raised',
@@ -109,7 +109,13 @@ export const useUIStore = create<UIState>()(
       // state predates the choice, so they stay on 'r1' — switching an
       // existing user's whole platform look without them asking would be
       // the opposite of an opt-in preference.
-      version: 4,
+      // v5: 1-rejim retired. 'r2' is now the platform's only look, so the
+      // picker is gone from Sozlamalar and everyone — including anyone who
+      // had deliberately chosen 'r1' — moves over. The 'r1' branch in
+      // AppShell and the r1-only rules in legacy.css are left in place for
+      // now and get removed in a follow-up, once this has settled in
+      // production.
+      version: 5,
       migrate: (persisted, version) => {
         const state = persisted as UIState
         if (version < 1) state.navStyle = 'raised'
@@ -121,7 +127,7 @@ export const useUIStore = create<UIState>()(
           const oldGrade = state.grade as unknown
           state.grade = oldGrade === '7-8' || oldGrade === '9' ? '7-8-9' : (oldGrade as UIState['grade'])
         }
-        if (version < 4) state.skin = 'r1'
+        if (version < 5) state.skin = 'r2'
         return state
       },
       onRehydrateStorage: () => (state) => {

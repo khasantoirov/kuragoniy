@@ -10,19 +10,12 @@ import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
 import { TELEGRAM_BOT_USERNAME } from '@/lib/config'
 import { NavRail, type RailItem } from '@/layouts/NavRail'
 import { NAV_STYLES } from '@/layouts/navStyles'
-import { useUIStore, type Lang, type Skin, type Theme, type ViewMode } from '@/store/uiStore'
+import { useUIStore, type Lang, type Theme, type ViewMode } from '@/store/uiStore'
 
 const LANGS: { k: Lang; label: string }[] = [
   { k: 'uz', label: "O'zbekcha" },
   { k: 'ru', label: 'Ruscha' },
   { k: 'en', label: 'Inglizcha' },
-]
-
-// Ataylab "Rejim" deb nomlanmadi — quyidagi kunduzgi/tungi paneli
-// allaqachon shu so'zni ishlatadi, ikkita "Rejim" paneli chalkashtiradi.
-const SKINS: { k: Skin; label: string; hint: string }[] = [
-  { k: 'r1', label: '1-rejim', hint: 'Texnik chizma uslubi' },
-  { k: 'r2', label: '2-rejim', hint: "Ta'lim paneli uslubi" },
 ]
 
 const PREVIEW_LABELS: [keyof typeof IC, string][] = [
@@ -36,7 +29,7 @@ const PREVIEW_LABELS: [keyof typeof IC, string][] = [
 export function SettingsPage() {
   const { t } = useTranslation()
   const { user, refreshMe } = useAuth()
-  const { lang, setLang, theme, setTheme, skin, setSkin, navStyle, setNavStyle, viewMode, setViewMode } = useUIStore()
+  const { lang, setLang, theme, setTheme, navStyle, setNavStyle, viewMode, setViewMode } = useUIStore()
   const toast = useToast()
   const realAdmin = isAdmin(user ?? null)
 
@@ -170,25 +163,6 @@ export function SettingsPage() {
             </button>
           ))}
         </div>
-      </div>
-
-      <div className="panel">
-        <h3 className="panel__title">{t("Ko'rinish uslubi")}</h3>
-        <div className="settings__row">
-          {SKINS.map((s) => (
-            <button
-              key={s.k}
-              className={`chip settings__opt ${s.k === skin ? 'is-on' : ''}`}
-              onClick={() => setSkin(s.k)}
-              title={t(s.hint)}
-            >
-              {t(s.label)}
-            </button>
-          ))}
-        </div>
-        <p className="form__note">
-          {t("1-rejim — platformaning asl ko'rinishi. 2-rejim — ta'lim boshqaruv paneli uslubidagi ko'rinish. Kunduzgi va tungi mavzu ikkalasida ham ishlaydi.")}
-        </p>
       </div>
 
       <div className="panel">
