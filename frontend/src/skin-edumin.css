@@ -317,7 +317,11 @@
   text-decoration: none; color: inherit; flex: none;
 }
 [data-skin="r2"] .edtop__logo { border-radius: 50%; flex: none; }
+[data-skin="r2"] .edtop__bx { display: grid; gap: 2px; min-width: 0; }
 [data-skin="r2"] .edtop__bt { font: 500 14.5px/1.2 var(--f-display); }
+/* Muhandis_D imzosi — nom ostida. Kunduzgi/tungi variantlari
+   `legacy.css`ning `.brand__sig--day/--night` qoidalari bilan almashadi. */
+[data-skin="r2"] .edtop__bx .brand__sig { height: 11px; max-height: 11px; margin-top: 0; }
 [data-skin="r2"] .edtop__acts {
   display: flex; align-items: center; gap: 10px; margin-left: auto; flex: none;
 }
@@ -330,7 +334,7 @@
 }
 @media (max-width: 560px) {
   [data-skin="r2"] .edtop__inner { padding: 10px 16px; gap: 10px; }
-  [data-skin="r2"] .edtop__bt { display: none; }
+  [data-skin="r2"] .edtop__bx { display: none; }
 }
 
 /* ── Yon menyu ───────────────────────────────────────────── */
@@ -352,10 +356,13 @@
     text-decoration: none; color: inherit;
   }
   [data-skin="r2"] .edside__logo { border-radius: 50%; flex: none; }
+  [data-skin="r2"] .edside__bx { display: grid; gap: 3px; min-width: 0; }
   [data-skin="r2"] .edside__name {
     font: 500 14px/1.25 var(--f-display); min-width: 0;
-    overflow: hidden; text-overflow: ellipsis;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
+  /* Muhandis_D imzosi — nom ostida, yon menyu brendida. */
+  [data-skin="r2"] .edside__bx .brand__sig { height: 12px; max-height: 12px; margin-top: 0; }
 
   [data-skin="r2"] .edside__nav { display: flex; flex-direction: column; flex: 1; }
   [data-skin="r2"] .edside__sec { display: flex; flex-direction: column; gap: 3px; }

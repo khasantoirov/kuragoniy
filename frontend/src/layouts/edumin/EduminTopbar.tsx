@@ -20,7 +20,11 @@ export function EduminTopbar({ barRef, onNav, children }: {
       <div className="edtop__inner">
         <Link className="edtop__brand" to="/" onClick={onNav}>
           <img className="edtop__logo" src="/logo.png" alt="KO'RAGONIY EDU" width={38} height={38} />
-          <span className="edtop__bt">KO'RAGONIY EDU</span>
+          <span className="edtop__bx">
+            <span className="edtop__bt">KO'RAGONIY EDU</span>
+            <img className="brand__sig brand__sig--day" src="/sign-day.png" alt="Muhandis D" height={11} />
+            <img className="brand__sig brand__sig--night" src="/sign-night.png" alt="Muhandis D" height={11} />
+          </span>
         </Link>
 
         <GlobalSearch />
