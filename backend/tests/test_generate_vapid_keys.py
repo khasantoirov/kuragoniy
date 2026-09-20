@@ -135,3 +135,18 @@ def test_uncreatable_env_fails_with_an_actionable_error(env_dir, monkeypatch):
     with pytest.raises(CommandError) as exc:
         run('--write')
     assert 'generate_vapid_keys' in str(exc.value)
+
+
+def test_unreadable_env_fails_with_an_actionable_error(env_dir, monkeypatch):
+    # The real-world failure: .env belongs to another user, so it cannot even
+    # be read. That used to escape as a raw traceback; it must be a clear
+    # message naming the file and the command to run as root instead.
+    (env_dir / '.env').write_text('FOO=bar\n', encoding='utf-8')
+    monkeypatch.setattr('pathlib.Path.read_text', _deny)
+
+    with pytest.raises(CommandError) as exc:
+        run('--write')
+
+    message = str(exc.value)
+    assert '.env' in message
+    assert 'sudo ./venv/bin/python manage.py generate_vapid_keys --write' in message
