@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 
 import { GlobalSearch } from '@/features/search/GlobalSearch'
 
+import { BrandMark } from './BrandMark'
+
 /** 2-rejim yuqori paneli: markazda haqiqiy ishlaydigan qidiruv, o'ngda
  *  amallar. `barRef` AppShell'ning ResizeObserver'iga uzatiladi — `--topbar-h`
  *  shu element balandligi bo'yicha o'lchanadi, aks holda ostidagi yopishqoq
@@ -20,11 +22,7 @@ export function EduminTopbar({ barRef, onNav, children }: {
       <div className="edtop__inner">
         <Link className="edtop__brand" to="/" onClick={onNav}>
           <img className="edtop__logo" src="/logo.png" alt="KO'RAGONIY EDU" width={38} height={38} />
-          <span className="edtop__bx">
-            <span className="edtop__bt">KO'RAGONIY EDU</span>
-            <img className="brand__sig brand__sig--day" src="/sign-day.png" alt="Muhandis D" height={11} />
-            <img className="brand__sig brand__sig--night" src="/sign-night.png" alt="Muhandis D" height={11} />
-          </span>
+          <BrandMark />
         </Link>
 
         <GlobalSearch />

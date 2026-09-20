@@ -3,6 +3,8 @@ import { Link, NavLink } from 'react-router-dom'
 
 import { IC } from '@/icons'
 
+import { BrandMark } from './BrandMark'
+
 export interface EduminNavItem {
   to: string
   label: string
@@ -38,14 +40,7 @@ export function EduminSidebar({ items, onNav }: { items: EduminNavItem[]; onNav:
     <aside className="edside">
       <Link className="edside__brand" to="/" onClick={onNav}>
         <img className="edside__logo" src="/logo.png" alt="KO'RAGONIY EDU" width={40} height={40} />
-        <span className="edside__bx">
-          <span className="edside__name">KO'RAGONIY EDU</span>
-          {/* `.brand__sig--day/--night` almashinuvi legacy.css'dagi
-              `[data-theme="dark"]` qoidalari orqali bo'ladi (486-489) —
-              shuning uchun shu klasslar qayta ishlatildi. */}
-          <img className="brand__sig brand__sig--day" src="/sign-day.png" alt="Muhandis D" height={12} />
-          <img className="brand__sig brand__sig--night" src="/sign-night.png" alt="Muhandis D" height={12} />
-        </span>
+        <BrandMark />
       </Link>
 
       <nav className="edside__nav" aria-label={t('Asosiy navigatsiya')}>

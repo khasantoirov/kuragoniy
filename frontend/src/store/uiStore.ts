@@ -53,7 +53,7 @@ function loadSkinFont() {
   const link = document.createElement('link')
   link.id = SKIN_FONT_ID
   link.rel = 'stylesheet'
-  link.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap'
+  link.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Condensed:wght@700&display=swap'
   document.head.appendChild(link)
 }
 
