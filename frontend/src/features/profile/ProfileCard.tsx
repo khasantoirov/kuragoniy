@@ -8,7 +8,10 @@ import { useAuth } from '@/lib/auth/AuthContext'
 
 import { shrinkToAvatar } from './shrink'
 
-export function ProfilePage() {
+/** Profil sozlamalari — Sozlamalar sahifasidagi kartochka sifatida.
+ *  Ilgari alohida /profile sahifasi edi; bitta forma uchun butun
+ *  sahifa ajratish o'rniga qolgan sozlamalar bilan bir joyda turadi. */
+export function ProfileCard() {
   const { t } = useTranslation()
   const { user, refreshMe } = useAuth()
   const toast = useToast()
@@ -73,49 +76,45 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="settings">
-      <h2 className="settings__title">{t('Profil')}</h2>
-
-      <div className="panel">
-        <h3 className="panel__title">{t("Profil ma'lumotlari")}</h3>
-        <div className="pf">
-          <div className="pf__avwrap">
-            {photoPreview ? (
-              <img className="pf__av pf__av--img" src={photoPreview} alt="" />
-            ) : (
-              <Avatar name={name} photo={null} className="pf__av" />
+    <div className="panel">
+      <h3 className="panel__title">{t("Profil ma'lumotlari")}</h3>
+      <div className="pf">
+        <div className="pf__avwrap">
+          {photoPreview ? (
+            <img className="pf__av pf__av--img" src={photoPreview} alt="" />
+          ) : (
+            <Avatar name={name} photo={null} className="pf__av" />
+          )}
+          <div className="pf__avacts">
+            <label className="btn btn--sm" htmlFor="pf-file">{t('Surat tanlash')}</label>
+            <input ref={fileRef} type="file" id="pf-file" accept="image/*" hidden onChange={onPickPhoto} />
+            {photoPreview && (
+              <button className="btn btn--sm btn--ghost" type="button" onClick={onClearPhoto}>
+                {t('Olib tashlash')}
+              </button>
             )}
-            <div className="pf__avacts">
-              <label className="btn btn--sm" htmlFor="pf-file">{t('Surat tanlash')}</label>
-              <input ref={fileRef} type="file" id="pf-file" accept="image/*" hidden onChange={onPickPhoto} />
-              {photoPreview && (
-                <button className="btn btn--sm btn--ghost" type="button" onClick={onClearPhoto}>
-                  {t('Olib tashlash')}
-                </button>
-              )}
-            </div>
           </div>
+        </div>
 
-          <label className="field">
-            <span className="field__label">{t('Ism familiya')}</span>
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Ism familiya')} />
-          </label>
-          <label className="field">
-            <span className="field__label">{t("Tug'ilgan kun")}</span>
-            <input className="input" type="date" value={bday ?? ''} onChange={(e) => setBday(e.target.value)} />
-          </label>
-          <label className="field">
-            <span className="field__label">{t('Telefon raqam')}</span>
-            <input className="input" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+998 90 123 45 67" />
-          </label>
-          <label className="field">
-            <span className="field__label">{t('Email')}</span>
-            <input className="input" value={user?.email ?? ''} disabled />
-          </label>
+        <label className="field">
+          <span className="field__label">{t('Ism familiya')}</span>
+          <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Ism familiya')} />
+        </label>
+        <label className="field">
+          <span className="field__label">{t("Tug'ilgan kun")}</span>
+          <input className="input" type="date" value={bday ?? ''} onChange={(e) => setBday(e.target.value)} />
+        </label>
+        <label className="field">
+          <span className="field__label">{t('Telefon raqam')}</span>
+          <input className="input" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+998 90 123 45 67" />
+        </label>
+        <label className="field">
+          <span className="field__label">{t('Email')}</span>
+          <input className="input" value={user?.email ?? ''} disabled />
+        </label>
 
-          <div className="panel__acts">
-            <button className="btn btn--primary" onClick={submit} disabled={busy}>{t('Saqlash')}</button>
-          </div>
+        <div className="panel__acts">
+          <button className="btn btn--primary" onClick={submit} disabled={busy}>{t('Saqlash')}</button>
         </div>
       </div>
     </div>

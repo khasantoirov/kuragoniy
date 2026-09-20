@@ -134,7 +134,7 @@ export function AppShell() {
             {user?.name}
             {user && <RoleBadge user={user} />}
           </p>
-          <Link className="acct__item" to="/profile" onClick={closeAll}>
+          <Link className="acct__item" to="/settings" onClick={closeAll}>
             {IC.user} {t('Profil')}
           </Link>
           <button className="acct__item acct__item--out" onClick={() => logout()}>

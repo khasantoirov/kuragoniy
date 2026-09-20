@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { AboutPage } from '@/features/about/AboutPage'
 import { AdminPage } from '@/features/admin/AdminPage'
@@ -12,7 +12,6 @@ import { JournalPage } from '@/features/journal/JournalPage'
 import { LessonDetail } from '@/features/lessons/LessonDetail'
 import { LessonsPage } from '@/features/lessons/LessonsPage'
 import { LibraryPage } from '@/features/library/LibraryPage'
-import { ProfilePage } from '@/features/profile/ProfilePage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
 import { StatisticsPage } from '@/features/statistics/StatisticsPage'
 import { TimetablePage } from '@/features/timetable/TimetablePage'
@@ -40,7 +39,9 @@ export const router = createBrowserRouter([
       { path: '/statistics', element: <StatisticsPage /> },
       { path: '/admin', element: <AdminPage /> },
       { path: '/about', element: <AboutPage /> },
-      { path: '/profile', element: <ProfilePage /> },
+      // Eski xatcho'plar va havolalar uzilib qolmasin — profil endi
+      // Sozlamalar ichida.
+      { path: '/profile', element: <Navigate to="/settings" replace /> },
       { path: '/settings', element: <SettingsPage /> },
       { path: '/notifications', element: <NotificationsPage /> },
     ],

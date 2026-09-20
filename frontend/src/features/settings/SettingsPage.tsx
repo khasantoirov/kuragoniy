@@ -8,6 +8,7 @@ import { IC, themeIconMoon, themeIconSun } from '@/icons'
 import { api } from '@/lib/api/client'
 import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
 import { TELEGRAM_BOT_USERNAME } from '@/lib/config'
+import { ProfileCard } from '@/features/profile/ProfileCard'
 import { NavRail, type RailItem } from '@/layouts/NavRail'
 import { NAV_STYLES } from '@/layouts/navStyles'
 import { useUIStore, type Lang, type Theme, type ViewMode } from '@/store/uiStore'
@@ -153,6 +154,8 @@ export function SettingsPage() {
   return (
     <div className="settings">
       <h2 className="settings__title">{t('Sozlamalar')}</h2>
+
+      <ProfileCard />
 
       <div className="panel">
         <h3 className="panel__title">{t('Til')}</h3>
