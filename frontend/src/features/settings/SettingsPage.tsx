@@ -166,19 +166,38 @@ export function SettingsPage() {
       </div>
 
       <div className="panel">
-        <h3 className="panel__title">{t('Rejim')}</h3>
-        <div className="settings__row">
-          {(
-            [
-              ['light', themeIconSun, 'Kunduzgi'],
-              ['dark', themeIconMoon, 'Tungi'],
-            ] as [Theme, typeof themeIconSun, string][]
-          ).map(([k, Ic, label]) => (
-            <button key={k} className={`chip settings__opt ${k === theme ? 'is-on' : ''}`} onClick={() => setTheme(k)}>
-              <Ic /> {t(label)}
-            </button>
-          ))}
+        <h3 className="panel__title">{t('Rejimlar')}</h3>
+
+        <div className="settings__sub">
+          <h4 className="settings__subtitle">{t('Kunduzgi / tungi')}</h4>
+          <div className="settings__row">
+            {(
+              [
+                ['light', themeIconSun, 'Kunduzgi'],
+                ['dark', themeIconMoon, 'Tungi'],
+              ] as [Theme, typeof themeIconSun, string][]
+            ).map(([k, Ic, label]) => (
+              <button key={k} className={`chip settings__opt ${k === theme ? 'is-on' : ''}`} onClick={() => setTheme(k)}>
+                <Ic /> {t(label)}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {realAdmin && (
+          <div className="settings__sub">
+            <h4 className="settings__subtitle">{t("Ko'rish rejimi")}</h4>
+            <div className="pf__mode">
+              <button type="button" className={`grade ${viewMode === 'admin' ? 'is-on' : ''}`} onClick={() => applyViewMode('admin')}>
+                {t('Admin')}
+              </button>
+              <button type="button" className={`grade ${viewMode === 'teacher' ? 'is-on' : ''}`} onClick={() => applyViewMode('teacher')}>
+                {t("O'qituvchi")}
+              </button>
+            </div>
+            <p className="form__note">{t("Platformani oddiy o'qituvchi qanday ko'rishini shu yerdan tekshirasiz.")}</p>
+          </div>
+        )}
       </div>
 
       <div className="panel">
@@ -197,7 +216,10 @@ export function SettingsPage() {
       </div>
 
       <div className="panel">
-        <h3 className="panel__title">{t("Parolni o'zgartirish")}</h3>
+        <h3 className="panel__title">{t('Hisob xavfsizligi')}</h3>
+
+        <div className="settings__sub">
+          <h4 className="settings__subtitle">{t("Parolni o'zgartirish")}</h4>
         {pwOpen ? (
           <div className="pf__pw">
             <span className="ifield">
@@ -263,10 +285,10 @@ export function SettingsPage() {
             {t("Parolni o'zgartirish")}
           </button>
         )}
-      </div>
+        </div>
 
-      <div className="panel">
-        <h3 className="panel__title">{t('Ikki bosqichli tasdiqlash')}</h3>
+        <div className="settings__sub">
+          <h4 className="settings__subtitle">{t('Ikki bosqichli tasdiqlash')}</h4>
         {user?.totp_enabled ? (
           totpDisableOpen ? (
             <div className="pf__pw">
@@ -346,22 +368,8 @@ export function SettingsPage() {
             </button>
           </div>
         )}
-      </div>
-
-      {realAdmin && (
-        <div className="panel">
-          <h3 className="panel__title">{t("Ko'rish rejimi")}</h3>
-          <div className="pf__mode">
-            <button type="button" className={`grade ${viewMode === 'admin' ? 'is-on' : ''}`} onClick={() => applyViewMode('admin')}>
-              {t('Admin')}
-            </button>
-            <button type="button" className={`grade ${viewMode === 'teacher' ? 'is-on' : ''}`} onClick={() => applyViewMode('teacher')}>
-              {t("O'qituvchi")}
-            </button>
-          </div>
-          <p className="form__note">{t("Platformani oddiy o'qituvchi qanday ko'rishini shu yerdan tekshirasiz.")}</p>
         </div>
-      )}
+      </div>
 
       <div className="panel panel--mobile-only">
         <h3 className="panel__title">{t('Pastki navigatsiya uslubi')}</h3>

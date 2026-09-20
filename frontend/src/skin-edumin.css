@@ -647,3 +647,16 @@
 [data-skin="r2"] .settings .panel--mobile-only { grid-column: 1 / -1; }
 /* Matn + tugma juftliklari tor kartochkada ustma-ust tushsin. */
 [data-skin="r2"] .settings .tgbox { flex-wrap: wrap; gap: 10px; }
+
+/* Bitta kartochka ichidagi bo'limlar (Rejimlar, Xavfsizlik) — ingichka
+   ajratgich va kichik sarlavha bilan, alohida kartochkalarga bo'lmasdan. */
+[data-skin="r2"] .settings__sub + .settings__sub,
+[data-skin="r2"] .settings__sub + * .settings__sub {
+  margin-top: 14px; padding-top: 14px;
+  border-top: 1px solid var(--rule-2);
+}
+[data-skin="r2"] .settings__subtitle {
+  margin: 0 0 8px;
+  font: 500 12.5px/1.3 var(--f-body);
+  color: var(--ink-2);
+}

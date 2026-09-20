@@ -89,6 +89,7 @@ const ru = {
   'Profil': 'Профиль', "Ilovani o'rnatish": 'Установить приложение',
   // Sozlamalar
   'Sozlamalar': 'Настройки', 'Kunduzgi': 'Дневной', 'Tungi': 'Ночной',
+  'Rejimlar': 'Режимы', 'Kunduzgi / tungi': 'Дневной / ночной', 'Hisob xavfsizligi': 'Безопасность аккаунта',
   "Ko'rinish uslubi": 'Стиль оформления',
   '1-rejim': 'Режим 1', '2-rejim': 'Режим 2',
   'Texnik chizma uslubi': 'Стиль технического чертежа',
@@ -635,6 +636,7 @@ const en = {
   'Profil': 'Profile', "Ilovani o'rnatish": 'Install app',
   // Sozlamalar
   'Sozlamalar': 'Settings', 'Kunduzgi': 'Day', 'Tungi': 'Night',
+  'Rejimlar': 'Modes', 'Kunduzgi / tungi': 'Day / night', 'Hisob xavfsizligi': 'Account security',
   "Ko'rinish uslubi": 'Look & feel',
   '1-rejim': 'Mode 1', '2-rejim': 'Mode 2',
   'Texnik chizma uslubi': 'Technical-drawing style',
