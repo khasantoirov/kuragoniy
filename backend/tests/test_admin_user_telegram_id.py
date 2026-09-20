@@ -1,7 +1,11 @@
-"""Admin panel staff cards show a linked colleague's Telegram chat id —
-see accounts/serializers.py::AdminUserSerializer and
+"""A linked colleague's Telegram chat id is admin-only on /accounts/users/
+— see accounts/serializers.py::AdminUserSerializer and
 UserAdminViewSet.get_serializer_class. A plain teacher hitting the same
-/accounts/users/ list must not see it.
+list must not see it.
+
+The admin staff card no longer prints the id (it was noise next to the
+@username), but the field is still served to admins, so the boundary
+still has to hold.
 """
 
 import pytest

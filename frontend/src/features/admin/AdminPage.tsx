@@ -324,7 +324,7 @@ export function AdminPage() {
                         <span>Telegram</span>
                         <b>
                           {u.telegram_linked
-                            ? `✅ ${u.telegram_username ? '@' + u.telegram_username : t('Ulangan')}${u.telegram_chat_id ? ` (ID: ${u.telegram_chat_id})` : ''}`
+                            ? `✅ ${u.telegram_username ? '@' + u.telegram_username : t('Ulangan')}`
                             : `❌ ${t('Ulanmagan')}`}
                         </b>
                       </p>
