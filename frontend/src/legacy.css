@@ -23,11 +23,15 @@
 
   /* Kategorik seriyalar (dashboard: rol/sinf-bandi taqsimoti) — dataviz
      skill validatori orqali shu ilovaning haqiqiy sirtiga (#FFFFFF)
-     nisbatan tasdiqlangan tartib, status ranglaridan mustaqil. */
+     nisbatan tasdiqlangan tartib, status ranglaridan mustaqil.
+     5-slot sinf bandlari 5 taga bo'linganda qo'shildi (7 va 8-9 ajratildi)
+     — 4 ta rangni aylantirib ishlatish ikki bandni bir xil rangga
+     tushirib qo'yardi. */
   --cat-1: #2a78d6;
   --cat-2: #eb6834;
   --cat-3: #1baf7a;
   --cat-4: #eda100;
+  --cat-5: #8e5cd9;
 
   --r:   4px;            /* burchak radiusi — texnik chizmadek keskin */
   --gap: 16px;
@@ -347,6 +351,7 @@ textarea.input { resize: vertical; }
   --cat-2: #d95926;
   --cat-3: #199e70;
   --cat-4: #c98500;
+  --cat-5: #9f7ae8;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.28);
 }
 [data-theme="dark"] [data-theme="dark"] .gate__mark { background: #0A121B; }

@@ -13,7 +13,7 @@ import { useUIStore } from '@/store/uiStore'
 import { useDashboardSummary } from './api'
 import type { DashboardChorak } from './types'
 
-const CATEGORICAL = ['var(--cat-1)', 'var(--cat-2)', 'var(--cat-3)', 'var(--cat-4)']
+const CATEGORICAL = ['var(--cat-1)', 'var(--cat-2)', 'var(--cat-3)', 'var(--cat-4)', 'var(--cat-5)']
 
 const ROLE_LABELS: Record<string, string> = {
   teacher: "O'qituvchi",

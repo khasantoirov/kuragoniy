@@ -20,7 +20,7 @@ def make_lesson(grade, chorak, hafta, title="Dars", with_experiment=True):
 
 
 def test_teacher_cannot_move_copy(as_user, teacher):
-    lesson = make_lesson("7-8-9", 1, 1)
+    lesson = make_lesson("7", 1, 1)
     resp = as_user(teacher).post(
         f"/api/lessons/{lesson.id}/move-copy/", {"mode": "copy", "grade": "5-6", "chorak": 1}, format="json"
     )
@@ -28,7 +28,7 @@ def test_teacher_cannot_move_copy(as_user, teacher):
 
 
 def test_copy_duplicates_lesson_and_experiments_leaving_original(as_user, admin):
-    source = make_lesson("7-8-9", 1, 1, title="Kulon kuchi")
+    source = make_lesson("7", 1, 1, title="Kulon kuchi")
     make_lesson("5-6", 1, 1, title="5-6-sinf boshqa dars")  # occupies (5-6, 1) hafta=1 already
 
     resp = as_user(admin).post(
@@ -39,8 +39,8 @@ def test_copy_duplicates_lesson_and_experiments_leaving_original(as_user, admin)
     assert new_id != source.id
 
     source.refresh_from_db()
-    assert source.grade == "7-8-9"  # untouched by copy
-    assert Lesson.objects.filter(grade="7-8-9").count() == 1
+    assert source.grade == "7"  # untouched by copy
+    assert Lesson.objects.filter(grade="7").count() == 1
 
     copy = Lesson.objects.get(id=new_id)
     assert copy.grade == "5-6" and copy.chorak == 1
@@ -53,8 +53,8 @@ def test_copy_duplicates_lesson_and_experiments_leaving_original(as_user, admin)
 
 
 def test_move_relocates_and_renumbers_both_grades(as_user, admin):
-    source = make_lesson("7-8-9", 1, 1, title="Ko'chiriladigan dars")
-    make_lesson("7-8-9", 1, 2, title="Grade7-8-9 qoladigan dars")
+    source = make_lesson("7", 1, 1, title="Ko'chiriladigan dars")
+    make_lesson("7", 1, 2, title="Grade7 qoladigan dars")
     make_lesson("5-6", 2, 1, title="Grade5-6 mavjud dars")
 
     resp = as_user(admin).post(
@@ -65,8 +65,8 @@ def test_move_relocates_and_renumbers_both_grades(as_user, admin):
     assert resp.data["grade"] == "5-6"
     assert resp.data["chorak"] == 2
 
-    # only one lesson left in grade 7-8-9, renumbered to close the gap
-    merged = list(Lesson.objects.filter(grade="7-8-9").order_by("hafta"))
+    # only one lesson left in grade 7, renumbered to close the gap
+    merged = list(Lesson.objects.filter(grade="7").order_by("hafta"))
     assert len(merged) == 1
     assert merged[0].hafta == 1
 
@@ -77,24 +77,24 @@ def test_move_relocates_and_renumbers_both_grades(as_user, admin):
 
 
 def test_move_within_same_grade_changes_only_chorak(as_user, admin):
-    source = make_lesson("7-8-9", 1, 1)
-    make_lesson("7-8-9", 2, 2)
+    source = make_lesson("7", 1, 1)
+    make_lesson("7", 2, 2)
 
     resp = as_user(admin).post(
-        f"/api/lessons/{source.id}/move-copy/", {"mode": "move", "grade": "7-8-9", "chorak": 2}, format="json"
+        f"/api/lessons/{source.id}/move-copy/", {"mode": "move", "grade": "7", "chorak": 2}, format="json"
     )
     assert resp.status_code == 200
-    assert Lesson.objects.filter(grade="7-8-9").count() == 2
+    assert Lesson.objects.filter(grade="7").count() == 2
     source.refresh_from_db()
     assert source.chorak == 2
 
 
 @pytest.mark.parametrize("payload", [
-    {"mode": "bogus", "grade": "7-8-9", "chorak": 1},
+    {"mode": "bogus", "grade": "7", "chorak": 1},
     {"mode": "copy", "grade": "6", "chorak": 1},
-    {"mode": "copy", "grade": "7-8-9", "chorak": 5},
+    {"mode": "copy", "grade": "7", "chorak": 5},
 ])
 def test_move_copy_rejects_invalid_input(as_user, admin, payload):
-    lesson = make_lesson("7-8-9", 1, 1)
+    lesson = make_lesson("7", 1, 1)
     resp = as_user(admin).post(f"/api/lessons/{lesson.id}/move-copy/", payload, format="json")
     assert resp.status_code == 400

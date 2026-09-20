@@ -115,7 +115,12 @@ export const useUIStore = create<UIState>()(
       // AppShell and the r1-only rules in legacy.css are left in place for
       // now and get removed in a follow-up, once this has settled in
       // production.
-      version: 5,
+      // v6: the '7-8-9' band splits into '7' (Elektronika) and '8-9'
+      // (Amaliy loyihalar). A browser still holding '7-8-9' would otherwise
+      // select a grade the picker no longer offers and show an empty list;
+      // it lands on '7', which is where every existing lesson from the old
+      // band went (see lessons/migrations/0011).
+      version: 6,
       migrate: (persisted, version) => {
         const state = persisted as UIState
         if (version < 1) state.navStyle = 'raised'
@@ -125,9 +130,13 @@ export const useUIStore = create<UIState>()(
         }
         if (version < 3) {
           const oldGrade = state.grade as unknown
-          state.grade = oldGrade === '7-8' || oldGrade === '9' ? '7-8-9' : (oldGrade as UIState['grade'])
+          // '7-8-9' is no longer a band of its own (see v6), but this step
+          // still writes it so the chain stays faithful to what a v2
+          // browser actually held — v6 below then maps it onto '7'.
+          state.grade = (oldGrade === '7-8' || oldGrade === '9' ? '7-8-9' : oldGrade) as UIState['grade']
         }
         if (version < 5) state.skin = 'r2'
+        if (version < 6 && (state.grade as unknown) === '7-8-9') state.grade = '7'
         return state
       },
       onRehydrateStorage: () => (state) => {

@@ -38,7 +38,7 @@ def test_unapproved_teacher_can_see_own_pending_status(as_user, unapproved_teach
 
 # ── Write access: admin/dev only for lessons, library, announcements ──
 
-LESSON_PAYLOAD = {"title": "T", "grade": "7-8-9", "chorak": 1, "hafta": 1}
+LESSON_PAYLOAD = {"title": "T", "grade": "7", "chorak": 1, "hafta": 1}
 
 
 def test_teacher_cannot_create_lesson(as_user, teacher):
@@ -64,7 +64,7 @@ def test_teacher_cannot_see_locked_chorak1(as_user, admin, teacher):
     resp = as_user(admin).post("/api/lessons/quarter-locks/", {"chorak": 1, "is_open": False}, format="json")
     assert resp.status_code == 200
 
-    resp = as_user(teacher).get("/api/lessons/", {"grade": "7-8-9"})
+    resp = as_user(teacher).get("/api/lessons/", {"grade": "7"})
     assert resp.status_code == 200
     assert all(row["chorak"] != 1 for row in resp.data["results"])
 
@@ -73,7 +73,7 @@ def test_admin_still_sees_locked_chorak1(as_user, admin):
     as_user(admin).post("/api/lessons/", {**LESSON_PAYLOAD, "chorak": 1}, format="json")
     as_user(admin).post("/api/lessons/quarter-locks/", {"chorak": 1, "is_open": False}, format="json")
 
-    resp = as_user(admin).get("/api/lessons/", {"grade": "7-8-9"})
+    resp = as_user(admin).get("/api/lessons/", {"grade": "7"})
     assert resp.status_code == 200
     assert any(row["chorak"] == 1 for row in resp.data["results"])
 

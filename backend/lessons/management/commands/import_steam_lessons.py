@@ -49,7 +49,7 @@ def split_materials(text: str) -> list[str]:
 class Command(BaseCommand):
     help = (
         "One-time content load: the 4 STEAM/robotics curriculum PDFs "
-        "(1-2, 3-4, 5-6, 7-8-9 grade bands x 16 lessons, chorak 1) into "
+        "(1-2, 3-4, 5-6, 7 grade bands x 16 lessons, chorak 1) into "
         "real Lesson/Experiment rows. Safe to re-run — skips any "
         "(grade, chorak, hafta) that already has a lesson."
     )

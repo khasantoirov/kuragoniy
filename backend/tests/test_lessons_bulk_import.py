@@ -39,7 +39,7 @@ def make_lesson(grade, chorak, hafta, title="Dars"):
 
 def valid_row(**overrides):
     row = {
-        "title": "Yangi dars", "grade": "7-8-9", "chorak": 1, "hafta": 1, "goal": "",
+        "title": "Yangi dars", "grade": "7", "chorak": 1, "hafta": 1, "goal": "",
         "experiments": [{"name": "Tajriba 1", "desc": "d"}],
     }
     row.update(overrides)
@@ -123,7 +123,7 @@ def test_invalid_row_recorded_as_error_others_still_created(as_user, admin):
 def test_replace_mode_deletes_existing_then_creates(as_user, admin):
     old1 = make_lesson("5-6", 1, 1, title="Eski 1")
     old2 = make_lesson("5-6", 1, 2, title="Eski 2")
-    other_grade = make_lesson("7-8-9", 1, 1, title="Boshqa sinf darsi")
+    other_grade = make_lesson("7", 1, 1, title="Boshqa sinf darsi")
 
     resp = bulk_import(as_user(admin), "replace", [valid_row(title="Yangi", grade="5-6", hafta=1)])
     assert resp.status_code == 200
