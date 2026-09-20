@@ -31,6 +31,11 @@ jobs:
           ./venv/bin/pip install -r requirements.txt
           ./venv/bin/python manage.py migrate --noinput
           ./venv/bin/python manage.py collectstatic --noinput
+          # Web push (VAPID) kalitlari: yo'q bo'lsa serverning o'zida yaratib .env ga
+          # yozadi, bor bo'lsa hech narsa qilmaydi — shuning uchun har deploy'da xavfsiz.
+          # Maxfiy kalit hech qachon logga chiqmaydi. Yozib bo'lmasa deploy to'xtamaydi,
+          # faqat ogohlantirish beradi (push o'chiq qoladi, ilova buni o'zi aytadi).
+          ./venv/bin/python manage.py generate_vapid_keys --write || echo "::warning::VAPID kalitlarini .env ga yozib bolmadi — push ishlamaydi. Serverda qolda ishga tushiring: ./venv/bin/python manage.py generate_vapid_keys"
           cd ../frontend
           npm ci
           npm run build
