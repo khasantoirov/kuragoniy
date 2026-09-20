@@ -25,8 +25,9 @@ const LINKS: { view: string; ic: keyof typeof IC; title: string; sub: string; ad
   { view: '/journal', ic: 'clipboard', title: 'Jurnal', sub: 'Baho, davomat, statistika' },
   { view: '/timetable', ic: 'calendar', title: 'Jadval', sub: 'Haftalik dars jadvali' },
   { view: '/library', ic: 'book', title: 'Kutubxona', sub: "Kitob, qo'llanma, video" },
+  { view: '/statistics', ic: 'chart', title: 'Statistika', sub: "Ko'rsatkichlar va sinflar kesimi" },
   { view: '/about', ic: 'info', title: 'Platforma haqida', sub: "Bo'limlar va imkoniyatlar" },
-  { view: '/admin', ic: 'settings', title: 'Boshqaruv', sub: 'Statistika va boshqaruv paneli' },
+  { view: '/admin', ic: 'settings', title: 'Boshqaruv', sub: 'Foydalanuvchilar va tizim sozlamalari' },
 ]
 
 export function HomePage() {

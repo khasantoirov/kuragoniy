@@ -24,7 +24,9 @@ const NAV_ITEMS: { to: string; label: string; icon: keyof typeof IC; adminOnly?:
   { to: '/journal', label: 'Jurnal', icon: 'clipboard' },
   { to: '/timetable', label: 'Jadval', icon: 'calendar' },
   { to: '/library', label: 'Kutubxona', icon: 'book' },
+  { to: '/settings', label: 'Sozlamalar', icon: 'gear' },
   { to: '/about', label: 'Platforma haqida', icon: 'info' },
+  { to: '/statistics', label: 'Statistika', icon: 'chart' },
   { to: '/admin', label: 'Boshqaruv', icon: 'settings' },
 ]
 
@@ -134,9 +136,6 @@ export function AppShell() {
           </p>
           <Link className="acct__item" to="/profile" onClick={closeAll}>
             {IC.user} {t('Profil')}
-          </Link>
-          <Link className="acct__item" to="/settings" onClick={closeAll}>
-            {IC.gear} {t('Sozlamalar')}
           </Link>
           <button className="acct__item acct__item--out" onClick={() => logout()}>
             {IC.logout} {t('Chiqish')}

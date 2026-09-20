@@ -51,6 +51,9 @@ const ru = {
   'Kutubxona': 'Библиотека', 'Boshqaruv': 'Управление', 'Taqvim': 'Календарь',
   // 2-rejim: yon menyu bo'limlari va umumiy qidiruv
   'Asosiy': 'Основное', "O'quv jarayoni": 'Учебный процесс', 'Tizim': 'Система',
+  'Sinflar kesimida': 'В разрезе классов',
+  "Ko'rsatkichlar va sinflar kesimi": 'Показатели и разрез по классам',
+  'Foydalanuvchilar va tizim sozlamalari': 'Пользователи и системные настройки',
   'Dars, material, o‘quvchi yoki xodim izlash…': 'Поиск урока, материала, ученика или сотрудника…',
   'Platforma bo‘ylab qidirish': 'Поиск по платформе',
   'kamida 2 harf': 'минимум 2 символа',
@@ -594,6 +597,9 @@ const en = {
   'Kutubxona': 'Library', 'Boshqaruv': 'Admin', 'Taqvim': 'Calendar',
   // 2-rejim: yon menyu bo'limlari va umumiy qidiruv
   'Asosiy': 'Overview', "O'quv jarayoni": 'Teaching', 'Tizim': 'System',
+  'Sinflar kesimida': 'By class',
+  "Ko'rsatkichlar va sinflar kesimi": 'Metrics and a per-class breakdown',
+  'Foydalanuvchilar va tizim sozlamalari': 'Users and system settings',
   'Dars, material, o‘quvchi yoki xodim izlash…': 'Search lessons, materials, students or staff…',
   'Platforma bo‘ylab qidirish': 'Search the platform',
   'kamida 2 harf': 'at least 2 characters',

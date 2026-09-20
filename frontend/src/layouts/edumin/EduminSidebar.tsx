@@ -15,7 +15,7 @@ export interface EduminNavItem {
 const GROUPS: { title: string; paths: string[] }[] = [
   { title: 'Asosiy', paths: ['/'] },
   { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/library'] },
-  { title: 'Tizim', paths: ['/admin', '/about'] },
+  { title: 'Tizim', paths: ['/statistics', '/admin', '/settings', '/about'] },
 ]
 
 function groupItems(items: EduminNavItem[]) {

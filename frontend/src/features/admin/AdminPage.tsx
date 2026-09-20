@@ -15,7 +15,6 @@ import type { Paginated, User } from '@/lib/api/types'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore } from '@/store/uiStore'
 
-import { DashboardSection } from './dashboard/DashboardSection'
 import { ImportLessonsModal } from './ImportLessonsModal'
 import { ImportTranslationsModal } from './ImportTranslationsModal'
 
@@ -269,8 +268,6 @@ export function AdminPage() {
 
   return (
     <div>
-      <DashboardSection admin={admin} />
-
       {admin && (
         <>
           <section className="panel">
