@@ -543,3 +543,57 @@
 [data-skin="r2"][data-theme="dark"] input.input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 1000px #1D2138 inset !important;
 }
+
+/* ── "Platforma haqida" sarlavha bloki ───────────────────── */
+/* Blok butunlay to'q ko'k gradient uchun yozilgan edi: oq matn, yarim
+   shaffof oq kartochkalar, qattiq yozilgan ranglar. 2-rejimda u sahifaning
+   qolgan qismi kabi oddiy kartochkaga aylanadi, shuning uchun ichidagi
+   ranglar tokenlarga o'tkaziladi — ikkala mavzuda ham o'zi moslashadi. */
+[data-skin="r2"] .abhero {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
+}
+[data-skin="r2"] .abhero__eyebrow { color: var(--pick); }
+[data-skin="r2"] .abhero__dot {
+  background: var(--pick);
+  box-shadow: 0 0 8px 2px rgba(106,115,250,.45);
+}
+[data-skin="r2"] .abhero__title { color: var(--ink); }
+[data-skin="r2"] .abhero__accent {
+  background: linear-gradient(90deg, var(--pick), var(--pick-2));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+[data-skin="r2"] .abhero__sub { color: var(--ink-2); }
+[data-skin="r2"] .abhero__credit-av { background: transparent; border-radius: 50%; }
+[data-skin="r2"] .abhero__credit-role { color: var(--ink-3); }
+[data-skin="r2"] .abhero__credit-name { color: var(--ink); }
+[data-skin="r2"] .abhero__social-link {
+  background: var(--paper);
+  border-color: var(--rule);
+  color: var(--ink);
+}
+[data-skin="r2"] .abhero__social-link:hover {
+  background: var(--rule-2);
+  border-color: var(--pick);
+}
+[data-skin="r2"] .abhero__social-lb { color: var(--ink); }
+[data-skin="r2"] .abhero__social-handle { color: var(--ink-3); }
+[data-skin="r2"] .abhero__social-ic { box-shadow: 0 .25rem .75rem rgba(0,0,0,.18); }
+
+/* Logotip shaffof PNG (192x192, burchaklari alpha=0). Avvalgi `box-shadow`
+   element QUTISINING soyasini chizardi — shundan ortida ko'rinib turgan
+   to'rtburchak paydo bo'lgan. `drop-shadow` esa yulduzning o'z shaklini
+   kuzatadi, ya'ni fon qanday bo'lishidan qat'i nazar to'g'ri chiqadi. */
+[data-skin="r2"] .abhero__logo {
+  background: none;
+  box-shadow: none;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 22px rgba(17,19,24,.22));
+}
+[data-skin="r2"][data-theme="dark"] .abhero__logo {
+  background: none;
+  filter: drop-shadow(0 10px 22px rgba(0,0,0,.55));
+}
