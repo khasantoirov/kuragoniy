@@ -301,7 +301,7 @@
 }
 /* ── Brend belgisi: yozuv + imzo (ikkalasi bir xil eni va bo'yida) ── */
 [data-skin="r2"] .brandmark {
-  display: grid; gap: 4px; min-width: 0; flex: none;
+  display: grid; gap: 5px; min-width: 0; flex: none;
 }
 [data-skin="r2"] .brandmark__name {
   display: block; width: 100%; height: auto; overflow: visible;
@@ -324,7 +324,7 @@
 [data-skin="r2"] .edtop__logo { border-radius: 50%; flex: none; }
 /* Brend yozuvi + imzo — BrandMark.tsx. Eni shu yerda belgilanadi, bo'yi esa
    ikkala element uchun ham rasm nisbatidan (1188x243) o'zi chiqadi. */
-[data-skin="r2"] .edtop__brand .brandmark { width: 108px; }
+[data-skin="r2"] .edtop__brand .brandmark { width: 118px; }
 [data-skin="r2"] .edtop__acts {
   display: flex; align-items: center; gap: 10px; margin-left: auto; flex: none;
 }
@@ -359,7 +359,7 @@
     text-decoration: none; color: inherit;
   }
   [data-skin="r2"] .edside__logo { border-radius: 50%; flex: none; }
-  [data-skin="r2"] .edside__brand .brandmark { width: 116px; }
+  [data-skin="r2"] .edside__brand .brandmark { width: 140px; }
 
   [data-skin="r2"] .edside__nav { display: flex; flex-direction: column; flex: 1; }
   [data-skin="r2"] .edside__sec { display: flex; flex-direction: column; gap: 3px; }
