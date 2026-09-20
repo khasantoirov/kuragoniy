@@ -618,47 +618,57 @@
   padding: 14px;
 }
 
-/* ── Sozlamalar: bir ustunli uzun ro'yxat o'rniga kartochkalar to'ri ──── */
-/* Har bir sozlama alohida `.panel` bo'lib, to'liq kenglikda ustma-ust
-   terilardi — natijada sahifa bir necha ekran bo'yiga cho'zilardi.
-   2-rejimda ular ixcham kartochkalar to'riga yig'iladi; har biri o'z
-   mazmuni bo'yicha balandlik oladi (`align-items: start`). */
+/* ── Sozlamalar: ixcham kartochkalar ─────────────────────── */
+/* Grid ishlatilganda qator balandligi eng baland kartochkaga tenglashib,
+   kalta kartochkalar ostida katta bo'shliqlar qolardi. Ustunli oqim
+   (`columns`) kartochkalarni zich joylaydi: har biri o'z balandligini
+   oladi va keyingisi darhol ostiga tushadi. */
 [data-skin="r2"] .settings {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  align-items: start;
+  columns: 320px 3;
+  column-gap: 16px;
 }
 [data-skin="r2"] .settings__title {
-  grid-column: 1 / -1;
-  margin-bottom: 0;
+  column-span: all;
+  margin-bottom: 16px;
 }
 [data-skin="r2"] .settings .panel {
-  margin-bottom: 0;
-  padding: 16px 18px;
+  break-inside: avoid;
+  margin: 0 0 16px;
+  padding: 18px 20px;
 }
 [data-skin="r2"] .settings .panel__title {
-  font-size: 14px;
-  margin-bottom: 10px;
+  font-size: 15px;
+  margin-bottom: 14px;
 }
 [data-skin="r2"] .settings .form__note,
 [data-skin="r2"] .settings .prose--note { margin-top: 10px; font-size: 12.5px; }
 /* Ichida oldindan ko'rish panellari bor — bitta ustunga sig'maydi. */
-[data-skin="r2"] .settings .panel--mobile-only { grid-column: 1 / -1; }
-/* Matn + tugma juftliklari tor kartochkada ustma-ust tushsin. */
-[data-skin="r2"] .settings .tgbox { flex-wrap: wrap; gap: 10px; }
+[data-skin="r2"] .settings .panel--mobile-only { column-span: all; }
 
-/* Bitta kartochka ichidagi bo'limlar (Rejimlar, Xavfsizlik) — ingichka
-   ajratgich va kichik sarlavha bilan, alohida kartochkalarga bo'lmasdan. */
+/* Kartochka ichida yana ramkali quti "kartochka ichida kartochka" bo'lib
+   ko'rinardi — shuning uchun sozlamalarda u oddiy matn qatoriga aylanadi.
+   Holat rangi bilan emas, matndagi ✅ belgisi bilan bildiriladi. */
+[data-skin="r2"] .settings .tgbox {
+  padding: 0;
+  border: 0;
+  background: none;
+  gap: 10px;
+  flex-wrap: wrap;
+  line-height: 1.45;
+}
+
+/* Bitta kartochka ichidagi bo'limlar (Rejimlar, Hisob xavfsizligi) —
+   yon menyu bo'lim sarlavhalari bilan bir xil idiomda. */
 [data-skin="r2"] .settings__sub + .settings__sub,
 [data-skin="r2"] .settings__sub + * .settings__sub {
-  margin-top: 14px; padding-top: 14px;
+  margin-top: 16px; padding-top: 16px;
   border-top: 1px solid var(--rule-2);
 }
 [data-skin="r2"] .settings__subtitle {
-  margin: 0 0 8px;
-  font: 500 12.5px/1.3 var(--f-body);
-  color: var(--ink-2);
+  margin: 0 0 10px;
+  font: 600 11px/1.3 var(--f-body);
+  letter-spacing: .06em; text-transform: uppercase;
+  color: var(--ink-3);
 }
 
 /* ── Statistika sahifasi ─────────────────────────────────── */
@@ -667,3 +677,19 @@
 [data-skin="r2"] .stats .panel + .panel { margin-top: 16px; }
 [data-skin="r2"] .stats__note { margin: -4px 0 14px; }
 [data-skin="r2"] .stats__sub { margin-top: 18px; }
+
+/* ── Xodim kartochkasi ───────────────────────────────────── */
+/* Avval avatar chapda, qolgan hamma narsa (ism va barcha maydonlar) uning
+   o'ng tomonidagi tor ustunda turardi. Endi yuqorida avatar + ism/lavozim
+   qatori, qolgan ma'lumotlar esa avatar ostidan butun kenglikda boshlanadi
+   — uzun email va Telegram ID sig'ib ketadi. */
+[data-skin="r2"] .stf { flex-direction: column; gap: 12px; }
+[data-skin="r2"] .stf__head { display: flex; align-items: center; gap: 12px; }
+[data-skin="r2"] .stf__id { min-width: 0; display: grid; gap: 5px; justify-items: start; }
+[data-skin="r2"] .stf__nm { margin: 0; font-size: 15px; }
+/* `RoleBadge` pilyulyasi inline uslubda `margin-left: 6px` olib yuradi
+   (ism yonida turgani uchun) — alohida qatorda u chetga surib qo'yadi,
+   inline uslubni esa faqat `!important` bosa oladi. */
+[data-skin="r2"] .stf__id > span { margin-left: 0 !important; }
+[data-skin="r2"] .stf__b { width: 100%; }
+[data-skin="r2"] .stf__row { margin-bottom: 5px; }

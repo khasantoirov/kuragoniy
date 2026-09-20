@@ -282,7 +282,7 @@ export function SettingsPage() {
           </div>
         ) : (
           <button type="button" className="btn btn--sm" onClick={() => setPwOpen(true)}>
-            {t("Parolni o'zgartirish")}
+            {t("O'zgartirish")}
           </button>
         )}
         </div>

@@ -307,11 +307,16 @@ export function AdminPage() {
               <div className="staff">
                 {approved.map((u) => (
                   <article key={u.id} className="stf">
-                    <div className="stf__av">
-                      <Avatar name={u.name} photo={u.photo} className="stf__img" />
+                    <div className="stf__head">
+                      <div className="stf__av">
+                        <Avatar name={u.name} photo={u.photo} className="stf__img" />
+                      </div>
+                      <div className="stf__id">
+                        <p className="stf__nm">{u.name || '—'}</p>
+                        <RoleBadge user={u} />
+                      </div>
                     </div>
                     <div className="stf__b">
-                      <p className="stf__nm">{u.name || '—'} <RoleBadge user={u} /></p>
                       <p className="stf__row"><span>{t("Tug'ilgan sana")}</span><b>{fmtBday(u.bday)}</b></p>
                       <p className="stf__row"><span>{t('Telefon')}</span><b>{u.phone || '—'}</b></p>
                       <p className="stf__row"><span>{t('Email')}</span><b>{u.email || '—'}</b></p>
