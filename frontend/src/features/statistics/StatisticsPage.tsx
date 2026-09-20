@@ -1,67 +1,221 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { DashboardSection } from '@/features/admin/dashboard/DashboardSection'
+import { BarChart } from '@/components/charts/BarChart'
+import { DonutChart } from '@/components/charts/DonutChart'
+import { StatCard } from '@/components/charts/StatCard'
+import { TrendLineChart } from '@/components/charts/TrendLineChart'
+import { Skeleton } from '@/components/Skeleton'
 import { AdminStatsTable } from '@/features/journal/AdminStatsTable'
 import { quarterLabel } from '@/features/journal/labels'
+import { gradeLabel, type Grade } from '@/features/lessons/labels'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore } from '@/store/uiStore'
 
-type Chorak = 1 | 2 | 3 | 4 | 'u'
+import { useDashboardSummary } from './api'
+import type { DashboardChorak } from './types'
 
-/** Platformaning yagona statistika sahifasi. Ilgari ko'rsatkichlar ikki
- *  joyga bo'lingan edi — Boshqaruv sahifasidagi dashboard va Jurnaldagi
- *  admin "Statistika" tabi — endi ikkalasi shu yerda.
+const CATEGORICAL = ['var(--cat-1)', 'var(--cat-2)', 'var(--cat-3)', 'var(--cat-4)', 'var(--cat-5)']
+
+const ROLE_LABELS: Record<string, string> = {
+  teacher: "O'qituvchi",
+  admin: 'Admin',
+  boshliq: 'Boshliq',
+}
+
+const fmtShortDate = (iso: string, lang: string) => {
+  const d = new Date(iso)
+  return d.toLocaleDateString(lang === 'ru' ? 'ru-RU' : lang === 'en' ? 'en-US' : 'uz-UZ', {
+    day: '2-digit',
+    month: '2-digit',
+  })
+}
+
+/** Platformaning yagona statistika sahifasi, uch mustaqil bo'limga
+ *  ajratilgan: o'quv jarayoni, dars materiallari, tizim va foydalanuvchilar.
+ *  Ilgari bularning hammasi bitta uzun ro'yxatda aralashib turardi —
+ *  o'quvchilar soni bilan push obunachilari yonma-yon.
  *
- *  Sinf ichidagi o'zlashtirish diagrammasi (MasteryPanel) ataylab
- *  ko'chirilmadi: u baho qo'yish jarayonining bir qismi, alohida
- *  ko'rsatkich emas.
+ *  Chorak tanlagichi ataylab birinchi bo'limning ichida: backendda u
+ *  faqat o'zlashtirish va davomatni filtrlaydi (dashboard/views.py'dagi
+ *  _journal_section), foydalanuvchilar/darslar/bot ko'rsatkichlariga
+ *  umuman ta'sir qilmaydi. Sahifa tepasida tursa, hammasini filtrlayotgandek
+ *  ko'rinardi.
  *
- *  Ko'rish huquqi `DashboardSection`niki bilan bir xil: o'qituvchi o'z
- *  sinflari bo'yicha ko'radi, admin butun tashkilotni. Sinflar jadvali
- *  esa faqat adminga — u boshqa o'qituvchilarning sinflarini sanaydi. */
+ *  Ko'rish huquqi: o'qituvchi faqat birinchi bo'limni, o'z sinflari
+ *  bo'yicha ko'radi (backend shunday qaytaradi), admin uchala bo'limni
+ *  ham butun tashkilot bo'yicha ko'radi. */
 export function StatisticsPage() {
   const { t } = useTranslation()
   const { lang, viewMode } = useUIStore()
   const { user } = useAuth()
   const admin = isAdminInView(user, viewMode)
 
-  // Chorak tanlovi Jurnal bilan bir xil kalitda saqlanadi — foydalanuvchi
+  // Chorak tanlovi Jurnal bilan bitta kalitda saqlanadi — foydalanuvchi
   // uchun bu bitta "qaysi chorakdaman" holati.
-  const [chorak, setChorak] = useState<Chorak>(() => {
+  const [chorak, setChorak] = useState<DashboardChorak>(() => {
     const raw = localStorage.getItem('afmd.chorak')
-    return raw === 'u' ? 'u' : (Number(raw) as Chorak) || 1
+    return raw === 'u' ? 'u' : ((Number(raw) as DashboardChorak) || 1)
   })
-
-  const changeChorak = (q: Chorak) => {
+  const changeChorak = (q: DashboardChorak) => {
     setChorak(q)
     localStorage.setItem('afmd.chorak', String(q))
   }
 
-  return (
-    <div>
-      <DashboardSection admin={admin} />
+  const { data, isLoading } = useDashboardSummary(chorak)
 
-      {admin && (
-        <section className="panel">
-          <h3 className="panel__title">{t('Sinflar kesimida')}</h3>
-          <div className="jbar">
-            <div className="chips chips--nowrap">
-              {[1, 2, 3, 4].map((q) => (
-                <button
-                  key={q}
-                  className={`chip ${chorak === q ? 'is-on' : ''}`}
-                  onClick={() => changeChorak(q as Chorak)}
-                >
-                  {quarterLabel(q, lang)}
-                </button>
-              ))}
-              <button className={`chip ${chorak === 'u' ? 'is-on' : ''}`} onClick={() => changeChorak('u')}>
-                {t('Umumiy')}
+  if (isLoading || !data) return <Skeleton lines={4} />
+
+  const { journal } = data
+  const { mastery } = journal
+
+  return (
+    <div className="stats">
+      <h2 className="settings__title">{t('Statistika')}</h2>
+
+      {/* ── 1. O'quv jarayoni ─────────────────────────────── */}
+      <section className="panel dash">
+        <div className="jhead">
+          <h3 className="panel__title">{t("O'quv jarayoni")}</h3>
+          <div className="chips chips--nowrap">
+            {[1, 2, 3, 4].map((q) => (
+              <button
+                key={q}
+                className={`chip ${chorak === q ? 'is-on' : ''}`}
+                onClick={() => changeChorak(q as DashboardChorak)}
+              >
+                {quarterLabel(q, lang)}
               </button>
+            ))}
+            <button className={`chip ${chorak === 'u' ? 'is-on' : ''}`} onClick={() => changeChorak('u')}>
+              {t('Umumiy')}
+            </button>
+          </div>
+        </div>
+        <p className="form__note stats__note">
+          {t("Chorak tanlovi shu bo'limdagi o'zlashtirish va davomatga tegishli.")}
+        </p>
+
+        <div className="dash__stats">
+          <StatCard
+            label={t('Sinflar')}
+            value={journal.total_classes}
+            hint={admin ? t("Barcha o'qituvchilar bo'yicha") : undefined}
+            icon="clipboard"
+          />
+          <StatCard
+            label={t("O'quvchilar")}
+            value={journal.total_students}
+            hint={t("Faol ro'yxat qatorlari — bitta o'quvchi bir necha sinfda alohida hisoblanishi mumkin")}
+            icon="users"
+          />
+          <StatCard
+            label={t('Davomat')}
+            value={journal.attendance_rate_pct !== null ? `${journal.attendance_rate_pct}%` : '—'}
+            icon="calendar"
+            progressPct={journal.attendance_rate_pct}
+          />
+        </div>
+
+        <div className="dash__row">
+          <div className="dash__card">
+            <p className="dash__card-title">{t("O'zlashtirish")}</p>
+            <div className="mastery__snapshot">
+              <DonutChart
+                ariaLabel={`${t('Yaxshi')} ${mastery.good}, ${t("O'rtacha")} ${mastery.mid}, ${t('Past')} ${mastery.bad}`}
+                centerValue={mastery.class_pct !== null ? `${mastery.class_pct}%` : '—'}
+                centerLabel={t("O'zlashtirish")}
+                segments={[
+                  { key: 'good', label: t('Yaxshi'), value: mastery.good, color: 'var(--band-good)' },
+                  { key: 'mid', label: t("O'rtacha"), value: mastery.mid, color: 'var(--band-mid)' },
+                  { key: 'bad', label: t('Past'), value: mastery.bad, color: 'var(--band-bad)' },
+                ]}
+              />
+              <div className="mastery__kpis">
+                <div className="mastery__kpi mastery__kpi--good"><span>{t('Yaxshi')}</span><b>{mastery.good}</b></div>
+                <div className="mastery__kpi mastery__kpi--mid"><span>{t("O'rtacha")}</span><b>{mastery.mid}</b></div>
+                <div className="mastery__kpi mastery__kpi--bad"><span>{t('Past')}</span><b>{mastery.bad}</b></div>
+                <div className="mastery__kpi"><span>{t('Baholanmagan')}</span><b>{mastery.ungraded}</b></div>
+              </div>
             </div>
           </div>
-          <AdminStatsTable chorak={chorak} />
+        </div>
+
+        {admin && (
+          <>
+            <p className="dash__card-title stats__sub">{t('Sinflar kesimida')}</p>
+            <AdminStatsTable chorak={chorak} />
+          </>
+        )}
+      </section>
+
+      {/* ── 2. Dars materiallari ──────────────────────────── */}
+      {admin && data.role === 'admin' && (
+        <section className="panel dash">
+          <h3 className="panel__title">{t('Dars materiallari')}</h3>
+          <div className="dash__stats">
+            <StatCard label={t('Jami darslar')} value={data.lessons.total} icon="robot" />
+          </div>
+          <div className="dash__row">
+            <div className="dash__card">
+              <p className="dash__card-title">{t("Darslar sinf bandi bo'yicha")}</p>
+              <BarChart
+                ariaLabel={t("Darslar sinf bandi bo'yicha taqsimoti")}
+                data={data.lessons.by_grade.map((g, i) => ({
+                  key: g.grade,
+                  label: gradeLabel(g.grade as Grade, lang),
+                  value: g.count,
+                  color: CATEGORICAL[i % CATEGORICAL.length],
+                }))}
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── 3. Tizim va foydalanuvchilar ──────────────────── */}
+      {admin && data.role === 'admin' && (
+        <section className="panel dash">
+          <h3 className="panel__title">{t('Tizim va foydalanuvchilar')}</h3>
+          <div className="dash__stats">
+            <StatCard label={t('Jami foydalanuvchilar')} value={data.users.total} icon="users" />
+            <StatCard
+              label={t('Tasdiq kutmoqda')}
+              value={data.users.pending_approval}
+              accent={data.users.pending_approval > 0 ? 'mid' : undefined}
+              icon="user"
+              // Haqiqiy nisbat: jami foydalanuvchilarning qanchasi hali
+              // tasdiqlanmagan. Boshqa kartochkalarda maxraj yo'q, shuning
+              // uchun ularda progress-bar ham yo'q.
+              progressPct={data.users.total > 0 ? (data.users.pending_approval / data.users.total) * 100 : null}
+            />
+            <StatCard label={t('Push obunachilar')} value={data.engagement.push_subscribers} icon="bell" />
+            <StatCard label={t("So'nggi 30 kunlik e'lonlar")} value={data.engagement.announcements_last_30d} icon="megaphone" />
+            <StatCard label={t('Kutayotgan tarjima ishlari')} value={data.engagement.translation_jobs_pending} icon="file" />
+          </div>
+
+          <div className="dash__row">
+            <div className="dash__card">
+              <p className="dash__card-title">{t("Yangi ro'yxatdan o'tishlar")}</p>
+              <TrendLineChart
+                ariaLabel={t("Kunlik ro'yxatdan o'tishlar soni")}
+                data={data.users.signups_by_day.map((d) => ({ date: d.date, value: d.count }))}
+                formatDate={(iso) => fmtShortDate(iso, lang)}
+              />
+            </div>
+            <div className="dash__card">
+              <p className="dash__card-title">{t("Xodimlar rol bo'yicha")}</p>
+              <BarChart
+                ariaLabel={t("Xodimlar rol bo'yicha taqsimoti")}
+                data={data.users.by_role.map((r, i) => ({
+                  key: r.role,
+                  label: t(ROLE_LABELS[r.role] ?? r.role),
+                  value: r.count,
+                  color: CATEGORICAL[i % CATEGORICAL.length],
+                }))}
+              />
+            </div>
+          </div>
         </section>
       )}
     </div>

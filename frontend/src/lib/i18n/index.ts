@@ -52,6 +52,9 @@ const ru = {
   // 2-rejim: yon menyu bo'limlari va umumiy qidiruv
   'Asosiy': 'Основное', "O'quv jarayoni": 'Учебный процесс', 'Tizim': 'Система',
   'Sinflar kesimida': 'В разрезе классов',
+  'Dars materiallari': 'Учебные материалы', 'Tizim va foydalanuvchilar': 'Система и пользователи',
+  "Chorak tanlovi shu bo'limdagi o'zlashtirish va davomatga tegishli.":
+    'Выбор четверти относится к успеваемости и посещаемости в этом разделе.',
   "Ko'rsatkichlar va sinflar kesimi": 'Показатели и разрез по классам',
   'Foydalanuvchilar va tizim sozlamalari': 'Пользователи и системные настройки',
   'Dars, material, o‘quvchi yoki xodim izlash…': 'Поиск урока, материала, ученика или сотрудника…',
@@ -599,6 +602,9 @@ const en = {
   // 2-rejim: yon menyu bo'limlari va umumiy qidiruv
   'Asosiy': 'Overview', "O'quv jarayoni": 'Teaching', 'Tizim': 'System',
   'Sinflar kesimida': 'By class',
+  'Dars materiallari': 'Lesson content', 'Tizim va foydalanuvchilar': 'System and users',
+  "Chorak tanlovi shu bo'limdagi o'zlashtirish va davomatga tegishli.":
+    'The quarter filter applies to mastery and attendance in this section.',
   "Ko'rsatkichlar va sinflar kesimi": 'Metrics and a per-class breakdown',
   'Foydalanuvchilar va tizim sozlamalari': 'Users and system settings',
   'Dars, material, o‘quvchi yoki xodim izlash…': 'Search lessons, materials, students or staff…',
