@@ -22,7 +22,8 @@ from rest_framework.views import APIView
 from accounts.models import User
 from announcements.models import Announcement
 from common.permissions import IsApproved
-from journal.models import AttendanceEntry, ClassDay, GradeEntry, JournalClass, Student
+from journal.models import AttendanceEntry, ClassDay, GradeEntry, Student
+from journal.scoping import scoped_class_ids
 from lessons.models import Lesson
 from telegrambot.models import TranslationJob
 from webpush.models import PushSubscription
@@ -35,13 +36,7 @@ MID_THRESHOLD = 3.5
 
 
 def _scope_class_ids(request):
-    user = request.user
-    teacher_id = request.query_params.get('teacher')
-    if user.is_admin:
-        qs = JournalClass.objects.filter(teacher_id=teacher_id) if teacher_id else JournalClass.objects.all()
-    else:
-        qs = JournalClass.objects.filter(teacher=user)
-    return list(qs.values_list('id', flat=True))
+    return scoped_class_ids(request.user, request.query_params.get('teacher'))
 
 
 def _mastery_bands(class_ids, chorak):

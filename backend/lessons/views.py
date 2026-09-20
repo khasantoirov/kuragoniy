@@ -16,6 +16,7 @@ from common.uploads import delete_file_field, validate_upload
 from .models import Experiment, Lesson, QuarterLock
 from .serializers import LessonSerializer, QuarterLockSerializer
 from .signals import send_lessons_backup, suppress_lessons_backup
+from .visibility import visible_chorak_set
 
 logger = logging.getLogger(__name__)
 
@@ -119,9 +120,7 @@ class LessonViewSet(viewsets.ModelViewSet):
         if chorak:
             qs = qs.filter(chorak=chorak)
         if not self.request.user.is_admin:
-            locks = dict(QuarterLock.objects.filter(chorak__in=(1, 2, 3, 4)).values_list('chorak', 'is_open'))
-            open_chorak = {ch for ch in (1, 2, 3, 4) if locks.get(ch, ch == 1)}
-            qs = qs.filter(chorak__in=open_chorak)
+            qs = qs.filter(chorak__in=visible_chorak_set(self.request.user))
         return qs
 
     def _label(self, lesson):

@@ -16,6 +16,7 @@ urlpatterns = [
     path('api/announcements/', include('announcements.urls')),
     path('api/push/', include('webpush.urls')),
     path('api/dashboard/', include('dashboard.urls')),
+    path('api/search/', include('globalsearch.urls')),
 ]
 
 if settings.DEBUG:

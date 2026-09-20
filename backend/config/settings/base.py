@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'realtime',
     'webpush',
     'dashboard',
+    'globalsearch',
     'migration_tools',
 ]
 
