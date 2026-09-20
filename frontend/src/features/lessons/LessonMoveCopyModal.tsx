@@ -75,7 +75,7 @@ export function LessonMoveCopyModal({
         </label>
       </div>
       <p className="prose--note">
-        {t("Dars tanlangan chorakning oxiriga qo'shiladi, hafta raqami avtomatik tartiblanadi.")}
+        {t("Dars tanlangan chorakning oxiriga qo'shiladi, tartib raqami avtomatik hisoblanadi.")}
       </p>
     </Modal>
   )

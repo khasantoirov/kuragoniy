@@ -6,7 +6,7 @@ import { useConfirm } from '@/components/ConfirmProvider'
 import { Modal } from '@/components/Modal'
 import { useToast } from '@/components/Toast'
 import { quarterLabel } from '@/features/journal/labels'
-import { type Grade, gradeLabel } from '@/features/lessons/labels'
+import { type Grade, gradeLabel, lessonLabel } from '@/features/lessons/labels'
 import { useUIStore } from '@/store/uiStore'
 
 import { type BulkImportResult, runLessonsImport } from './api'
@@ -128,7 +128,7 @@ export function ImportLessonsModal({ onClose }: { onClose: () => void }) {
               {result.skipped.map((s, i) => (
                 <li key={i}>
                   <b>{s.title || `#${s.row + 1}`}</b>
-                  <span>{gradeLabel(s.grade as Grade, lang)} · {t('hafta')} {s.hafta}</span>
+                  <span>{gradeLabel(s.grade as Grade, lang)} · {s.hafta ? lessonLabel(s.hafta, lang) : ""}</span>
                 </li>
               ))}
             </ul>
@@ -166,7 +166,7 @@ export function ImportLessonsModal({ onClose }: { onClose: () => void }) {
         <p className="prose prose--note">
           {droppedCount > 0 && `${droppedCount} ${t("ta qator nomi yo'qligi sabab tashlab yuborildi")}. `}
           {defaultedWarnings.length > 0 &&
-            `${defaultedWarnings.length} ${t("ta qatorda sinf/chorak/hafta noto'g'ri bo'lgani uchun standart qiymatga o'rnatildi")}.`}
+            `${defaultedWarnings.length} ${t("ta qatorda sinf/chorak/dars tartibi noto'g'ri bo'lgani uchun standart qiymatga o'rnatildi")}.`}
         </p>
       )}
       <p className="prose">{t('Dastlabki 5 ta dars:')}</p>

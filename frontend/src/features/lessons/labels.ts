@@ -1,9 +1,13 @@
 import type { Lang } from '@/store/uiStore'
 
-export const weekLabel = (n: number, lang: Lang = 'uz') => {
-  if (lang === 'ru') return `${n}-я неделя`
-  if (lang === 'en') return `Week ${n}`
-  return `${n}-hafta`
+/** Darsning tartib raqami. `hafta` maydoni bir sinf bandi bo'ylab
+ *  uzluksiz sanaladi (lessons/views.py'dagi _renumber_grade), ya'ni raqam
+ *  "nechanchi dars" ma'nosini beradi — ekranda hafta emas, dars deb
+ *  ko'rsatiladi. */
+export const lessonLabel = (n: number, lang: Lang = 'uz') => {
+  if (lang === 'ru') return `Урок ${n}`
+  if (lang === 'en') return `Lesson ${n}`
+  return `${n}-dars`
 }
 
 export const quarterLabel = (n: number | string, lang: Lang = 'uz') => {

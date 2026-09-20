@@ -5,7 +5,7 @@ import { Modal } from '@/components/Modal'
 import { useUIStore } from '@/store/uiStore'
 
 import { useLessons } from './api'
-import { GRADES, type Grade, gradeLabel, quarterLabel, weekLabel } from './labels'
+import { GRADES, type Grade, gradeLabel, lessonLabel, quarterLabel } from './labels'
 import type { Experiment, Lesson } from './types'
 
 export function MoveCopyExperimentModal({
@@ -98,7 +98,7 @@ export function MoveCopyExperimentModal({
             <select className="input" value={selectedId} onChange={(e) => setTargetId(Number(e.target.value))}>
               {others.map((l) => (
                 <option key={l.id} value={l.id}>
-                  {quarterLabel(l.chorak, lang)}{l.hafta ? `, ${weekLabel(l.hafta, lang)}` : ''} — {l.title}
+                  {quarterLabel(l.chorak, lang)}{l.hafta ? `, ${lessonLabel(l.hafta, lang)}` : ''} — {l.title}
                 </option>
               ))}
             </select>

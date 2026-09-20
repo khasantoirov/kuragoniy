@@ -95,7 +95,7 @@ export function LessonEditor({
           </select>
         </label>
         <label className="field">
-          <span className="field__label">{t('Hafta')}</span>
+          <span className="field__label">{t('Dars tartibi')}</span>
           <input className="input" type="number" min={1} max={99} value={draft.hafta ?? ''} onChange={(e) => setDraft({ ...draft, hafta: Number(e.target.value) })} />
         </label>
       </div>

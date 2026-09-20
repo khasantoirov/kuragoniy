@@ -63,7 +63,7 @@ def _lessons(user, q, limit):
             'id': str(lesson.id),
             'title': lesson.title,
             'subtitle': f'{GRADE_LABELS.get(lesson.grade, lesson.grade)} · '
-                        f'{lesson.chorak}-chorak · {lesson.hafta}-hafta',
+                        f'{lesson.chorak}-chorak · {lesson.hafta}-dars',
             'url': f'/lessons/{lesson.id}',
         }
         for lesson in qs[:limit]

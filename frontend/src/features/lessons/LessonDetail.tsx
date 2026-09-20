@@ -17,7 +17,7 @@ import { useDeleteLesson, useLesson, useMoveCopyLesson, useRemoveLessonFile, use
 import { ExperimentCard } from './ExperimentCard'
 import { ExperimentEditor } from './ExperimentEditor'
 import type { Grade } from './labels'
-import { quarterLabel, weekLabel } from './labels'
+import { lessonLabel, quarterLabel } from './labels'
 import { LessonDocCard } from './LessonDocCard'
 import { LessonEditor } from './LessonEditor'
 import { LessonFileModal } from './LessonFileModal'
@@ -198,7 +198,7 @@ export function LessonDetail() {
       <header className="lhead">
         <div className="lhead__meta">
           <span className="lhead__q">{quarterLabel(lesson.chorak, lang)}</span>
-          {lesson.hafta ? <span className="lhead__q">{weekLabel(lesson.hafta, lang)}</span> : null}
+          {lesson.hafta ? <span className="lhead__q">{lessonLabel(lesson.hafta, lang)}</span> : null}
         </div>
         <h2 className="lhead__title">{lesson.title}</h2>
         {lesson.goal && <p className="lhead__goal">{lesson.goal}</p>}

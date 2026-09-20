@@ -162,7 +162,7 @@ const ru = {
   // Darslar
   'Yangi dars': 'Новый урок', 'Darsni tahrirlash': 'Редактировать урок',
   "Dars qo'shish": 'Добавить урок', 'Mavzu nomi': 'Название темы',
-  'Chorak': 'Четверть', 'Hafta': 'Неделя', 'Maqsad': 'Цель', 'Mavzu': 'Тема',
+  'Chorak': 'Четверть', 'Dars tartibi': 'Номер урока', 'Maqsad': 'Цель', 'Mavzu': 'Тема',
   'Tajribalar': 'Опыты', 'Tajriba kiritilmagan': 'Опыты не добавлены',
   'Barcha darslar': 'Все уроки', 'ta dars': 'уроков',
   "Ko'rinish": 'Вид', 'Katak': 'Плитка', "Ro'yxat": 'Список', 'ta tajriba': 'опытов',
@@ -191,8 +191,8 @@ const ru = {
   "Darsni ko'chirish": 'Перенести урок', 'Darsni nusxalash': 'Скопировать урок',
   "darsi qaysi sinf va chorakka ko'chirilsin?": 'урок — в какой класс и четверть перенести?',
   'darsi qaysi sinf va chorakka nusxalansin?': 'урок — в какой класс и четверть скопировать?',
-  "Dars tanlangan chorakning oxiriga qo'shiladi, hafta raqami avtomatik tartiblanadi.":
-    'Урок добавится в конец выбранной четверти, номер недели пересчитается автоматически.',
+  "Dars tanlangan chorakning oxiriga qo'shiladi, tartib raqami avtomatik hisoblanadi.":
+    'Урок добавится в конец выбранной четверти, порядковый номер пересчитается автоматически.',
   "Boshqa sinf/chorakka ko'chirish": 'Перенести в другой класс/четверть',
   "Dars ko'chirildi": 'Урок перенесён', 'Dars nusxalandi': 'Урок скопирован',
   "Tajriba ko'chirildi": 'Опыт перенесён', 'Tajriba nusxalandi': 'Опыт скопирован',
@@ -706,7 +706,7 @@ const en = {
   "Bu sinfda dars yo'q": 'No lessons in this grade',
   'Yangi dars': 'New lesson', 'Darsni tahrirlash': 'Edit lesson',
   "Dars qo'shish": 'Add lesson', 'Mavzu nomi': 'Topic title',
-  'Chorak': 'Quarter', 'Hafta': 'Week', 'Maqsad': 'Goal', 'Mavzu': 'Topic',
+  'Chorak': 'Quarter', 'Dars tartibi': 'Lesson number', 'Maqsad': 'Goal', 'Mavzu': 'Topic',
   'Tajribalar': 'Experiments', 'Tajriba kiritilmagan': 'No experiments yet',
   'Barcha darslar': 'All lessons', 'ta dars': 'lessons',
   "Ko'rinish": 'View', 'Katak': 'Grid', "Ro'yxat": 'List', 'ta tajriba': 'experiments',
@@ -735,8 +735,8 @@ const en = {
   "Darsni ko'chirish": 'Move lesson', 'Darsni nusxalash': 'Copy lesson',
   "darsi qaysi sinf va chorakka ko'chirilsin?": 'lesson — which grade and quarter should it move to?',
   'darsi qaysi sinf va chorakka nusxalansin?': 'lesson — which grade and quarter should it be copied to?',
-  "Dars tanlangan chorakning oxiriga qo'shiladi, hafta raqami avtomatik tartiblanadi.":
-    "The lesson is appended to the end of the chosen quarter; the week number renumbers automatically.",
+  "Dars tanlangan chorakning oxiriga qo'shiladi, tartib raqami avtomatik hisoblanadi.":
+    "The lesson is appended to the end of the chosen quarter; its number is recalculated automatically.",
   "Boshqa sinf/chorakka ko'chirish": 'Move to another grade/quarter',
   "Dars ko'chirildi": 'Lesson moved', 'Dars nusxalandi': 'Lesson copied',
   "Tajriba ko'chirildi": 'Experiment moved', 'Tajriba nusxalandi': 'Experiment copied',

@@ -92,7 +92,7 @@ def test_lesson_matches_on_experiment_name_without_duplicating(as_user, admin, l
 
 def test_lesson_subtitle_carries_grade_chorak_hafta(as_user, admin, lesson):
     resp = as_user(admin).get(URL, {"q": "havo"})
-    assert group(resp, "lesson")["items"][0]["subtitle"] == "5-6-sinf · 1-chorak · 3-hafta"
+    assert group(resp, "lesson")["items"][0]["subtitle"] == "5-6-sinf · 1-chorak · 3-dars"
     assert group(resp, "lesson")["items"][0]["url"] == f"/lessons/{lesson.id}"
 
 

@@ -31,7 +31,7 @@ import { type Lang, useUIStore } from '@/store/uiStore'
 import { useLessons, useQuarterLocks, useReorderLesson, useSetQuarterLock } from './api'
 import { ExperimentRow } from './ExperimentRow'
 import { LessonEditor } from './LessonEditor'
-import { gradeLabel, quarterLabel, weekLabel } from './labels'
+import { gradeLabel, lessonLabel, quarterLabel } from './labels'
 import type { Lesson } from './types'
 
 type ViewMode = 'grid' | 'list'
@@ -318,7 +318,7 @@ function LessonCard({ lesson, onOpen, canDrag = false }: { lesson: Lesson; onOpe
             {IC.grip}
           </button>
         )}
-        <span className="card__week">{lesson.hafta ? weekLabel(lesson.hafta, lang) : ''}</span>
+        <span className="card__week">{lesson.hafta ? lessonLabel(lesson.hafta, lang) : ''}</span>
       </div>
       <h4 className="card__title">
         {lesson.title}
@@ -365,7 +365,7 @@ function LessonRow({ lesson, onOpen, canDrag = false }: { lesson: Lesson; onOpen
           {IC.grip}
         </button>
       )}
-      <span className="lrow__week">{lesson.hafta ? weekLabel(lesson.hafta, lang) : ''}</span>
+      <span className="lrow__week">{lesson.hafta ? lessonLabel(lesson.hafta, lang) : ''}</span>
       <h4 className="lrow__title">
         {lesson.title}
         {lesson.file_url && <span className="lrow__file" title={t('Dars fayli biriktirilgan')}>{IC.file}</span>}
