@@ -375,13 +375,18 @@
     font: 500 11px/1 var(--f-body); letter-spacing: .08em; text-transform: uppercase;
     color: var(--ink-3);
   }
+  /* Yozuvlar ataylab tim qora — `--ink-2` (ikkilamchi kulrang) menyuni
+     o'chib turgandek ko'rsatardi. Tungi rejimda teskarisi kerak, shuning
+     uchun u yerda oddiy matn rangiga qaytadi. */
   [data-skin="r2"] .edside__item {
     display: flex; align-items: center; gap: 12px;
     padding: 11px 16px; border-radius: 50rem;
-    font: 500 14px/1 var(--f-body); color: var(--ink-2); text-decoration: none;
+    font: 500 14px/1 var(--f-body); color: #111318; text-decoration: none;
     transition: background .15s, color .15s;
   }
-  [data-skin="r2"] .edside__item:hover { background: var(--rule-2); color: var(--ink); }
+  [data-skin="r2"] .edside__item:hover { background: var(--rule-2); color: #000; }
+  [data-skin="r2"][data-theme="dark"] .edside__item { color: var(--ink); }
+  [data-skin="r2"][data-theme="dark"] .edside__item:hover { color: #fff; }
   [data-skin="r2"] .edside__item.is-on {
     background: var(--solid); color: var(--on-solid);
     box-shadow: 0 .25rem .75rem rgba(106,115,250,.38);
