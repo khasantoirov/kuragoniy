@@ -31,23 +31,19 @@ jobs:
           ./venv/bin/pip install -r requirements.txt
           ./venv/bin/python manage.py migrate --noinput
           ./venv/bin/python manage.py collectstatic --noinput
-          # Web push (VAPID) kalitlari. backend/.env egasi www-data (ruxsat 620), deploy
-          # foydalanuvchisi uni o'qiy ham, yoza ham olmaydi — shuning uchun buyruq www-data
-          # nomidan ishlaydi (import_steam_lessons ham shu sababli shunday ishga tushirilgan).
-          # Yo'q bo'lsa serverning o'zida yaratib .env ga
-          # yozadi, bor bo'lsa hech narsa qilmaydi — shuning uchun har deploy'da xavfsiz.
-          # Maxfiy kalit hech qachon logga chiqmaydi. Yozib bo'lmasa deploy to'xtamaydi,
-          # faqat ogohlantirish beradi (push o'chiq qoladi, ilova buni o'zi aytadi).
-          # Chiqish faqat MUVAFFAQIYATSIZ bo'lganda ogohlantirishga qo'shiladi (unda maxfiy
-          # narsa yo'q — muvaffaqiyatda esa ochiq kalitdan boshqa hech narsa chiqmaydi).
-          if VAPID_OUT=$(sudo -n -u www-data ./venv/bin/python manage.py generate_vapid_keys --write 2>&1); then
+          # Web push (VAPID) kalitlari. backend/.env egasi www-data (ruxsat 620): deploy
+          # foydalanuvchisi uni yoza olmaydi va www-data nomidan sudo ham ishlata olmaydi
+          # ("sudo: a password is required"). Lekin bazaga yoza oladi (migrate shuni qiladi),
+          # shuning uchun juftlik bazada saqlanadi. Bor bo'lsa (bazada yoki .env da) hech
+          # narsa qilmaydi — har deploy'da xavfsiz; kalitni almashtirish barcha obunalarni
+          # bekor qilardi. Faqat ochiq kalit chiqadi, maxfiysi hech qachon. Yozib bo'lmasa
+          # deploy to'xtamaydi, ogohlantirish beradi (ilova push o'chiqligini o'zi aytadi).
+          if VAPID_OUT=$(./venv/bin/python manage.py generate_vapid_keys --db 2>&1); then
             echo "::notice::VAPID: $(echo "$VAPID_OUT" | tr -s '[:space:]' ' ')"
           else
-            echo "::warning::VAPID kalitlari .env ga yozilmadi, push ishlamaydi. Sabab: $(echo "$VAPID_OUT" | tail -n 4 | tr -s '[:space:]' ' ')"
+            echo "::warning::VAPID kalitlari yaratilmadi, push ishlamaydi. Sabab: $(echo "$VAPID_OUT" | tail -n 4 | tr -s '[:space:]' ' ')"
           fi
-          # Diagnostika (maxfiy narsasiz): kim ishga tushirdi, .env kimniki va qanday ruxsat
-          # bilan, Django kalitni ko'ryaptimi. Run annotation'larida ko'rinadi.
-          echo "::notice::VAPID holati: user=$(id -un) env=$(stat -c '%U:%G %a' .env 2>&1) django=$(sudo -n -u www-data ./venv/bin/python manage.py shell -c 'from django.conf import settings as s; print(bool(s.VAPID_PUBLIC_KEY), s.BASE_DIR)' 2>&1 | tail -n 1)"
+          echo "::notice::VAPID sozlangan: $(./venv/bin/python manage.py shell -c 'from webpush.keys import vapid_configured as v; print(v())' 2>&1 | tail -n 1)"
           cd ../frontend
           npm ci
           npm run build

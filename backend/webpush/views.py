@@ -1,8 +1,8 @@
-from django.conf import settings
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .keys import get_vapid_keys
 from .models import PushSubscription
 from .serializers import PushSubscriptionSerializer
 
@@ -14,7 +14,8 @@ class VapidPublicKeyView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
-        return Response({'publicKey': settings.VAPID_PUBLIC_KEY})
+        public, _private = get_vapid_keys()
+        return Response({'publicKey': public})
 
 
 class PushSubscribeView(APIView):

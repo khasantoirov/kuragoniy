@@ -1,24 +1,29 @@
-"""Create the VAPID key pair web push needs, and optionally write it to .env.
+"""Create the VAPID key pair web push needs.
 
-Push notifications need VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY (see
-config/settings/base.py and webpush/send.py). Without them the browser
-never gets an applicationServerKey, so "Push yoqish" can only fail.
+Push notifications need a VAPID key pair (see webpush/keys.py and
+webpush/send.py). Without one the browser never gets an applicationServerKey,
+so "Push yoqish" can only fail.
 
-Two modes:
+Three modes:
 
 * default — print both lines so they can be pasted into backend/.env.
-* --write — put them into backend/.env directly, printing only the public
-  key. This is what the deploy runs: the private key is generated on the
-  server and lands in a file that never leaves it, so nobody has to see or
-  copy it. It does nothing when keys are already configured, so it is safe
-  to run on every deploy.
+* --db — store the pair in the database (webpush.VapidKeys). This is what the
+  deploy runs: backend/.env belongs to www-data and the deploy user cannot
+  write it, but the deploy already writes to the database (migrate), so this
+  needs no sudo and no file permissions. Nothing secret is printed.
+* --write — put the pair into backend/.env, for whoever prefers the file and
+  runs this as the file's owner (sudo -u www-data ...).
+
+The environment always wins over the database (webpush.keys), so keys placed
+in .env later simply take over.
+
+--db and --write do nothing when a complete pair is already configured, so
+they are safe to run on every deploy: replacing the keys invalidates every
+subscription (each device would have to enable push again), hence --force.
 
 The public key must be the uncompressed P-256 point (87 chars), not the
 DER/PEM py_vapid saves to disk, or pushManager.subscribe() rejects it —
 that encoding is the part that is easy to get wrong by hand.
-
-Replacing existing keys invalidates every subscription (each device would
-have to enable push again), hence --force.
 """
 
 import base64
@@ -29,6 +34,9 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from py_vapid import Vapid01
+
+from webpush.keys import vapid_configured
+from webpush.models import VapidKeys
 
 KEYS = ('VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY')
 NL = '\n'
@@ -73,29 +81,30 @@ def _write_env(public: str, private: str) -> Path:
             with os.fdopen(fd, 'w', encoding='utf-8', newline=NL) as fh:
                 fh.write(text)
     except OSError as exc:
-        # No quote characters on purpose: this text ends up in the deploy
-        # run's annotation, where quotes get escaped into noise.
+        # No quote characters on purpose: this text can end up in a deploy
+        # run's annotation, where quotes get escaped into unreadable noise.
         raise CommandError(
             f'{path} bilan ishlab bolmadi ({exc.strerror or exc}). '
-            'Serverda root huquqi bilan qolda ishga tushiring: '
-            'sudo ./venv/bin/python manage.py generate_vapid_keys --write'
+            'Buyruqni --db bilan ishga tushiring (fayl ruxsatlari kerak emas).'
         ) from exc
 
     return path
 
 
 class Command(BaseCommand):
-    help = 'Generate a VAPID key pair for web push (print it, or write it to backend/.env with --write).'
+    help = 'Generate a VAPID key pair for web push (print it, or store it with --db / --write).'
 
     def add_arguments(self, parser):
-        parser.add_argument('--write', action='store_true',
-                            help='Put the keys into backend/.env instead of printing the private key.')
+        where = parser.add_mutually_exclusive_group()
+        where.add_argument('--db', action='store_true',
+                           help='Store the pair in the database (what the deploy uses).')
+        where.add_argument('--write', action='store_true',
+                           help='Put the pair into backend/.env (run as the file owner).')
         parser.add_argument('--force', action='store_true',
-                            help='Replace keys that are already configured (invalidates every subscription).')
+                            help='Replace a pair that is already configured (invalidates every subscription).')
 
     def handle(self, *args, **options):
-        configured = bool(settings.VAPID_PUBLIC_KEY and settings.VAPID_PRIVATE_KEY)
-        if configured and not options['force']:
+        if vapid_configured() and not options['force']:
             self.stdout.write('VAPID keys are already configured — nothing to do.')
             return
 
@@ -103,6 +112,12 @@ class Command(BaseCommand):
         vapid.generate_keys()
         public = _b64(vapid.public_key.public_bytes(Encoding.X962, PublicFormat.UncompressedPoint))
         private = _b64(vapid.private_key.private_numbers().private_value.to_bytes(32, 'big'))
+
+        if options['db']:
+            VapidKeys.objects.update_or_create(pk=1, defaults={'public_key': public, 'private_key': private})
+            self.stdout.write(self.style.SUCCESS('VAPID keys stored in the database.'))
+            self.stdout.write(f'Public key: {public}')
+            return
 
         if options['write']:
             path = _write_env(public, private)

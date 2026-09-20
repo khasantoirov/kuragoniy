@@ -10,12 +10,20 @@ import logging
 from django.conf import settings
 from pywebpush import WebPushException, webpush
 
+from .keys import get_vapid_keys
 from .models import PushSubscription
 
 logger = logging.getLogger(__name__)
 
 
 def send_web_push(subscription: PushSubscription, payload: dict) -> bool:
+    _public, private = get_vapid_keys()
+    if not private:
+        # No keys means nobody could have subscribed in the first place, but a
+        # stale row from before a key change can still exist. Signing with an
+        # empty key would raise deep inside pywebpush for every announcement.
+        logger.debug('Web push skipped: VAPID keys are not configured')
+        return False
     try:
         webpush(
             subscription_info={
@@ -23,7 +31,7 @@ def send_web_push(subscription: PushSubscription, payload: dict) -> bool:
                 'keys': {'p256dh': subscription.p256dh, 'auth': subscription.auth},
             },
             data=json.dumps(payload),
-            vapid_private_key=settings.VAPID_PRIVATE_KEY,
+            vapid_private_key=private,
             vapid_claims={'sub': f'mailto:{settings.VAPID_CONTACT_EMAIL}'},
         )
         return True

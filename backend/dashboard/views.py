@@ -13,7 +13,6 @@ scoping in journal/views.py.
 
 from datetime import timedelta
 
-from django.conf import settings
 from django.db.models import Avg, Count, Q, Sum
 from django.db.models.functions import TruncDate
 from django.utils import timezone
@@ -28,6 +27,7 @@ from journal.scoping import scoped_class_ids
 from lessons.models import Experiment, Lesson
 from telegrambot.models import TranslationJob
 from timetable.models import TimetableSlot
+from webpush.keys import vapid_configured
 from webpush.models import PushSubscription
 
 # masteryStats.ts's bandOfAvg thresholds — ported verbatim so the backend
@@ -214,7 +214,7 @@ class DashboardSummaryView(APIView):
             payload['engagement'] = {
                 # Without VAPID keys nobody can subscribe, so "0 subscribers"
                 # would be misleading — the UI needs to tell "not set up" apart.
-                'push_configured': bool(settings.VAPID_PUBLIC_KEY and settings.VAPID_PRIVATE_KEY),
+                'push_configured': vapid_configured(),
                 'push_subscribers': PushSubscription.objects.values('user').distinct().count(),
                 'announcements_last_30d': Announcement.objects.filter(
                     at__gte=timezone.now() - timedelta(days=30)).count(),

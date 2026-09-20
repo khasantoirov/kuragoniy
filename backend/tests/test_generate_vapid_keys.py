@@ -16,6 +16,8 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from py_vapid import Vapid01
 
+pytestmark = pytest.mark.django_db  # the command now consults the VapidKeys table
+
 
 @pytest.fixture
 def env_dir(settings, tmp_path):
@@ -127,14 +129,14 @@ def test_unwritable_existing_env_fails_with_an_actionable_error(env_dir, monkeyp
     monkeypatch.setattr('builtins.open', _deny)
     with pytest.raises(CommandError) as exc:
         run('--write')
-    assert 'generate_vapid_keys' in str(exc.value)
+    assert '--db' in str(exc.value)
 
 
 def test_uncreatable_env_fails_with_an_actionable_error(env_dir, monkeypatch):
     monkeypatch.setattr('os.open', _deny)
     with pytest.raises(CommandError) as exc:
         run('--write')
-    assert 'generate_vapid_keys' in str(exc.value)
+    assert '--db' in str(exc.value)
 
 
 def test_unreadable_env_fails_with_an_actionable_error(env_dir, monkeypatch):
@@ -149,4 +151,4 @@ def test_unreadable_env_fails_with_an_actionable_error(env_dir, monkeypatch):
 
     message = str(exc.value)
     assert '.env' in message
-    assert 'sudo ./venv/bin/python manage.py generate_vapid_keys --write' in message
+    assert '--db' in message
