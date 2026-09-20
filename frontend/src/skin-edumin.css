@@ -617,3 +617,33 @@
   border-radius: 1rem;
   padding: 14px;
 }
+
+/* ── Sozlamalar: bir ustunli uzun ro'yxat o'rniga kartochkalar to'ri ──── */
+/* Har bir sozlama alohida `.panel` bo'lib, to'liq kenglikda ustma-ust
+   terilardi — natijada sahifa bir necha ekran bo'yiga cho'zilardi.
+   2-rejimda ular ixcham kartochkalar to'riga yig'iladi; har biri o'z
+   mazmuni bo'yicha balandlik oladi (`align-items: start`). */
+[data-skin="r2"] .settings {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  align-items: start;
+}
+[data-skin="r2"] .settings__title {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+[data-skin="r2"] .settings .panel {
+  margin-bottom: 0;
+  padding: 16px 18px;
+}
+[data-skin="r2"] .settings .panel__title {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+[data-skin="r2"] .settings .form__note,
+[data-skin="r2"] .settings .prose--note { margin-top: 10px; font-size: 12.5px; }
+/* Ichida oldindan ko'rish panellari bor — bitta ustunga sig'maydi. */
+[data-skin="r2"] .settings .panel--mobile-only { grid-column: 1 / -1; }
+/* Matn + tugma juftliklari tor kartochkada ustma-ust tushsin. */
+[data-skin="r2"] .settings .tgbox { flex-wrap: wrap; gap: 10px; }
