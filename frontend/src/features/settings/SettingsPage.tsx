@@ -21,7 +21,7 @@ const LANGS: { k: Lang; label: string }[] = [
 
 const PREVIEW_LABELS: [keyof typeof IC, string][] = [
   ['home', 'Bosh sahifa'],
-  ['robot', 'Darslar'],
+  ['file', 'Darslar'],
   ['clipboard', 'Jurnal'],
   ['calendar', 'Jadval'],
   ['book', 'Kutubxona'],

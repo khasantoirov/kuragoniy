@@ -21,7 +21,7 @@ function greetingKey(h: number) {
 }
 
 const LINKS: { view: string; ic: keyof typeof IC; title: string; sub: string; adminOnly?: boolean }[] = [
-  { view: '/lessons', ic: 'robot', title: 'Darslar', sub: 'Mavzular va tajribalar' },
+  { view: '/lessons', ic: 'file', title: 'Darslar', sub: 'Mavzular va tajribalar' },
   { view: '/journal', ic: 'clipboard', title: 'Jurnal', sub: 'Baho, davomat, statistika' },
   { view: '/timetable', ic: 'calendar', title: 'Jadval', sub: 'Haftalik dars jadvali' },
   { view: '/library', ic: 'book', title: 'Kutubxona', sub: "Kitob, qo'llanma, video" },

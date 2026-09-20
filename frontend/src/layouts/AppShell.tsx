@@ -20,7 +20,7 @@ import { EduminTopbar } from './edumin/EduminTopbar'
 
 const NAV_ITEMS: { to: string; label: string; icon: keyof typeof IC; adminOnly?: boolean }[] = [
   { to: '/', label: 'Bosh sahifa', icon: 'home' },
-  { to: '/lessons', label: 'Darslar', icon: 'robot' },
+  { to: '/lessons', label: 'Darslar', icon: 'file' },
   { to: '/journal', label: 'Jurnal', icon: 'clipboard' },
   { to: '/timetable', label: 'Jadval', icon: 'calendar' },
   { to: '/library', label: 'Kutubxona', icon: 'book' },

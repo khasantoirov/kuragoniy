@@ -14,7 +14,7 @@ const GRADE_TRACKS: { grades: string; name: string; desc: string }[] = [
 ]
 
 const FEATURES: { to: string; ic: keyof typeof IC; label: string; desc: string; adminOnly?: boolean }[] = [
-  { to: '/lessons', ic: 'robot', label: 'Darslar', desc: '1–9-sinflar uchun tayyor darslar va o\'quv materiallari.' },
+  { to: '/lessons', ic: 'file', label: 'Darslar', desc: '1–9-sinflar uchun tayyor darslar va o\'quv materiallari.' },
   { to: '/journal', ic: 'clipboard', label: 'Jurnal', desc: "Baho, davomat va sinf o'zlashtirish diagrammalari — barchasi bir joyda." },
   { to: '/timetable', ic: 'calendar', label: 'Jadval', desc: 'Haftalik dars jadvalini tuzing, ko\'ring va boshqaring.' },
   { to: '/library', ic: 'book', label: 'Kutubxona', desc: "Kitob, qo'llanma va video materiallar to'plami." },
@@ -75,7 +75,7 @@ export function AboutPage() {
       </div>
 
       <div className="abtracks">
-        <h3 className="panel__title">{IC.robot} {t('Sinf bosqichlari')}</h3>
+        <h3 className="panel__title">{IC.file} {t('Sinf bosqichlari')}</h3>
         <div className="abtracks__list">
           {GRADE_TRACKS.map((g) => (
             <div key={g.grades} className="abtrack">

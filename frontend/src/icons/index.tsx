@@ -37,7 +37,6 @@ export const IC = {
   print: wrap(<><path d="M6 9V3h12v6" /><path d="M6 18H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2" /><path d="M6 14h12v7H6z" /></>),
   home: wrap(<><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5" /><path d="M9.5 21v-6h5v6" /></>),
   atom: wrap(<><circle cx="12" cy="12" r="1.2" /><ellipse cx="12" cy="12" rx="9.5" ry="4.2" /><ellipse cx="12" cy="12" rx="9.5" ry="4.2" transform="rotate(60 12 12)" /><ellipse cx="12" cy="12" rx="9.5" ry="4.2" transform="rotate(120 12 12)" /></>),
-  robot: wrap(<><rect x="5" y="8" width="14" height="12" rx="3" /><path d="M12 8V4" /><circle cx="12" cy="3" r="1.2" fill="currentColor" stroke="none" /><circle cx="9" cy="13.5" r="1.3" fill="currentColor" stroke="none" /><circle cx="15" cy="13.5" r="1.3" fill="currentColor" stroke="none" /><path d="M9 17.5h6" /><path d="M2 11.5v4" /><path d="M22 11.5v4" /></>),
   clipboard: wrap(<><rect x="8" y="2.5" width="8" height="4" rx="1" /><path d="M16 4.5h2a2 2 0 0 1 2 2V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5a2 2 0 0 1 2-2h2" /><path d="M8 11h8" /><path d="M8 15h6" /></>),
   calendar: wrap(<><rect x="3" y="4.5" width="18" height="16.5" rx="2" /><path d="M8 2.5v4" /><path d="M16 2.5v4" /><path d="M3 9.5h18" /></>),
   book: wrap(<><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" /></>),

@@ -154,7 +154,7 @@ export function StatisticsPage() {
         <section className="panel dash">
           <h3 className="panel__title">{t('Dars materiallari')}</h3>
           <div className="dash__stats">
-            <StatCard label={t('Jami darslar')} value={data.lessons.total} icon="robot" />
+            <StatCard label={t('Jami darslar')} value={data.lessons.total} icon="file" />
           </div>
           <div className="dash__row">
             <div className="dash__card">
@@ -191,7 +191,7 @@ export function StatisticsPage() {
             />
             <StatCard label={t('Push obunachilar')} value={data.engagement.push_subscribers} icon="bell" />
             <StatCard label={t("So'nggi 30 kunlik e'lonlar")} value={data.engagement.announcements_last_30d} icon="megaphone" />
-            <StatCard label={t('Kutayotgan tarjima ishlari')} value={data.engagement.translation_jobs_pending} icon="file" />
+            <StatCard label={t('Kutayotgan tarjima ishlari')} value={data.engagement.translation_jobs_pending} icon="list" />
           </div>
 
           <div className="dash__row">

@@ -7,7 +7,7 @@ import { IC } from '@/icons'
 import { MIN_SEARCH_LEN, useGlobalSearch, type SearchItem, type SearchKind } from './api'
 
 const KIND_ICON: Record<SearchKind, keyof typeof IC> = {
-  lesson: 'robot',
+  lesson: 'file',
   library: 'book',
   student: 'users',
   staff: 'user',
