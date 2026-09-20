@@ -12,8 +12,7 @@ from .models import TimetableSlot
 from .serializers import TimetableSlotSerializer
 
 DAYS = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma']
-_SLOT_FIELDS = ('time_from', 'time_to', 'maktab', 'xona', 'sinf', 'span', 'band', 'lesson_type')
-_LESSON_TYPE_LABELS = {'nazariy': 'Nazariy', 'amaliy': 'Amaliy', 'engineering': 'Engineering'}
+_SLOT_FIELDS = ('time_from', 'time_to', 'maktab', 'xona', 'sinf', 'span', 'band')
 
 
 def _slot_label(day_index, period_index):
@@ -27,8 +26,7 @@ def _fmt_time(t) -> str:
 
 def _slot_desc(values: dict) -> str:
     time = f"{_fmt_time(values.get('time_from'))}–{_fmt_time(values.get('time_to'))}".strip('–')
-    lesson_type = _LESSON_TYPE_LABELS.get(values.get('lesson_type'))
-    parts = [p for p in (time, values.get('maktab'), values.get('xona'), values.get('sinf'), lesson_type) if p]
+    parts = [p for p in (time, values.get('maktab'), values.get('xona'), values.get('sinf')) if p]
     return ', '.join(parts) if parts else "(bo'sh)"
 
 

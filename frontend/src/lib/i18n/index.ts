@@ -326,8 +326,6 @@ const ru = {
   'Masalan: Yuksalish maktabi': 'Например: школа Юксалиш',
   'Necha soat': 'Сколько часов', "soat": 'ч',
   'Band (boshqa joyda)': 'Занято (в другом месте)',
-  'Fizika darsi turi': 'Тип урока физики', 'Belgilanmagan': 'Не указано',
-  'Nazariy': 'Теоретический', 'Amaliy': 'Практический', 'Engineering': 'Инженерия',
   "Boshqa soatga ko'chirish": 'Перенести на другой урок', 'Katak band': 'Ячейка занята',
   "Tanlangan katakda boshqa dars bor. Uni almashtirib, ko'chirishni davom ettirasizmi?":
     'В выбранной ячейке уже есть урок. Заменить его и продолжить перенос?',
@@ -874,8 +872,6 @@ const en = {
   'Masalan: Yuksalish maktabi': 'E.g.: Yuksalish school',
   'Necha soat': 'How many periods', "soat": 'h',
   'Band (boshqa joyda)': 'Busy (elsewhere)',
-  'Fizika darsi turi': 'Physics lesson type', 'Belgilanmagan': 'Not set',
-  'Nazariy': 'Theoretical', 'Amaliy': 'Practical', 'Engineering': 'Engineering',
   "Boshqa soatga ko'chirish": 'Move to another period', 'Katak band': 'Cell occupied',
   "Tanlangan katakda boshqa dars bor. Uni almashtirib, ko'chirishni davom ettirasizmi?":
     'The selected cell already has a lesson. Replace it and continue moving?',

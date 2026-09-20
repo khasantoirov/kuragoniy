@@ -5,7 +5,7 @@ import { Modal } from '@/components/Modal'
 import { IC } from '@/icons'
 import { useUIStore } from '@/store/uiStore'
 
-import { DAYS, hourLabel, LESSON_TYPE_LABELS, PERIODS, SOATLAR, type TimetableSlot } from './types'
+import { DAYS, hourLabel, PERIODS, SOATLAR, type TimetableSlot } from './types'
 
 export function SlotEditor({
   slot,
@@ -25,7 +25,7 @@ export function SlotEditor({
   const [draft, setDraft] = useState<TimetableSlot>(slot)
   const [moveDay, setMoveDay] = useState(slot.day_index)
   const [movePeriod, setMovePeriod] = useState(slot.period_index)
-  const hasLesson = !!(slot.sinf || slot.xona || slot.maktab || slot.band || slot.lesson_type)
+  const hasLesson = !!(slot.sinf || slot.xona || slot.maktab || slot.band)
   const maxSpan = SOATLAR - slot.period_index + 1
   const sameSlot = moveDay === slot.day_index && movePeriod === slot.period_index
 
@@ -77,27 +77,12 @@ export function SlotEditor({
         </label>
         <label className="field">
           <span className="field__label">{t('Turi')}</span>
-          <select className="input" value={draft.band ? '1' : ''} onChange={(e) => setDraft({ ...draft, band: !!e.target.value, lesson_type: e.target.value ? '' : draft.lesson_type })}>
+          <select className="input" value={draft.band ? '1' : ''} onChange={(e) => setDraft({ ...draft, band: !!e.target.value })}>
             <option value="">{t('Dars')}</option>
             <option value="1">{t('Band (boshqa joyda)')}</option>
           </select>
         </label>
       </div>
-      {!draft.band && (
-        <label className="field">
-          <span className="field__label">{t('Fizika darsi turi')}</span>
-          <select
-            className="input"
-            value={draft.lesson_type}
-            onChange={(e) => setDraft({ ...draft, lesson_type: e.target.value as TimetableSlot['lesson_type'] })}
-          >
-            <option value="">{t('Belgilanmagan')}</option>
-            <option value="nazariy">{t(LESSON_TYPE_LABELS.nazariy)}</option>
-            <option value="amaliy">{t(LESSON_TYPE_LABELS.amaliy)}</option>
-            <option value="engineering">{t(LESSON_TYPE_LABELS.engineering)}</option>
-          </select>
-        </label>
-      )}
       <p className="prose prose--note">
         {t('Bir necha soat davom etsa — «Necha soat»ni tanlang. Masalan universitetda 5–8-soat band bo\'lsangiz: 5-soatni ochib, 4 soat deb belgilang.')}
       </p>

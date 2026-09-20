@@ -1,7 +1,5 @@
 import type { Lang } from '@/store/uiStore'
 
-export type LessonType = '' | 'nazariy' | 'amaliy' | 'engineering'
-
 export interface TimetableSlot {
   id?: number
   day_index: number
@@ -13,13 +11,6 @@ export interface TimetableSlot {
   sinf: string
   span: number
   band: boolean
-  lesson_type: LessonType
-}
-
-export const LESSON_TYPE_LABELS: Record<Exclude<LessonType, ''>, string> = {
-  nazariy: 'Nazariy',
-  amaliy: 'Amaliy',
-  engineering: 'Engineering',
 }
 
 export const DAYS = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma']

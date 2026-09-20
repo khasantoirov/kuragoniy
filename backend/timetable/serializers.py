@@ -13,5 +13,5 @@ class TimetableSlotSerializer(serializers.ModelSerializer):
         model = TimetableSlot
         fields = [
             'id', 'day_index', 'period_index', 'time_from', 'time_to',
-            'maktab', 'xona', 'sinf', 'span', 'band', 'lesson_type',
+            'maktab', 'xona', 'sinf', 'span', 'band',
         ]

@@ -243,12 +243,6 @@
 [data-skin="r2"][data-theme="dark"] .cell.is-filled { background: rgba(123,132,255,.1); }
 
 /* ── Haftalik jadval (.tt*) — `!important` bilan yozilgan ─── */
-[data-skin="r2"] .tt__c--nazariy { background: rgba(106,115,250,.12) !important; }
-[data-skin="r2"] .tt__c--amaliy { background: rgba(255,167,38,.14) !important; }
-[data-skin="r2"] .tt__c--engineering { background: rgba(9,189,60,.12) !important; }
-[data-skin="r2"][data-theme="dark"] .tt__c--nazariy { background: rgba(123,132,255,.18) !important; }
-[data-skin="r2"][data-theme="dark"] .tt__c--amaliy { background: rgba(255,190,90,.16) !important; }
-[data-skin="r2"][data-theme="dark"] .tt__c--engineering { background: rgba(61,209,106,.16) !important; }
 [data-skin="r2"] .tt__c--band {
   background: repeating-linear-gradient(
     135deg, rgba(226,70,90,.05) 0 8px, rgba(226,70,90,.1) 8px 16px) !important;
@@ -257,13 +251,6 @@
   background: repeating-linear-gradient(
     135deg, rgba(255,107,127,.07) 0 8px, rgba(255,107,127,.13) 8px 16px) !important;
 }
-[data-skin="r2"] .tt__legend-dot--nazariy { background: #6A73FA; }
-[data-skin="r2"] .tt__legend-dot--amaliy { background: #E08A00; }
-[data-skin="r2"] .tt__legend-dot--engineering { background: #09BD3C; }
-[data-skin="r2"][data-theme="dark"] .tt__legend-dot--nazariy { background: #9AA1FF; }
-[data-skin="r2"][data-theme="dark"] .tt__legend-dot--amaliy { background: #FFC46B; }
-[data-skin="r2"][data-theme="dark"] .tt__legend-dot--engineering { background: #5FE08A; }
-
 /* ── Grafiklar ───────────────────────────────────────────── */
 /* Bitta seriyali trend chizig'i 1-rejimda `--ok` (yashil/ko'k) edi;
    2-rejimda asosiy rangga o'tadi — `--ok` sof status rangi bo'lib qoladi. */

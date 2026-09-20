@@ -17,7 +17,7 @@ import { useUIStore } from '@/store/uiStore'
 
 import { useAllTimetables, useSaveTeacherTimetable, useSaveTimetable, useTimetable } from './api'
 import { SlotEditor } from './SlotEditor'
-import { DAYS, hourLabel, LESSON_TYPE_LABELS, SOATLAR, type TimetableSlot } from './types'
+import { DAYS, hourLabel, SOATLAR, type TimetableSlot } from './types'
 
 // table-layout:fixed column sizing: the hour/day label columns stay this
 // narrow always, and every data column gets at least this much at its
@@ -31,13 +31,10 @@ const LABEL_COL = 62
 const DATA_COL_MIN = 132
 
 const key = (d: number, p: number) => `${d}:${p}`
-const isEmpty = (c?: TimetableSlot) => !c || !(c.maktab || c.xona || c.sinf || c.time_from || c.lesson_type)
+const isEmpty = (c?: TimetableSlot) => !c || !(c.maktab || c.xona || c.sinf || c.time_from)
 const spanOf = (c: TimetableSlot, p: number) => Math.max(1, Math.min(c.span || 1, SOATLAR - p + 1))
 const timeOf = (c: TimetableSlot) =>
   c.time_from || c.time_to ? `${c.time_from?.slice(0, 5) || ''}${c.time_to ? '–' + c.time_to.slice(0, 5) : ''}` : ''
-// Dars turi endi katak ichida matn sifatida emas, katakning och rangli orqa
-// foni orqali ko'rsatiladi (pastdagi LessonTypeLegend izohga qarab o'qiladi).
-const lessonTypeClass = (c: TimetableSlot) => (c.lesson_type ? `tt__c--${c.lesson_type}` : '')
 
 function Cell({ c, sp = 1 }: { c: TimetableSlot; sp?: number }) {
   const { t } = useTranslation()
@@ -60,23 +57,8 @@ function Cell({ c, sp = 1 }: { c: TimetableSlot; sp?: number }) {
   )
 }
 
-function LessonTypeLegend() {
-  const { t } = useTranslation()
-  const types = ['nazariy', 'amaliy', 'engineering'] as const
-  return (
-    <div className="tt__legend">
-      {types.map((k) => (
-        <span key={k} className="tt__legend-item">
-          <span className={`tt__legend-dot tt__legend-dot--${k}`} aria-hidden="true" />
-          {t(LESSON_TYPE_LABELS[k])}
-        </span>
-      ))}
-    </div>
-  )
-}
-
 function metaText(t: (s: string) => string, c: TimetableSlot) {
-  return [c.sinf || '', c.xona ? `${t('Xona')} ${c.xona}` : '', c.lesson_type ? t(LESSON_TYPE_LABELS[c.lesson_type]) : ''].filter(Boolean).join(' · ')
+  return [c.sinf || '', c.xona ? `${t('Xona')} ${c.xona}` : ''].filter(Boolean).join(' · ')
 }
 
 async function runExport(
@@ -98,7 +80,7 @@ async function runExport(
 }
 
 function emptySlot(day: number, period: number): TimetableSlot {
-  return { day_index: day, period_index: period, time_from: null, time_to: null, maktab: '', xona: '', sinf: '', span: 1, band: false, lesson_type: '' }
+  return { day_index: day, period_index: period, time_from: null, time_to: null, maktab: '', xona: '', sinf: '', span: 1, band: false }
 }
 
 function ModeBar({ mode, onChange }: { mode: 'mine' | 'all'; onChange: (m: 'mine' | 'all') => void }) {
@@ -269,7 +251,7 @@ function MineView({ modeBar }: { modeBar: React.ReactNode }) {
                       return (
                         <td
                           key={di}
-                          className={`tt__c tt__c--on ${c!.band ? 'tt__c--band' : ''} ${lessonTypeClass(c!)}`}
+                          className={`tt__c tt__c--on ${c!.band ? 'tt__c--band' : ''}`}
                           tabIndex={0}
                           rowSpan={sp > 1 ? sp : undefined}
                           onClick={() => setEditing({ slot: c!, existing: true })}
@@ -286,7 +268,6 @@ function MineView({ modeBar }: { modeBar: React.ReactNode }) {
           </ZoomBox>
         </ScaleToFit>
       </div>
-      <LessonTypeLegend />
 
       {editing && (
         <SlotEditor
@@ -453,7 +434,7 @@ function AllView({ modeBar, admin }: { modeBar: React.ReactNode; admin: boolean 
                         return (
                           <td
                             key={tc.id}
-                            className={`tt__c tt__c--on tt--c${ti % 8} ${c!.band ? 'tt__c--band' : ''} ${lessonTypeClass(c!)}`}
+                            className={`tt__c tt__c--on tt--c${ti % 8} ${c!.band ? 'tt__c--band' : ''}`}
                             rowSpan={sp > 1 ? sp : undefined}
                             tabIndex={admin ? 0 : undefined}
                             onClick={admin ? () => setEditing({ teacherId: tc.id, slot: c!, existing: true }) : undefined}
@@ -471,7 +452,6 @@ function AllView({ modeBar, admin }: { modeBar: React.ReactNode; admin: boolean 
           </ZoomBox>
         </ScaleToFit>
       </div>
-      <LessonTypeLegend />
 
       {editing && (
         <SlotEditor

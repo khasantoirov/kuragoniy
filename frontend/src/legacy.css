@@ -2341,28 +2341,6 @@ img.pf__av   { width: 72px; height: 72px; max-width: 72px; max-height: 72px; bor
   color: var(--ink-3);
   border: 1px solid var(--rule); border-radius: 4px; padding: 3px 5px;
 }
-/* Dars turi endi katak ichida matn emas — katakning och rangli orqa foni
-   orqali ko'rsatiladi (rang ma'nosi .tt__legend orqali izohlanadi). */
-.tt__c--nazariy { background: rgba(46, 91, 191, .12) !important; }
-.tt__c--amaliy { background: rgba(179, 122, 15, .14) !important; }
-.tt__c--engineering { background: rgba(35, 138, 112, .14) !important; }
-[data-theme="dark"] .tt__c--nazariy { background: rgba(120, 160, 255, .16) !important; }
-[data-theme="dark"] .tt__c--amaliy { background: rgba(255, 190, 90, .16) !important; }
-[data-theme="dark"] .tt__c--engineering { background: rgba(90, 220, 185, .16) !important; }
-
-.tt__legend {
-  display: flex; flex-wrap: wrap; gap: 8px 18px;
-  margin-top: 12px; font: 500 12px/1 var(--f-body); color: var(--ink-2);
-}
-.tt__legend-item { display: inline-flex; align-items: center; gap: 6px; }
-.tt__legend-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
-.tt__legend-dot--nazariy { background: #2e5bbf; }
-.tt__legend-dot--amaliy { background: #b37a0f; }
-.tt__legend-dot--engineering { background: #1f8a6d; }
-[data-theme="dark"] .tt__legend-dot--nazariy { background: #9fc0ff; }
-[data-theme="dark"] .tt__legend-dot--amaliy { background: #ffcf80; }
-[data-theme="dark"] .tt__legend-dot--engineering { background: #7fe0c2; }
-
 /* ══ Kirish: logotip imzosi oq chipda ════════════════════ */
 .gate__signwrap {
   display: inline-block; margin: 14px 0 0;
