@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/Skeleton'
 import { AdminStatsTable } from '@/features/journal/AdminStatsTable'
 import { quarterLabel } from '@/features/journal/labels'
 import { gradeLabel, type Grade } from '@/features/lessons/labels'
+import { DAYS } from '@/features/timetable/types'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore } from '@/store/uiStore'
 
@@ -16,6 +17,9 @@ import { useDashboardSummary } from './api'
 import type { DashboardChorak } from './types'
 
 const CATEGORICAL = ['var(--cat-1)', 'var(--cat-2)', 'var(--cat-3)', 'var(--cat-4)', 'var(--cat-5)']
+// Bitta seriyali diagrammalar (kunlar, choraklar) — bitta rang, chunki
+// ustunlar "kim" ekanini emas, faqat miqdorni bildiradi.
+const SINGLE = 'var(--cat-1)'
 
 const ROLE_LABELS: Record<string, string> = {
   teacher: "O'qituvchi",
@@ -31,20 +35,29 @@ const fmtShortDate = (iso: string, lang: string) => {
   })
 }
 
-/** Platformaning yagona statistika sahifasi, uch mustaqil bo'limga
- *  ajratilgan: o'quv jarayoni, dars materiallari, tizim va foydalanuvchilar.
- *  Ilgari bularning hammasi bitta uzun ro'yxatda aralashib turardi —
- *  o'quvchilar soni bilan push obunachilari yonma-yon.
+/** Ulush foizi; maxraj 0 bo'lsa null — progress-bar chizilmaydi (0/0 dan
+ *  "0%" to'ldirilgan chiziq chiqmasin). */
+const pctOf = (part: number, whole: number) => (whole > 0 ? (part / whole) * 100 : null)
+
+/** Platformaning yagona statistika sahifasi, mavzu bo'yicha to'rt mustaqil
+ *  kartochkaga ajratilgan:
  *
- *  Chorak tanlagichi ataylab birinchi bo'limning ichida: backendda u
- *  faqat o'zlashtirish va davomatni filtrlaydi (dashboard/views.py'dagi
- *  _journal_section), foydalanuvchilar/darslar/bot ko'rsatkichlariga
- *  umuman ta'sir qilmaydi. Sahifa tepasida tursa, hammasini filtrlayotgandek
- *  ko'rinardi.
+ *   1. O'quv jarayoni — jurnal: sinflar, o'quvchilar, davomat, o'zlashtirish
+ *   2. Dars jadvali — haftalik yuklama, kunlar bo'yicha
+ *   3. Dars materiallari — darslar soni, hujjat va tarjima qamrovi
+ *   4. Tizim va foydalanuvchilar — hisoblar, xavfsizlik, bildirishnomalar
  *
- *  Ko'rish huquqi: o'qituvchi faqat birinchi bo'limni, o'z sinflari
- *  bo'yicha ko'radi (backend shunday qaytaradi), admin uchala bo'limni
- *  ham butun tashkilot bo'yicha ko'radi. */
+ *  Chorak tanlagichi ataylab birinchi kartochka ichida: backendda u faqat
+ *  o'zlashtirish va davomatni filtrlaydi (dashboard/views.py'dagi
+ *  _journal_section), qolgan ko'rsatkichlarga umuman ta'sir qilmaydi.
+ *
+ *  Hech qanday o'sish/trend matni to'qib chiqarilmaydi — progress-bar faqat
+ *  haqiqiy ulush bor joyda (davomat, hujjat/tarjima qamrovi, tasdiq
+ *  kutayotganlar, Telegram/2FA) ko'rsatiladi.
+ *
+ *  Ko'rish huquqi: o'qituvchi birinchi ikki kartochkani, faqat o'z sinflari
+ *  va o'z jadvali bo'yicha ko'radi (backend shunday qaytaradi); admin
+ *  hammasini butun tashkilot bo'yicha ko'radi. */
 export function StatisticsPage() {
   const { t } = useTranslation()
   const { lang, viewMode } = useUIStore()
@@ -66,7 +79,7 @@ export function StatisticsPage() {
 
   if (isLoading || !data) return <Skeleton lines={4} />
 
-  const { journal } = data
+  const { journal, timetable } = data
   const { mastery } = journal
 
   return (
@@ -112,7 +125,7 @@ export function StatisticsPage() {
           <StatCard
             label={t('Davomat')}
             value={journal.attendance_rate_pct !== null ? `${journal.attendance_rate_pct}%` : '—'}
-            icon="calendar"
+            icon="check2"
             progressPct={journal.attendance_rate_pct}
           />
         </div>
@@ -149,12 +162,52 @@ export function StatisticsPage() {
         )}
       </section>
 
-      {/* ── 2. Dars materiallari ──────────────────────────── */}
+      {/* ── 2. Dars jadvali ───────────────────────────────── */}
+      <section className="panel dash">
+        <h3 className="panel__title">{t('Dars jadvali')}</h3>
+        <div className="dash__stats">
+          <StatCard
+            label={t('Haftalik dars soati')}
+            value={timetable.total_hours}
+            hint={admin ? t("Barcha o'qituvchilar bo'yicha") : t('Sizning jadvalingiz')}
+            icon="calendar"
+          />
+        </div>
+        <div className="dash__row">
+          <div className="dash__card">
+            <p className="dash__card-title">{t("Haftalik yuklama (kunlar bo'yicha)")}</p>
+            <BarChart
+              ariaLabel={t("Haftalik dars soatlarining kunlar bo'yicha taqsimoti")}
+              data={timetable.by_day.map((d) => ({
+                key: String(d.day_index),
+                label: t(DAYS[d.day_index] ?? String(d.day_index)),
+                value: d.hours,
+                color: SINGLE,
+              }))}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ── 3. Dars materiallari ──────────────────────────── */}
       {admin && data.role === 'admin' && (
         <section className="panel dash">
           <h3 className="panel__title">{t('Dars materiallari')}</h3>
           <div className="dash__stats">
             <StatCard label={t('Jami darslar')} value={data.lessons.total} icon="file" />
+            <StatCard label={t('Tajribalar')} value={data.lessons.experiments_total} icon="flask" />
+            <StatCard
+              label={t('Hujjat biriktirilgan')}
+              value={`${data.lessons.with_document} / ${data.lessons.total}`}
+              icon="download"
+              progressPct={pctOf(data.lessons.with_document, data.lessons.total)}
+            />
+            <StatCard
+              label={t('Tarjima qilingan')}
+              value={`${data.lessons.translated} / ${data.lessons.total}`}
+              icon="book"
+              progressPct={pctOf(data.lessons.translated, data.lessons.total)}
+            />
           </div>
           <div className="dash__row">
             <div className="dash__card">
@@ -169,11 +222,23 @@ export function StatisticsPage() {
                 }))}
               />
             </div>
+            <div className="dash__card">
+              <p className="dash__card-title">{t("Choraklar bo'yicha darslar")}</p>
+              <BarChart
+                ariaLabel={t("Darslarning choraklar bo'yicha taqsimoti")}
+                data={data.lessons.by_chorak.map((c) => ({
+                  key: String(c.chorak),
+                  label: quarterLabel(c.chorak, lang),
+                  value: c.count,
+                  color: SINGLE,
+                }))}
+              />
+            </div>
           </div>
         </section>
       )}
 
-      {/* ── 3. Tizim va foydalanuvchilar ──────────────────── */}
+      {/* ── 4. Tizim va foydalanuvchilar ──────────────────── */}
       {admin && data.role === 'admin' && (
         <section className="panel dash">
           <h3 className="panel__title">{t('Tizim va foydalanuvchilar')}</h3>
@@ -184,12 +249,29 @@ export function StatisticsPage() {
               value={data.users.pending_approval}
               accent={data.users.pending_approval > 0 ? 'mid' : undefined}
               icon="user"
-              // Haqiqiy nisbat: jami foydalanuvchilarning qanchasi hali
-              // tasdiqlanmagan. Boshqa kartochkalarda maxraj yo'q, shuning
-              // uchun ularda progress-bar ham yo'q.
-              progressPct={data.users.total > 0 ? (data.users.pending_approval / data.users.total) * 100 : null}
+              progressPct={pctOf(data.users.pending_approval, data.users.total)}
             />
-            <StatCard label={t('Push obunachilar')} value={data.engagement.push_subscribers} icon="bell" />
+            <StatCard
+              label={t('Telegram ulangan')}
+              value={`${data.users.telegram_linked} / ${data.users.total}`}
+              icon="telegram"
+              progressPct={pctOf(data.users.telegram_linked, data.users.total)}
+            />
+            <StatCard
+              label={t('Ikki bosqichli tasdiq')}
+              value={`${data.users.two_factor_enabled} / ${data.users.total}`}
+              icon="lock"
+              progressPct={pctOf(data.users.two_factor_enabled, data.users.total)}
+            />
+            {/* Kalit sozlanmagan bo'lsa "0 obunachi" chalg'itadi — hech kim
+                obuna bo'la olmaydi. Buni "sozlanmagan" deb aytamiz. */}
+            <StatCard
+              label={t('Push obunachilar')}
+              value={data.engagement.push_configured ? data.engagement.push_subscribers : '—'}
+              hint={data.engagement.push_configured ? undefined : t('Serverda sozlanmagan')}
+              accent={data.engagement.push_configured ? undefined : 'mid'}
+              icon="bell"
+            />
             <StatCard label={t("So'nggi 30 kunlik e'lonlar")} value={data.engagement.announcements_last_30d} icon="megaphone" />
             <StatCard label={t('Kutayotgan tarjima ishlari')} value={data.engagement.translation_jobs_pending} icon="list" />
           </div>

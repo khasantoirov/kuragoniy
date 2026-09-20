@@ -26,7 +26,9 @@ export function BarChart({ data, ariaLabel }: { data: BarDatum[]; ariaLabel: str
             <div className="barchart__track">
               <div
                 className="barchart__bar"
-                style={{ height: `${(d.value / max) * 100}%`, background: d.color }}
+                // 0 qiymat seriya rangida chizilmaydi: rangli chiziqcha bo'sh
+                // joyni "biror narsa bor"dek ko'rsatardi. Neytral asos chizig'i qoladi.
+                style={{ height: `${(d.value / max) * 100}%`, background: d.value === 0 ? 'var(--rule)' : d.color }}
               />
             </div>
             <span className="barchart__lb">{d.label}</span>
