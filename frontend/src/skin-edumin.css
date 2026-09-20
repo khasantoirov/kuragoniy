@@ -597,3 +597,23 @@
   background: none;
   filter: drop-shadow(0 10px 22px rgba(0,0,0,.55));
 }
+
+/* ── Tungi rejimda logotip plastinkasi ───────────────────── */
+/* `logo.png` shaffof, yulduz tanasi esa to'q ko'k — to'q fonda u
+   ko'rinmay qoladi. `legacy.css` buni eski klasslar uchun allaqachon
+   hal qilgan (484-486: `#EAF1F6` plastinka); 2-rejimning yangi
+   klasslari o'sha qoidaga tushmaydi, shuning uchun bu yerda oq
+   plastinka beriladi. Kichik `padding` — yulduz chetga yopishib
+   qolmasligi uchun (`box-sizing: border-box`, o'lcham o'zgarmaydi). */
+[data-skin="r2"][data-theme="dark"] .edside__logo,
+[data-skin="r2"][data-theme="dark"] .edtop__logo,
+[data-skin="r2"][data-theme="dark"] .abhero__credit-av {
+  background: #fff;
+  padding: 2px;
+}
+[data-skin="r2"][data-theme="dark"] .gate__logo { background: #fff; }
+[data-skin="r2"][data-theme="dark"] .abhero__logo {
+  background: #fff;
+  border-radius: 1rem;
+  padding: 14px;
+}
