@@ -57,24 +57,37 @@ export function DashboardSection({ admin }: { admin: boolean }) {
       <div className="dash__stats">
         {admin && data.role === 'admin' && (
           <>
-            <StatCard label={t('Jami foydalanuvchilar')} value={data.users.total} />
-            <StatCard label={t('Tasdiq kutmoqda')} value={data.users.pending_approval} accent={data.users.pending_approval > 0 ? 'mid' : undefined} />
-            <StatCard label={t('Jami darslar')} value={data.lessons.total} />
+            <StatCard label={t('Jami foydalanuvchilar')} value={data.users.total} icon="users" />
+            <StatCard
+              label={t('Tasdiq kutmoqda')}
+              value={data.users.pending_approval}
+              accent={data.users.pending_approval > 0 ? 'mid' : undefined}
+              icon="user"
+              // Haqiqiy nisbat: jami foydalanuvchilarning qanchasi hali
+              // tasdiqlanmagan. Boshqa kartochkalarda maxraj yo'q, shuning
+              // uchun ularda progress-bar ham yo'q.
+              progressPct={data.users.total > 0 ? (data.users.pending_approval / data.users.total) * 100 : null}
+            />
+            <StatCard label={t('Jami darslar')} value={data.lessons.total} icon="robot" />
           </>
         )}
         <StatCard
           label={t('Sinflar')}
           value={journal.total_classes}
           hint={admin ? t('Barcha o\'qituvchilar bo\'yicha') : undefined}
+          icon="clipboard"
         />
         <StatCard
           label={t("O'quvchilar")}
           value={journal.total_students}
           hint={t("Faol ro'yxat qatorlari — bitta o'quvchi bir necha sinfda alohida hisoblanishi mumkin")}
+          icon="users"
         />
         <StatCard
           label={t('Davomat')}
           value={journal.attendance_rate_pct !== null ? `${journal.attendance_rate_pct}%` : '—'}
+          icon="calendar"
+          progressPct={journal.attendance_rate_pct}
         />
       </div>
 
@@ -144,9 +157,9 @@ export function DashboardSection({ admin }: { admin: boolean }) {
 
       {admin && data.role === 'admin' && (
         <div className="dash__stats">
-          <StatCard label={t('Push obunachilar')} value={data.engagement.push_subscribers} />
-          <StatCard label={t("So'nggi 30 kunlik e'lonlar")} value={data.engagement.announcements_last_30d} />
-          <StatCard label={t('Kutayotgan tarjima ishlari')} value={data.engagement.translation_jobs_pending} />
+          <StatCard label={t('Push obunachilar')} value={data.engagement.push_subscribers} icon="bell" />
+          <StatCard label={t("So'nggi 30 kunlik e'lonlar")} value={data.engagement.announcements_last_30d} icon="megaphone" />
+          <StatCard label={t('Kutayotgan tarjima ishlari')} value={data.engagement.translation_jobs_pending} icon="file" />
         </div>
       )}
     </section>

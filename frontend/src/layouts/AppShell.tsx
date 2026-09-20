@@ -15,6 +15,8 @@ import { redoLast, undoLast } from '@/lib/history'
 import { useUIStore } from '@/store/uiStore'
 
 import { BottomNav } from './BottomNav'
+import { EduminSidebar } from './edumin/EduminSidebar'
+import { EduminTopbar } from './edumin/EduminTopbar'
 
 const NAV_ITEMS: { to: string; label: string; icon: keyof typeof IC; adminOnly?: boolean }[] = [
   { to: '/', label: 'Bosh sahifa', icon: 'home' },
@@ -29,7 +31,7 @@ const NAV_ITEMS: { to: string; label: string; icon: keyof typeof IC; adminOnly?:
 export function AppShell() {
   const { t } = useTranslation()
   const { user, logout } = useAuth()
-  const { lang, theme, toggleTheme, grade, setGrade, viewMode } = useUIStore()
+  const { lang, theme, toggleTheme, skin, grade, setGrade, viewMode } = useUIStore()
   const location = useLocation()
   const navigate = useNavigate()
   const toast = useToast()
@@ -144,6 +146,58 @@ export function AppShell() {
     </div>
   )
 
+  const utils = (
+    <>
+      <button className="iconbtn" onClick={toggleTheme} title={t('Rejimni almashtirish')} aria-label={t('Rejim')}>
+        {theme === 'dark' ? themeIconMoon() : themeIconSun()}
+      </button>
+      <AnnouncementsBell />
+    </>
+  )
+
+  // 2-rejim butunlay boshqa skeletni chizadi (qidiruvli yuqori panel +
+  // bo'limlarga ajratilgan yon menyu). 1-rejim JSX'i qayta yozilmadi,
+  // faqat shoxlandi — shu tarzda standart rejim aynan hozirgidek qoladi.
+  if (skin === 'r2') {
+    return (
+      <>
+        <EduminTopbar barRef={topbarRef} onNav={closeAll}>
+          {utils}
+          {acctPop('down')}
+        </EduminTopbar>
+
+        <EduminSidebar items={visibleNavItems} onNav={closeAll} />
+
+        <div className="appmain">
+          <div className="shell">
+            {onLessons && (
+              <div className="grades">
+                {GRADES.map((g) => (
+                  <button
+                    key={g}
+                    className={`grade ${g === grade ? 'is-on' : ''}`}
+                    onClick={() => {
+                      setGrade(g)
+                      if (location.pathname !== '/lessons') navigate('/lessons')
+                    }}
+                  >
+                    {gradeLabel(g, lang)}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <main className="main" onClick={closeAll}>
+              <Outlet />
+            </main>
+          </div>
+        </div>
+
+        <BottomNav items={visibleNavItems} />
+      </>
+    )
+  }
+
   return (
     <>
       {/* Tor ekranlarda (mobil) yagona yuqori panel — .sidebar shu kenglikda
@@ -160,10 +214,7 @@ export function AppShell() {
           </Link>
 
           <div className="who">
-            <button className="iconbtn" onClick={toggleTheme} title={t('Rejimni almashtirish')} aria-label={t('Rejim')}>
-              {theme === 'dark' ? themeIconMoon() : themeIconSun()}
-            </button>
-            <AnnouncementsBell />
+            {utils}
             {acctPop('down')}
           </div>
         </div>
@@ -196,12 +247,7 @@ export function AppShell() {
         </nav>
 
         <div className="sidebar__foot">
-          <div className="sidebar__utils">
-            <button className="iconbtn" onClick={toggleTheme} title={t('Rejimni almashtirish')} aria-label={t('Rejim')}>
-              {theme === 'dark' ? themeIconMoon() : themeIconSun()}
-            </button>
-            <AnnouncementsBell />
-          </div>
+          <div className="sidebar__utils">{utils}</div>
           {acctPop('up')}
         </div>
       </aside>

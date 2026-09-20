@@ -49,6 +49,12 @@ const ru = {
   'Bosh sahifa': 'Главная', 'Asosiy navigatsiya': 'Основная навигация', "Ko'proq": 'Ещё',
   'Darslar': 'Уроки', 'Jurnal': 'Журнал', 'Jadval': 'Расписание',
   'Kutubxona': 'Библиотека', 'Boshqaruv': 'Управление', 'Taqvim': 'Календарь',
+  // 2-rejim: yon menyu bo'limlari va umumiy qidiruv
+  'Asosiy': 'Основное', "O'quv jarayoni": 'Учебный процесс', 'Tizim': 'Система',
+  'Dars, material, o‘quvchi yoki xodim izlash…': 'Поиск урока, материала, ученика или сотрудника…',
+  'Platforma bo‘ylab qidirish': 'Поиск по платформе',
+  'kamida 2 harf': 'минимум 2 символа',
+  'Qidirilmoqda…': 'Поиск…',
   'Laboratoriya': 'Лаборатория',
   'Platforma haqida': 'О платформе', "Bo'limlar va imkoniyatlar": 'Разделы и возможности',
   'Dastur yaratuvchisi': 'Разработчик программы', 'Loyiha': 'Проект',
@@ -79,6 +85,12 @@ const ru = {
   'Profil': 'Профиль', "Ilovani o'rnatish": 'Установить приложение',
   // Sozlamalar
   'Sozlamalar': 'Настройки', 'Kunduzgi': 'Дневной', 'Tungi': 'Ночной',
+  "Ko'rinish uslubi": 'Стиль оформления',
+  '1-rejim': 'Режим 1', '2-rejim': 'Режим 2',
+  'Texnik chizma uslubi': 'Стиль технического чертежа',
+  "Ta'lim paneli uslubi": 'Стиль образовательной панели',
+  "1-rejim — platformaning asl ko'rinishi. 2-rejim — ta'lim boshqaruv paneli uslubidagi ko'rinish. Kunduzgi va tungi mavzu ikkalasida ham ishlaydi.":
+    'Режим 1 — исходный вид платформы. Режим 2 — вид в стиле образовательной админ-панели. Дневная и ночная темы работают в обоих.',
   'Pastki navigatsiya uslubi': 'Стиль нижней навигации',
   "Tugmalar pastki navigatsiya panelida qanday ko'rinishini tanlang.": 'Выберите, как кнопки выглядят на нижней панели навигации.',
   "Faqat mobil ko'rinishga tegishli — desktopda tepadagi navigatsiya ishlatiladi.": 'Относится только к мобильному виду — на компьютере используется верхняя навигация.',
@@ -579,6 +591,12 @@ const en = {
   'Bosh sahifa': 'Home', 'Asosiy navigatsiya': 'Main navigation', "Ko'proq": 'More',
   'Darslar': 'Lessons', 'Jurnal': 'Journal', 'Jadval': 'Timetable',
   'Kutubxona': 'Library', 'Boshqaruv': 'Admin', 'Taqvim': 'Calendar',
+  // 2-rejim: yon menyu bo'limlari va umumiy qidiruv
+  'Asosiy': 'Overview', "O'quv jarayoni": 'Teaching', 'Tizim': 'System',
+  'Dars, material, o‘quvchi yoki xodim izlash…': 'Search lessons, materials, students or staff…',
+  'Platforma bo‘ylab qidirish': 'Search the platform',
+  'kamida 2 harf': 'at least 2 characters',
+  'Qidirilmoqda…': 'Searching…',
   'Laboratoriya': 'Lab',
   'Platforma haqida': 'About the platform', "Bo'limlar va imkoniyatlar": 'Sections and features',
   'Dastur yaratuvchisi': 'App developer', 'Loyiha': 'The project',
@@ -609,6 +627,12 @@ const en = {
   'Profil': 'Profile', "Ilovani o'rnatish": 'Install app',
   // Sozlamalar
   'Sozlamalar': 'Settings', 'Kunduzgi': 'Day', 'Tungi': 'Night',
+  "Ko'rinish uslubi": 'Look & feel',
+  '1-rejim': 'Mode 1', '2-rejim': 'Mode 2',
+  'Texnik chizma uslubi': 'Technical-drawing style',
+  "Ta'lim paneli uslubi": 'Education dashboard style',
+  "1-rejim — platformaning asl ko'rinishi. 2-rejim — ta'lim boshqaruv paneli uslubidagi ko'rinish. Kunduzgi va tungi mavzu ikkalasida ham ishlaydi.":
+    'Mode 1 is the platform’s original look. Mode 2 is an education-dashboard look. Day and night themes work in both.',
   'Pastki navigatsiya uslubi': 'Bottom navigation style',
   "Tugmalar pastki navigatsiya panelida qanday ko'rinishini tanlang.": 'Choose how the buttons look on the bottom navigation bar.',
   "Faqat mobil ko'rinishga tegishli — desktopda tepadagi navigatsiya ishlatiladi.": 'Only applies to the mobile view — desktop uses the top navigation instead.',

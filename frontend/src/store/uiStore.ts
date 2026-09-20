@@ -8,24 +8,58 @@ import type { NavStyleKey } from '@/layouts/navStyles'
 export type Lang = 'uz' | 'ru' | 'en'
 export type Theme = 'light' | 'dark'
 export type ViewMode = 'admin' | 'teacher'
+/** Butun platformaning ko'rinish uslubi: 'r1' — asl "texnik chizma"
+ *  ko'rinishi (standart, legacy.css), 'r2' — EDUMIN uslubidagi ikkinchi
+ *  rejim (skin-edumin.css, hammasi `[data-skin="r2"]` ostida). Ikkalasi
+ *  ham kunduzgi/tungi mavzu bilan mustaqil birlashadi → 4 kombinatsiya. */
+export type Skin = 'r1' | 'r2'
 
 interface UIState {
   lang: Lang
   theme: Theme
+  skin: Skin
   grade: Grade
   viewMode: ViewMode
   navStyle: NavStyleKey
   setLang: (lang: Lang) => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
+  setSkin: (skin: Skin) => void
   setGrade: (grade: Grade) => void
   setViewMode: (mode: ViewMode) => void
   setNavStyle: (style: NavStyleKey) => void
 }
 
-function applyTheme(theme: Theme) {
+// Brauzer UI rangi (Android manzil paneli, PWA) — har bir rejimning o'z
+// topbar foniga mos keladi, shuning uchun mavzu va uslub birga o'qiladi.
+const THEME_COLOR: Record<Skin, Record<Theme, string>> = {
+  r1: { light: '#12212E', dark: '#0E1620' },
+  r2: { light: '#6A73FA', dark: '#1A1D2E' },
+}
+
+function applyTheme(theme: Theme, skin: Skin) {
   document.documentElement.setAttribute('data-theme', theme)
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#0E1620' : '#12212E')
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLOR[skin][theme])
+}
+
+// 2-rejim Robotoda yozilgan. Shriftni index.html'ga qo'shish 1-rejim
+// foydalanuvchilariga ham qo'shimcha so'rov qo'shardi (standart rejim —
+// 1-rejim, ya'ni ko'pchilikka), shuning uchun u faqat 2-rejim yoqilganda
+// bir marta qo'shiladi.
+const SKIN_FONT_ID = 'skin-r2-font'
+
+function loadSkinFont() {
+  if (document.getElementById(SKIN_FONT_ID)) return
+  const link = document.createElement('link')
+  link.id = SKIN_FONT_ID
+  link.rel = 'stylesheet'
+  link.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap'
+  document.head.appendChild(link)
+}
+
+function applySkin(skin: Skin) {
+  document.documentElement.setAttribute('data-skin', skin)
+  if (skin === 'r2') loadSkinFont()
 }
 
 export const useUIStore = create<UIState>()(
@@ -33,6 +67,7 @@ export const useUIStore = create<UIState>()(
     (set, get) => ({
       lang: 'uz',
       theme: 'light',
+      skin: 'r1',
       grade: '1-2',
       viewMode: 'admin',
       navStyle: 'raised',
@@ -45,13 +80,18 @@ export const useUIStore = create<UIState>()(
         set({ lang })
       },
       setTheme: (theme) => {
-        applyTheme(theme)
+        applyTheme(theme, get().skin)
         set({ theme })
       },
       toggleTheme: () => {
         const next: Theme = get().theme === 'dark' ? 'light' : 'dark'
-        applyTheme(next)
+        applyTheme(next, get().skin)
         set({ theme: next })
+      },
+      setSkin: (skin) => {
+        applySkin(skin)
+        applyTheme(get().theme, skin)
+        set({ skin })
       },
     }),
     {
@@ -65,7 +105,11 @@ export const useUIStore = create<UIState>()(
       // its nearest band so a returning browser doesn't carry an invalid
       // grade into the new picker.
       // v3: the '7-8' and '9' bands merged into one '7-8-9' band.
-      version: 3,
+      // v4: `skin` added (the EDUMIN second look). Anyone with a saved
+      // state predates the choice, so they stay on 'r1' — switching an
+      // existing user's whole platform look without them asking would be
+      // the opposite of an opt-in preference.
+      version: 4,
       migrate: (persisted, version) => {
         const state = persisted as UIState
         if (version < 1) state.navStyle = 'raised'
@@ -77,11 +121,13 @@ export const useUIStore = create<UIState>()(
           const oldGrade = state.grade as unknown
           state.grade = oldGrade === '7-8' || oldGrade === '9' ? '7-8-9' : (oldGrade as UIState['grade'])
         }
+        if (version < 4) state.skin = 'r1'
         return state
       },
       onRehydrateStorage: () => (state) => {
         if (!state) return
-        applyTheme(state.theme)
+        applySkin(state.skin)
+        applyTheme(state.theme, state.skin)
         i18n.changeLanguage(state.lang)
         document.documentElement.lang = state.lang
       },
@@ -91,5 +137,7 @@ export const useUIStore = create<UIState>()(
 
 // Apply immediately on load too (before any React render / rehydration callback).
 if (typeof document !== 'undefined') {
-  applyTheme(useUIStore.getState().theme)
+  const { theme, skin } = useUIStore.getState()
+  applySkin(skin)
+  applyTheme(theme, skin)
 }

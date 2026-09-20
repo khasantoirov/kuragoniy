@@ -1,0 +1,529 @@
+/* ══════════════════════════════════════════════════════════
+   KO'RAGONIY EDU — 2-REJIM ("ta'lim boshqaruv paneli" ko'rinishi)
+   ══════════════════════════════════════════════════════════
+
+   Bu fayl `legacy.css`dan KEYIN import qilinadi (main.tsx) va hamma
+   narsa `[data-skin="r2"]` ostida yozilgan. 1-rejim (`data-skin="r1"`,
+   standart) uchun bu faylning bitta ham qoidasi qo'llanmaydi, shuning
+   uchun `legacy.css`ga tegmasdan ikkinchi ko'rinish qo'shiladi.
+
+   Specifikatsiya: mavjud tungi qoidalar `[data-theme="dark"] .x` =
+   (0,2,0). Bizdagi `[data-skin="r2"][data-theme="dark"] .x` = (0,3,0),
+   ya'ni har doim ustun turadi. `legacy.css`da `!important` ishlatilgan
+   to'rt guruhda (`.tt__c--*`, `.tt__soat`, `.gate__mark`, autofill)
+   biz ham `!important` yozamiz — boshqa hech qayerda kerak emas.
+
+   Uslub manbasi: EDUMIN shabloni (tijoriy, pullik). Uning fayllari
+   ko'chirilmagan — faqat vizual til (ranglar, radius, soya, joylashuv
+   mantiqi) shu yerda o'z kodimizda qaytadan yozilgan.
+   ══════════════════════════════════════════════════════════ */
+
+
+/* ═══ 1-QATLAM: TOKENLAR ═══════════════════════════════════
+   `legacy.css`da 517 ta `var(--token)` ishlatilgan, shuning uchun
+   tokenlarni qayta belgilashning o'zi ilovaning katta qismini qayta
+   bo'yaydi. Status ranglari (`--band-*`) va kategorik seriyalar
+   (`--cat-1..4`) ATAYLAB tegilmagan: `--cat-*` to'plami dataviz
+   validatoridan 2-rejimning ikkala sirtiga (#FFFFFF va #232740)
+   nisbatan o'tgan, `--band-*` esa mavzudan mustaqil svetofor. */
+
+[data-skin="r2"] {
+  --paper:    #F5F5F5;   /* sahifa foni */
+  --surface:  #FFFFFF;   /* kartochka */
+  --ink:      #3D4152;
+  --ink-2:    #6E6E6E;
+  --ink-3:    #9A9A9A;
+  --rule:     #E6E6E6;
+  --rule-2:   #F1F1F3;
+
+  /* To'ldirilgan holatlar (tanlangan chip, faol menyu, jadval
+     sarlavhasi) — EDUMINning asosiy binafsha-ko'ki. */
+  --solid:    #6A73FA;
+  --on-solid: #FFFFFF;
+  --pick:     #6A73FA;
+  --pick-2:   #8088FB;
+
+  --mark:     #E2465A;   /* xatolik/o'chirish — urg'u emas, ogohlantirish */
+  --ok:       #09BD3C;
+
+  --r:   8px;
+  --gap: 20px;
+  --shadow: 0 2px 4px rgba(0,0,0,.075);
+
+  /* EDUMIN butunlay Robotoda. Mono oila ham Robotoga o'tadi — aks holda
+     `legacy.css`dagi o'nlab kichik KATTA-HARFLI mono yorliqlar 1-rejimning
+     "texnik chizma" ohangini 2-rejimga olib kirib qo'yadi. */
+  --f-display: Roboto, system-ui, sans-serif;
+  --f-body:    Roboto, system-ui, sans-serif;
+  --f-mono:    Roboto, system-ui, sans-serif;
+
+  /* Pastki navigatsiya urg'ulari */
+  --navacc:   #6A73FA;
+  --navacc-2: #8088FB;
+  --navglow:  rgba(106,115,250,.5);
+}
+
+[data-skin="r2"][data-theme="dark"] {
+  --paper:    #1A1D2E;
+  --surface:  #232740;   /* dataviz validatori shu sirtga nisbatan o'tgan */
+  --ink:      #E6E9F2;
+  --ink-2:    #ADB5BD;
+  --ink-3:    #8A91A8;
+  --rule:     #333A55;
+  --rule-2:   #2A2F49;
+
+  --solid:    #7B84FF;
+  --on-solid: #FFFFFF;
+  --pick:     #7B84FF;
+  --pick-2:   #9AA1FF;
+
+  --mark:     #FF6B7F;
+  --ok:       #3DD16A;
+
+  --shadow: 0 2px 6px rgba(0,0,0,.35);
+
+  --navacc:   #7B84FF;
+  --navacc-2: #9AA1FF;
+  --navglow:  rgba(123,132,255,.55);
+}
+
+/* `--sidebar-w` `legacy.css`da desktop media-query ICHIDA e'lon
+   qilingan (533-qator), shuning uchun uni ham aynan shu yerda qayta
+   belgilash kerak — `:root`dagi e'lon media-querydagisini bosa olmaydi. */
+@media (min-width: 761px) {
+  [data-skin="r2"] { --sidebar-w: 264px; }
+}
+
+
+/* ═══ 2-QATLAM: KOMPONENTLAR ═══════════════════════════════
+   Tokenlar yetmagan joylar: qattiq yozilgan ranglar, "texnik chizma"
+   tipografiyasi (mono + KATTA HARF + keng harf oralig'i) va chegara
+   o'rniga soyaga o'tish. */
+
+/* ── Tipografika ─────────────────────────────────────────── */
+[data-skin="r2"] h1,
+[data-skin="r2"] h2,
+[data-skin="r2"] h3,
+[data-skin="r2"] h4 { letter-spacing: 0; font-weight: 500; }
+
+/* Mono yorliqlar Robotoga o'tgani uchun KATTA HARF + keng oraliq endi
+   mos kelmaydi — normal registrga qaytariladi. */
+[data-skin="r2"] .field__label,
+[data-skin="r2"] .table th,
+[data-skin="r2"] .tag,
+[data-skin="r2"] .stat-card__label,
+[data-skin="r2"] .jsum__b span,
+[data-skin="r2"] .mastery__kpi span,
+[data-skin="r2"] .mastery__donut-label,
+[data-skin="r2"] .abtrack__grade,
+[data-skin="r2"] .gate__eyebrow {
+  text-transform: none;
+  letter-spacing: .01em;
+}
+[data-skin="r2"] .field__label { font-size: 12.5px; font-weight: 500; color: var(--ink-2); }
+[data-skin="r2"] .table th { font-size: 12px; font-weight: 500; }
+[data-skin="r2"] .tag { border-radius: 50rem; padding: 3px 9px; font-size: 11px; }
+
+/* ── Tugmalar ────────────────────────────────────────────── */
+[data-skin="r2"] .btn { font-weight: 500; padding: 10px 18px; }
+/* `.btn--primary:hover` `legacy.css`da qattiq #1B3040 (to'q ko'k) */
+[data-skin="r2"] .btn--primary:hover { background: var(--pick-2); border-color: var(--pick-2); }
+[data-skin="r2"] .btn:focus-visible { outline-color: var(--pick); }
+[data-skin="r2"] .btn:hover { border-color: var(--pick); }
+[data-skin="r2"] .icon-btn:hover { border-color: var(--pick); color: var(--pick); }
+[data-skin="r2"] .iconbtn { border-radius: var(--r); }
+[data-skin="r2"] .iconbtn:hover { border-color: var(--pick); color: var(--pick); }
+[data-skin="r2"] .acct__btn { border-radius: 50rem; }
+[data-skin="r2"] .acct__av { border-radius: 50%; }
+[data-skin="r2"] img.acct__av { border-radius: 50%; }
+
+/* ── Maydonlar ───────────────────────────────────────────── */
+[data-skin="r2"] .input:focus,
+[data-skin="r2"] .search__input:focus,
+[data-skin="r2"] .mark:focus,
+[data-skin="r2"] .slot:focus {
+  border-color: var(--pick);
+  box-shadow: 0 0 0 3px rgba(106,115,250,.16);
+}
+[data-skin="r2"][data-theme="dark"] .search__input { border-color: var(--rule); }
+[data-skin="r2"][data-theme="dark"] .search__input:focus,
+[data-skin="r2"][data-theme="dark"] .input:focus {
+  border-color: var(--pick);
+  box-shadow: 0 0 0 3px rgba(123,132,255,.22);
+}
+[data-skin="r2"] input.input:-webkit-autofill,
+[data-skin="r2"] input.input:-webkit-autofill:hover,
+[data-skin="r2"] input.input:-webkit-autofill:focus,
+[data-skin="r2"] input.input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset !important;
+}
+
+/* ── Sirtlar: chegara o'rniga yumshoq soya ───────────────── */
+[data-skin="r2"] .panel,
+[data-skin="r2"] .dash__card,
+[data-skin="r2"] .stat-card,
+[data-skin="r2"] .table-wrap,
+[data-skin="r2"] .card {
+  box-shadow: var(--shadow);
+}
+[data-skin="r2"] .panel { padding: 20px 22px; }
+[data-skin="r2"] .card:hover { box-shadow: 0 .5rem 1rem rgba(0,0,0,.12); }
+[data-skin="r2"] .acct__pop { border-radius: var(--r); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15); }
+[data-skin="r2"][data-theme="dark"] .acct__pop { box-shadow: 0 .5rem 1.4rem rgba(0,0,0,.55); }
+[data-skin="r2"] .modal { border-radius: 1rem; box-shadow: 0 1rem 3rem rgba(0,0,0,.175); }
+[data-skin="r2"][data-theme="dark"] .modal { box-shadow: 0 1rem 3rem rgba(0,0,0,.6); }
+[data-skin="r2"] .overlay { background: rgba(29,32,48,.45); }
+[data-skin="r2"][data-theme="dark"] .overlay { background: rgba(8,10,18,.62); }
+
+/* ── Chiplar, sinf tanlagich, navigatsiya tugmalari ──────── */
+[data-skin="r2"] .chip,
+[data-skin="r2"] .grade { border-radius: 50rem; font-weight: 500; }
+[data-skin="r2"] .grade:hover,
+[data-skin="r2"] .chip:hover,
+[data-skin="r2"] .nav__item:hover { border-color: var(--pick); }
+[data-skin="r2"][data-theme="dark"] .grade,
+[data-skin="r2"][data-theme="dark"] .chip { border-color: var(--rule); }
+[data-skin="r2"][data-theme="dark"] .grade:hover,
+[data-skin="r2"][data-theme="dark"] .chip:hover { border-color: var(--pick); }
+/* `.chip.is-on` va hamrohlari `!important` bilan `var(--pick)` o'qiydi —
+   token almashtirilgani uchun rang o'zi to'g'ri keladi; faqat soyani
+   EDUMIN ohangiga moslaymiz. */
+[data-skin="r2"] .nav__item.is-on,
+[data-skin="r2"] .grade.is-on,
+[data-skin="r2"] .chip.is-on {
+  box-shadow: 0 .25rem .75rem rgba(106,115,250,.4) !important;
+}
+[data-skin="r2"] .lang.is-on { background: var(--pick); }
+[data-skin="r2"][data-theme="dark"] .lang.is-on { background: var(--pick); }
+[data-skin="r2"] .langs { border-radius: 50rem; }
+[data-skin="r2"] .lang { border-radius: 50rem; }
+
+/* ── "Texnik chizma" urg'ulari — binafsha-ko'kka ─────────── */
+[data-skin="r2"] .brand__rule,
+[data-skin="r2"] .gate__rule,
+[data-skin="r2"] .empty__rule,
+[data-skin="r2"] .exp__dot { background: var(--pick); }
+/* Oqib turuvchi sinusoida — 1-rejimning imzosi; 2-rejimda oddiy chiziq. */
+[data-skin="r2"] .qwave {
+  height: 1px; background: var(--rule);
+  animation: none;
+  -webkit-mask-image: none; mask-image: none;
+}
+
+/* ── Yon menyu ───────────────────────────────────────────── */
+@media (min-width: 761px) {
+  [data-skin="r2"] .sidebar { padding: 0 14px 18px; border-right: 0; box-shadow: var(--shadow); }
+  [data-skin="r2"] .sidebar__brand {
+    height: 4.5rem; margin-bottom: 14px; padding: 0 6px;
+    border-bottom: 1px solid var(--rule-2);
+  }
+  [data-skin="r2"] .sidebar__logo { border-radius: 50%; }
+  [data-skin="r2"] .sidebar__item { border-radius: 50rem; padding: 11px 16px; }
+  [data-skin="r2"] .sidebar__item.is-on { box-shadow: 0 .25rem .75rem rgba(106,115,250,.38); }
+  [data-skin="r2"] .sidebar__foot { border-top-color: var(--rule-2); }
+}
+
+/* ── Yuqori panel (mobil) — fon/blur tokensiz yozilgan ───── */
+[data-skin="r2"] .topbar::before { background: rgba(245,245,245,.85); }
+[data-skin="r2"][data-theme="dark"] .topbar::before { background: rgba(26,29,46,.85); }
+
+/* ── Pastki navigatsiya ──────────────────────────────────── */
+@media (max-width: 900px) {
+  [data-skin="r2"] .bottomnav::before { background: rgba(245,245,245,.85); }
+  [data-skin="r2"][data-theme="dark"] .bottomnav::before { background: rgba(26,29,46,.85); }
+}
+[data-skin="r2"] .bottomnav__rail { border-radius: 1rem; }
+[data-skin="r2"][data-theme="dark"] .bottomnav__rail { background: rgba(26,29,46,.92); }
+
+/* ── Jadvallar ───────────────────────────────────────────── */
+[data-skin="r2"] .table-wrap { border-color: var(--rule); }
+[data-skin="r2"] .table tbody tr:hover { background: var(--rule-2); }
+[data-skin="r2"] .jt thead th { font-weight: 500; font-size: 12px; }
+[data-skin="r2"] .cell.is-filled { background: rgba(106,115,250,.06); }
+[data-skin="r2"][data-theme="dark"] .cell.is-filled { background: rgba(123,132,255,.1); }
+
+/* ── Haftalik jadval (.tt*) — `!important` bilan yozilgan ─── */
+[data-skin="r2"] .tt__c--nazariy { background: rgba(106,115,250,.12) !important; }
+[data-skin="r2"] .tt__c--amaliy { background: rgba(255,167,38,.14) !important; }
+[data-skin="r2"] .tt__c--engineering { background: rgba(9,189,60,.12) !important; }
+[data-skin="r2"][data-theme="dark"] .tt__c--nazariy { background: rgba(123,132,255,.18) !important; }
+[data-skin="r2"][data-theme="dark"] .tt__c--amaliy { background: rgba(255,190,90,.16) !important; }
+[data-skin="r2"][data-theme="dark"] .tt__c--engineering { background: rgba(61,209,106,.16) !important; }
+[data-skin="r2"] .tt__c--band {
+  background: repeating-linear-gradient(
+    135deg, rgba(226,70,90,.05) 0 8px, rgba(226,70,90,.1) 8px 16px) !important;
+}
+[data-skin="r2"][data-theme="dark"] .tt__c--band {
+  background: repeating-linear-gradient(
+    135deg, rgba(255,107,127,.07) 0 8px, rgba(255,107,127,.13) 8px 16px) !important;
+}
+[data-skin="r2"] .tt__legend-dot--nazariy { background: #6A73FA; }
+[data-skin="r2"] .tt__legend-dot--amaliy { background: #E08A00; }
+[data-skin="r2"] .tt__legend-dot--engineering { background: #09BD3C; }
+[data-skin="r2"][data-theme="dark"] .tt__legend-dot--nazariy { background: #9AA1FF; }
+[data-skin="r2"][data-theme="dark"] .tt__legend-dot--amaliy { background: #FFC46B; }
+[data-skin="r2"][data-theme="dark"] .tt__legend-dot--engineering { background: #5FE08A; }
+
+/* ── Grafiklar ───────────────────────────────────────────── */
+/* Bitta seriyali trend chizig'i 1-rejimda `--ok` (yashil/ko'k) edi;
+   2-rejimda asosiy rangga o'tadi — `--ok` sof status rangi bo'lib qoladi. */
+[data-skin="r2"] .trendchart__line { stroke: var(--pick); }
+[data-skin="r2"] .trendchart__area { fill: var(--pick); }
+[data-skin="r2"] .trendchart__dot { fill: var(--pick); }
+[data-skin="r2"] .trendchart__tip { border-radius: var(--r); }
+[data-skin="r2"] .barchart__bar { border-radius: 4px 4px 0 0; }
+
+/* ── Kirish ekrani ───────────────────────────────────────── */
+[data-skin="r2"] .gate { background: var(--paper); }
+[data-skin="r2"] .gate__card {
+  border-radius: 1rem;
+  box-shadow: 0 1rem 3rem rgba(0,0,0,.175);
+}
+[data-skin="r2"][data-theme="dark"] .gate__card {
+  background: var(--surface);
+  border-color: var(--rule);
+  box-shadow: 0 1rem 3rem rgba(0,0,0,.55);
+}
+[data-skin="r2"] .gate__logo { border-radius: 50%; box-shadow: 0 .5rem 1rem rgba(106,115,250,.25); }
+[data-skin="r2"] .gate__panel { border-radius: 1rem; box-shadow: 0 1rem 3rem rgba(0,0,0,.175); }
+[data-skin="r2"] .gate__mark {
+  background: linear-gradient(165deg, #6A73FA 0%, #5D66EC 55%, #4C55D8 100%) !important;
+}
+[data-skin="r2"] .gate__forms { background: var(--surface); }
+[data-skin="r2"][data-theme="dark"] .gate__forms { background: var(--surface); }
+[data-skin="r2"][data-theme="dark"] .gate__panel { background: var(--surface); border-color: var(--rule); }
+[data-skin="r2"][data-theme="dark"] .gate__panel--narrow { background: var(--surface); }
+
+
+/* ═══ 3-QATLAM: 2-REJIM TUZILMASI ══════════════════════════
+   Faqat 2-rejimda chiziladigan elementlar (AppShell shu rejimda
+   `EduminTopbar` + `EduminSidebar`ni chizadi). Klasslari `legacy.css`da
+   umuman uchramaydi, shuning uchun to'qnashuv yo'q; baribir
+   `[data-skin="r2"]` ostida yozildi — 1-rejimga hech narsa qo'shilmasin. */
+
+/* ── Yuqori panel ────────────────────────────────────────── */
+[data-skin="r2"] .edtop {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule);
+}
+[data-skin="r2"] .edtop__inner {
+  display: flex; align-items: center; gap: 14px;
+  min-height: 4.5rem; padding: 10px 28px;
+  max-width: 1760px; margin: 0 auto;
+}
+[data-skin="r2"] .edtop__brand {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; color: inherit; flex: none;
+}
+[data-skin="r2"] .edtop__logo { border-radius: 50%; flex: none; }
+[data-skin="r2"] .edtop__bt { font: 500 14.5px/1.2 var(--f-display); }
+[data-skin="r2"] .edtop__acts {
+  display: flex; align-items: center; gap: 10px; margin-left: auto; flex: none;
+}
+
+@media (min-width: 761px) {
+  /* Yon menyu `position: fixed` — panel uning ostiga tushib ketmasligi
+     uchun `.appmain` bilan bir xil chetdan boshlanadi. */
+  [data-skin="r2"] .edtop { margin-left: var(--sidebar-w); }
+  [data-skin="r2"] .edtop__brand { display: none; }
+}
+@media (max-width: 560px) {
+  [data-skin="r2"] .edtop__inner { padding: 10px 16px; gap: 10px; }
+  [data-skin="r2"] .edtop__bt { display: none; }
+}
+
+/* ── Yon menyu ───────────────────────────────────────────── */
+[data-skin="r2"] .edside { display: none; }
+
+@media (min-width: 761px) {
+  [data-skin="r2"] .edside {
+    display: flex; flex-direction: column;
+    position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w);
+    padding: 0 14px 20px;
+    background: var(--surface);
+    overflow-y: auto; z-index: 90;
+    box-shadow: var(--shadow);
+  }
+  [data-skin="r2"] .edside__brand {
+    display: flex; align-items: center; gap: 11px;
+    min-height: 4.5rem; padding: 0 8px; margin-bottom: 8px;
+    border-bottom: 1px solid var(--rule); flex: none;
+    text-decoration: none; color: inherit;
+  }
+  [data-skin="r2"] .edside__logo { border-radius: 50%; flex: none; }
+  [data-skin="r2"] .edside__name {
+    font: 500 14px/1.25 var(--f-display); min-width: 0;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+
+  [data-skin="r2"] .edside__nav { display: flex; flex-direction: column; flex: 1; }
+  [data-skin="r2"] .edside__sec { display: flex; flex-direction: column; gap: 3px; }
+  [data-skin="r2"] .edside__gt {
+    margin: 18px 0 6px; padding: 0 12px;
+    font: 500 11px/1 var(--f-body); letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  [data-skin="r2"] .edside__item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 16px; border-radius: 50rem;
+    font: 500 14px/1 var(--f-body); color: var(--ink-2); text-decoration: none;
+    transition: background .15s, color .15s;
+  }
+  [data-skin="r2"] .edside__item:hover { background: var(--rule-2); color: var(--ink); }
+  [data-skin="r2"] .edside__item.is-on {
+    background: var(--solid); color: var(--on-solid);
+    box-shadow: 0 .25rem .75rem rgba(106,115,250,.38);
+  }
+  [data-skin="r2"] .edside__ic { display: flex; flex: none; }
+  [data-skin="r2"] .edside__ic .svic { width: 18px; height: 18px; }
+  [data-skin="r2"] .edside__lb { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+/* ── Umumiy qidiruv ──────────────────────────────────────── */
+[data-skin="r2"] .gsearch {
+  position: relative; display: flex; align-items: center;
+  flex: 1 1 220px; min-width: 0; max-width: 520px;
+}
+[data-skin="r2"] .gsearch__ic {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  display: flex; color: var(--ink-3); pointer-events: none; z-index: 2;
+}
+[data-skin="r2"] .gsearch__input {
+  width: 100%;
+  font: 400 13.5px/1.4 var(--f-body); color: var(--ink);
+  padding: 11px 38px 11px 40px;
+  background: var(--paper);
+  border: 1px solid var(--rule); border-radius: 50rem;
+}
+[data-skin="r2"] .gsearch__input::placeholder { color: var(--ink-3); }
+[data-skin="r2"] .gsearch__input:focus {
+  outline: none; background: var(--surface);
+  border-color: var(--pick); box-shadow: 0 0 0 3px rgba(106,115,250,.16);
+}
+[data-skin="r2"] .gsearch__input::-webkit-search-cancel-button { display: none; }
+[data-skin="r2"] .gsearch__clear {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  display: grid; place-items: center; width: 24px; height: 24px;
+  border: 0; border-radius: 50%; background: none; cursor: pointer;
+  color: var(--ink-3); z-index: 2;
+}
+[data-skin="r2"] .gsearch__clear:hover { background: var(--rule-2); color: var(--ink); }
+[data-skin="r2"] .gsearch__clear .svic { width: 14px; height: 14px; }
+[data-skin="r2"] .gsearch__kbd {
+  position: absolute; right: 38px; top: 50%; transform: translateY(-50%);
+  font: 400 11px/1 var(--f-body); color: var(--ink-3); pointer-events: none;
+}
+
+[data-skin="r2"] .gsearch__pop {
+  position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 120;
+  min-width: 320px; max-height: min(60vh, 460px); overflow-y: auto;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--rule); border-radius: var(--r);
+  box-shadow: 0 1rem 3rem rgba(0,0,0,.175);
+}
+[data-skin="r2"][data-theme="dark"] .gsearch__pop { box-shadow: 0 1rem 3rem rgba(0,0,0,.6); }
+[data-skin="r2"] .gsearch__group + .gsearch__group {
+  margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--rule-2);
+}
+[data-skin="r2"] .gsearch__gt {
+  display: flex; align-items: center; gap: 7px;
+  margin: 0 0 4px; padding: 0 8px;
+  font: 500 11px/1 var(--f-body); letter-spacing: .06em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+[data-skin="r2"] .gsearch__gic { display: flex; }
+[data-skin="r2"] .gsearch__gic .svic { width: 13px; height: 13px; }
+[data-skin="r2"] .gsearch__row {
+  display: grid; gap: 2px; width: 100%; text-align: left;
+  padding: 8px 10px; border: 0; border-radius: 6px;
+  background: none; cursor: pointer;
+}
+[data-skin="r2"] .gsearch__row.is-on { background: var(--rule-2); }
+[data-skin="r2"] .gsearch__rt {
+  font: 500 13.5px/1.3 var(--f-body); color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+[data-skin="r2"] .gsearch__rs {
+  font: 400 12px/1.3 var(--f-body); color: var(--ink-3);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+[data-skin="r2"] .gsearch__none {
+  margin: 0; padding: 22px 10px; text-align: center;
+  font-size: 13px; color: var(--ink-3);
+}
+
+/* ── Stat kartochka anatomiyasi (2-rejim) ────────────────── */
+/* `.stat-card__ic` va `.stat-card__bar` faqat 2-rejimda chiziladi
+   (StatCard.tsx `skin === 'r2'`ni tekshiradi), shuning uchun 1-rejim
+   kartochkalari o'zgarmaydi. Progress-bar faqat haqiqiy nisbat
+   uzatilgan kartochkalarda ko'rinadi — "o'sish foizi" to'qib
+   chiqarilmaydi, bunday ma'lumot bazada yo'q. */
+/* Flex bilan oxirgi kartochka yolg'iz qatorda cho'zilib qolardi
+   (6 ta kartochka, `flex: 1 1 160px`) — grid har doim teng ustunlar beradi. */
+[data-skin="r2"] .dash__stats {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+}
+[data-skin="r2"] .stat-card {
+  position: relative; gap: 6px; padding: 18px;
+  border-left-width: 1px;
+}
+[data-skin="r2"] .stat-card--good { border-left-width: 3px; }
+[data-skin="r2"] .stat-card--mid { border-left-width: 3px; }
+[data-skin="r2"] .stat-card--bad { border-left-width: 3px; }
+[data-skin="r2"] .stat-card__ic {
+  position: absolute; top: 14px; right: 14px;
+  display: grid; place-items: center; width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(106,115,250,.12); color: var(--pick);
+}
+[data-skin="r2"][data-theme="dark"] .stat-card__ic { background: rgba(123,132,255,.16); }
+[data-skin="r2"] .stat-card__ic .svic { width: 19px; height: 19px; }
+[data-skin="r2"] .stat-card__label { padding-right: 48px; font-size: 12px; }
+[data-skin="r2"] .stat-card__value { font-size: 26px; font-weight: 500; }
+[data-skin="r2"] .stat-card__bar {
+  display: block; height: 5px; margin-top: 2px;
+  border-radius: 50rem; background: var(--rule-2); overflow: hidden;
+}
+[data-skin="r2"] .stat-card__fill {
+  display: block; height: 100%; border-radius: 50rem;
+  background: var(--pick);
+}
+[data-skin="r2"] .stat-card--mid .stat-card__fill { background: var(--band-mid); }
+[data-skin="r2"] .stat-card--bad .stat-card__fill { background: var(--band-bad); }
+[data-skin="r2"] .stat-card--good .stat-card__fill { background: var(--band-good); }
+
+/* ── Avatar va pastki navigatsiya indikatori ─────────────── */
+/* `.acct__av` `var(--solid)`ni o'qiydi, lekin `.avatar`/rasm variantlari
+   uchun ham bir xil dumaloq shakl kerak. */
+[data-skin="r2"] .acct__av { background: var(--solid); color: var(--on-solid); }
+
+/* "Raised" indikatori `var(--ink)`ni o'qiydi (1-rejimda qora siyoh) —
+   2-rejimda u to'q kulrang bo'lib qolardi, asosiy rangga o'tkazamiz. */
+[data-skin="r2"] .navind--raised {
+  background: var(--pick);
+  box-shadow: 0 4px 10px rgba(106,115,250,.35);
+}
+[data-skin="r2"][data-theme="dark"] .navind--raised {
+  background: var(--pick);
+  box-shadow: 0 4px 10px rgba(0,0,0,.45);
+}
+[data-skin="r2"][data-theme="dark"] [data-style="raised"] .bottomnav__item.is-on .bottomnav__ic { color: #fff; }
+
+/* ── Tungi rejimdagi maydon foni ─────────────────────────── */
+/* `legacy.css` tungi rejimda maydonlarga qattiq #101A25 (deyarli qora,
+   ko'k ohangli) beradi — 2-rejimning binafsha-kulrang sirtida u begona
+   ko'rinadi. Kartochkadan bir pog'ona to'qroq o'z rangimizga o'tkazamiz. */
+[data-skin="r2"][data-theme="dark"] .input,
+[data-skin="r2"][data-theme="dark"] .search__input,
+[data-skin="r2"][data-theme="dark"] .cell.is-filled,
+[data-skin="r2"][data-theme="dark"] .np__quote { background: #1D2138; }
+[data-skin="r2"][data-theme="dark"] select.input option { background: #1D2138; }
+[data-skin="r2"][data-theme="dark"] input.input:-webkit-autofill,
+[data-skin="r2"][data-theme="dark"] input.input:-webkit-autofill:hover,
+[data-skin="r2"][data-theme="dark"] input.input:-webkit-autofill:focus,
+[data-skin="r2"][data-theme="dark"] input.input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #1D2138 inset !important;
+}

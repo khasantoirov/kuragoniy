@@ -13,7 +13,7 @@ const LANGS: { k: Lang; label: string }[] = [
 export function AuthLayout() {
   const { t } = useTranslation()
   const { pathname } = useLocation()
-  const { lang, setLang, theme, toggleTheme } = useUIStore()
+  const { lang, setLang, theme, toggleTheme, skin, setSkin } = useUIStore()
   const isReg = pathname === '/register'
 
   return (
@@ -48,6 +48,17 @@ export function AuthLayout() {
             ))}
             <button type="button" className="gopt gopt--th" title={t('Rejim')} onClick={toggleTheme}>
               {theme === 'dark' ? themeIconMoon() : themeIconSun()}
+            </button>
+            {/* Ko'rinish uslubi kirishdan oldin ham almashtirilsin — tanlov
+                localStorage'da saqlanadi, ya'ni kirish ekranining o'zi ham
+                darhol tanlangan rejimda chiziladi. */}
+            <button
+              type="button"
+              className="gopt"
+              title={t("Ko'rinish uslubi")}
+              onClick={() => setSkin(skin === 'r2' ? 'r1' : 'r2')}
+            >
+              {skin === 'r2' ? t('2-rejim') : t('1-rejim')}
             </button>
           </div>
         </div>
