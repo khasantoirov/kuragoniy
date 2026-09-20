@@ -68,6 +68,7 @@ const ru = {
   "Karton, cho'p va trubochkalardan amaliy loyihalar yasash.": 'Практические проекты из картона, палочек и трубочек.',
   'Lazerda kesilgan detallardan modellar yasash.': 'Сборка моделей из деталей лазерной резки.',
   'Elektronika va Arduino asosida loyihalar.': 'Проекты на основе электроники и Arduino.',
+  "Turli xil narsalarni o'quvchilar o'zlari yaratadi.": 'Ученики сами создают самые разные вещи.',
   "1–9-sinflar uchun tayyor darslar va o'quv materiallari.":
     'Готовые уроки и учебные материалы для 1–9 классов.',
   "Baho, davomat va sinf o'zlashtirish diagrammalari — barchasi bir joyda.":
@@ -610,6 +611,7 @@ const en = {
   "Karton, cho'p va trubochkalardan amaliy loyihalar yasash.": 'Hands-on projects from cardboard, sticks and straws.',
   'Lazerda kesilgan detallardan modellar yasash.': 'Assembling models from laser-cut parts.',
   'Elektronika va Arduino asosida loyihalar.': 'Electronics and Arduino-based projects.',
+  "Turli xil narsalarni o'quvchilar o'zlari yaratadi.": 'Students build all kinds of things themselves.',
   "1–9-sinflar uchun tayyor darslar va o'quv materiallari.":
     'Ready-made lessons and learning materials for grades 1–9.',
   "Baho, davomat va sinf o'zlashtirish diagrammalari — barchasi bir joyda.":
