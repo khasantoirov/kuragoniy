@@ -130,9 +130,11 @@ export function NotificationsPage() {
           <p className="prose">
             {pushState === 'denied'
               ? t('Bildirishnomalar bloklangan — brauzer sozlamalaridan ruxsat bering.')
-              : t("Ilova yopiq bo'lsa ham bildirishnoma olish uchun push'ni yoqing.")}
+              : pushState === 'unconfigured'
+                ? t('Push bildirishnomalar hali serverda sozlanmagan — administrator sozlagach shu yerda yoqiladi.')
+                : t("Ilova yopiq bo'lsa ham bildirishnoma olish uchun push'ni yoqing.")}
           </p>
-          {pushState !== 'denied' && (
+          {pushState !== 'denied' && pushState !== 'unconfigured' && (
             <button type="button" className="btn btn--sm btn--primary" onClick={onEnablePush} disabled={pushBusy}>
               {IC.bell} {t('Push yoqish')}
             </button>

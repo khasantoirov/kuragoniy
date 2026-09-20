@@ -93,7 +93,9 @@ const ru = {
   // Sozlamalar
   'Sozlamalar': 'Настройки', 'Kunduzgi': 'Дневной', 'Tungi': 'Ночной',
   "O'zgartirish": 'Изменить',
-  'Rejimlar': 'Режимы', 'Kunduzgi / tungi': 'Дневной / ночной', 'Hisob xavfsizligi': 'Безопасность аккаунта',
+  'Rejimlar': 'Режимы',
+  'Push bildirishnomalar hali serverda sozlanmagan — administrator sozlagach shu yerda yoqiladi.':
+    'Push-уведомления ещё не настроены на сервере — их можно будет включить здесь после настройки администратором.', 'Kunduzgi / tungi': 'Дневной / ночной', 'Hisob xavfsizligi': 'Безопасность аккаунта',
   "Ko'rinish uslubi": 'Стиль оформления',
   '1-rejim': 'Режим 1', '2-rejim': 'Режим 2',
   'Texnik chizma uslubi': 'Стиль технического чертежа',
@@ -644,7 +646,9 @@ const en = {
   // Sozlamalar
   'Sozlamalar': 'Settings', 'Kunduzgi': 'Day', 'Tungi': 'Night',
   "O'zgartirish": 'Change',
-  'Rejimlar': 'Modes', 'Kunduzgi / tungi': 'Day / night', 'Hisob xavfsizligi': 'Account security',
+  'Rejimlar': 'Modes',
+  'Push bildirishnomalar hali serverda sozlanmagan — administrator sozlagach shu yerda yoqiladi.':
+    'Push notifications are not configured on the server yet — they can be enabled here once an administrator sets them up.', 'Kunduzgi / tungi': 'Day / night', 'Hisob xavfsizligi': 'Account security',
   "Ko'rinish uslubi": 'Look & feel',
   '1-rejim': 'Mode 1', '2-rejim': 'Mode 2',
   'Texnik chizma uslubi': 'Technical-drawing style',

@@ -1,6 +1,6 @@
 import { api } from '@/lib/api/client'
 
-export type PushState = 'unsupported' | 'denied' | 'subscribed' | 'unsubscribed'
+export type PushState = 'unsupported' | 'denied' | 'subscribed' | 'unsubscribed' | 'unconfigured'
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -15,9 +15,26 @@ export function isPushSupported(): boolean {
   return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window
 }
 
+async function hasServerKey(): Promise<boolean> {
+  try {
+    const { data } = await api.get<{ publicKey: string }>('/push/vapid-public-key/')
+    return Boolean(data.publicKey)
+  } catch {
+    // Tarmoq xatosi — serverda kalit yo'q deb hisoblamaymiz, oddiy
+    // "obuna bo'lmagan" holatda qoldiramiz va tugma ishlayveradi.
+    return true
+  }
+}
+
 export async function getPushState(): Promise<PushState> {
   if (!isPushSupported()) return 'unsupported'
   if (Notification.permission === 'denied') return 'denied'
+  // VAPID kaliti serverda sozlanmagan bo'lsa, "Push yoqish" qanday
+  // bosilsa ham xato beradi — shuni oldindan aytgan ma'qul. Tekshiruv
+  // `serviceWorker.ready`dan OLDIN: u ba'zi muhitlarda (masalan dev
+  // serverda SW ro'yxatdan o'tmaganda) umuman hal bo'lmaydi va holat
+  // aniqlanmay qolardi.
+  if (!(await hasServerKey())) return 'unconfigured'
   const reg = await navigator.serviceWorker.ready
   const sub = await reg.pushManager.getSubscription()
   return sub ? 'subscribed' : 'unsubscribed'
