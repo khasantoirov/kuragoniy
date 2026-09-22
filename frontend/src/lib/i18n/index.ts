@@ -52,6 +52,13 @@ const ru = {
   // 2-rejim: yon menyu bo'limlari va umumiy qidiruv
   'Asosiy': 'Основное', "O'quv jarayoni": 'Учебный процесс', 'Tizim': 'Система',
   'Sinflar kesimida': 'В разрезе классов',
+  // O'zlashtirish tahlili — maktab/sinf kesimi (MasteryBreakdown.tsx)
+  'Taqsimot': 'Распределение', 'Taqqoslash': 'Сравнение', 'Dinamika': 'Динамика',
+  'Baholangan': 'Оценено', 'Barcha maktablar': 'Все школы', 'Barcha sinflar': 'Все классы',
+  "Maktab ko'rsatilmagan": 'Школа не указана',
+  "Ma'lumot yetarli emas": 'Недостаточно данных',
+  'xil yozilgan': 'разных написания',
+  "Choraklik dinamika barcha choraklarni ko'rsatadi": 'Динамика по четвертям всегда показывает все четыре четверти',
   'Dars materiallari': 'Учебные материалы', 'Tizim va foydalanuvchilar': 'Система и пользователи',
   'Dars jadvali': 'Расписание уроков', 'Haftalik dars soati': 'Часов уроков в неделю',
   "Haftalik yuklama (kunlar bo'yicha)": 'Недельная нагрузка (по дням)',
@@ -612,6 +619,13 @@ const en = {
   // 2-rejim: yon menyu bo'limlari va umumiy qidiruv
   'Asosiy': 'Overview', "O'quv jarayoni": 'Teaching', 'Tizim': 'System',
   'Sinflar kesimida': 'By class',
+  // O'zlashtirish tahlili — maktab/sinf kesimi (MasteryBreakdown.tsx)
+  'Taqsimot': 'Distribution', 'Taqqoslash': 'Comparison', 'Dinamika': 'Trend',
+  'Baholangan': 'Graded', 'Barcha maktablar': 'All schools', 'Barcha sinflar': 'All classes',
+  "Maktab ko'rsatilmagan": 'No school specified',
+  "Ma'lumot yetarli emas": 'Not enough data',
+  'xil yozilgan': 'spellings',
+  "Choraklik dinamika barcha choraklarni ko'rsatadi": 'The quarterly trend always shows all four quarters',
   'Dars materiallari': 'Lesson content', 'Tizim va foydalanuvchilar': 'System and users',
   'Dars jadvali': 'Timetable', 'Haftalik dars soati': 'Lesson hours per week',
   "Haftalik yuklama (kunlar bo'yicha)": 'Weekly load (by day)',

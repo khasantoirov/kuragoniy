@@ -127,44 +127,6 @@ export function useDeleteClass() {
   })
 }
 
-interface AdminStatRow {
-  teacher: string
-  school: string
-  cls: string
-  students: number
-  days: number
-  avg: number | null
-  pct: number | null
-}
-
-export function useAdminStats(chorak: number | 'u') {
-  return useQuery({
-    queryKey: ['journal', 'admin-stats', chorak],
-    queryFn: async () => {
-      const users = (await api.get<Paginated<{ id: string; name: string; email: string; approved: boolean; role: string }>>('/accounts/users/')).data.results
-        .filter((u) => u.approved || u.role === 'admin')
-
-      const rows: AdminStatRow[] = []
-      for (const u of users) {
-        const classes = (await api.get<Paginated<JournalClass>>('/journal/classes/', { params: { teacher: u.id } })).data.results
-        for (const c of classes) {
-          const grid = (await api.get<Grid>(`/journal/classes/${c.id}/grid/`)).data
-          const days = chorak === 'u' ? grid.days : grid.days.filter((d) => d.chorak === chorak)
-          const { classAvg, pct } = computeGridStats(grid.students.length, days)
-          rows.push({ teacher: u.name || u.email, school: c.school || '—', cls: c.name || '—', students: grid.students.length, days: days.length, avg: classAvg, pct })
-        }
-      }
-      return rows
-    },
-  })
-}
-
-function computeGridStats(_studentCount: number, days: Grid['days']) {
-  const allMarks = days.flatMap((d) => Object.values(d.marks))
-  const classAvg = allMarks.length ? allMarks.reduce((a, b) => a + b, 0) / allMarks.length : null
-  return { classAvg, pct: classAvg === null ? null : Math.round((classAvg / 5) * 100) }
-}
-
 export function useSetFinal(classId: number) {
   const queryClient = useQueryClient()
   return useMutation({

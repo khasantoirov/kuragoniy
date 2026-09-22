@@ -71,7 +71,11 @@ export function bucketDays(days: GridDay[], period: PeriodType): Bucket[] {
   return [...buckets.values()].sort((a, b) => a.sortKey - b.sortKey)
 }
 
-export function bucketLabel(b: Bucket, lang: Lang): string {
+/** Widened from Bucket to just the fields it reads: the org/school/class
+ * mastery trend (features/statistics/masteryApi.ts) buckets server-side
+ * and has no `days`/`key`/`sortKey` to hand back — every existing caller
+ * (which does have a full Bucket) still satisfies this narrower type. */
+export function bucketLabel(b: Pick<Bucket, 'period' | 'year' | 'week' | 'month' | 'quarter'>, lang: Lang): string {
   if (b.period === 'week') {
     if (lang === 'ru') return `${b.week}-я неделя`
     if (lang === 'en') return `Week ${b.week}`

@@ -2,11 +2,9 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { BarChart } from '@/components/charts/BarChart'
-import { DonutChart } from '@/components/charts/DonutChart'
 import { StatCard } from '@/components/charts/StatCard'
 import { TrendLineChart } from '@/components/charts/TrendLineChart'
 import { Skeleton } from '@/components/Skeleton'
-import { AdminStatsTable } from '@/features/journal/AdminStatsTable'
 import { quarterLabel } from '@/features/journal/labels'
 import { gradeLabel, type Grade } from '@/features/lessons/labels'
 import { DAYS } from '@/features/timetable/types'
@@ -14,6 +12,7 @@ import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore } from '@/store/uiStore'
 
 import { useDashboardSummary } from './api'
+import { MasteryBreakdown } from './MasteryBreakdown'
 import type { DashboardChorak } from './types'
 
 const CATEGORICAL = ['var(--cat-1)', 'var(--cat-2)', 'var(--cat-3)', 'var(--cat-4)', 'var(--cat-5)']
@@ -42,14 +41,17 @@ const pctOf = (part: number, whole: number) => (whole > 0 ? (part / whole) * 100
 /** Platformaning yagona statistika sahifasi, mavzu bo'yicha to'rt mustaqil
  *  kartochkaga ajratilgan:
  *
- *   1. O'quv jarayoni — jurnal: sinflar, o'quvchilar, davomat, o'zlashtirish
+ *   1. O'quv jarayoni — jurnal: sinflar, o'quvchilar, davomat va
+ *      o'zlashtirish, MasteryBreakdown orqali umumiy / maktab / sinf
+ *      kesimida, uch shakldan (Taqsimot/Taqqoslash/Dinamika) birini
+ *      tanlab, doim ko'rinadigan raqamlar jadvali bilan birga.
  *   2. Dars jadvali — haftalik yuklama, kunlar bo'yicha
  *   3. Dars materiallari — darslar soni, hujjat va tarjima qamrovi
  *   4. Tizim va foydalanuvchilar — hisoblar, xavfsizlik, bildirishnomalar
  *
  *  Chorak tanlagichi ataylab birinchi kartochka ichida: backendda u faqat
- *  o'zlashtirish va davomatni filtrlaydi (dashboard/views.py'dagi
- *  _journal_section), qolgan ko'rsatkichlarga umuman ta'sir qilmaydi.
+ *  o'zlashtirish va davomatni filtrlaydi (dashboard/mastery.py orqali),
+ *  qolgan ko'rsatkichlarga umuman ta'sir qilmaydi.
  *
  *  Hech qanday o'sish/trend matni to'qib chiqarilmaydi — progress-bar faqat
  *  haqiqiy ulush bor joyda (davomat, hujjat/tarjima qamrovi, tasdiq
@@ -57,7 +59,10 @@ const pctOf = (part: number, whole: number) => (whole > 0 ? (part / whole) * 100
  *
  *  Ko'rish huquqi: o'qituvchi birinchi ikki kartochkani, faqat o'z sinflari
  *  va o'z jadvali bo'yicha ko'radi (backend shunday qaytaradi); admin
- *  hammasini butun tashkilot bo'yicha ko'radi. */
+ *  hammasini butun tashkilot bo'yicha ko'radi. MasteryBreakdown ham shu
+ *  chegarani /api/dashboard/mastery/ orqali qaytaradi, shuning uchun
+ *  admin bilan bir xil kartochka ichida, faqat 1-kartochka ichida
+ *  (`admin &&` bilan emas) hamma foydalanuvchi uchun ko'rinadi. */
 export function StatisticsPage() {
   const { t } = useTranslation()
   const { lang, viewMode } = useUIStore()
@@ -79,8 +84,7 @@ export function StatisticsPage() {
 
   if (isLoading || !data) return <Skeleton lines={4} />
 
-  const { journal, timetable } = data
-  const { mastery } = journal
+  const { timetable } = data
 
   return (
     <div className="stats">
@@ -109,57 +113,7 @@ export function StatisticsPage() {
           {t("Chorak tanlovi shu bo'limdagi o'zlashtirish va davomatga tegishli.")}
         </p>
 
-        <div className="dash__stats">
-          <StatCard
-            label={t('Sinflar')}
-            value={journal.total_classes}
-            hint={admin ? t("Barcha o'qituvchilar bo'yicha") : undefined}
-            icon="clipboard"
-          />
-          <StatCard
-            label={t("O'quvchilar")}
-            value={journal.total_students}
-            hint={t("Faol ro'yxat qatorlari — bitta o'quvchi bir necha sinfda alohida hisoblanishi mumkin")}
-            icon="users"
-          />
-          <StatCard
-            label={t('Davomat')}
-            value={journal.attendance_rate_pct !== null ? `${journal.attendance_rate_pct}%` : '—'}
-            icon="check2"
-            progressPct={journal.attendance_rate_pct}
-          />
-        </div>
-
-        <div className="dash__row">
-          <div className="dash__card">
-            <p className="dash__card-title">{t("O'zlashtirish")}</p>
-            <div className="mastery__snapshot">
-              <DonutChart
-                ariaLabel={`${t('Yaxshi')} ${mastery.good}, ${t("O'rtacha")} ${mastery.mid}, ${t('Past')} ${mastery.bad}`}
-                centerValue={mastery.class_pct !== null ? `${mastery.class_pct}%` : '—'}
-                centerLabel={t("O'zlashtirish")}
-                segments={[
-                  { key: 'good', label: t('Yaxshi'), value: mastery.good, color: 'var(--band-good)' },
-                  { key: 'mid', label: t("O'rtacha"), value: mastery.mid, color: 'var(--band-mid)' },
-                  { key: 'bad', label: t('Past'), value: mastery.bad, color: 'var(--band-bad)' },
-                ]}
-              />
-              <div className="mastery__kpis">
-                <div className="mastery__kpi mastery__kpi--good"><span>{t('Yaxshi')}</span><b>{mastery.good}</b></div>
-                <div className="mastery__kpi mastery__kpi--mid"><span>{t("O'rtacha")}</span><b>{mastery.mid}</b></div>
-                <div className="mastery__kpi mastery__kpi--bad"><span>{t('Past')}</span><b>{mastery.bad}</b></div>
-                <div className="mastery__kpi"><span>{t('Baholanmagan')}</span><b>{mastery.ungraded}</b></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {admin && (
-          <>
-            <p className="dash__card-title stats__sub">{t('Sinflar kesimida')}</p>
-            <AdminStatsTable chorak={chorak} />
-          </>
-        )}
+        <MasteryBreakdown chorak={chorak} />
       </section>
 
       {/* ── 2. Dars jadvali ───────────────────────────────── */}
