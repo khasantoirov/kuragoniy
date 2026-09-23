@@ -746,18 +746,35 @@ label.btn { display: inline-flex; align-items: center; }
 .xcard__tools { position: absolute; top: 12px; right: 12px; display: flex; gap: 5px; }
 .xcard__desc { margin: 0 0 12px; font-size: 14px; color: var(--ink-2); }
 
+/* Matn chapda, rasm o'ngda — galereyadagidek. Tor ekranda ustma-ust
+   tushadi (pastdagi @media). */
+.xcard__layout { display: flex; gap: 20px; align-items: flex-start; }
+.xcard__main { flex: 1 1 0%; min-width: 0; }
+.xcard__media { flex: 0 0 240px; width: 240px; }
+
 /* <button>, ilgari <a target="_blank">'ning o'rnida — rasm brauzerning
    yangi tabida emas, shu sahifadagi lightbox'da ochiladi (pastga qarang),
-   shuning uchun standart tugma ko'rinishi bekor qilinadi. */
+   shuning uchun standart tugma ko'rinishi bekor qilinadi. Balandligi
+   qat'iy, rasm esa object-fit:contain bilan — hech qachon qirqilmaydi,
+   butun-yaxlit ko'rinadi, ortiqcha joy --paper foni bilan to'ldiriladi. */
 .xcard__imgwrap {
-  display: block; width: 100%; margin-bottom: 12px; padding: 0; border: none;
-  background: none; text-align: left; cursor: zoom-in;
+  display: block; width: 100%; height: 200px; padding: 0; border: none;
+  background: none; text-align: left; cursor: zoom-in; border-radius: var(--r);
+  overflow: hidden;
 }
 .xcard__img {
-  display: block; width: 100%; max-height: 220px; object-fit: cover;
-  border: 1px solid var(--rule); border-radius: var(--r);
-  background: var(--paper);
+  display: block; width: 100%; height: 100%; object-fit: contain;
+  border: 1px solid var(--rule); border-radius: var(--r); box-sizing: border-box;
+  background: var(--paper); transition: border-color .12s ease;
 }
+.xcard__imgwrap:hover .xcard__img { border-color: var(--ink-3); }
+
+@media (max-width: 640px) {
+  .xcard__layout { flex-direction: column; }
+  .xcard__media { width: 100%; flex: none; }
+  .xcard__imgwrap { height: 180px; }
+}
+
 .xcard__video {
   display: inline-flex; align-items: center; gap: 6px;
   margin-bottom: 12px; padding: 6px 10px;
