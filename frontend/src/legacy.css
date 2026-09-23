@@ -2427,40 +2427,36 @@ img.stf__img { width: 54px; height: 54px; max-width: 54px; max-height: 54px; }
   backdrop-filter: blur(10px);
 }
 .gate__brand {
-  display: flex; align-items: center; gap: 16px;
+  display: flex; align-items: center; gap: 18px;
   padding: 30px 36px 22px;
   border-bottom: 1px solid var(--rule-2);
 }
-.gate__logo {
-  width: 66px; height: 66px; border-radius: 15px; flex: none;
+/* Faqat kirish/ro'yxatdan o'tish sahifasi header'i uchun — bare .gate__logo
+   PendingApprovalPage'da ham ishlatiladi (boshqa o'lcham bilan), shu sabab
+   kattalashtirish shu yerda .gate__brand ichida qamrab olinadi, umumiy
+   qoida tegilmaydi. */
+.gate__brand .gate__logo {
+  width: 84px; height: 84px; border-radius: 18px; flex: none;
   margin: 0; box-shadow: 0 8px 22px rgba(0,0,0,.22);
 }
-.gate__bx { display: flex; flex-direction: column; gap: 7px; min-width: 0; align-items: flex-start; }
 .gate__name {
-  font: 600 27px/1.15 var(--f-display); color: var(--ink);
+  font: 700 40px/1 var(--f-display); color: var(--ink);
   letter-spacing: -.01em;
 }
-/* align-self: cho'zilib ketmasligi uchun (flex-column'da stretch bekor qilinadi) */
-.gate__sign { display: block; height: 21px; width: auto; max-width: 100%; margin: 0; opacity: .95; filter: none; align-self: flex-start; }
-.gate__sign--night { display: none; }
-[data-theme="dark"] .gate__sign--day   { display: none; }
-[data-theme="dark"] .gate__sign--night { display: block; }
 .gate__forms { padding: 26px 36px 32px; background: transparent; }
 [data-theme="dark"] .gate__forms { background: transparent; }
 
 @media (max-width: 760px) {
-  .gate__brand { padding: 24px 22px 18px; gap: 13px; }
-  .gate__logo  { width: 56px; height: 56px; border-radius: 13px; }
-  .gate__name  { font-size: 22px; }
-  .gate__sign  { height: 18px; }
+  .gate__brand { padding: 24px 22px 18px; gap: 14px; }
+  .gate__brand .gate__logo { width: 68px; height: 68px; border-radius: 15px; }
+  .gate__name  { font-size: 32px; }
   .gate__forms { padding: 22px 22px 26px; }
 }
 
 @media (max-width: 520px) {
   .gate__brand { padding: 20px 16px 14px; gap: 12px; }
-  .gate__logo  { width: 52px; height: 52px; border-radius: 12px; }
-  .gate__name  { font-size: 18px; line-height: 1.2; }
-  .gate__sign  { height: 16px; }
+  .gate__brand .gate__logo { width: 58px; height: 58px; border-radius: 13px; }
+  .gate__name  { font-size: 26px; }
   .gate__forms { padding: 20px 16px 24px; }
 }
 
