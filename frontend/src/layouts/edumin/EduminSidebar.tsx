@@ -39,7 +39,7 @@ export function EduminSidebar({ items, onNav }: { items: EduminNavItem[]; onNav:
   return (
     <aside className="edside">
       <Link className="edside__brand" to="/" onClick={onNav}>
-        <img className="edside__logo" src="/logo.png" alt="KO'RAGONIY EDU" width={40} height={40} />
+        <img className="edside__logo" src="/logo.png" alt="KO'RAGONIY" width={56} height={56} />
         <BrandMark />
       </Link>
 

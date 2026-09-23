@@ -299,32 +299,19 @@
   min-height: 4.5rem; padding: 10px 28px;
   max-width: 1760px; margin: 0 auto;
 }
-/* ── Brend belgisi: yozuv + imzo (ikkalasi bir xil eni va bo'yida) ── */
+/* ── Brend belgisi: "KO'RAGONIY" yozuvi, logotip bilan bir xil
+   balandlikda, yonma-yon (BrandMark.tsx — endi imzosiz, oddiy matn). ── */
 [data-skin="r2"] .brandmark {
-  display: grid; gap: 5px; min-width: 0; flex: none;
+  display: block; min-width: 0; flex: none;
+  font: 800 26px/1 var(--f-display); letter-spacing: -.01em;
+  color: var(--ink); white-space: nowrap;
 }
-[data-skin="r2"] .brandmark__name {
-  display: block; width: 100%; height: auto; overflow: visible;
-}
-/* legacy.css imzoga qat'iy height/max-height beradi (.brand__sig — 20px, 22px,
-   17px, 12px turli joyda). Bu yerda balandlik rasm nisbatidan chiqishi kerak,
-   shuning uchun ularni bekor qilamiz — rasm cho'zilmasligining kafolati shu. */
-[data-skin="r2"] .brandmark .brand__sig {
-  display: block; width: 100%; height: auto; max-height: none;
-  margin: 0; opacity: 1;
-}
-[data-skin="r2"] .brandmark .brand__sig--night { display: none; }
-[data-skin="r2"][data-theme="dark"] .brandmark .brand__sig--day { display: none; }
-[data-skin="r2"][data-theme="dark"] .brandmark .brand__sig--night { display: block; }
 
 [data-skin="r2"] .edtop__brand {
   display: flex; align-items: center; gap: 10px;
   text-decoration: none; color: inherit; flex: none;
 }
 [data-skin="r2"] .edtop__logo { border-radius: 50%; flex: none; }
-/* Brend yozuvi + imzo — BrandMark.tsx. Eni shu yerda belgilanadi, bo'yi esa
-   ikkala element uchun ham rasm nisbatidan (1188x243) o'zi chiqadi. */
-[data-skin="r2"] .edtop__brand .brandmark { width: 118px; }
 [data-skin="r2"] .edtop__acts {
   display: flex; align-items: center; gap: 10px; margin-left: auto; flex: none;
 }
@@ -359,7 +346,7 @@
     text-decoration: none; color: inherit;
   }
   [data-skin="r2"] .edside__logo { border-radius: 50%; flex: none; }
-  [data-skin="r2"] .edside__brand .brandmark { width: 140px; }
+  [data-skin="r2"] .edside__brand .brandmark { font-size: 27px; }
 
   [data-skin="r2"] .edside__nav { display: flex; flex-direction: column; flex: 1; }
   [data-skin="r2"] .edside__sec { display: flex; flex-direction: column; gap: 3px; }

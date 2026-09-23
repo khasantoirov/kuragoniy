@@ -21,7 +21,7 @@ export function EduminTopbar({ barRef, onNav, children }: {
     <header className="edtop" ref={barRef}>
       <div className="edtop__inner">
         <Link className="edtop__brand" to="/" onClick={onNav}>
-          <img className="edtop__logo" src="/logo.png" alt="KO'RAGONIY EDU" width={38} height={38} />
+          <img className="edtop__logo" src="/logo.png" alt="KO'RAGONIY" width={44} height={44} />
           <BrandMark />
         </Link>
 
