@@ -750,7 +750,10 @@ label.btn { display: inline-flex; align-items: center; }
    tushadi (pastdagi @media). */
 .xcard__layout { display: flex; gap: 20px; align-items: flex-start; }
 .xcard__main { flex: 1 1 0%; min-width: 0; }
-.xcard__media { flex: 0 0 240px; width: 240px; }
+/* margin-top: .xcard__tools floats absolutely over the card's own
+   top-right corner (see below) — without this the image's top edge
+   sits right underneath the toolbar instead of below it. */
+.xcard__media { flex: 0 0 240px; width: 240px; margin-top: 40px; }
 
 /* <button>, ilgari <a target="_blank">'ning o'rnida — rasm brauzerning
    yangi tabida emas, shu sahifadagi lightbox'da ochiladi (pastga qarang),
@@ -771,7 +774,9 @@ label.btn { display: inline-flex; align-items: center; }
 
 @media (max-width: 640px) {
   .xcard__layout { flex-direction: column; }
-  .xcard__media { width: 100%; flex: none; }
+  /* Stacked below all the text now, not beside the toolbar — no
+     clearance needed here. */
+  .xcard__media { width: 100%; flex: none; margin-top: 0; }
   .xcard__imgwrap { height: 180px; }
 }
 
