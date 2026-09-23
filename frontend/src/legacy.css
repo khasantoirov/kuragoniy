@@ -705,7 +705,7 @@ label.btn { display: inline-flex; align-items: center; }
 .lhead__tools { display: flex; gap: 8px; margin-top: 14px; }
 
 /* ── Dars hujjati kartasi ─────────────────────────────────── */
-.docsec { margin-bottom: 26px; }
+.docsec, .tasksec { margin-bottom: 26px; }
 .doccard {
   display: flex; align-items: center; gap: 12px;
   background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r);
@@ -746,7 +746,13 @@ label.btn { display: inline-flex; align-items: center; }
 .xcard__tools { position: absolute; top: 12px; right: 12px; display: flex; gap: 5px; }
 .xcard__desc { margin: 0 0 12px; font-size: 14px; color: var(--ink-2); }
 
-.xcard__imgwrap { display: block; margin-bottom: 12px; }
+/* <button>, ilgari <a target="_blank">'ning o'rnida — rasm brauzerning
+   yangi tabida emas, shu sahifadagi lightbox'da ochiladi (pastga qarang),
+   shuning uchun standart tugma ko'rinishi bekor qilinadi. */
+.xcard__imgwrap {
+  display: block; width: 100%; margin-bottom: 12px; padding: 0; border: none;
+  background: none; text-align: left; cursor: zoom-in;
+}
 .xcard__img {
   display: block; width: 100%; max-height: 220px; object-fit: cover;
   border: 1px solid var(--rule); border-radius: var(--r);
@@ -1408,6 +1414,28 @@ tr.is-absent .table__name { color: var(--mark); text-decoration: line-through; o
   display: flex; justify-content: flex-end; gap: 8px;
   padding: 14px 18px; border-top: 1px solid var(--rule);
 }
+
+/* ── Rasmni kattalashtirib ko'rish (ImageLightbox.tsx) ──────
+   .overlay/.modal'dan yuqori z-index — kelajakda modal ichidan ham
+   ochilishi mumkin bo'lgani uchun. */
+.lightbox {
+  position: fixed; inset: 0; z-index: 1100;
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px; background: rgba(10,14,20,.88);
+  cursor: zoom-out; animation: fade .16s ease-out;
+}
+.lightbox__img {
+  max-width: 100%; max-height: 100%; cursor: default;
+  border-radius: var(--r); box-shadow: 0 24px 70px rgba(0,0,0,.5);
+}
+.lightbox__close {
+  position: fixed; top: 18px; right: 18px; z-index: 1;
+  width: 40px; height: 40px; border-radius: 50%; border: none;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.14); color: #fff; cursor: pointer;
+}
+.lightbox__close:hover { background: rgba(255,255,255,.26); }
+.lightbox__close .svic { width: 20px; height: 20px; }
 
 /* ── Bo'sh holat, skelet, xabar ──────────────────────────── */
 .empty { padding: 46px 20px; text-align: center; }

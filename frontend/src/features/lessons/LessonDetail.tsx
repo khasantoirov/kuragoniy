@@ -1,5 +1,3 @@
-import { closestCenter, DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
-import { rectSortingStrategy, SortableContext, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
@@ -50,18 +48,16 @@ export function LessonDetail() {
   const pending = !lesson?.translated_at || new Date(lesson.translated_at) < new Date(lesson.updated_at)
   useTranslationSocket(pending ? lessonId : null)
 
-  // Must run unconditionally (before the early returns below) — hooks
-  // can't be called only on some renders, and isLoading/!lesson both
-  // change across renders of the same mounted component.
-  const expSensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 6 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  )
-
   if (!id || Number.isNaN(lessonId)) return <Navigate to="/lessons" replace />
   if (isLoading) return <Skeleton lines={5} />
   if (!lesson) return <Navigate to="/lessons" replace />
+
+  // Har bir darsda bittadan amaliy topshiriq bo'ladi — bu ro'yxat emas,
+  // shuning uchun har doim faqat birinchisi (yoki hech biri) ko'rsatiladi.
+  // `experiments` massiv sifatida qolishi backend modeliga mos (Experiment
+  // — Lesson'ga FK), lekin UI endi buni ko'p elementli ro'yxat sifatida
+  // taqdim etmaydi.
+  const task = lesson.experiments[0] ?? null
 
   const saveExperiments = async (experiments: Experiment[], label?: string) => {
     const before = lesson.experiments
@@ -81,26 +77,8 @@ export function LessonDetail() {
   }
 
   const onDeleteExp = async (exp: Experiment) => {
-    if (!(await confirm({ title: t("Tajribani o'chirish"), text: `"${exp.name}" ${t("o'chiriladi.")}`, danger: true }))) return
-    await saveExperiments(lesson.experiments.filter((e) => e.id !== exp.id), t("Tajriba o'chirildi"))
-  }
-
-  const onExpDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over || String(over.id) === String(active.id)) return
-    const fromId = Number(String(active.id).replace('exp-', ''))
-    const toId = Number(String(over.id).replace('exp-', ''))
-    const fromIndex = lesson.experiments.findIndex((e) => e.id === fromId)
-    const toIndex = lesson.experiments.findIndex((e) => e.id === toId)
-    if (fromIndex < 0 || toIndex < 0) return
-
-    const reordered = [...lesson.experiments]
-    const [moved] = reordered.splice(fromIndex, 1)
-    reordered.splice(toIndex, 0, moved)
-    saveExperiments(
-      reordered.map((e, i) => ({ ...e, order: i })),
-      t("Tajriba tartibi o'zgartirildi"),
-    )
+    if (!(await confirm({ title: t("Amaliy topshiriqni o'chirish"), text: `"${exp.name}" ${t("o'chiriladi.")}`, danger: true }))) return
+    await saveExperiments(lesson.experiments.filter((e) => e.id !== exp.id), t("Amaliy topshiriq o'chirildi"))
   }
 
   const onMoveCopyExp = async (target: Lesson) => {
@@ -121,11 +99,11 @@ export function LessonDetail() {
     try {
       await apply(targetAfter, sourceAfter)
       record(
-        isMove ? t("Tajriba ko'chirildi") : t('Tajriba nusxalandi'),
+        isMove ? t("Amaliy topshiriq ko'chirildi") : t('Amaliy topshiriq nusxalandi'),
         async () => apply(targetBefore, sourceBefore),
         async () => apply(targetAfter, sourceAfter),
       )
-      toast(isMove ? t("Tajriba ko'chirildi") : t('Tajriba nusxalandi'))
+      toast(isMove ? t("Amaliy topshiriq ko'chirildi") : t('Amaliy topshiriq nusxalandi'))
     } catch {
       toast(t('Saqlashda xatolik'), 'error')
     }
@@ -174,7 +152,7 @@ export function LessonDetail() {
   }
 
   const onDeleteLesson = async () => {
-    if (!(await confirm({ title: t("Darsni o'chirish"), text: `"${lesson.title}" ${t("va undagi barcha tajribalar o'chiriladi.")}`, danger: true }))) return
+    if (!(await confirm({ title: t("Darsni o'chirish"), text: `"${lesson.title}" ${t("va undagi amaliy topshiriq o'chiriladi.")}`, danger: true }))) return
     await del.mutateAsync(lesson.id)
     // Undo recreates the lesson under a fresh id (REST create can't reuse
     // the deleted one), so redo must delete THAT new id, not the original.
@@ -227,41 +205,28 @@ export function LessonDetail() {
 
       <LessonDocCard lesson={lesson} admin={admin} onDelete={onDeleteDoc} />
 
-      <div className="quarter__head">
-        <h3 className="quarter__title">{t('Tajribalar')}</h3>
-        <span className="quarter__count">{lesson.experiments.length} ta</span>
-        <span className="qwave" aria-hidden="true" />
-        {admin && (
-          <button className="btn btn--sm btn--primary" onClick={() => setEditingExp('new')}>
-            {t('+ Tajriba')}
-          </button>
+      <section className="tasksec">
+        <h3 className="panel__title">{t('Amaliy topshiriq')}</h3>
+        {task ? (
+          <ExperimentCard
+            exp={task}
+            admin={admin}
+            onEdit={() => setEditingExp(task)}
+            onDelete={() => onDeleteExp(task)}
+            onCopy={() => setMovingExp({ exp: task, mode: 'copy' })}
+            onMove={() => setMovingExp({ exp: task, mode: 'move' })}
+          />
+        ) : (
+          <>
+            <p className="prose">{t('Bu darsga hali amaliy topshiriq kiritilmagan.')}</p>
+            {admin && (
+              <button className="btn btn--sm btn--primary" onClick={() => setEditingExp('new')}>
+                {t("+ Amaliy topshiriq qo'shish")}
+              </button>
+            )}
+          </>
         )}
-      </div>
-
-      {lesson.experiments.length ? (
-        <DndContext sensors={expSensors} collisionDetection={closestCenter} onDragEnd={onExpDragEnd}>
-          <SortableContext items={lesson.experiments.map((e) => `exp-${e.id}`)} strategy={rectSortingStrategy}>
-            <div className="xgrid">
-              {lesson.experiments.map((e, i) => (
-                <ExperimentCard
-                  key={e.id ?? i}
-                  exp={e}
-                  admin={admin}
-                  canDrag={admin && lesson.experiments.length > 1}
-                  onEdit={() => setEditingExp(e)}
-                  onDelete={() => onDeleteExp(e)}
-                  onCopy={() => setMovingExp({ exp: e, mode: 'copy' })}
-                  onMove={() => setMovingExp({ exp: e, mode: 'move' })}
-                />
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
-      ) : (
-        <div className="xgrid">
-          <p className="prose">{t('Bu darsga hali tajriba kiritilmagan.')}</p>
-        </div>
-      )}
+      </section>
 
       {editingLesson && <LessonEditor lesson={lesson} onClose={() => setEditingLesson(false)} />}
 
@@ -295,7 +260,7 @@ export function LessonDetail() {
               editingExp === 'new'
                 ? [...lesson.experiments, { ...exp, order: lesson.experiments.length }]
                 : lesson.experiments.map((e) => (e.id === (editingExp as Experiment).id ? { ...exp, id: e.id } : e))
-            await saveExperiments(next, editingExp === 'new' ? t("Tajriba qo'shildi") : t('Tajriba tahrirlandi'))
+            await saveExperiments(next, editingExp === 'new' ? t("Amaliy topshiriq qo'shildi") : t('Amaliy topshiriq tahrirlandi'))
             setEditingExp(null)
           }}
         />

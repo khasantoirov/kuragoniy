@@ -157,7 +157,7 @@ export function ImportLessonsModal({ onClose }: { onClose: () => void }) {
     >
       <div className="imstat">
         <div className="imstat__row"><span>{t('Darslar')}</span><b>{parsed.rows.length}</b></div>
-        <div className="imstat__row"><span>{t('Tajribalar')}</span><b>{totalExperiments(parsed.rows)}</b></div>
+        <div className="imstat__row"><span>{t('Amaliy topshiriqlar')}</span><b>{totalExperiments(parsed.rows)}</b></div>
         {Object.keys(byGrade).sort().map((g) => (
           <div key={g} className="imstat__row"><span>{gradeLabel(g as Grade, lang)}</span><b>{byGrade[g]}</b></div>
         ))}
@@ -174,7 +174,10 @@ export function ImportLessonsModal({ onClose }: { onClose: () => void }) {
         {parsed.rows.slice(0, 5).map((l, i) => (
           <li key={i}>
             <b>{l.title}</b>
-            <span>{gradeLabel(l.grade, lang)} · {quarterLabel(l.chorak, lang)} · {l.experiments.length} {t('ta tajriba')}</span>
+            <span>
+              {gradeLabel(l.grade, lang)} · {quarterLabel(l.chorak, lang)} ·{' '}
+              {l.experiments.length > 0 ? t('Amaliy topshiriq bor') : t("Amaliy topshiriq yo'q")}
+            </span>
           </li>
         ))}
       </ul>

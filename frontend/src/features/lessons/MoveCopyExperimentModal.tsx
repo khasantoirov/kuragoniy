@@ -32,8 +32,11 @@ export function MoveCopyExperimentModal({
   // truncate to the first page and drop grade 9 entirely.
   const { data, isLoading } = useLessons({ grade })
 
+  // Har bir darsda bittadan amaliy topshiriq bo'lishi kerak — allaqachon
+  // o'zining topshirig'i bor darsga yana bittasini ko'chirish/nusxalash
+  // shu qoidani buzardi, shuning uchun ular ro'yxatdan chiqarib tashlanadi.
   const others = (data ?? [])
-    .filter((l) => l.id !== sourceLesson.id)
+    .filter((l) => l.id !== sourceLesson.id && l.experiments.length === 0)
     .sort((a, b) => a.chorak - b.chorak || (a.hafta || 99) - (b.hafta || 99))
 
   const [targetId, setTargetId] = useState<number | ''>('')
@@ -54,7 +57,7 @@ export function MoveCopyExperimentModal({
 
   return (
     <Modal
-      title={isMove ? t("Tajribani ko'chirish") : t('Tajribani nusxalash')}
+      title={isMove ? t("Amaliy topshiriqni ko'chirish") : t('Amaliy topshiriqni nusxalash')}
       onClose={onClose}
       footer={
         isLoading || others.length ? (
@@ -70,7 +73,7 @@ export function MoveCopyExperimentModal({
       }
     >
       <p className="prose prose--note">
-        "{exp.name}" {isMove ? t("tajribasi qaysi darsga ko'chirilsin?") : t('tajribasi qaysi darsga nusxalansin?')}
+        "{exp.name}" — {isMove ? t("bu amaliy topshiriqni qaysi darsga ko'chiramiz?") : t('bu amaliy topshiriqni qaysi darsga nusxalaymiz?')}
       </p>
       <div className="row row--2">
         <label className="field">

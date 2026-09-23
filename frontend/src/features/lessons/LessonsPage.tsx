@@ -133,7 +133,7 @@ export function LessonsPage() {
             className="search__input"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={t("Mavzu yoki tajriba bo'yicha qidirish…")}
+            placeholder={t("Mavzu yoki amaliy topshiriq bo'yicha qidirish…")}
             autoComplete="off"
           />
           {query && (
@@ -325,14 +325,14 @@ function LessonCard({ lesson, onOpen, canDrag = false }: { lesson: Lesson; onOpe
         {lesson.file_url && <span className="card__file" title={t('Dars fayli biriktirilgan')}>{IC.file}</span>}
       </h4>
       {lesson.goal && <p className="card__goal">{lesson.goal}</p>}
-      {lesson.experiments.length ? (
+      {/* Har bir darsda bittadan amaliy topshiriq bo'ladi — ro'yxat emas,
+          shuning uchun bor-yo'g'i shu bitta qatorcha ko'rsatiladi. */}
+      {lesson.experiments[0] ? (
         <ul className="exps">
-          {lesson.experiments.map((e, i) => (
-            <ExperimentRow key={i} exp={e} />
-          ))}
+          <ExperimentRow exp={lesson.experiments[0]} />
         </ul>
       ) : (
-        <p className="card__none">{t('Tajriba kiritilmagan')}</p>
+        <p className="card__none">{t('Amaliy topshiriq kiritilmagan')}</p>
       )}
     </article>
   )
@@ -370,7 +370,9 @@ function LessonRow({ lesson, onOpen, canDrag = false }: { lesson: Lesson; onOpen
         {lesson.title}
         {lesson.file_url && <span className="lrow__file" title={t('Dars fayli biriktirilgan')}>{IC.file}</span>}
       </h4>
-      <span className="lrow__x">{lesson.experiments.length} {t('ta tajriba')}</span>
+      <span className="lrow__x">
+        {lesson.experiments.length > 0 ? t('Amaliy topshiriq bor') : t("Amaliy topshiriq yo'q")}
+      </span>
     </article>
   )
 }

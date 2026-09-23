@@ -1,16 +1,17 @@
-import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import type { CSSProperties } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { ImageLightbox } from '@/components/ImageLightbox'
 import { IC } from '@/icons'
 
 import type { Experiment } from './types'
 
+/** The lesson's one practical task — not a repeatable, reorderable list
+ * item (a lesson has exactly one, see LessonDetail.tsx), so this renders
+ * as a single standalone panel with no drag handle and no sibling grid. */
 export function ExperimentCard({
   exp,
   admin,
-  canDrag = false,
   onEdit,
   onDelete,
   onCopy,
@@ -18,38 +19,18 @@ export function ExperimentCard({
 }: {
   exp: Experiment
   admin: boolean
-  canDrag?: boolean
   onEdit: () => void
   onDelete: () => void
   onCopy: () => void
   onMove: () => void
 }) {
   const { t } = useTranslation()
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: `exp-${exp.id}`,
-    disabled: !canDrag,
-  })
-  const style: CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  }
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
   return (
-    <article ref={setNodeRef} style={style} className="xcard">
+    <article className="xcard">
       <div className="xcard__head">
         <div className="xcard__meta">
-          {canDrag && (
-            <button
-              type="button"
-              className="xcard__grip"
-              aria-label={t("Ko'chirish uchun ushlab torting")}
-              {...attributes}
-              {...listeners}
-            >
-              {IC.grip}
-            </button>
-          )}
           {exp.minutes ? <span className="xcard__min">{exp.minutes} {t('daqiqa')}</span> : null}
           {admin && (
             <span className="xcard__tools">
@@ -118,9 +99,22 @@ export function ExperimentCard({
       )}
 
       {exp.image && (
-        <a className="xcard__imgwrap" href={exp.image} target="_blank" rel="noreferrer">
-          <img className="xcard__img" src={exp.image} alt={exp.name} loading="lazy" />
-        </a>
+        <>
+          {/* Miniatura shu yerda doim ko'rinib turadi (galereyadagidek) —
+              bosilganda esa to'liq o'lchamda lightbox'da ochiladi, yangi
+              brauzer tabida emas. */}
+          <button
+            type="button"
+            className="xcard__imgwrap"
+            onClick={() => setLightboxOpen(true)}
+            aria-label={t("Rasmni kattalashtirib ko'rish")}
+          >
+            <img className="xcard__img" src={exp.image} alt={exp.name} loading="lazy" />
+          </button>
+          {lightboxOpen && (
+            <ImageLightbox src={exp.image} alt={exp.name} onClose={() => setLightboxOpen(false)} />
+          )}
+        </>
       )}
 
       {exp.video && (

@@ -149,7 +149,7 @@ export function StatisticsPage() {
           <h3 className="panel__title">{t('Dars materiallari')}</h3>
           <div className="dash__stats">
             <StatCard label={t('Jami darslar')} value={data.lessons.total} icon="file" />
-            <StatCard label={t('Tajribalar')} value={data.lessons.experiments_total} icon="flask" />
+            <StatCard label={t('Amaliy topshiriqlar')} value={data.lessons.experiments_total} icon="flask" />
             <StatCard
               label={t('Hujjat biriktirilgan')}
               value={`${data.lessons.with_document} / ${data.lessons.total}`}

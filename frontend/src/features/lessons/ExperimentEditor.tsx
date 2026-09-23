@@ -42,7 +42,7 @@ export function ExperimentEditor({
 
   const submit = async () => {
     if (!draft.name.trim()) {
-      toast(t('Tajriba nomini kiriting'), 'error')
+      toast(t('Amaliy topshiriq nomini kiriting'), 'error')
       return
     }
     setBusy(true)
@@ -55,7 +55,7 @@ export function ExperimentEditor({
         image: toUrl(draft.image ?? ''),
         video: toUrl(draft.video ?? ''),
       })
-      toast(isNew ? t("Tajriba qo'shildi") : t('Tajriba saqlandi'))
+      toast(isNew ? t("Amaliy topshiriq qo'shildi") : t('Amaliy topshiriq saqlandi'))
     } finally {
       setBusy(false)
     }
@@ -63,7 +63,7 @@ export function ExperimentEditor({
 
   return (
     <Modal
-      title={isNew ? t('Yangi tajriba') : t('Tajribani tahrirlash')}
+      title={isNew ? t('Yangi amaliy topshiriq') : t('Amaliy topshiriqni tahrirlash')}
       onClose={onClose}
       footer={
         <>
@@ -75,7 +75,7 @@ export function ExperimentEditor({
       }
     >
       <label className="field">
-        <span className="field__label">{t('Tajriba nomi')}</span>
+        <span className="field__label">{t('Amaliy topshiriq nomi')}</span>
         <input className="input" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder={t("Masalan: Chizg'ich orqali reaksiya vaqti")} />
       </label>
 
@@ -86,7 +86,7 @@ export function ExperimentEditor({
 
       <label className="field">
         <span className="field__label">{t('Tavsif')} <span className="field__opt">({t("nima ko'rsatiladi")})</span></span>
-        <textarea className="input" rows={2} value={draft.desc} onChange={(e) => setDraft({ ...draft, desc: e.target.value })} placeholder={t('Tajribaning mohiyati va kutilayotgan natija')} />
+        <textarea className="input" rows={2} value={draft.desc} onChange={(e) => setDraft({ ...draft, desc: e.target.value })} placeholder={t('Amaliy topshiriqning mohiyati va kutilayotgan natija')} />
       </label>
 
       <label className="field">
