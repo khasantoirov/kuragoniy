@@ -301,18 +301,6 @@ textarea.input { resize: vertical; }
 .card--add:hover { border-color: var(--ink-3); color: var(--ink); }
 .card--add__plus { font-size: 22px; font-family: var(--f-mono); }
 
-/* ── Chorak qulfi (admin) ────────────────────────────────── */
-.qlock {
-  display: inline-flex; align-items: center; gap: 6px; flex: none;
-  font: 600 11px/1 var(--f-mono); letter-spacing: .03em;
-  padding: 6px 10px; border-radius: 999px;
-  border: 1px solid var(--rule); background: var(--surface); color: var(--ink-3);
-  cursor: pointer;
-}
-.qlock .svic { width: 13px; height: 13px; }
-.qlock--open { color: #1a8a4a; border-color: rgba(26,138,74,.35); background: rgba(26,138,74,.07); }
-[data-theme="dark"] .qlock--open { color: #5fd696; border-color: rgba(95,214,150,.35); background: rgba(95,214,150,.1); }
-
 .qlocked {
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   padding: 34px 20px; text-align: center; color: var(--ink-3);
@@ -529,6 +517,27 @@ label.btn { display: inline-flex; align-items: center; }
 .acct__pop--up { top: auto; right: auto; left: 0; bottom: calc(100% + 7px); }
 
 .panel__acts { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ── Choraklarni o'qituvchilarga ochish/yopish (admin) ──────── */
+.qtoggles__label { font: 600 12px/1 var(--f-mono); color: var(--ink-3); letter-spacing: .03em; margin: 18px 0 6px; }
+.qtoggles { display: flex; flex-direction: column; border: 1px solid var(--rule); border-radius: var(--r); overflow: hidden; }
+.qtoggle-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 14px; border-bottom: 1px solid var(--rule); background: var(--surface);
+}
+.qtoggle-row:last-child { border-bottom: none; }
+.qtoggle-row__name { font: 600 13.5px/1.3 var(--f-display); color: var(--ink); }
+.qswitch {
+  position: relative; flex: none; width: 42px; height: 24px; padding: 0;
+  border: none; border-radius: 999px; background: var(--ink-3); cursor: pointer;
+  transition: background-color .15s ease;
+}
+.qswitch__dot {
+  position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .15s ease;
+}
+.qswitch.is-on { background: var(--band-good); }
+.qswitch.is-on .qswitch__dot { transform: translateX(18px); }
 
 /* ══ Yon menyu (sidebar) — keng ekranlarda asosiy navigatsiya ══ */
 .sidebar { display: none; }

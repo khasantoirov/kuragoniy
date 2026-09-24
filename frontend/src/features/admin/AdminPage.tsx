@@ -9,6 +9,8 @@ import { RoleBadge } from '@/components/RoleBadge'
 import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
 import { useCreateAnnouncement } from '@/features/announcements/api'
+import { useQuarterLocks, useSetQuarterLock } from '@/features/lessons/api'
+import { quarterLabel } from '@/features/lessons/labels'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import type { Paginated, User } from '@/lib/api/types'
@@ -170,7 +172,7 @@ function AnnounceModal({ onClose }: { onClose: () => void }) {
 export function AdminPage() {
   const { t } = useTranslation()
   const { user: me } = useAuth()
-  const { viewMode } = useUIStore()
+  const { viewMode, lang } = useUIStore()
   const admin = isAdminInView(me, viewMode)
   const toast = useToast()
   const confirm = useConfirm()
@@ -179,6 +181,8 @@ export function AdminPage() {
   const [importingLessons, setImportingLessons] = useState(false)
   const [importingTranslations, setImportingTranslations] = useState(false)
   const [newPassword, setNewPassword] = useState<{ email: string; password: string } | null>(null)
+  const { data: locks } = useQuarterLocks()
+  const setLock = useSetQuarterLock()
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'users'],
@@ -278,6 +282,28 @@ export function AdminPage() {
               <button className="btn" onClick={exportLessons}>{IC.download} {t('Darslarni eksport (JSON)')}</button>
               <button className="btn" onClick={() => setImportingTranslations(true)}>{IC.upload} {t('Tarjimalarni import qilish')}</button>
               <button className="btn" onClick={() => setAnnouncing(true)}>{IC.megaphone} {t("E'lon yuborish")}</button>
+            </div>
+
+            <p className="qtoggles__label">{t("Choraklarni o'qituvchilarga ochish")}</p>
+            <div className="qtoggles">
+              {([1, 2, 3, 4] as const).map((ch) => {
+                const isOpen = !!locks?.[String(ch) as '1' | '2' | '3' | '4']
+                return (
+                  <div className="qtoggle-row" key={ch}>
+                    <span className="qtoggle-row__name">{quarterLabel(ch, lang)}</span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={isOpen}
+                      className={`qswitch ${isOpen ? 'is-on' : ''}`}
+                      onClick={() => setLock.mutate({ chorak: ch, is_open: !isOpen })}
+                      title={isOpen ? t("O'qituvchilar uchun yopish") : t("O'qituvchilar uchun ochish")}
+                    >
+                      <span className="qswitch__dot" />
+                    </button>
+                  </div>
+                )
+              })}
             </div>
           </section>
 

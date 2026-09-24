@@ -28,7 +28,7 @@ import { IC } from '@/icons'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { type Lang, useUIStore } from '@/store/uiStore'
 
-import { useLessons, useQuarterLocks, useReorderLesson, useSetQuarterLock } from './api'
+import { useLessons, useQuarterLocks, useReorderLesson } from './api'
 import { ExperimentRow } from './ExperimentRow'
 import { LessonEditor } from './LessonEditor'
 import { gradeLabel, lessonLabel, quarterLabel } from './labels'
@@ -48,7 +48,6 @@ export function LessonsPage() {
   const admin = isAdminInView(user, appViewMode)
   const { data, isLoading } = useLessons({ grade })
   const { data: locks, isLoading: locksLoading } = useQuarterLocks()
-  const setLock = useSetQuarterLock()
   const reorder = useReorderLesson()
 
   const [query, setQuery] = useState('')
@@ -194,8 +193,6 @@ export function LessonsPage() {
                 viewMode={viewMode}
                 lang={lang}
                 locked={lockedForMe}
-                isOpen={isOpen}
-                onToggleLock={() => setLock.mutate({ chorak: ch, is_open: !isOpen })}
                 onOpen={(l) => navigate(`/lessons/${l.id}`)}
                 onAdd={() => setCreatingForQuarter(ch)}
               />
@@ -220,8 +217,6 @@ function QuarterSection({
   viewMode,
   lang,
   locked,
-  isOpen,
-  onToggleLock,
   onOpen,
   onAdd,
 }: {
@@ -233,8 +228,6 @@ function QuarterSection({
   viewMode: ViewMode
   lang: Lang
   locked: boolean
-  isOpen: boolean
-  onToggleLock: () => void
   onOpen: (lesson: Lesson) => void
   onAdd: () => void
 }) {
@@ -248,17 +241,6 @@ function QuarterSection({
         <span className="qwave" aria-hidden="true" />
         <h3 className="quarter__title">{quarterLabel(ch, lang)}</h3>
         <span className="quarter__count">{rows.length} {t('ta dars')}</span>
-        {admin && (
-          <button
-            type="button"
-            className={`qlock ${isOpen ? 'qlock--open' : ''}`}
-            onClick={onToggleLock}
-            title={isOpen ? t("O'qituvchilar uchun yopish") : t("O'qituvchilar uchun ochish")}
-          >
-            {isOpen ? IC.unlock : IC.lock}
-            {isOpen ? t('Ochiq') : t('Yopiq')}
-          </button>
-        )}
         <span className="qwave" aria-hidden="true" />
       </div>
 
