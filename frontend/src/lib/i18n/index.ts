@@ -142,6 +142,7 @@ const ru = {
   // Umumiy
   'Saqlash': 'Сохранить', 'Bekor qilish': 'Отмена', 'Yopish': 'Закрыть',
   'Yangi versiya tayyor': 'Доступна новая версия', 'Yangilash': 'Обновить',
+  'Davom etish uchun sahifani yangilang.': 'Обновите страницу, чтобы продолжить.',
   "Qo'shish": 'Добавить', "O'chirish": 'Удалить', 'Tahrirlash': 'Редактировать',
   'Ochiq': 'Открыто', 'Yopiq': 'Закрыто',
   "O'qituvchilar uchun ochish": 'Открыть для учителей', "O'qituvchilar uchun yopish": 'Закрыть для учителей',
@@ -715,6 +716,7 @@ const en = {
   'Server tomonda sozlanmagan': 'Not configured on the server',
   'Saqlash': 'Save', 'Bekor qilish': 'Cancel', 'Yopish': 'Close',
   'Yangi versiya tayyor': 'A new version is available', 'Yangilash': 'Update',
+  'Davom etish uchun sahifani yangilang.': 'Refresh the page to continue.',
   "Qo'shish": 'Add', "O'chirish": 'Delete', 'Tahrirlash': 'Edit',
   'Ochiq': 'Open', 'Yopiq': 'Closed',
   "O'qituvchilar uchun ochish": 'Open for teachers', "O'qituvchilar uchun yopish": 'Close for teachers',

@@ -6,7 +6,10 @@ import { IC } from '@/icons'
 
 interface Props {
   title: string
-  onClose: () => void
+  // Omit entirely for a modal the user cannot dismiss except through its
+  // own footer actions (e.g. a forced app-update prompt) — no close
+  // button is rendered when this is left out.
+  onClose?: () => void
   children: ReactNode
   footer?: ReactNode
 }
@@ -37,9 +40,11 @@ export function Modal({ title, onClose, children, footer }: Props) {
       <div className="modal">
         <div className="modal__head">
           <h2 className="modal__title">{title}</h2>
-          <button className="icon-btn" onClick={onClose} aria-label={t('Yopish')}>
-            {IC.close}
-          </button>
+          {onClose && (
+            <button className="icon-btn" onClick={onClose} aria-label={t('Yopish')}>
+              {IC.close}
+            </button>
+          )}
         </div>
         <div className="modal__body">{children}</div>
         {footer && <div className="modal__foot">{footer}</div>}

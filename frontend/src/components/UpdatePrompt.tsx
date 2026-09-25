@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { registerSW } from 'virtual:pwa-register'
 
+import { Modal } from './Modal'
+
 /**
  * Own the whole service-worker registration/update lifecycle and — this is
  * the part that used to be missing — never reload the page on its own.
@@ -11,9 +13,10 @@ import { registerSW } from 'virtual:pwa-register'
  * That's exactly wrong for a mid-edit users: someone writing an
  * announcement or filling in a lesson form loses everything unsaved the
  * instant a deploy happens to land in the background (this app deploys
- * often). Instead: detect the update, show a small dismissible banner, and
- * only reload when the user explicitly clicks it — after they've had a
- * chance to save their work.
+ * often). Instead: detect the update, and show a centered, undismissable
+ * prompt — no close button, no backdrop/Escape dismissal (`Modal`'s own
+ * behaviour) — so the user notices and updates deliberately rather than
+ * the reload happening silently behind their back.
  */
 export function UpdatePrompt() {
   const { t } = useTranslation()
@@ -45,16 +48,15 @@ export function UpdatePrompt() {
   if (!ready) return null
 
   return (
-    <div className="update-banner">
-      <span>{t('Yangi versiya tayyor')}</span>
-      <div className="update-banner__acts">
-        <button type="button" className="btn btn--sm btn--primary" onClick={() => window.location.reload()}>
+    <Modal
+      title={t('Yangi versiya tayyor')}
+      footer={
+        <button type="button" className="btn btn--primary" onClick={() => window.location.reload()}>
           {t('Yangilash')}
         </button>
-        <button type="button" className="update-banner__x" aria-label={t('Yopish')} onClick={() => setReady(false)}>
-          ×
-        </button>
-      </div>
-    </div>
+      }
+    >
+      <p className="prose prose--note">{t('Davom etish uchun sahifani yangilang.')}</p>
+    </Modal>
   )
 }
