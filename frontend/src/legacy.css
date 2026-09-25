@@ -1573,24 +1573,27 @@ tr.is-absent .table__name { color: var(--mark); text-decoration: line-through; o
 .toast.is-in { opacity: 1; transform: none; }
 .toast--error { background: var(--mark); }
 
-/* ── Yangi versiya banneri ───────────────────────────────── */
-.update-banner {
-  position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
-  z-index: 200; display: flex; align-items: center; gap: 14px;
-  padding: 10px 12px 10px 16px; border-radius: 999px;
-  background: var(--surface); color: var(--ink);
-  border: 1px solid var(--rule); box-shadow: 0 10px 30px rgba(18,33,46,.2);
-  font: 500 13.5px/1 var(--f-body); max-width: calc(100vw - 24px);
+/* ── Yangi versiya oynasi ────────────────────────────────── */
+.modal--narrow { width: min(420px, 100%); }
+.update-modal { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; padding: 6px 4px; }
+.update-modal__icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 56px; height: 56px; border-radius: 50%; flex: none;
+  background: var(--pick); color: #fff;
 }
-.update-banner__acts { display: flex; align-items: center; gap: 4px; }
-.update-banner__x {
-  border: 0; background: none; cursor: pointer; color: var(--ink-3);
-  font-size: 20px; line-height: 1; padding: 4px 6px; border-radius: 8px;
+.update-modal__icon .svic { width: 26px; height: 26px; }
+.update-modal__text { margin: 0; color: var(--ink-2); font-size: 14px; line-height: 1.55; max-width: 34ch; }
+.update-modal__cta { width: 100%; justify-content: center; }
+/* `[data-theme="dark"] .btn` (below) flattens every button to a muted,
+   input-like surface for dark mode — right for most buttons, wrong for
+   the one action on this dialog, which needs to read as an obvious,
+   inviting call to action rather than blend in. Extra `.btn` in the
+   selector (not just `.update-modal__cta`) matches that rule's own
+   specificity so this wins regardless of source order. */
+[data-theme="dark"] .btn.update-modal__cta {
+  background: var(--pick); border-color: var(--pick); color: #fff;
 }
-.update-banner__x:hover { background: var(--rule-2); color: var(--ink); }
-@media (max-width: 900px) {
-  .update-banner { bottom: calc(88px + env(safe-area-inset-bottom)); }
-}
+[data-theme="dark"] .btn.update-modal__cta:hover { background: var(--pick-2); border-color: var(--pick-2); }
 
 /* ── Telefon ─────────────────────────────────────────────── */
 @media (max-width: 760px) {

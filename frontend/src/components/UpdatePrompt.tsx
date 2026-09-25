@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { registerSW } from 'virtual:pwa-register'
 
+import { IC } from '@/icons'
+
 import { Modal } from './Modal'
 
 /**
@@ -50,13 +52,19 @@ export function UpdatePrompt() {
   return (
     <Modal
       title={t('Yangi versiya tayyor')}
+      narrow
       footer={
-        <button type="button" className="btn btn--primary" onClick={() => window.location.reload()}>
+        <button type="button" className="btn btn--primary update-modal__cta" onClick={() => window.location.reload()}>
           {t('Yangilash')}
         </button>
       }
     >
-      <p className="prose prose--note">{t('Davom etish uchun sahifani yangilang.')}</p>
+      <div className="update-modal">
+        <span className="update-modal__icon">{IC.download}</span>
+        <p className="update-modal__text">
+          {t('Ilovaning yangilangan versiyasi mavjud. Davom etish uchun sahifani yangilang.')}
+        </p>
+      </div>
     </Modal>
   )
 }

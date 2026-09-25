@@ -12,6 +12,10 @@ interface Props {
   onClose?: () => void
   children: ReactNode
   footer?: ReactNode
+  // A compact, alert-style width (~420px) instead of the default form
+  // width — for short, single-message dialogs (e.g. the update prompt)
+  // where the usual 620px reads as mostly empty space.
+  narrow?: boolean
 }
 
 // Tracks how many Modals are currently mounted, so the app-wide "Escape
@@ -24,7 +28,7 @@ export function isAnyModalOpen() {
   return openModalCount > 0
 }
 
-export function Modal({ title, onClose, children, footer }: Props) {
+export function Modal({ title, onClose, children, footer, narrow }: Props) {
   const { t } = useTranslation()
   useEffect(() => {
     openModalCount++
@@ -37,7 +41,7 @@ export function Modal({ title, onClose, children, footer }: Props) {
 
   return createPortal(
     <div className="overlay is-open">
-      <div className="modal">
+      <div className={`modal ${narrow ? 'modal--narrow' : ''}`}>
         <div className="modal__head">
           <h2 className="modal__title">{title}</h2>
           {onClose && (
