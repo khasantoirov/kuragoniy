@@ -193,27 +193,84 @@ function downloadFilename(item: LibraryItem): string {
   return ext ? `${item.title}.${ext}` : item.title
 }
 
+// Purely decorative — a fixed, rotating set of cover gradients so cards
+// read as a "shelf" at a glance, the same idea as Drive/Notion's per-item
+// colors. Not a data encoding (no chart, no category meaning), so the
+// dataviz palette rules don't apply — the only real constraint is that
+// white cover text stays readable, which is a contrast check, not a
+// colorblind-separation one.
+const COVER_GRADIENTS = [
+  'linear-gradient(135deg, #4338CA 0%, #1E1B4B 100%)',
+  'linear-gradient(135deg, #E11D48 0%, #7F1D1D 100%)',
+  'linear-gradient(135deg, #DB2777 0%, #831843 100%)',
+  'linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)',
+  'linear-gradient(135deg, #EA580C 0%, #7C2D12 100%)',
+  'linear-gradient(135deg, #9333EA 0%, #581C87 100%)',
+]
+
+function formatSize(bytes?: number | null): string {
+  if (!bytes) return ''
+  const kb = bytes / 1024
+  if (kb < 1024) return `${kb.toFixed(1)} KB`
+  return `${(kb / 1024).toFixed(1)} MB`
+}
+
+function fileExt(name?: string | null): string {
+  return (name ?? '').toUpperCase().split('.').pop() ?? ''
+}
+
 function LibraryCard({ item, admin, onEdit, onDelete }: { item: LibraryItem; admin: boolean; onEdit: () => void; onDelete: () => void }) {
   const { t } = useTranslation()
   const { lang } = useUIStore()
+  const ext = fileExt(item.file_name)
+  const size = formatSize(item.file_size)
+  const year = new Date(item.updated_at).getFullYear()
+  const gradient = COVER_GRADIENTS[item.id % COVER_GRADIENTS.length]
+  const gradeText = item.grade ? libraryGradeLabel(item.grade, lang) : t(KIND_LABELS[item.kind])
+  const openHref = item.file || item.url
+
   return (
-    <article className="lbcard">
-      <a className="lbcard__main" href={item.file || item.url} target="_blank" rel="noopener noreferrer">
-        <span className="lbcard__ic">{KIND_ICONS[item.kind]}</span>
-        <span className="lbcard__body">
-          <span className="lbcard__title">{item.title}</span>
-          <span className="lbcard__meta">{t(KIND_LABELS[item.kind])}{item.grade ? ' · ' + libraryGradeLabel(item.grade, lang) : ''}</span>
-          {item.note && <span className="lbcard__note">{item.note}</span>}
-        </span>
-        <span className="lbcard__go" aria-hidden="true">{IC.external}</span>
-      </a>
-      {(item.file || admin) && (
-        <div className="lbcard__tools">
-          {item.file && (
-            <a className="icon-btn" title={t('Yuklab olish')} href={item.file} download={downloadFilename(item)}>
-              {IC.download}
+    <article className="bkcard">
+      <div className="bkcard__cover" style={{ background: gradient }}>
+        <div className="bkcard__top">
+          <span className="bkcard__badge">{gradeText}</span>
+          {ext && (
+            <span className="bkcard__badge bkcard__badge--type">
+              <span className="bkcard__dot" aria-hidden="true" />
+              {ext}
+            </span>
+          )}
+        </div>
+        <div className="bkcard__mid">
+          {item.grade ? <span className="bkcard__num">{item.grade}</span> : null}
+          <span className="bkcard__subject">{item.title}</span>
+        </div>
+        <div className="bkcard__bottom">
+          <span className="bkcard__year">{IC.book} {year}</span>
+          {size && <span className="bkcard__size">{size}</span>}
+        </div>
+      </div>
+
+      <div className="bkcard__body">
+        <div className="bkcard__chips">
+          <span className="bkcard__chip">{gradeText}</span>
+          {size && <span>· {size}</span>}
+        </div>
+        <p className="bkcard__title">{item.title}</p>
+        <div className="bkcard__divider" />
+        <div className="bkcard__acts">
+          {item.file ? (
+            <a className="btn btn--primary bkcard__dl" href={item.file} download={downloadFilename(item)}>
+              {IC.download} {t('Yuklab olish')}
+            </a>
+          ) : (
+            <a className="btn btn--primary bkcard__dl" href={item.url} target="_blank" rel="noopener noreferrer">
+              {IC.external} {t('Ochish')}
             </a>
           )}
+          <a className="icon-btn" title={t("Ko'rish")} href={openHref} target="_blank" rel="noopener noreferrer">
+            {IC.eye}
+          </a>
           {admin && (
             <>
               <button className="icon-btn" title={t('Tahrirlash')} onClick={onEdit}>{IC.edit}</button>
@@ -221,7 +278,7 @@ function LibraryCard({ item, admin, onEdit, onDelete }: { item: LibraryItem; adm
             </>
           )}
         </div>
-      )}
+      </div>
     </article>
   )
 }

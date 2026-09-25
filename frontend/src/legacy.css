@@ -849,6 +849,54 @@ label.btn { display: inline-flex; align-items: center; }
   padding: 0 14px 12px;
 }
 
+/* ── Kutubxona: muqovali kitob kartochkasi ───────────────── */
+.bkcard {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--rule);
+  border-radius: var(--r); box-shadow: var(--shadow);
+  transition: transform .15s, box-shadow .15s;
+}
+.bkcard:hover { transform: translateY(-2px); }
+
+.bkcard__cover {
+  position: relative; min-height: 210px; padding: 16px; color: #fff;
+  display: grid; grid-template-rows: auto 1fr auto; gap: 10px;
+}
+.bkcard__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bkcard__badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 999px;
+  font: 600 11px/1 var(--f-mono); letter-spacing: .02em;
+  background: rgba(255,255,255,.22);
+}
+.bkcard__badge--type { background: rgba(0,0,0,.3); }
+.bkcard__dot { width: 6px; height: 6px; border-radius: 50%; background: #4ADE80; flex: none; }
+
+.bkcard__mid {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; gap: 2px; min-width: 0;
+}
+.bkcard__num { font: 800 52px/1 var(--f-display); }
+.bkcard__subject {
+  font: 700 12.5px/1.35 var(--f-display); letter-spacing: .03em; text-transform: uppercase;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.bkcard__bottom {
+  display: flex; align-items: center; justify-content: space-between;
+  font: 500 11.5px/1 var(--f-mono); color: rgba(255,255,255,.85);
+}
+.bkcard__year { display: inline-flex; align-items: center; gap: 5px; }
+.bkcard__year .svic { width: 13px; height: 13px; }
+
+.bkcard__body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 8px; }
+.bkcard__chips { display: flex; align-items: center; gap: 6px; font: 500 12px/1 var(--f-mono); color: var(--ink-3); }
+.bkcard__chip { padding: 2px 9px; border-radius: 999px; background: var(--rule-2); color: var(--ink-2); font: 600 11px/1 var(--f-mono); }
+.bkcard__title { margin: 0; font: 700 15px/1.35 var(--f-display); color: var(--ink); }
+.bkcard__divider { height: 1px; background: var(--rule-2); margin: 2px 0; }
+.bkcard__acts { display: flex; align-items: center; gap: 8px; }
+.bkcard__dl { flex: 1; justify-content: center; }
+
 /* ── Taqvim sozlash ──────────────────────────────────────── */
 .qrow {
   display: grid; grid-template-columns: 28px 1fr 1fr; gap: 10px;
