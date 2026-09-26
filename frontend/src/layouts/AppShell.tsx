@@ -26,8 +26,8 @@ const NAV_ITEMS: { to: string; label: string; icon: keyof typeof IC; adminOnly?:
   { to: '/library', label: 'Kutubxona', icon: 'book' },
   { to: '/settings', label: 'Sozlamalar', icon: 'gear' },
   { to: '/about', label: 'Platforma haqida', icon: 'info' },
-  { to: '/statistics', label: 'Statistika', icon: 'chart' },
-  { to: '/admin', label: 'Boshqaruv', icon: 'settings' },
+  { to: '/statistics', label: 'Statistika', icon: 'chart', adminOnly: true },
+  { to: '/admin', label: 'Boshqaruv', icon: 'settings', adminOnly: true },
 ]
 
 export function AppShell() {
