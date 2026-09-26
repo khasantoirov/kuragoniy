@@ -271,7 +271,7 @@
   border-color: var(--rule);
   box-shadow: 0 1rem 3rem rgba(0,0,0,.55);
 }
-[data-skin="r2"] .gate__logo { border-radius: 50%; box-shadow: 0 .5rem 1rem rgba(106,115,250,.25); }
+[data-skin="r2"] .gate__logo { box-shadow: 0 .5rem 1rem rgba(106,115,250,.25); }
 [data-skin="r2"] .gate__panel { border-radius: 1rem; box-shadow: 0 1rem 3rem rgba(0,0,0,.175); }
 [data-skin="r2"] .gate__mark {
   background: linear-gradient(165deg, #6A73FA 0%, #5D66EC 55%, #4C55D8 100%) !important;
@@ -311,7 +311,7 @@
   display: flex; align-items: center; gap: 10px;
   text-decoration: none; color: inherit; flex: none;
 }
-[data-skin="r2"] .edtop__logo { border-radius: 50%; flex: none; }
+[data-skin="r2"] .edtop__logo { border-radius: 10px; flex: none; }
 [data-skin="r2"] .edtop__acts {
   display: flex; align-items: center; gap: 10px; margin-left: auto; flex: none;
 }
@@ -345,7 +345,7 @@
     border-bottom: 1px solid var(--rule); flex: none;
     text-decoration: none; color: inherit;
   }
-  [data-skin="r2"] .edside__logo { border-radius: 50%; flex: none; }
+  [data-skin="r2"] .edside__logo { border-radius: 13px; flex: none; }
   [data-skin="r2"] .edside__brand .brandmark { font-size: 27px; }
 
   [data-skin="r2"] .edside__nav { display: flex; flex-direction: column; flex: 1; }
@@ -547,7 +547,7 @@
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 [data-skin="r2"] .abhero__sub { color: var(--ink-2); }
-[data-skin="r2"] .abhero__credit-av { background: transparent; border-radius: 50%; }
+[data-skin="r2"] .abhero__credit-av { background: transparent; }
 [data-skin="r2"] .abhero__credit-role { color: var(--ink-3); }
 [data-skin="r2"] .abhero__credit-name { color: var(--ink); }
 [data-skin="r2"] .abhero__social-link {
