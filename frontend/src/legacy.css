@@ -1218,6 +1218,11 @@ tr.is-absent .table__name { color: var(--mark); text-decoration: line-through; o
 @media (max-width: 640px) {
   .abtrack { flex-direction: column; align-items: flex-start; gap: 4px; }
   .abtrack__grade, .abtrack__name { min-width: 0; }
+  /* `flex: 1 1 240px`'s 240px basis means "preferred width" in the
+     desktop row layout above, but the same value becomes "preferred
+     HEIGHT" once flex-direction flips to column here — without this
+     reset every row got a ~240px tall empty gap under its own text. */
+  .abtrack__desc { flex: none; width: 100%; }
 }
 
 .abfeat { margin-bottom: 22px; }
@@ -1247,6 +1252,13 @@ tr.is-absent .table__name { color: var(--mark); text-decoration: line-through; o
   .abhero__body { max-width: none; }
   .abhero__eyebrow, .abhero__credit { justify-content: center; }
   .abhero__title { font-size: 26px; }
+  /* `.abhero__side` (logo + social links) stays a fixed-gap row by
+     default — fine next to the wide desktop body, but wider than any
+     phone screen on its own. Stack it so the logo sits above a
+     full-width social column instead of overflowing sideways. */
+  .abhero__side { flex-direction: column; width: 100%; }
+  .abhero__social { width: 100%; }
+  .abhero__social-link { width: 100%; }
 }
 
 
