@@ -1741,9 +1741,16 @@ img.pf__av   { width: 72px; height: 72px; max-width: 72px; max-height: 72px; bor
 /* "Barcha o'qituvchilar" table: the teacher-name header row stays visible
    below the topbar while scrolling down the page (--topbar-h is kept in
    sync with the topbar's real height by AppShell). The corner cell sticks
-   on both axes since it's also the left-sticky Kun/Soat column head. */
-.tt--wide .tt__h { position: sticky; top: var(--topbar-h); z-index: 4; }
-.tt--wide .tt__corner { top: var(--topbar-h); z-index: 6; }
+   on both axes since it's also the left-sticky Kun/Soat column head.
+   On narrow screens ScaleToFit shrinks this table with its own nested
+   `zoom`, which — stacked on top of the page's own zoom — shrinks this
+   `top` offset too, landing the header above the topbar's real bottom
+   edge instead of flush against it. Dividing back out by --shrink-scale
+   (set by ScaleToFit on its wrapper, 1 everywhere else) cancels that
+   extra factor so the header always rests at the same true on-screen
+   position regardless of whether the shrink is active. */
+.tt--wide .tt__h { position: sticky; top: calc(var(--topbar-h) / var(--shrink-scale, 1)); z-index: 4; }
+.tt--wide .tt__corner { top: calc(var(--topbar-h) / var(--shrink-scale, 1)); z-index: 6; }
 
 .tt__h--d0 { background: #1B4F8C; } .tt__h--d1 { background: #1B6E5F; }
 .tt__h--d2 { background: #A8762A; } .tt__h--d3 { background: #B3372B; }
@@ -1765,6 +1772,12 @@ img.pf__av   { width: 72px; height: 72px; max-width: 72px; max-height: 72px; bor
 [data-theme="dark"] .tt__c--free { background: rgba(79,179,155,.07); }
 
 .tt__rowday th.tt__day { vertical-align: top; }
+
+/* Har bir kun guruhi orasida qalinroq ajratuvchi chiziq — "Barcha
+   o'qituvchilar" jadvalida kunlar qator-guruhlari sifatida chiqadi
+   (haftaning bir kuni = bir nechta qator), oddiy 1px katak chizig'i
+   ular orasini yetarlicha ajratmaydi. */
+.tt__rowday > th, .tt__rowday > td { border-top: 3px solid var(--ink-3); }
 
 /* ══ Jurnal jadvali ═══════════════════════════════════════ */
 .jhead { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; }

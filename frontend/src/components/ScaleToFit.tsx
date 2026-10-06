@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 
 /**
  * Shrinks content to fit a container narrower than its known natural width
@@ -24,6 +24,13 @@ import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
  * TimetablePage.tsx). `zoom` shrinks the real layout box, so the parent
  * naturally sizes to the shrunk content with no reserve/clip trick
  * needed, and there's no `overflow: hidden` ancestor left to break sticky.
+ *
+ * `--shrink-scale` exposes this zoom factor to CSS: a sticky element in
+ * here sits inside both this zoom AND the page's own body zoom, so its
+ * `top` offset (meant to clear the fixed-height topbar) gets shrunk by
+ * this factor too and lands too high, poking up behind the topbar instead
+ * of flush below it. legacy.css divides the offset back out by this
+ * variable (falling back to 1 outside this wrapper) to compensate.
  */
 export function ScaleToFit({ naturalWidth, children }: { naturalWidth: number; children: ReactNode }) {
   const outerRef = useRef<HTMLDivElement>(null)
@@ -50,7 +57,10 @@ export function ScaleToFit({ naturalWidth, children }: { naturalWidth: number; c
 
   return (
     <div ref={outerRef}>
-      <div className="scale-to-fit__inner" style={{ width: naturalWidth, zoom: scale }}>
+      <div
+        className="scale-to-fit__inner"
+        style={{ width: naturalWidth, zoom: scale, ['--shrink-scale' as string]: scale } as CSSProperties}
+      >
         {children}
       </div>
     </div>
