@@ -153,9 +153,9 @@ function MineView({ modeBar }: { modeBar: React.ReactNode }) {
 
   const onMoveSlot = async (slot: TimetableSlot, target: { day_index: number; period_index: number }) => {
     if (target.day_index === slot.day_index && target.period_index === slot.period_index) return
-    const moved = { ...slot, day_index: target.day_index, period_index: target.period_index }
     const targetKey = key(target.day_index, target.period_index)
-    if (byKey.get(targetKey)) {
+    const existingTarget = byKey.get(targetKey)
+    if (existingTarget) {
       const ok = await confirm({
         title: t('Katak band'),
         text: t("Tanlangan katakda boshqa dars bor. Uni almashtirib, ko'chirishni davom ettirasizmi?"),
@@ -163,9 +163,29 @@ function MineView({ modeBar }: { modeBar: React.ReactNode }) {
       })
       if (!ok) return
     }
+    // Time belongs to the cell's own position (day+period), not to
+    // whichever lesson currently sits in it — moving content elsewhere
+    // must never drag the old cell's time along, and must never
+    // overwrite the destination cell's own time.
+    const moved: TimetableSlot = {
+      ...slot,
+      day_index: target.day_index,
+      period_index: target.period_index,
+      time_from: existingTarget?.time_from ?? null,
+      time_to: existingTarget?.time_to ?? null,
+    }
     const next = new Map(byKey)
     for (let i = 1; i < spanOf(slot, slot.period_index); i++) next.delete(key(slot.day_index, slot.period_index + i))
-    next.delete(key(slot.day_index, slot.period_index))
+    // Clear the source cell's content but keep its own time in place —
+    // same "a time-only cell isn't empty" rule isEmpty() already applies
+    // everywhere else, so the vacated cell doesn't lose its time just
+    // because its lesson moved out.
+    const sourceKey = key(slot.day_index, slot.period_index)
+    if (slot.time_from || slot.time_to) {
+      next.set(sourceKey, { ...emptySlot(slot.day_index, slot.period_index), time_from: slot.time_from, time_to: slot.time_to })
+    } else {
+      next.delete(sourceKey)
+    }
     for (let i = 1; i < spanOf(moved, target.period_index); i++) next.delete(key(target.day_index, target.period_index + i))
     next.set(targetKey, moved)
     await persist(next, `${slotLabel(slot)} → ${slotLabel(moved)}`)
