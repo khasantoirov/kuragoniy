@@ -288,3 +288,11 @@ def test_assignment_visible_only_to_its_class(as_user, teacher, journal_class, m
     a = Assignment.objects.create(teacher=teacher, journal_class=journal_class, lesson=lesson, title="Faqat 8-A")
     assert as_user(outsider).post(f"/api/student/assignments/{a.id}/start/").status_code == 404
     assert all(row["id"] != a.id for row in as_user(outsider).get("/api/student/assignments/").data)
+
+
+def test_material_list_and_user_search(as_user, admin, lesson, student):
+    rows = as_user(admin).get("/api/learning/materials/", {"grade": 8}).data
+    row = next(r for r in rows if r["lesson"] == lesson.id)
+    assert row["is_published"] and row["question_counts"]["student"] == 2 and row["question_counts"]["teacher"] == 1
+    found = as_user(admin).get("/api/accounts/users/", {"role": "student", "q": "aliyev"}).data["results"]
+    assert [u["id"] for u in found] == [student.id]

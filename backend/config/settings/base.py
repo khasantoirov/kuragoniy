@@ -172,16 +172,18 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
     ),
+    # Per-IP limits stay loose on purpose: a whole school logs in from
+    # behind one NAT address, and mobile carriers put thousands of pupils
+    # behind shared CGNAT addresses. Per-account lockout (accounts/views.py)
+    # is what actually stops password guessing.
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '120/min',
+        'anon': '600/min',
         'user': '600/min',
-        # A whole class logs in at once from behind one school NAT
-        # address — per-account lockout is what stops guessing.
-        'login': '40/min',
+        'login': '120/min',
         'register': '5/hour',
-        'student_register': '60/hour',
-        'password_reset': '10/hour',
-        'password_reset_confirm': '30/hour',
+        'student_register': '200/hour',
+        'password_reset': '30/hour',
+        'password_reset_confirm': '60/hour',
         'game_answer': '120/min',
     },
     # None = trust X-Forwarded-For as-is (dev, no proxy). prod.py sets 1:

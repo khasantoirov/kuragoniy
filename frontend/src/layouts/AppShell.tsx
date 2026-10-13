@@ -9,12 +9,13 @@ import { useToast } from '@/components/Toast'
 import { AnnouncementsBell } from '@/features/announcements/AnnouncementsBell'
 import { GRADES, gradeLabel } from '@/features/lessons/labels'
 import { IC, themeIconMoon, themeIconSun } from '@/icons'
-import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
+import { isAdminInView, isObserver, useAuth } from '@/lib/auth/AuthContext'
 import { setupEnterKeyNav } from '@/lib/enterKeyNav'
 import { redoLast, undoLast } from '@/lib/history'
 import { useUIStore } from '@/store/uiStore'
 
 import { BottomNav } from './BottomNav'
+import { OBSERVER_HIDDEN, portalNavItems } from './portalNav'
 import { EduminSidebar } from './edumin/EduminSidebar'
 import { EduminTopbar } from './edumin/EduminTopbar'
 
@@ -120,7 +121,10 @@ export function AppShell() {
 
   const onLessons = location.pathname.startsWith('/lessons')
 
-  const visibleNavItems = NAV_ITEMS.filter((item) => !item.adminOnly || isAdminInView(user, viewMode))
+  const visibleNavItems = [
+    ...NAV_ITEMS.filter((item) => (!item.adminOnly || isAdminInView(user, viewMode)) && !(isObserver(user) && OBSERVER_HIDDEN.has(item.to))),
+    ...portalNavItems(user, viewMode),
+  ]
 
   const acctPop = (align: 'up' | 'down') => (
     <div className="acct">

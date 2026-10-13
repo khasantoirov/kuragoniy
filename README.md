@@ -19,13 +19,20 @@ backend/    — Django loyihasi (API + Channels + Telegram bot)
   timetable/      — haftalik jadval
   library/        — resurslar kutubxonasi
   announcements/  — e'lonlar + real-time push
-  telegrambot/    — bot (aiogram) + backup tizimi
+  learning/       — o'quvchi portali: sinf kodi, o'quvchi hisoblari, dars materiallari
+                    (nazariya/formula/video), savollar banki, vazifalar, natijalar,
+                    o'qituvchi tayyorgarligi, dars hisobotlari, rag'batlar, tahlil
+  games/          — jonli viktorina (Channels) + mini-o'yinlar reytingi
+  shop/           — do'kon: dars ishlanmalari, tajribalar, buyurtma va to'lov
+  common/         — ruxsatlar, rolga asoslangan JWT tekshiruvi, audit jurnali
+  telegrambot/    — bot (aiogram) + backup tizimi (shifrlash bilan)
   realtime/       — Channels consumerlari
-  tests/          — pytest — rol/ruxsat matritsasi
+  tests/          — pytest — rol/ruxsat matritsasi, xavfsizlik, portallar
 
 frontend/   — React + TypeScript (Vite)
   src/features/   — har bo'lim uchun alohida papka (lessons, journal, lab, ...)
-  src/features/lab/sims.ts — meros bo'lib qolgan fizika simulyatsiyalari (qarang: yuqoridagi izoh)
+  src/features/student/  — o'quvchi oynasi (/s), alohida lazy chunk
+  src/features/teacher/  — o'qituvchi asboblari; manage/ — ma'muriyat; shop/, games/
 
 deploy/     — systemd unit fayllari, nginx config
 ```

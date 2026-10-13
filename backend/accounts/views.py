@@ -585,6 +585,9 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
                 qs = qs.exclude(role=User.Role.STUDENT)
         elif not user.is_admin:
             qs = qs.exclude(role=User.Role.STUDENT)
+        q = (self.request.query_params.get('q') or '').strip()
+        if q:
+            qs = qs.filter(Q(name__icontains=q) | Q(username__icontains=q) | Q(email__icontains=q))
         return qs
 
     def get_serializer_class(self):

@@ -14,7 +14,7 @@ export function AuthLayout() {
   const { t } = useTranslation()
   const { pathname } = useLocation()
   const { lang, setLang, theme, toggleTheme } = useUIStore()
-  const isReg = pathname === '/register'
+  const isReg = pathname === '/register' || pathname === '/join'
 
   return (
     <div className="gate">

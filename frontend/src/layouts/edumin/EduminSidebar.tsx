@@ -17,6 +17,8 @@ export interface EduminNavItem {
 const GROUPS: { title: string; paths: string[] }[] = [
   { title: 'Asosiy', paths: ['/'] },
   { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/library'] },
+  { title: "Sinf va o'quvchilar", paths: ['/students', '/assignments', '/readiness', '/reports', '/results', '/games', '/shop'] },
+  { title: "Ma'muriyat", paths: ['/manage', '/manage/reports', '/manage/awards', '/manage/materials', '/manage/shop', '/manage/security'] },
   { title: 'Tizim', paths: ['/statistics', '/admin', '/settings', '/about'] },
 ]
 
@@ -51,7 +53,7 @@ export function EduminSidebar({ items, onNav }: { items: EduminNavItem[]; onNav:
               <NavLink
                 key={item.to}
                 to={item.to}
-                end={item.to === '/'}
+                end={item.to === '/' || item.to === '/manage'}
                 className={({ isActive }) => `edside__item ${isActive ? 'is-on' : ''}`}
                 onClick={onNav}
               >

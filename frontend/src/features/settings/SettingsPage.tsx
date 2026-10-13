@@ -4,11 +4,13 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/components/Toast'
+import { LogoutEverywhereButton, TelegramLinkBox } from '@/features/portal/AccountSecurity'
+import { ProfileCard } from '@/features/profile/ProfileCard'
 import { IC, themeIconMoon, themeIconSun } from '@/icons'
 import { api } from '@/lib/api/client'
+import type { User } from '@/lib/api/types'
 import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
 import { TELEGRAM_BOT_USERNAME } from '@/lib/config'
-import { ProfileCard } from '@/features/profile/ProfileCard'
 import { NavRail, type RailItem } from '@/layouts/NavRail'
 import { NAV_STYLES } from '@/layouts/navStyles'
 import { useUIStore, type Lang, type Theme, type ViewMode } from '@/store/uiStore'
@@ -29,7 +31,7 @@ const PREVIEW_LABELS: [keyof typeof IC, string][] = [
 
 export function SettingsPage() {
   const { t } = useTranslation()
-  const { user, refreshMe } = useAuth()
+  const { user, refreshMe, applySession } = useAuth()
   const { lang, setLang, theme, setTheme, navStyle, setNavStyle, viewMode, setViewMode } = useUIStore()
   const toast = useToast()
   const realAdmin = isAdmin(user ?? null)
@@ -53,25 +55,6 @@ export function SettingsPage() {
   const previewItems: RailItem[] = PREVIEW_LABELS.map(([icon, label]) => ({ to: label, icon: IC[icon], label: t(label) }))
   const previewActive = previewItems[2].to
 
-  const connectTelegram = () => {
-    if (!TELEGRAM_BOT_USERNAME) {
-      toast(t('Bot hali sozlanmagan'), 'error')
-      return
-    }
-    window.open(`https://t.me/${TELEGRAM_BOT_USERNAME}?start=${user?.id}`, '_blank', 'noopener')
-    toast(t("Botda 'Start' bosing. So'ng bu oynani yopib qayta oching."))
-  }
-
-  const disconnectTelegram = async () => {
-    try {
-      await api.patch('/accounts/me/', { telegram_linked: false, telegram_chat_id: null, telegram_username: '' })
-      await refreshMe()
-      toast(t('Telegram uzildi'))
-    } catch (err) {
-      toast(`${t('Xatolik: ')}${err instanceof Error ? err.message : ''}`, 'error')
-    }
-  }
-
   const closePwForm = () => {
     setPwOpen(false)
     setCurPw('')
@@ -86,8 +69,11 @@ export function SettingsPage() {
     if (newPw !== newPw2) return toast(t('Parollar mos kelmadi'), 'error')
     setPwBusy(true)
     try {
-      await api.post('/accounts/me/change-password/', { current_password: curPw, new_password: newPw })
-      toast(t('Parol yangilandi.'))
+      // Every other session of the account is revoked by this call — the
+      // response carries this tab's fresh session.
+      const res = await api.post<{ access: string; user: User }>('/accounts/me/change-password/', { current_password: curPw, new_password: newPw })
+      applySession(res.data.access, res.data.user)
+      toast(t('Parol yangilandi. Boshqa qurilmalardagi sessiyalar yopildi.'))
       closePwForm()
     } catch (err) {
       toast(t(errDetail(err) ?? "Amalni bajarib bo'lmadi"), 'error')
@@ -205,21 +191,16 @@ export function SettingsPage() {
 
       <div className="panel">
         <h3 className="panel__title">{t('Telegram')}</h3>
-        {user?.telegram_linked ? (
-          <div className="tgbox tgbox--on">
-            <span>✅ {t('Ulangan')} {user.telegram_username ? `(@${user.telegram_username})` : ''} — {t("e'lonlar Telegramga keladi")}</span>
-            <button type="button" className="btn btn--sm btn--ghost" onClick={disconnectTelegram}>{t('Uzish')}</button>
-          </div>
-        ) : (
-          <div className="tgbox">
-            <span>{t("E'lonlarni Telegramda ham olish uchun hisobingizni ulang.")}</span>
-            <button type="button" className="btn btn--sm" onClick={connectTelegram}>{t('Telegramni ulash')}</button>
-          </div>
-        )}
+        <TelegramLinkBox />
       </div>
 
       <div className="panel">
         <h3 className="panel__title">{t('Hisob xavfsizligi')}</h3>
+
+        <div className="settings__sub">
+          <h4 className="settings__subtitle">{t('Sessiyalar')}</h4>
+          <LogoutEverywhereButton />
+        </div>
 
         <div className="settings__sub">
           <h4 className="settings__subtitle">{t("Parolni o'zgartirish")}</h4>

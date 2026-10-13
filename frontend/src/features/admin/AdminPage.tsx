@@ -20,7 +20,7 @@ import { useUIStore } from '@/store/uiStore'
 import { ImportLessonsModal } from './ImportLessonsModal'
 import { ImportTranslationsModal } from './ImportTranslationsModal'
 
-const rank = (u: User) => (u.is_dev_superuser ? 0 : u.role === 'admin' || u.role === 'boshliq' ? 1 : 2)
+const rank = (u: User) => (u.is_dev_superuser ? 0 : u.role === 'admin' || u.role === 'boshliq' || u.role === 'kuzatuvchi' ? 1 : 2)
 
 // Static reference only — not derived from the actual permission code, so
 // keep it in sync by hand when accounts/models.py's is_admin or a
@@ -57,6 +57,24 @@ const ROLE_CAPABILITIES: { user: Pick<User, 'is_dev_superuser' | 'role'>; label:
       "Admin bilan bir xil barcha vakolatlarga ega (yuqoridagilarning barchasi)",
       "Farqi — odatda shaxsiy dars/jurnal/jadval yuritmaydi, faqat nazorat qiladi",
       "Boshqa admin/boshliq/dasturchini boshqara olmaydi — faqat dasturchi",
+    ],
+  },
+  {
+    user: { is_dev_superuser: false, role: 'kuzatuvchi' },
+    label: 'Kuzatuvchi',
+    items: [
+      "Barcha tahlil, reyting, natija va dars hisobotlarini ko'radi (barcha o'qituvchilar bo'yicha)",
+      "Hech narsani o'zgartira olmaydi — server darajasida faqat o'qish huquqi",
+      "Faqat dasturchi tayinlaydi",
+    ],
+  },
+  {
+    user: { is_dev_superuser: false, role: 'student' },
+    label: "O'quvchi",
+    items: [
+      "Faqat o'quvchi oynasi: darslar (nazariya, formula, video), test va masalalar, uyga vazifa, o'yinlar, natijalari",
+      "O'qituvchi oynasi va ma'muriyat bo'limlariga umuman kira olmaydi",
+      "Hisobini o'qituvchisi yaratadi yoki sinf kodi bilan o'zi ro'yxatdan o'tadi; parolini o'qituvchisi tiklaydi",
     ],
   },
   {
@@ -256,6 +274,11 @@ export function AdminPage() {
     }))) return
     act.mutate({ id: u.id, action: 'demote' }, { onSuccess: () => toast(isBoshliq ? t('Boshliqlik olindi') : t('Adminlik olindi')) })
   }
+  const onSetKuzatuvchi = async (u: User) => {
+    if (!(await confirm({ title: t('Kuzatuvchi qilish'), text: `${u.email || ''} — ${t("barcha ma'lumotlarni faqat ko'rish huquqi beriladi.")}` }))) return
+    act.mutate({ id: u.id, action: 'set-kuzatuvchi' }, { onSuccess: () => toast(t('Kuzatuvchi qilindi')) })
+  }
+  const onUnlock = (u: User) => act.mutate({ id: u.id, action: 'unlock' }, { onSuccess: () => toast(t('Blok ochildi')) })
   const onBlock = async (u: User) => {
     if (!(await confirm({ title: t("Kirishni to'xtatish"), text: `${u.email || ''} ${t('endi tizimga kira olmaydi. Keyin qayta tasdiqlashingiz mumkin.')}` }))) return
     act.mutate({ id: u.id, action: 'block' }, { onSuccess: () => toast(t("Kirish to'xtatildi")) })
@@ -264,7 +287,7 @@ export function AdminPage() {
     if (!(await confirm({ title: t('Parolni tiklash'), text: `${u.email || ''} — ${t("yangi parol yaratiladi.")}` }))) return
     try {
       const res = await api.post<{ password: string }>(`/accounts/users/${u.id}/reset-password/`)
-      setNewPassword({ email: u.email, password: res.data.password })
+      setNewPassword({ email: u.email ?? u.username ?? '', password: res.data.password })
     } catch {
       toast(t("Amalni bajarib bo'lmadi"), 'error')
     }
@@ -368,8 +391,9 @@ export function AdminPage() {
                 {approved.map((u) => {
                   const isSelf = u.id === me?.id
                   const targetIsDev = u.is_dev_superuser
-                  const targetIsAdm = u.role === 'admin' || u.role === 'boshliq'
+                  const targetIsAdm = u.role === 'admin' || u.role === 'boshliq' || u.role === 'kuzatuvchi'
                   const canManage = !isSelf && !targetIsDev && (me?.is_dev_superuser || !targetIsAdm)
+                  const locked = !!u.locked_until && new Date(u.locked_until) > new Date()
                   return (
                     <li key={u.id} className="person">
                       <div>
@@ -383,14 +407,16 @@ export function AdminPage() {
                           {me?.is_dev_superuser &&
                             (targetIsAdm ? (
                               <button className="btn btn--sm btn--ghost" onClick={() => onDemote(u)}>
-                                {u.role === 'boshliq' ? t('Boshliqlikni olish') : t('Adminlikni olish')}
+                                {u.role === 'boshliq' ? t('Boshliqlikni olish') : u.role === 'kuzatuvchi' ? t('Kuzatuvchilikni olish') : t('Adminlikni olish')}
                               </button>
                             ) : (
                               <>
                                 <button className="btn btn--sm btn--ghost" onClick={() => onPromote(u)}>{t('Admin qilish')}</button>
                                 <button className="btn btn--sm btn--ghost" onClick={() => onSetBoshliq(u)}>{t('Boshliq qilish')}</button>
+                                <button className="btn btn--sm btn--ghost" onClick={() => onSetKuzatuvchi(u)}>{t('Kuzatuvchi qilish')}</button>
                               </>
                             ))}
+                          {locked && <button className="btn btn--sm btn--primary" onClick={() => onUnlock(u)}>{t('Blokni ochish')}</button>}
                           <button className="btn btn--sm btn--ghost" onClick={() => onResetPassword(u)}>{t('Parolni tiklash')}</button>
                           <button className="btn btn--sm btn--ghost" onClick={() => onBlock(u)}>{t("Kirishni to'xtatish")}</button>
                         </div>

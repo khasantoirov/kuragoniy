@@ -13,6 +13,7 @@ router.register('reports', views.LessonReportViewSet, basename='learning-report'
 router.register('awards', views.AwardViewSet, basename='learning-award')
 
 urlpatterns = [
+    path('materials/', views.LessonMaterialListView.as_view(), name='learning-material-list'),
     path('materials/<int:lesson_id>/', views.LessonMaterialView.as_view(), name='learning-material'),
     path('readiness/status/', views.ReadinessStatusView.as_view(), name='learning-readiness-status'),
     path('readiness/<int:lesson_id>/start/', views.ReadinessStartView.as_view(), name='learning-readiness-start'),

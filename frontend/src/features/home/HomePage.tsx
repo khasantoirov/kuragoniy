@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/Skeleton'
 import { useTimetable } from '@/features/timetable/api'
 import { IC } from '@/icons'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
+import { portalHomeLinks } from '@/layouts/portalNav'
 import { useUIStore } from '@/store/uiStore'
 
 const WEEK = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba']
@@ -47,7 +48,7 @@ export function HomePage() {
     : []
 
   const admin = isAdminInView(user, viewMode)
-  const links = LINKS.filter((l) => !l.adminOnly || admin)
+  const links = [...LINKS.filter((l) => !l.adminOnly || admin), ...portalHomeLinks(user, viewMode)]
   const fmtDate = `${t(WEEK[now.getDay()])}, ${now.getDate()}-${t(MONTHS[now.getMonth()])}`
 
   return (

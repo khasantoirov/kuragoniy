@@ -1,0 +1,101 @@
+import i18n from './index'
+
+/**
+ * ru/en strings for the student / teacher / administration portals, kept
+ * in their own bundle (merged into the main dictionary at startup) so the
+ * portal screens can grow without touching the original dictionary file.
+ * Keys are the Uzbek source strings, same as everywhere else; anything
+ * missing simply shows in Uzbek.
+ */
+const ru: Record<string, string> = {
+  // Navigatsiya
+  "O'quvchilar": 'Ученики', 'Vazifalar': 'Задания', 'Darsga tayyorgarlik': 'Подготовка к уроку',
+  'Dars hisobotlari': 'Отчёты об уроках', 'Natijalar': 'Результаты', "O'yinlar": 'Игры', "Do'kon": 'Магазин',
+  'Tahlil': 'Аналитика', 'Hisobotlarni baholash': 'Оценка отчётов', "Rag'batlantirish": 'Поощрения',
+  "O'quv materiallari": 'Учебные материалы', "Sotuv bo'limi": 'Отдел продаж', 'Xavfsizlik jurnali': 'Журнал безопасности',
+  "Sinf va o'quvchilar": 'Класс и ученики', "Ma'muriyat": 'Администрация', "O'quvchi oynasi": 'Окно ученика',
+  'Uyga vazifa': 'Домашнее задание', 'Natijalarim': 'Мои результаты', 'Profil': 'Профиль',
+  // Kirish
+  "O'quvchi": 'Ученик', "O'qituvchi": 'Учитель', 'Login': 'Логин',
+  "O'qituvchingiz bergan login yoki o'zingiz tanlagan login bilan kiring.": 'Войдите с логином, который выдал учитель или который вы выбрали.',
+  'Email va parolingiz bilan kiring.': 'Войдите с email и паролем.',
+  'Administrator, boshliq, kuzatuvchi va dasturchi uchun.': 'Для администратора, руководителя, наблюдателя и разработчика.',
+  "Login yoki parol noto'g'ri": 'Неверный логин или пароль',
+  "Sinf kodi bilan ro'yxatdan o'tish": 'Регистрация по коду класса',
+  'Sinf kodi': 'Код класса', 'Davom etish': 'Продолжить', 'Familiya va ism': 'Фамилия и имя',
+  'Parolni takrorlang': 'Повторите пароль', 'Parollar mos kelmadi': 'Пароли не совпадают',
+  'Email yoki login': 'Email или логин', 'Kod yuborish': 'Отправить код', 'Tasdiqlash kodi': 'Код подтверждения',
+  'Yangi parol': 'Новый пароль', 'Yangi parolni takrorlang': 'Повторите новый пароль', 'Parolni yangilash': 'Обновить пароль',
+  'Kod kelmadimi?': 'Код не пришёл?', 'Kodni qayta yuborish': 'Отправить код повторно',
+  "Yangi parol o'rnating": 'Установите новый пароль', 'Parolni saqlash': 'Сохранить пароль',
+  'Telegramni ulash': 'Подключить Telegram', 'Barcha qurilmalardan chiqish': 'Выйти на всех устройствах',
+  // O'quvchi
+  'Salom': 'Привет', 'daraja': 'уровень', 'ball': 'баллов', "O'rtacha natija": 'Средний результат',
+  "Sinfdagi o'rin": 'Место в классе', 'Tugatilgan darslar': 'Пройденные уроки', 'Bajarilmagan vazifa': 'Невыполненные задания',
+  'Sinf reytingi': 'Рейтинг класса', "So'nggi natijalar": 'Последние результаты', "Rag'batlar": 'Награды',
+  'Qisqa nazariya': 'Краткая теория', 'Asosiy formulalar': 'Основные формулы', 'Videodars': 'Видеоурок',
+  'Test va masalalar': 'Тесты и задачи', "O'qib chiqdim": 'Прочитал(а)', "Videoni ko'rdim": 'Посмотрел(а) видео',
+  'Boshlash': 'Начать', 'Topshirish': 'Сдать', 'Oldingi': 'Назад', 'Keyingi': 'Далее',
+  "To'g'ri javob": 'Правильный ответ', 'Sizning javobingiz': 'Ваш ответ', 'Qayta ishlash': 'Решить снова',
+  'Bajarilmagan': 'Не выполнено', 'Topshirilgan': 'Сдано', 'Hammasi': 'Все', 'Muddat': 'Срок', 'Muddatsiz': 'Без срока',
+  "Mini-o'yinlar": 'Мини-игры', "Jonli o'yin": 'Живая игра', 'Reyting': 'Рейтинг', "Qo'shilish": 'Присоединиться',
+  // O'qituvchi
+  'Yangi vazifa': 'Новое задание', 'Darsni topshirish': 'Сдать урок', 'Tekshirish': 'Проверить', 'Tayyor': 'Готов',
+  'Jonli viktorina': 'Живая викторина', 'Yangi viktorina': 'Новая викторина', "O'yinni boshlash": 'Начать игру',
+  'Savollar tahlili': 'Анализ вопросов', 'Parolni tiklash': 'Сбросить пароль', 'Bloklash': 'Заблокировать',
+  'Hammasiga login-parol yaratish': 'Создать логины для всех', 'Sinf kodini yaratish': 'Создать код класса',
+  // Ma'muriyat
+  "Ma'muriyat: tahlil": 'Администрация: аналитика', "Eng yaxshi o'quvchilar": 'Лучшие ученики',
+  "Eng yaxshi dars o'tgan o'qituvchilar": 'Учителя, лучше всех провёдшие уроки', 'Sinflar taqqoslash': 'Сравнение классов',
+  'Darslar: eng qiyinlari': 'Уроки: самые трудные', 'Baholash': 'Оценить', 'Sertifikat': 'Сертификат',
+  'Hafta': 'Неделя', 'Oy': 'Месяц', 'Chorak': 'Четверть', 'Yil': 'Год',
+  // Do'kon
+  'Savat': 'Корзина', 'Buyurtmalarim': 'Мои заказы', 'Xaridlarim': 'Мои покупки', 'Buyurtma berish': 'Оформить заказ',
+  "To'ladim": 'Я оплатил(а)', 'Dars ishlanmasi': 'Разработка урока', "Tajriba qo'llanmasi": 'Руководство по опыту',
+  "To'plam": 'Комплект', 'Tajriba jihozlari': 'Оборудование для опытов', 'Bepul': 'Бесплатно',
+}
+
+const en: Record<string, string> = {
+  "O'quvchilar": 'Students', 'Vazifalar': 'Assignments', 'Darsga tayyorgarlik': 'Lesson readiness',
+  'Dars hisobotlari': 'Lesson reports', 'Natijalar': 'Results', "O'yinlar": 'Games', "Do'kon": 'Shop',
+  'Tahlil': 'Analytics', 'Hisobotlarni baholash': 'Review reports', "Rag'batlantirish": 'Rewards',
+  "O'quv materiallari": 'Learning materials', "Sotuv bo'limi": 'Sales', 'Xavfsizlik jurnali': 'Security log',
+  "Sinf va o'quvchilar": 'Classes & students', "Ma'muriyat": 'Administration', "O'quvchi oynasi": 'Student window',
+  'Uyga vazifa': 'Homework', 'Natijalarim': 'My results', 'Profil': 'Profile',
+  "O'quvchi": 'Student', "O'qituvchi": 'Teacher', 'Login': 'Username',
+  "O'qituvchingiz bergan login yoki o'zingiz tanlagan login bilan kiring.": 'Sign in with the username your teacher gave you or the one you chose.',
+  'Email va parolingiz bilan kiring.': 'Sign in with your email and password.',
+  'Administrator, boshliq, kuzatuvchi va dasturchi uchun.': 'For administrators, heads, observers and the developer.',
+  "Login yoki parol noto'g'ri": 'Wrong username or password',
+  "Sinf kodi bilan ro'yxatdan o'tish": 'Sign up with a class code',
+  'Sinf kodi': 'Class code', 'Davom etish': 'Continue', 'Familiya va ism': 'Surname and name',
+  'Parolni takrorlang': 'Repeat password', 'Parollar mos kelmadi': 'Passwords do not match',
+  'Email yoki login': 'Email or username', 'Kod yuborish': 'Send code', 'Tasdiqlash kodi': 'Verification code',
+  'Yangi parol': 'New password', 'Yangi parolni takrorlang': 'Repeat new password', 'Parolni yangilash': 'Update password',
+  'Kod kelmadimi?': "Didn't get a code?", 'Kodni qayta yuborish': 'Resend code',
+  "Yangi parol o'rnating": 'Set a new password', 'Parolni saqlash': 'Save password',
+  'Telegramni ulash': 'Connect Telegram', 'Barcha qurilmalardan chiqish': 'Sign out everywhere',
+  'Salom': 'Hi', 'daraja': 'level', 'ball': 'points', "O'rtacha natija": 'Average score',
+  "Sinfdagi o'rin": 'Class rank', 'Tugatilgan darslar': 'Lessons completed', 'Bajarilmagan vazifa': 'Pending homework',
+  'Sinf reytingi': 'Class leaderboard', "So'nggi natijalar": 'Recent results', "Rag'batlar": 'Awards',
+  'Qisqa nazariya': 'Short theory', 'Asosiy formulalar': 'Key formulas', 'Videodars': 'Video lesson',
+  'Test va masalalar': 'Tests and problems', "O'qib chiqdim": "I've read it", "Videoni ko'rdim": "I've watched it",
+  'Boshlash': 'Start', 'Topshirish': 'Submit', 'Oldingi': 'Back', 'Keyingi': 'Next',
+  "To'g'ri javob": 'Correct answer', 'Sizning javobingiz': 'Your answer', 'Qayta ishlash': 'Try again',
+  'Bajarilmagan': 'To do', 'Topshirilgan': 'Submitted', 'Hammasi': 'All', 'Muddat': 'Due', 'Muddatsiz': 'No deadline',
+  "Mini-o'yinlar": 'Mini-games', "Jonli o'yin": 'Live game', 'Reyting': 'Leaderboard', "Qo'shilish": 'Join',
+  'Yangi vazifa': 'New assignment', 'Darsni topshirish': 'Submit lesson', 'Tekshirish': 'Check', 'Tayyor': 'Ready',
+  'Jonli viktorina': 'Live quiz', 'Yangi viktorina': 'New quiz', "O'yinni boshlash": 'Start game',
+  'Savollar tahlili': 'Question analysis', 'Parolni tiklash': 'Reset password', 'Bloklash': 'Block',
+  'Hammasiga login-parol yaratish': 'Create logins for everyone', 'Sinf kodini yaratish': 'Create class code',
+  "Ma'muriyat: tahlil": 'Administration: analytics', "Eng yaxshi o'quvchilar": 'Top students',
+  "Eng yaxshi dars o'tgan o'qituvchilar": 'Teachers with the best lessons', 'Sinflar taqqoslash': 'Class comparison',
+  'Darslar: eng qiyinlari': 'Hardest lessons', 'Baholash': 'Rate', 'Sertifikat': 'Certificate',
+  'Hafta': 'Week', 'Oy': 'Month', 'Chorak': 'Quarter', 'Yil': 'Year',
+  'Savat': 'Cart', 'Buyurtmalarim': 'My orders', 'Xaridlarim': 'My purchases', 'Buyurtma berish': 'Place order',
+  "To'ladim": "I've paid", 'Dars ishlanmasi': 'Lesson plan', "Tajriba qo'llanmasi": 'Experiment guide',
+  "To'plam": 'Bundle', 'Tajriba jihozlari': 'Lab equipment', 'Bepul': 'Free',
+}
+
+i18n.addResourceBundle('ru', 'translation', ru, true, false)
+i18n.addResourceBundle('en', 'translation', en, true, false)

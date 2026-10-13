@@ -295,6 +295,37 @@ class LessonMaterialView(APIView):
         return Response(LessonMaterialSerializer(material).data)
 
 
+class LessonMaterialListView(APIView):
+    """Material status for every lesson of a grade in one call — drives the
+    admin "O'quv materiallari" list without one request per lesson."""
+
+    permission_classes = [IsApproved]
+
+    def get(self, request):
+        grade = _int_param(request, 'grade')
+        lessons = Lesson.objects.all()
+        if grade:
+            lessons = lessons.filter(grade=grade)
+        lessons = list(lessons.order_by('grade', 'chorak', 'hafta'))
+        materials = {m.lesson_id: m for m in LessonMaterial.objects.filter(lesson__in=lessons)}
+        counts: dict[int, dict[str, int]] = {}
+        for r in (Question.objects.filter(lesson__in=lessons, assignment__isnull=True)
+                  .values('lesson', 'audience').annotate(n=Count('id'))):
+            counts.setdefault(r['lesson'], {})[r['audience']] = r['n']
+        return Response([
+            {
+                'lesson': lesson.id, 'title': lesson.title, 'grade': lesson.grade, 'chorak': lesson.chorak,
+                'hafta': lesson.hafta,
+                'is_published': bool(materials.get(lesson.id) and materials[lesson.id].is_published),
+                'has_theory': bool(materials.get(lesson.id) and materials[lesson.id].theory),
+                'has_video': bool(materials.get(lesson.id) and materials[lesson.id].video_url),
+                'formulas': len(materials[lesson.id].formulas or []) if lesson.id in materials else 0,
+                'question_counts': counts.get(lesson.id, {}),
+            }
+            for lesson in lessons
+        ])
+
+
 class QuestionViewSet(viewsets.ModelViewSet):
     """Lesson question bank. Read: any staff member (answers included —
     staff only, never exposed to the student API). Write: admins."""
