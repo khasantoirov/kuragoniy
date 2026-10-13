@@ -70,14 +70,21 @@ export function tableOffice(
   head: string[],
   rows: OfficeCell[][],
   kind: 'xls' | 'doc',
-  opts: { imageMaxPx?: number } = {},
+  // columnWidths: fractions of the table width per column, e.g. [0.3, 0.7]
+  // — fixed proportions with wrapping text instead of one long line per cell.
+  opts: { imageMaxPx?: number; columnWidths?: number[] } = {},
 ) {
   const imageMaxPx = opts.imageMaxPx ?? 60
+  const fixed = opts.columnWidths
+  const TABLE_PX = 700 // ~A4 portrait text width; Excel only honours absolute widths
+  const colgroup = fixed
+    ? '<colgroup>' + fixed.map((f) => `<col width="${Math.round(TABLE_PX * f)}" style="width:${Math.round(f * 100)}%">`).join('') + '</colgroup>'
+    : ''
   const tableHtml =
-    `<h2>${escapeHtml(title)}</h2><table><thead><tr>` +
+    `<h2>${escapeHtml(title)}</h2><table${fixed ? ` width="${TABLE_PX}" class="fixed"` : ''}>${colgroup}<thead><tr>` +
     head.map((h) => `<th>${escapeHtml(h)}</th>`).join('') +
     '</tr></thead><tbody>' +
-    rows.map((r) => '<tr>' + r.map((c) => `<td>${officeCellHtml(c, imageMaxPx)}</td>`).join('') + '</tr>').join('') +
+    rows.map((r) => '<tr>' + r.map((c) => `<td${isImageCell(c) ? ' align="center"' : ''}>${officeCellHtml(c, imageMaxPx)}</td>`).join('') + '</tr>').join('') +
     '</tbody></table>'
 
   const mime = kind === 'xls' ? 'application/vnd.ms-excel' : 'application/msword'
@@ -86,6 +93,8 @@ export function tableOffice(
     table { border-collapse: collapse; font-family: sans-serif; font-size: 12px; }
     th, td { border: 1px solid #999; padding: 4px 8px; text-align: left; white-space: nowrap; }
     th { background: #1F6FEB; color: #fff; }
+    table.fixed { width: ${TABLE_PX}px; table-layout: fixed; }
+    table.fixed td { white-space: pre-wrap; vertical-align: middle; word-wrap: break-word; }
   </style></head><body>${tableHtml}</body></html>`
 
   const blob = new Blob(['﻿', doc], { type: mime })

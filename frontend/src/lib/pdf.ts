@@ -7,6 +7,7 @@
 export type PdfCell = string | number | { image: string; aspect?: number }
 
 const IMAGE_CELL_PAD_MM = 1.5
+const PAGE_MARGIN_MM = 14
 
 function isImageCell(cell: PdfCell): cell is { image: string; aspect?: number } {
   return typeof cell === 'object' && cell !== null && 'image' in cell
@@ -16,7 +17,13 @@ export async function tablePdf(
   title: string,
   head: string[],
   rows: PdfCell[][],
-  opts: { orientation?: 'portrait' | 'landscape'; imageSizeMm?: number } = {},
+  opts: {
+    orientation?: 'portrait' | 'landscape'
+    imageSizeMm?: number
+    // Fractions of the printable width per column, e.g. [0.3, 0.7] —
+    // omitted = autoTable's own content-based sizing (journal, timetable).
+    columnWidths?: number[]
+  } = {},
 ) {
   const { jsPDF } = await import('jspdf')
   const autoTable = (await import('jspdf-autotable')).default
@@ -31,12 +38,20 @@ export async function tablePdf(
   // autoTable still reserves the right-sized box for it.
   const body = rows.map((r) => r.map((c) => (isImageCell(c) ? '' : c)))
   const hasImageCol = rows.some((r) => r.some(isImageCell))
+  const printable = doc.internal.pageSize.getWidth() - PAGE_MARGIN_MM * 2
+  const columnStyles = opts.columnWidths
+    ? Object.fromEntries(opts.columnWidths.map((f, i) => [i, { cellWidth: printable * f }]))
+    : undefined
 
   autoTable(doc, {
     head: [head],
     body,
     startY: 22,
-    styles: { fontSize: 9, minCellHeight: hasImageCol ? imageSize + IMAGE_CELL_PAD_MM * 2 : undefined },
+    margin: { left: PAGE_MARGIN_MM, right: PAGE_MARGIN_MM },
+    columnStyles,
+    styles: { fontSize: 9 },
+    // Body only — on `styles` it also stretched the header row to photo height.
+    bodyStyles: { minCellHeight: hasImageCol ? imageSize + IMAGE_CELL_PAD_MM * 2 : undefined },
     headStyles: { fillColor: [31, 111, 235] },
     didDrawCell: (data) => {
       if (data.section !== 'body') return
@@ -46,13 +61,17 @@ export async function tablePdf(
         // (equipment photos are rarely square) — "contain" sizing from the
         // natural aspect ratio measured when the file was loaded.
         const aspect = cell.aspect ?? 1
-        const w = aspect >= 1 ? imageSize : imageSize * aspect
-        const h = aspect >= 1 ? imageSize / aspect : imageSize
+        // Never wider than its column (a fixed-width column can be narrower
+        // than imageSize); centred in the cell, which may be taller than the
+        // image when the row's other cells hold a long text.
+        const box = Math.min(imageSize, data.cell.width - IMAGE_CELL_PAD_MM * 2)
+        const w = aspect >= 1 ? box : box * aspect
+        const h = aspect >= 1 ? box / aspect : box
         try {
           doc.addImage(
             cell.image,
-            data.cell.x + IMAGE_CELL_PAD_MM + (imageSize - w) / 2,
-            data.cell.y + IMAGE_CELL_PAD_MM + (imageSize - h) / 2,
+            data.cell.x + (data.cell.width - w) / 2,
+            data.cell.y + (data.cell.height - h) / 2,
             w,
             h,
           )

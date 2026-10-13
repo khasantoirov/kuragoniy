@@ -17,6 +17,8 @@ interface SheetRow {
 
 const IMAGE_PX = 140 // live preview + doc/xls export size
 const IMAGE_PDF_MM = 45
+// Rasm / tavsif ustunlari 30/70 — ko'rinishda ham, PDF/Word/Excel'da ham.
+const COLUMN_WIDTHS = [0.3, 0.7]
 
 function emptyRow(): SheetRow {
   return { id: crypto.randomUUID(), imageUrl: null, imageFile: null, imageAspect: 1, description: '' }
@@ -63,10 +65,14 @@ async function runExport(
   )
 
   if (format === 'xls' || format === 'doc') {
-    tableOffice(title, head, cells, format, { imageMaxPx: IMAGE_PX })
+    tableOffice(title, head, cells, format, { imageMaxPx: IMAGE_PX, columnWidths: COLUMN_WIDTHS })
     return
   }
-  await tablePdf(title, head, cells, { orientation: format === 'pdf-portrait' ? 'portrait' : 'landscape', imageSizeMm: IMAGE_PDF_MM })
+  await tablePdf(title, head, cells, {
+    orientation: format === 'pdf-portrait' ? 'portrait' : 'landscape',
+    imageSizeMm: IMAGE_PDF_MM,
+    columnWidths: COLUMN_WIDTHS,
+  })
 }
 
 export function EquipmentSheetPage() {
@@ -195,7 +201,10 @@ export function EquipmentSheetPage() {
         <div className="table-wrap">
           <div ref={captureRef} className="eqsheet__preview">
             <h2 className="eqsheet__preview-title">{title}</h2>
-            <table className="table">
+            <table className="table eqsheet__table">
+              <colgroup>
+                {COLUMN_WIDTHS.map((f, i) => <col key={i} style={{ width: `${f * 100}%` }} />)}
+              </colgroup>
               <thead>
                 <tr>
                   {head.map((h) => (
@@ -207,7 +216,7 @@ export function EquipmentSheetPage() {
                 {rows.map((row) => (
                   <tr key={row.id}>
                     <td className="eqsheet__imgcell">
-                      {row.imageUrl ? <img src={row.imageUrl} alt="" className="eqsheet__thumb-lg" /> : '—'}
+                      {row.imageUrl ? <img src={row.imageUrl} alt="" className="eqsheet__cellimg" /> : '—'}
                     </td>
                     <td className="eqsheet__desccell">{row.description || '—'}</td>
                   </tr>
