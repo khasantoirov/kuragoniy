@@ -45,19 +45,21 @@ def _collect_texts(lesson: Lesson):
     add(lesson.goal, lambda v, lang: setattr(lesson, f"goal_{lang}", v))
 
     experiments = list(lesson.experiments.all().order_by("order"))
+    equipment_items = []
     for exp in experiments:
         add(exp.name, lambda v, lang, e=exp: setattr(e, f"name_{lang}", v))
         add(exp.desc, lambda v, lang, e=exp: setattr(e, f"desc_{lang}", v))
         add(exp.safety, lambda v, lang, e=exp: setattr(e, f"safety_{lang}", v))
 
-        for i in range(len(exp.materials)):
-            add(exp.materials[i], lambda v, lang, e=exp, idx=i: _set_list_item(e, "materials", lang, idx, v))
+        for item in exp.equipment_items.all().order_by("order"):
+            equipment_items.append(item)
+            add(item.name, lambda v, lang, it=item: setattr(it, f"name_{lang}", v))
         for i in range(len(exp.steps)):
             add(exp.steps[i], lambda v, lang, e=exp, idx=i: _set_list_item(e, "steps", lang, idx, v))
         for i in range(len(exp.concepts)):
             add(exp.concepts[i], lambda v, lang, e=exp, idx=i: _set_list_item(e, "concepts", lang, idx, v))
 
-    return texts, setters, experiments
+    return texts, setters, experiments, equipment_items
 
 
 def _set_list_item(exp: Experiment, field: str, lang: str, idx: int, value: str):
@@ -98,7 +100,7 @@ def _next_pending_job():
 
 @sync_to_async
 @transaction.atomic
-def _apply_translations(job: TranslationJob, setters, experiments, results: dict[str, list[str]]):
+def _apply_translations(job: TranslationJob, setters, experiments, equipment_items, results: dict[str, list[str]]):
     lesson = job.lesson
     for lang, values in results.items():
         for setter, value in zip(setters, values):
@@ -108,6 +110,8 @@ def _apply_translations(job: TranslationJob, setters, experiments, results: dict
     lesson.save()
     for exp in experiments:
         exp.save()
+    for item in equipment_items:
+        item.save()
 
     job.status = TranslationJob.Status.DONE
     job.finished_at = timezone.now()
@@ -128,13 +132,13 @@ async def _process_job(client: httpx.AsyncClient, api_key: str, job: Translation
     await sync_to_async(job.save)(update_fields=["status"])
 
     lesson = await sync_to_async(lambda: job.lesson)()
-    texts, setters, experiments = await sync_to_async(_collect_texts)(lesson)
+    texts, setters, experiments, equipment_items = await sync_to_async(_collect_texts)(lesson)
 
     try:
         results = {}
         for lang in TARGET_LANGS:
             results[lang] = await _translate_batch(client, api_key, texts, lang)
-        lesson_id = await _apply_translations(job, setters, experiments, results)
+        lesson_id = await _apply_translations(job, setters, experiments, equipment_items, results)
     except Exception as exc:  # noqa: BLE001
         logger.exception("Translation failed for lesson %s", job.lesson_id)
         await _mark_job_error(job, str(exc))

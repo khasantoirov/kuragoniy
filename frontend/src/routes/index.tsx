@@ -10,6 +10,7 @@ import { NotificationsPage } from '@/features/announcements/NotificationsPage'
 import { JournalPage } from '@/features/journal/JournalPage'
 import { LessonDetail } from '@/features/lessons/LessonDetail'
 import { LessonsPage } from '@/features/lessons/LessonsPage'
+import { EquipmentSheetPage } from '@/features/admin/EquipmentSheetPage'
 import { LibraryPage } from '@/features/library/LibraryPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
 import { StatisticsPage } from '@/features/statistics/StatisticsPage'
@@ -37,7 +38,22 @@ export const router = createBrowserRouter([
       { path: '/timetable', element: <TimetablePage /> },
       { path: '/library', element: <LibraryPage /> },
       { path: '/statistics', element: <StatisticsPage /> },
-      { path: '/admin', element: <AdminPage /> },
+      {
+        path: '/admin',
+        element: (
+          <RequireAdmin>
+            <AdminPage />
+          </RequireAdmin>
+        ),
+      },
+      {
+        path: '/equipment-sheet',
+        element: (
+          <RequireAdmin>
+            <EquipmentSheetPage />
+          </RequireAdmin>
+        ),
+      },
       { path: '/about', element: <AboutPage /> },
       // Eski xatcho'plar va havolalar uzilib qolmasin — profil endi
       // Sozlamalar ichida.

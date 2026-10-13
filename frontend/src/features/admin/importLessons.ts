@@ -1,5 +1,5 @@
 import { GRADES, type Grade } from '@/features/lessons/labels'
-import type { Experiment } from '@/features/lessons/types'
+import type { EquipmentItem, Experiment } from '@/features/lessons/types'
 
 export interface ImportLessonRow {
   title: string
@@ -22,16 +22,34 @@ export interface ParseLessonsResult {
   warnings: ImportWarning[]
 }
 
+// Tolerates both the current shape (equipment_items: {name, quantity}[])
+// and the old flat materials: string[] shape, so JSON backups exported
+// before the equipment-list upgrade still import cleanly.
+function normalizeEquipment(x: Record<string, unknown>): Omit<EquipmentItem, 'id'>[] {
+  if (Array.isArray(x.equipment_items)) {
+    return x.equipment_items.map((it, i) => {
+      const e = (it ?? {}) as Record<string, unknown>
+      return { order: i, name: typeof e.name === 'string' ? e.name : '', quantity: Number(e.quantity) || 1 }
+    })
+  }
+  if (Array.isArray(x.materials)) {
+    return x.materials
+      .filter((m): m is string => typeof m === 'string')
+      .map((name, i) => ({ order: i, name, quantity: 1 }))
+  }
+  return []
+}
+
 function normalizeExp(e: unknown, order: number): Omit<Experiment, 'id'> {
   if (typeof e === 'string') {
-    return { order, name: e, desc: '', materials: [], steps: [], concepts: [], minutes: null, safety: '' }
+    return { order, name: e, desc: '', equipment_items: [], steps: [], concepts: [], minutes: null, safety: '' }
   }
   const x = (e ?? {}) as Record<string, unknown>
   return {
     order,
     name: typeof x.name === 'string' ? x.name : '',
     desc: typeof x.desc === 'string' ? x.desc : '',
-    materials: Array.isArray(x.materials) ? x.materials : [],
+    equipment_items: normalizeEquipment(x),
     steps: Array.isArray(x.steps) ? x.steps : [],
     concepts: Array.isArray(x.concepts) ? x.concepts : [],
     minutes: Number.isFinite(Number(x.minutes)) && x.minutes ? Number(x.minutes) : null,
@@ -103,8 +121,7 @@ export interface TranslationExpRow {
   desc_en?: string
   safety_ru?: string
   safety_en?: string
-  materials_ru?: string[]
-  materials_en?: string[]
+  equipment_items?: { id?: number; name_ru?: string; name_en?: string }[]
   steps_ru?: string[]
   steps_en?: string[]
   concepts_ru?: string[]

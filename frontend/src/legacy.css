@@ -808,8 +808,10 @@ label.btn { display: inline-flex; align-items: center; }
 .xtag {
   border: 1px solid var(--rule); border-radius: 2px;
   padding: 3px 7px; font-size: 12.5px; background: var(--paper);
+  display: inline-flex; align-items: center;
 }
 .xtag--concept { border-color: var(--ok); color: var(--ok); background: transparent; }
+.xtag__thumb { width: 16px; height: 16px; border-radius: 2px; object-fit: cover; margin-right: 4px; }
 .xlist--steps { padding-left: 18px; display: grid; gap: 4px; }
 .xlist--steps li::marker { color: var(--mark); font-family: var(--f-mono); font-size: 12px; }
 
@@ -1569,6 +1571,25 @@ tr.is-absent .table__name { color: var(--mark); text-decoration: line-through; o
 }
 .su-row { display: flex; gap: 7px; align-items: center; }
 .su-row .input { flex: 1; }
+
+/* ── Tajriba jihozlari ro'yxati (ExperimentEditor) — su-row'ning o'zi
+   qayta ishlatiladi, faqat soni/fayl ustunlari tor bo'lishi kerak. ── */
+.eq-row__qty { flex: 0 0 64px; }
+.eq-row__file { flex: 1.6; }
+
+/* ── Jihozlar jadvali (EquipmentSheetPage) ── */
+.eqsheet__editrow { border-top: 1px solid var(--rule); padding-top: 14px; margin-top: 14px; }
+.eqsheet__editrow:first-of-type { border-top: none; margin-top: 0; padding-top: 0; }
+.eqsheet__editrow-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.eqsheet__editimg { display: flex; align-items: center; gap: 8px; }
+.eqsheet__thumb-lg { width: 140px; height: 140px; border-radius: 6px; object-fit: contain; border: 1px solid var(--rule); background: var(--paper); flex: none; }
+.eqsheet__preview { background: #fff; color: #1a1a1a; padding: 18px; }
+.eqsheet__preview table { border-collapse: collapse; }
+.eqsheet__preview th, .eqsheet__preview td { color: #1a1a1a; border: 1px solid #999; white-space: normal; }
+.eqsheet__preview th { text-align: center; text-transform: none; font: 600 13px/1.3 var(--f-body); letter-spacing: normal; }
+.eqsheet__preview-title { text-align: center; font-size: 16px; margin: 0 0 14px; }
+.eqsheet__imgcell { width: 160px; text-align: center; }
+.eqsheet__preview .eqsheet__desccell { white-space: pre-wrap; padding: 12px 14px; }
 
 .toasts {
   position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);

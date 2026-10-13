@@ -46,19 +46,43 @@ export async function tableJpg(title: string, el: HTMLElement) {
 }
 
 function escapeHtml(s: string | number) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  // \n -> <br> after escaping (never before — would double-escape the tag
+  // itself) so a multi-line description still breaks onto separate lines
+  // even though the base cell style is white-space:nowrap (an explicit
+  // <br> still forces a break; nowrap only suppresses automatic wrapping).
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')
 }
 
-export function tableOffice(title: string, head: string[], rows: (string | number)[][], kind: 'xls' | 'doc') {
+export type OfficeCell = string | number | { image: string }
+
+function isImageCell(cell: OfficeCell): cell is { image: string } {
+  return typeof cell === 'object' && cell !== null && 'image' in cell
+}
+
+function officeCellHtml(c: OfficeCell, imageMaxPx: number) {
+  return isImageCell(c)
+    ? `<img src="${c.image}" style="max-width:${imageMaxPx}px;max-height:${imageMaxPx}px;object-fit:contain">`
+    : escapeHtml(c)
+}
+
+export function tableOffice(
+  title: string,
+  head: string[],
+  rows: OfficeCell[][],
+  kind: 'xls' | 'doc',
+  opts: { imageMaxPx?: number } = {},
+) {
+  const imageMaxPx = opts.imageMaxPx ?? 60
   const tableHtml =
-    '<table><thead><tr>' +
+    `<h2>${escapeHtml(title)}</h2><table><thead><tr>` +
     head.map((h) => `<th>${escapeHtml(h)}</th>`).join('') +
     '</tr></thead><tbody>' +
-    rows.map((r) => '<tr>' + r.map((c) => `<td>${escapeHtml(c)}</td>`).join('') + '</tr>').join('') +
+    rows.map((r) => '<tr>' + r.map((c) => `<td>${officeCellHtml(c, imageMaxPx)}</td>`).join('') + '</tr>').join('') +
     '</tbody></table>'
 
   const mime = kind === 'xls' ? 'application/vnd.ms-excel' : 'application/msword'
   const doc = `<html xmlns:o="urn:schemas-microsoft-com:office:office"><head><meta charset="utf-8"><style>
+    h2 { font-family: sans-serif; text-align: center; }
     table { border-collapse: collapse; font-family: sans-serif; font-size: 12px; }
     th, td { border: 1px solid #999; padding: 4px 8px; text-align: left; white-space: nowrap; }
     th { background: #1F6FEB; color: #fff; }

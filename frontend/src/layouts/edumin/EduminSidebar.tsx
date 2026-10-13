@@ -19,7 +19,7 @@ const GROUPS: { title: string; paths: string[] }[] = [
   { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/library'] },
   { title: "Sinf va o'quvchilar", paths: ['/students', '/assignments', '/readiness', '/reports', '/results', '/games', '/shop'] },
   { title: "Ma'muriyat", paths: ['/manage', '/manage/reports', '/manage/awards', '/manage/materials', '/manage/shop', '/manage/security'] },
-  { title: 'Tizim', paths: ['/statistics', '/admin', '/settings', '/about'] },
+  { title: 'Tizim', paths: ['/statistics', '/admin', '/settings', '/about', '/equipment-sheet'] },
 ]
 
 function groupItems(items: EduminNavItem[]) {

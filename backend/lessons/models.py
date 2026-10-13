@@ -74,9 +74,6 @@ class Experiment(models.Model):
     # a whole per experiment — see migration plan §1.3 for the trade-off).
     # _ru/_en are translated whole-list copies, written by the bot's
     # translation worker (telegrambot/bot/translation.py).
-    materials = models.JSONField(default=list, blank=True)
-    materials_ru = models.JSONField(default=list, blank=True)
-    materials_en = models.JSONField(default=list, blank=True)
     steps = models.JSONField(default=list, blank=True)
     steps_ru = models.JSONField(default=list, blank=True)
     steps_en = models.JSONField(default=list, blank=True)
@@ -101,3 +98,30 @@ class Experiment(models.Model):
 
     def __str__(self):
         return f'{self.lesson.title} — {self.name}'
+
+
+class EquipmentItem(models.Model):
+    """A single piece of lab equipment an experiment needs, with how many
+    and (optionally) a reference photo. Replaces the old flat
+    Experiment.materials string list — see migration 0013 for the
+    data-preserving upgrade. Image is deliberately read-only on the
+    serializer and written only via EquipmentItemViewSet.upload_image,
+    the same reason Lesson.file/LibraryItem.file work that way: a row
+    needs a real persisted id before a file can be attached to it."""
+
+    experiment = models.ForeignKey(Experiment, related_name='equipment_items', on_delete=models.CASCADE)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    name = models.CharField(max_length=255)
+    name_ru = models.CharField(max_length=255, blank=True)
+    name_en = models.CharField(max_length=255, blank=True)
+
+    quantity = models.PositiveIntegerField(default=1)
+
+    image = models.FileField(upload_to='equipment-images/', null=True, blank=True)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f'{self.experiment.name} — {self.name} ({self.quantity})'

@@ -13,8 +13,8 @@ from common.audit import diff_fields, notify_admin_action, snapshot
 from common.permissions import IsAdminOrDevSuperuser, IsApproved
 from common.uploads import delete_file_field, validate_upload
 
-from .models import Experiment, Lesson, QuarterLock
-from .serializers import LessonSerializer, QuarterLockSerializer
+from .models import EquipmentItem, Experiment, Lesson, QuarterLock
+from .serializers import EquipmentItemSerializer, LessonSerializer, QuarterLockSerializer
 from .signals import send_lessons_backup, suppress_lessons_backup
 from .visibility import visible_chorak_set
 
@@ -22,6 +22,9 @@ logger = logging.getLogger(__name__)
 
 LESSON_FILE_EXTENSIONS = ('.pdf', '.doc', '.docx')
 LESSON_FILE_MAX_MB = 20
+
+EQUIPMENT_IMAGE_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.webp')
+EQUIPMENT_IMAGE_MAX_MB = 10
 
 # Tracked for the admin-audit diff (common/audit.py) — translations
 # (_ru/_en) and `file`/`updated_at`/`translated_at` are excluded since
@@ -31,9 +34,13 @@ LESSON_AUDIT_LABELS = {
     'title': 'Nomi', 'grade': 'Sinf', 'chorak': 'Chorak', 'hafta': 'Hafta',
     'goal': 'Maqsad', 'file_url': 'Fayl havolasi',
 }
-EXPERIMENT_AUDIT_FIELDS = ['name', 'desc', 'materials', 'steps', 'concepts', 'minutes', 'safety', 'image', 'video']
+# 'equipment_items' isn't diffable here — a related-manager, not a scalar
+# field snapshot/diff_fields can getattr-compare; equipment changes aren't
+# included in the audit-log line for now (same gap as 'experiments' itself,
+# which is handled separately by _experiment_diff_lines instead).
+EXPERIMENT_AUDIT_FIELDS = ['name', 'desc', 'steps', 'concepts', 'minutes', 'safety', 'image', 'video']
 EXPERIMENT_AUDIT_LABELS = {
-    'name': 'Nomi', 'desc': 'Tavsif', 'materials': 'Jihozlar',
+    'name': 'Nomi', 'desc': 'Tavsif',
     'steps': 'Tartib', 'concepts': 'Tushunchalar',
     'minutes': 'Vaqti', 'safety': 'Xavfsizlik', 'image': 'Rasm', 'video': 'Video',
 }
@@ -103,7 +110,7 @@ class LessonViewSet(viewsets.ModelViewSet):
     """Read = any approved user; write = admin only — mirrors
     firestore.rules' lessons/{id} rule."""
 
-    queryset = Lesson.objects.prefetch_related('experiments').all()
+    queryset = Lesson.objects.prefetch_related('experiments__equipment_items').all()
     serializer_class = LessonSerializer
 
     def get_permissions(self):
@@ -181,6 +188,12 @@ class LessonViewSet(viewsets.ModelViewSet):
             lines.append(f"• Maqsad edi: {instance.goal}")
         if exp_names:
             lines.append("• Tajribalar: " + ', '.join(exp_names))
+        # Cascade delete removes the DB rows but never touches the actual
+        # files on disk — clean those up first (see delete_file_field's
+        # docstring: disk space here is too tight to let this orphan).
+        for exp in instance.experiments.all():
+            for item in exp.equipment_items.all():
+                delete_file_field(item, 'image')
         delete_file_field(instance, 'file')
         instance.delete()
         _renumber_grade(grade)
@@ -292,13 +305,21 @@ class LessonViewSet(viewsets.ModelViewSet):
                     file_url=source.file_url,
                 )
                 for exp in source.experiments.all():
-                    Experiment.objects.create(
+                    new_exp = Experiment.objects.create(
                         lesson=result, order=exp.order,
                         name=exp.name, desc=exp.desc,
-                        materials=exp.materials, steps=exp.steps, concepts=exp.concepts,
+                        steps=exp.steps, concepts=exp.concepts,
                         minutes=exp.minutes, safety=exp.safety,
                         image=exp.image, video=exp.video,
                     )
+                    # Name/quantity copy over; the image doesn't — two rows
+                    # pointing at the same file would mean removing one
+                    # side's photo deletes it out from under the other.
+                    for item in exp.equipment_items.all():
+                        EquipmentItem.objects.create(
+                            experiment=new_exp, order=item.order,
+                            name=item.name, quantity=item.quantity,
+                        )
             else:
                 source.grade = target_grade
                 source.save(update_fields=['grade'])
@@ -330,8 +351,9 @@ class LessonViewSet(viewsets.ModelViewSet):
         Row shape (matches the old exportLessons()/admin.js format):
         {id?, grade, chorak, hafta, title, title_ru, title_en, goal_ru,
          goal_en, experiments: [{id, name_ru, name_en, desc_ru, desc_en,
-         safety_ru, safety_en, materials_ru, materials_en, steps_ru, steps_en,
-         concepts_ru, concepts_en}]}
+         safety_ru, safety_en, steps_ru, steps_en,
+         concepts_ru, concepts_en,
+         equipment_items: [{id, name_ru, name_en}]}]}
         """
         rows = request.data if isinstance(request.data, list) else []
 
@@ -368,17 +390,24 @@ class LessonViewSet(viewsets.ModelViewSet):
                 exp.desc_en = tr.get('desc_en') or ''
                 exp.safety_ru = tr.get('safety_ru') or ''
                 exp.safety_en = tr.get('safety_en') or ''
-                exp.materials_ru = tr.get('materials_ru') if isinstance(tr.get('materials_ru'), list) else []
-                exp.materials_en = tr.get('materials_en') if isinstance(tr.get('materials_en'), list) else []
                 exp.steps_ru = tr.get('steps_ru') if isinstance(tr.get('steps_ru'), list) else []
                 exp.steps_en = tr.get('steps_en') if isinstance(tr.get('steps_en'), list) else []
                 exp.concepts_ru = tr.get('concepts_ru') if isinstance(tr.get('concepts_ru'), list) else []
                 exp.concepts_en = tr.get('concepts_en') if isinstance(tr.get('concepts_en'), list) else []
                 exp.save(update_fields=[
                     'name_ru', 'name_en', 'desc_ru', 'desc_en', 'safety_ru', 'safety_en',
-                    'materials_ru', 'materials_en', 'steps_ru', 'steps_en',
+                    'steps_ru', 'steps_en',
                     'concepts_ru', 'concepts_en',
                 ])
+
+                eq_tr_by_id = {it['id']: it for it in tr.get('equipment_items') or [] if it.get('id')}
+                for item in exp.equipment_items.all():
+                    eq_tr = eq_tr_by_id.get(item.id)
+                    if not eq_tr:
+                        continue
+                    item.name_ru = eq_tr.get('name_ru') or ''
+                    item.name_en = eq_tr.get('name_en') or ''
+                    item.save(update_fields=['name_ru', 'name_en'])
             ok += 1
 
         return Response({'ok': ok, 'skipped': skipped})
@@ -502,3 +531,36 @@ class LessonViewSet(viewsets.ModelViewSet):
             'skipped': skipped,
             'errors': errors,
         })
+
+
+class EquipmentItemViewSet(viewsets.GenericViewSet):
+    """Equipment items are created/edited/deleted only through their parent
+    Lesson's nested PATCH (LessonSerializer._sync_equipment_items) — this
+    viewset exists purely to give an already-persisted row a stable id to
+    attach a photo to, the same reason Lesson.file has upload-file/
+    remove-file actions instead of being writable on LessonSerializer."""
+
+    queryset = EquipmentItem.objects.all()
+    permission_classes = [IsApproved, IsAdminOrDevSuperuser]
+
+    @action(detail=True, methods=['post'], url_path='upload-image', parser_classes=[MultiPartParser, FormParser])
+    def upload_image(self, request, pk=None):
+        item = self.get_object()
+        f = request.FILES.get('image')
+        if not f:
+            return Response({'detail': 'image required'}, status=400)
+        validate_upload(f, EQUIPMENT_IMAGE_EXTENSIONS, EQUIPMENT_IMAGE_MAX_MB)
+        delete_file_field(item, 'image')
+        item.image = f
+        item.save(update_fields=['image'])
+        notify_admin_action(request.user, f"Jihoz rasmini biriktirdi: «{item.name}» ({item.experiment.name})")
+        return Response(EquipmentItemSerializer(item, context={'request': request}).data)
+
+    @action(detail=True, methods=['post'], url_path='remove-image')
+    def remove_image(self, request, pk=None):
+        item = self.get_object()
+        delete_file_field(item, 'image')
+        item.image = None
+        item.save(update_fields=['image'])
+        notify_admin_action(request.user, f"Jihoz rasmini o'chirdi: «{item.name}» ({item.experiment.name})")
+        return Response(EquipmentItemSerializer(item, context={'request': request}).data)

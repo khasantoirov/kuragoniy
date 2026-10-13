@@ -4,7 +4,7 @@ import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
 
 import type { Grade } from './labels'
-import type { Lesson } from './types'
+import type { EquipmentItem, Lesson } from './types'
 
 export function useLessons(filters: { grade?: Grade; chorak?: number } = {}) {
   return useQuery({
@@ -62,6 +62,26 @@ export function useRemoveLessonFile() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (id: number) => (await api.post<Lesson>(`/lessons/${id}/remove-file/`)).data,
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['lessons'] }) },
+  })
+}
+
+export function useUploadEquipmentImage() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, file }: { id: number; file: File }) => {
+      const form = new FormData()
+      form.append('image', file)
+      return (await api.post<EquipmentItem>(`/lessons/equipment-items/${id}/upload-image/`, form)).data
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['lessons'] }) },
+  })
+}
+
+export function useRemoveEquipmentImage() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: number) => (await api.post<EquipmentItem>(`/lessons/equipment-items/${id}/remove-image/`)).data,
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['lessons'] }) },
   })
 }

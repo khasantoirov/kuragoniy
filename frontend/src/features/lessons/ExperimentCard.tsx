@@ -59,13 +59,14 @@ export function ExperimentCard({
 
           {exp.desc && <p className="xcard__desc">{exp.desc}</p>}
 
-          {exp.materials.length > 0 && (
+          {exp.equipment_items.length > 0 && (
             <div className="xblock">
               <p className="xblock__label">{t('Kerakli jihozlar')}</p>
               <ul className="xlist xlist--tags">
-                {exp.materials.map((m, i) => (
-                  <li key={i} className="xtag">
-                    {m}
+                {exp.equipment_items.map((item, i) => (
+                  <li key={item.id ?? i} className="xtag">
+                    {item.image && <img src={item.image} alt="" className="xtag__thumb" />}
+                    {item.name} × {item.quantity}
                   </li>
                 ))}
               </ul>

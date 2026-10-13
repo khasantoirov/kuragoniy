@@ -15,7 +15,7 @@ def build_lessons_backup() -> tuple[bytes, str]:
     from .models import Lesson
     from .serializers import LessonSerializer
 
-    lessons = Lesson.objects.prefetch_related('experiments').order_by('grade', 'chorak', 'hafta')
+    lessons = Lesson.objects.prefetch_related('experiments__equipment_items').order_by('grade', 'chorak', 'hafta')
     payload = json.dumps(LessonSerializer(lessons, many=True).data, ensure_ascii=False, indent=1).encode('utf-8')
     filename = f"darslar_{timezone.localtime().strftime('%Y-%m-%d_%H-%M-%S')}.json"
     return payload, filename
