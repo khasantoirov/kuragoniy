@@ -36,14 +36,17 @@ def test_login_still_rejects_wrong_password(api_client):
 # always reports the same IP, so leftover state here would otherwise bleed
 # into every other test in this file depending on run order.
 
-def test_login_is_rate_limited_per_ip(api_client):
+def test_login_is_rate_limited_per_ip(api_client, settings):
+    # The per-IP ceiling is deliberately loose (a whole class logs in from
+    # one school NAT address) — spread the guesses over unknown logins so
+    # the per-account lockout below doesn't kick in first.
     cache.clear()
     try:
-        User.objects.create_user(email="throttle@example.com", password="testpass123", name="T", approved=True)
-        for _ in range(10):
-            resp = api_client.post("/api/auth/login/", {"email": "throttle@example.com", "password": "wrong"}, format="json")
+        limit = int(settings.REST_FRAMEWORK['DEFAULT_THROTTLE_RATES']['login'].split('/')[0])
+        for i in range(limit):
+            resp = api_client.post("/api/auth/login/", {"email": f"nobody{i}@example.com", "password": "wrong"}, format="json")
             assert resp.status_code == 401
-        blocked = api_client.post("/api/auth/login/", {"email": "throttle@example.com", "password": "wrong"}, format="json")
+        blocked = api_client.post("/api/auth/login/", {"email": "nobody@example.com", "password": "wrong"}, format="json")
         assert blocked.status_code == 429
     finally:
         cache.clear()

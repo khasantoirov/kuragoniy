@@ -10,6 +10,9 @@ SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# Exactly one trusted proxy (nginx) in front of daphne — see base.py.
+REST_FRAMEWORK['NUM_PROXIES'] = 1  # noqa: F405
+
 MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',

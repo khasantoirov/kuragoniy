@@ -1,17 +1,24 @@
 """
-/start <uid> and /stop — account linking, ported from the old bot/index.js.
+/start <token> and /stop — account linking, ported from the old bot/index.js.
 Writes directly to the Django ORM (same db.sqlite3 file as the web app,
 WAL mode enabled — see config/settings/base.py DATABASES).
+
+The deep-link payload is a single-use TelegramLinkToken issued by
+POST /api/accounts/me/telegram-link/, never the raw user id: ids are
+visible to colleagues, and a linked chat receives password-reset codes.
 """
 
 import logging
+from datetime import timedelta
 
 from aiogram import Router
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from asgiref.sync import sync_to_async
+from django.db import transaction
+from django.utils import timezone
 
-from accounts.models import User
+from accounts.models import TelegramLinkToken, User
 
 from .library import main_menu_keyboard
 
@@ -20,13 +27,25 @@ router = Router(name="linking")
 
 
 @sync_to_async
-def _link_account(uid: str, chat_id: int, username: str | None) -> bool:
-    updated = User.objects.filter(id=uid).update(
-        telegram_linked=True,
-        telegram_chat_id=chat_id,
-        telegram_username=username or "",
-    )
-    return updated > 0
+def _link_account(token: str, chat_id: int, username: str | None) -> bool:
+    if not token:
+        return False
+    fresh_after = timezone.now() - timedelta(seconds=TelegramLinkToken.MAX_AGE_SECONDS)
+    with transaction.atomic():
+        # Conditional update = atomic "claim": of two chats racing on the
+        # same token, exactly one sees updated == 1.
+        claimed = TelegramLinkToken.objects.filter(
+            token=token, used_at__isnull=True, created_at__gte=fresh_after,
+        ).update(used_at=timezone.now())
+        if not claimed:
+            return False
+        link = TelegramLinkToken.objects.select_related('user').get(token=token)
+        User.objects.filter(pk=link.user_id).update(
+            telegram_linked=True,
+            telegram_chat_id=chat_id,
+            telegram_username=username or "",
+        )
+    return True
 
 
 @sync_to_async
@@ -38,12 +57,15 @@ def _unlink_by_chat(chat_id: int) -> int:
 
 @router.message(CommandStart(deep_link=True))
 async def start_with_uid(message: Message, command):
-    uid = command.args
-    ok = await _link_account(uid, message.chat.id, message.from_user.username if message.from_user else None)
+    token = (command.args or '').strip()
+    ok = await _link_account(token, message.chat.id, message.from_user.username if message.from_user else None)
     if ok:
         await message.answer("✅ Hisobingiz ulandi. Endi e'lonlarni shu yerda olasiz.", reply_markup=main_menu_keyboard())
     else:
-        await message.answer("❌ Havola yaroqsiz. Platformada «Telegramni ulash» tugmasini qayta bosing.")
+        await message.answer(
+            "❌ Havola yaroqsiz yoki muddati o'tgan (15 daqiqa amal qiladi). "
+            "Platformada «Telegramni ulash» tugmasini qayta bosing."
+        )
 
 
 @router.message(CommandStart())

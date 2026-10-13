@@ -18,11 +18,18 @@ from rest_framework_simplejwt.tokens import AccessToken
 def _get_user_from_token(token):
     from accounts.models import User
 
+    from common.security import token_predates_revocation
+
     try:
         validated = AccessToken(token)
-        return User.objects.get(id=validated['user_id'])
+        user = User.objects.get(id=validated['user_id'])
     except (TokenError, InvalidToken, User.DoesNotExist):
         return AnonymousUser()
+    # Same session rules as the REST API (common/authentication.py): a
+    # blocked account or a revoked session can't hold a socket open either.
+    if not user.is_active or token_predates_revocation(user, validated.get('iat')):
+        return AnonymousUser()
+    return user
 
 
 class JWTAuthMiddleware(BaseMiddleware):

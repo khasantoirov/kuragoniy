@@ -94,7 +94,14 @@ def notify_admin_action(actor, text: str) -> None:
     admin-level user (role admin/boshliq, or is_dev_superuser) with a
     linked Telegram account, including the actor themself — this is a
     full audit log for the whole admin team, not just a heads-up about
-    *other* admins' changes."""
+    *other* admins' changes.
+
+    Also persisted to common.models.AuditLog, so the trail survives even
+    without a bot token or a linked Telegram."""
+    from common.security import log_event
+
+    log_event('admin_action', actor=actor, detail=text)
+
     token = os.environ.get('BOT_TOKEN')
     if not token:
         return
@@ -164,3 +171,36 @@ def send_document_to_admins(
             logger.exception('Failed to send document via Telegram')
 
     threading.Thread(target=run, daemon=True).start()
+
+
+def send_telegram_message(chat_id: int, text: str, *, background: bool = True) -> None:
+    """Plain-text DM to one chat (password-reset codes, security alerts,
+    award notices). Runs in a background thread by default so a slow Bot
+    API never stalls the request — and so the request takes the same time
+    whether or not a message was actually sent (no account enumeration
+    through response timing)."""
+    token = os.environ.get('BOT_TOKEN')
+    if not token or not chat_id:
+        return
+
+    def run():
+        try:
+            requests.post(
+                f'https://api.telegram.org/bot{token}/sendMessage',
+                json={'chat_id': chat_id, 'text': text, 'disable_web_page_preview': True},
+                timeout=10,
+            )
+        except Exception:
+            logger.exception('Failed to send Telegram message')
+
+    if background:
+        threading.Thread(target=run, daemon=True).start()
+    else:
+        run()
+
+
+def notify_user(user, text: str) -> None:
+    """Telegram DM to `user` if they have linked the bot; silently a no-op
+    otherwise."""
+    if user is not None and user.telegram_linked and user.telegram_chat_id:
+        send_telegram_message(user.telegram_chat_id, text)
