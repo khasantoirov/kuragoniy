@@ -31,6 +31,8 @@ export interface User {
   must_change_password?: boolean
   student?: StudentInfo | null
   // Admin view only.
+  online?: boolean
+  last_seen?: string | null
   last_login?: string | null
   locked_until?: string | null
   failed_login_count?: number

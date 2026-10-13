@@ -15,6 +15,7 @@ import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import type { Paginated, User } from '@/lib/api/types'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
+import { Presence } from '@/features/portal/Presence'
 import { useUIStore } from '@/store/uiStore'
 
 import { ImportLessonsModal } from './ImportLessonsModal'
@@ -206,6 +207,7 @@ export function AdminPage() {
     queryKey: ['admin', 'users'],
     queryFn: async () => (await api.get<Paginated<User>>('/accounts/users/')).data.results,
     enabled: admin,
+    refetchInterval: 60_000, // keeps the "onlayn" dots current
   })
 
   const act = useMutation({
@@ -352,7 +354,12 @@ export function AdminPage() {
 
           {approved.length > 0 && (
             <section className="panel">
-              <h3 className="panel__title">{t('Xodimlar')} <span className="badge">{approved.length}</span></h3>
+              <h3 className="panel__title">
+                {t('Xodimlar')} <span className="badge">{approved.length}</span>
+                <span className="presence presence--on" style={{ marginLeft: 'auto' }}>
+                  <span className="presence__dot" aria-hidden="true" />{t('Hozir onlayn')}: {approved.filter((u) => u.online).length}
+                </span>
+              </h3>
               <div className="staff">
                 {approved.map((u) => (
                   <article key={u.id} className="stf">
@@ -363,6 +370,7 @@ export function AdminPage() {
                       <div className="stf__id">
                         <p className="stf__nm">{u.name || '—'}</p>
                         <RoleBadge user={u} />
+                        <Presence online={u.online} lastSeen={u.last_seen} />
                       </div>
                     </div>
                     <div className="stf__b">
@@ -398,7 +406,7 @@ export function AdminPage() {
                     <li key={u.id} className="person">
                       <div>
                         <p className="person__name">{u.name || '—'} <RoleBadge user={u} /></p>
-                        <p className="person__mail">{u.email || ''}</p>
+                        <p className="person__mail">{u.email || ''} · <Presence online={u.online} lastSeen={u.last_seen} /></p>
                       </div>
                       {isSelf ? (
                         <span className="person__you">{t('siz')}</span>

@@ -24,6 +24,8 @@ backend/    — Django loyihasi (API + Channels + Telegram bot)
                     o'qituvchi tayyorgarligi, dars hisobotlari, rag'batlar, tahlil
   games/          — jonli viktorina (Channels) + mini-o'yinlar reytingi
   shop/           — do'kon: dars ishlanmalari, tajribalar, buyurtma va to'lov
+  schools/        — hamkor maktablar reyestri, nomlarni moslashtirish, maktab/o'qituvchi/
+                    sinf kesimida o'zlashtirish, sifat, davomat statistikasi, umumiy baza
   common/         — ruxsatlar, rolga asoslangan JWT tekshiruvi, audit jurnali
   telegrambot/    — bot (aiogram) + backup tizimi (shifrlash bilan)
   realtime/       — Channels consumerlari

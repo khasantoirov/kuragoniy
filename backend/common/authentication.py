@@ -17,6 +17,7 @@ from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from .presence import touch
 from .security import token_predates_revocation
 
 STUDENT_ALLOWED_PREFIXES = (
@@ -57,4 +58,5 @@ class RoleAwareJWTAuthentication(JWTAuthentication):
             return None
         user, _token = result
         enforce_portal(user, request.path, request.method)
+        touch(user)
         return result

@@ -48,6 +48,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })()
   }, [refreshMe])
 
+  // Presence heartbeat (backend common/presence.py): while a tab is open
+  // and visible, tell the server once a minute that this user is here —
+  // that's what makes "onlayn" / "oxirgi marta HH:MM" accurate even when
+  // someone is just watching a video without clicking anything.
+  const userId = user?.id
+  useEffect(() => {
+    if (!userId) return
+    const beat = () => {
+      if (document.visibilityState === 'visible') api.post('/accounts/me/heartbeat/').catch(() => {})
+    }
+    const id = setInterval(beat, 60_000)
+    document.addEventListener('visibilitychange', beat)
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', beat)
+    }
+  }, [userId])
+
   const login = useCallback(async (loginName: string, password: string): Promise<LoginResult> => {
     const res = await api.post('/auth/login/', { login: loginName, password })
     if (res.data.totp_required) return { totpRequired: true, challenge: res.data.challenge }

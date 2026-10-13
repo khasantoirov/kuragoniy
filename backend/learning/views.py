@@ -19,6 +19,7 @@ from rest_framework.views import APIView
 from accounts.models import User
 from common.audit import notify_admin_action, notify_user
 from common.permissions import IsAdminOrDevSuperuser, IsApproved, IsOversight, IsTeacher
+from common.presence import presence_for
 from common.security import generate_readable_password, log_event, revoke_all_tokens
 from journal.models import JournalClass, Student
 from lessons.models import Lesson
@@ -117,6 +118,7 @@ class TeacherClassViewSet(viewsets.ReadOnlyModelViewSet):
             .values('user').annotate(n=Count('id'))
         )
         counts = {r['user']: r['n'] for r in attempts}
+        presence = presence_for([p.user for p in profiles])
         return Response({
             'class': TeacherClassSerializer(self.get_queryset().get(pk=jc.pk)).data,
             'accounts': [
@@ -126,6 +128,8 @@ class TeacherClassViewSet(viewsets.ReadOnlyModelViewSet):
                     'telegram_linked': p.user.telegram_linked, 'last_login': p.user.last_login,
                     'locked': bool(p.user.locked_until and p.user.locked_until > timezone.now()),
                     'roster_id': p.roster_entry_id, 'attempts': counts.get(p.user_id, 0),
+                    'online': presence[p.user_id]['online'],
+                    'last_seen': presence[p.user_id]['last_seen'],
                 }
                 for p in profiles
             ],

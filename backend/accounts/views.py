@@ -21,6 +21,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from common.audit import notify_admin_action, notify_user
+from common.presence import mark_logged_out, presence_for, touch
 from common.models import AuditLog
 from common.permissions import IsAdminOrDevSuperuser, IsApproved, IsDevSuperuser
 from common.security import (
@@ -77,6 +78,7 @@ def _issue_tokens_response(user, request=None) -> Response:
     user.locked_until = None
     user.save(update_fields=['last_login', 'last_login_ip', 'failed_login_count', 'locked_until'])
     log_event('login_ok', actor=user, request=request)
+    touch(user)
     response = Response({'access': str(refresh.access_token), 'user': MeSerializer(user).data})
     _set_refresh_cookie(response, refresh)
     return response
@@ -313,9 +315,20 @@ class LogoutView(generics.GenericAPIView):
                 RefreshToken(refresh_raw).blacklist()
             except TokenError:
                 pass
+        mark_logged_out(request.user)
         response = Response(status=status.HTTP_204_NO_CONTENT)
         response.delete_cookie(REFRESH_COOKIE, path=REFRESH_COOKIE_PATH)
         return response
+
+
+class HeartbeatView(generics.GenericAPIView):
+    """Pinged every minute by any open tab; authentication itself records
+    the activity (common/authentication.py), so there's nothing else to do."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class LogoutAllView(generics.GenericAPIView):
@@ -326,6 +339,7 @@ class LogoutAllView(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         revoke_all_tokens(request.user)
+        mark_logged_out(request.user)
         log_event('logout_all', actor=request.user, request=request)
         response = Response(status=status.HTTP_204_NO_CONTENT)
         response.delete_cookie(REFRESH_COOKIE, path=REFRESH_COOKIE_PATH)
@@ -589,6 +603,19 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
         if q:
             qs = qs.filter(Q(name__icontains=q) | Q(username__icontains=q) | Q(email__icontains=q))
         return qs
+
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        if self.action == 'list' and self.request.user.is_authenticated and self.request.user.is_admin:
+            page = getattr(self, '_page_for_presence', None)
+            if page is not None:
+                ctx['presence'] = presence_for(page)
+        return ctx
+
+    def list(self, request, *args, **kwargs):
+        page = self.paginate_queryset(self.filter_queryset(self.get_queryset()))
+        self._page_for_presence = page
+        return self.get_paginated_response(self.get_serializer(page, many=True).data)
 
     def get_serializer_class(self):
         # Admin-level viewers additionally get telegram_chat_id (shown on

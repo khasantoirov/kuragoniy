@@ -3,7 +3,29 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
+from common.presence import presence_of
+
 from .models import User
+
+
+class PresenceMixin(serializers.Serializer):
+    """`online` + `last_seen` for staff-facing user lists. A view may pass
+    a precomputed {user_id: presence} map as context['presence'] to avoid
+    one cache lookup per row."""
+
+    online = serializers.SerializerMethodField()
+    last_seen = serializers.SerializerMethodField()
+
+    def _presence(self, user):
+        cached = self.context.get('presence', {}).get(user.pk)
+        return cached if cached is not None else presence_of(user)
+
+    def get_online(self, user):
+        return self._presence(user)['online']
+
+    def get_last_seen(self, user):
+        seen = self._presence(user)['last_seen']
+        return seen.isoformat() if seen else None
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -71,7 +93,7 @@ class MeSerializer(UserSerializer):
         return super().update(instance, validated_data)
 
 
-class AdminUserSerializer(UserSerializer):
+class AdminUserSerializer(PresenceMixin, UserSerializer):
     """UserSerializer + telegram_chat_id, for admin/boshliq/dev-superuser
     viewers only (see UserAdminViewSet.get_serializer_class) — the id
     itself isn't sensitive, but there's no reason a plain teacher hitting
@@ -80,7 +102,7 @@ class AdminUserSerializer(UserSerializer):
 
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + [
-            'telegram_chat_id', 'username', 'last_login', 'locked_until', 'failed_login_count',
+            'telegram_chat_id', 'username', 'last_login', 'locked_until', 'failed_login_count', 'online', 'last_seen',
         ]
 
 

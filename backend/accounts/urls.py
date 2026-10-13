@@ -21,6 +21,7 @@ account_urlpatterns = [
     path('me/', views.MeView.as_view(), name='account-me'),
     path('me/change-password/', views.ChangePasswordView.as_view(), name='account-change-password'),
     path('me/logout-all/', views.LogoutAllView.as_view(), name='account-logout-all'),
+    path('me/heartbeat/', views.HeartbeatView.as_view(), name='account-heartbeat'),
     path('me/telegram-link/', views.TelegramLinkView.as_view(), name='account-telegram-link'),
     path('me/telegram-unlink/', views.TelegramUnlinkView.as_view(), name='account-telegram-unlink'),
     path('me/2fa/setup/', views.TwoFactorSetupView.as_view(), name='account-2fa-setup'),

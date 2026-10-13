@@ -23,6 +23,7 @@ urlpatterns = [
     path('api/learning/', include('learning.urls')),
     path('api/games/', include('games.urls')),
     path('api/shop/', include('shop.urls')),
+    path('api/schools/', include('schools.urls')),
 ]
 
 if settings.DEBUG:

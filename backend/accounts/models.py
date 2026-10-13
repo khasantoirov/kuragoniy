@@ -132,6 +132,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     locked_until = models.DateTimeField(null=True, blank=True)
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)
 
+    # Presence (common/presence.py): the live "online now" signal lives in
+    # the cache; these columns keep "last seen" / "logged out at" durable.
+    last_seen_at = models.DateTimeField(null=True, blank=True)
+    logged_out_at = models.DateTimeField(null=True, blank=True)
+
     # Every access/refresh token issued before this moment is rejected
     # (password change/reset, block, "log out everywhere") — without it a
     # stolen token keeps working until it expires on its own.

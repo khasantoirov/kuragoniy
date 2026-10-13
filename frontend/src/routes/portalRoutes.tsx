@@ -31,6 +31,9 @@ const MaterialsPage = named(() => import('@/features/manage/MaterialsPage'), 'Ma
 const ShopPage = named(() => import('@/features/shop/ShopPage'), 'ShopPage')
 const OrdersPage = named(() => import('@/features/shop/OrdersPage'), 'OrdersPage')
 const ShopAdminPage = named(() => import('@/features/shop/ShopAdminPage'), 'ShopAdminPage')
+const SchoolsPage = named(() => import('@/features/schools/SchoolsPage'), 'SchoolsPage')
+const SchoolDetailPage = named(() => import('@/features/schools/SchoolDetailPage'), 'SchoolDetailPage')
+const DirectoryPage = named(() => import('@/features/schools/DirectoryPage'), 'DirectoryPage')
 
 function Lazy({ children }: { children: ReactNode }) {
   return <Suspense fallback={<Skeleton lines={5} />}>{children}</Suspense>
@@ -63,6 +66,9 @@ export const staffPortalRoutes: RouteObject[] = [
   { path: '/manage/awards', element: oversight(<AwardsPage />) },
   { path: '/manage/materials', element: oversight(<MaterialsPage />) },
   { path: '/manage/shop', element: oversight(<ShopAdminPage />) },
+  { path: '/manage/schools', element: oversight(<SchoolsPage />) },
+  { path: '/manage/schools/:id', element: oversight(<SchoolDetailPage />) },
+  { path: '/manage/database', element: oversight(<DirectoryPage />) },
   { path: '/manage/security', element: <RequireAdmin><Lazy><SecurityLogPage /></Lazy></RequireAdmin> },
 ]
 

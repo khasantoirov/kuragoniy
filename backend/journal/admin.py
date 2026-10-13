@@ -10,7 +10,8 @@ class StudentInline(admin.TabularInline):
 
 @admin.register(JournalClass)
 class JournalClassAdmin(admin.ModelAdmin):
-    list_display = ['name', 'teacher', 'school', 'created_at']
+    list_display = ['name', 'teacher', 'school', 'partner_school', 'created_at']
+    list_filter = ['partner_school']
     inlines = [StudentInline]
 
 

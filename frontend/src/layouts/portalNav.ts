@@ -24,6 +24,8 @@ const PORTAL_LINKS: PortalLink[] = [
   { to: '/games', label: "O'yinlar", sub: "Jonli viktorina va mini-o'yinlar", icon: 'dice', audience: 'teacher' },
   { to: '/shop', label: "Do'kon", sub: "Dars ishlanmalari va tajribalar", icon: 'cards', audience: 'staff' },
   { to: '/manage', label: 'Tahlil', sub: "Eng yaxshi o'quvchi va darslar reytingi", icon: 'calc', audience: 'oversight' },
+  { to: '/manage/schools', label: 'Hamkor maktablar', sub: "O'zlashtirish, sifat va davomat maktablar kesimida", icon: 'home', audience: 'oversight' },
+  { to: '/manage/database', label: "Ma'lumotlar bazasi", sub: "Barcha maktablardagi o'quvchilar", icon: 'list', audience: 'oversight' },
   { to: '/manage/reports', label: 'Hisobotlarni baholash', sub: "O'qituvchilar topshirgan darslar", icon: 'check2', audience: 'oversight' },
   { to: '/manage/awards', label: "Rag'batlantirish", sub: 'Sertifikat va tabriklar', icon: 'megaphone', audience: 'oversight' },
   { to: '/manage/materials', label: "O'quv materiallari", sub: "Nazariya, formula, video, savollar", icon: 'book', audience: 'oversight' },

@@ -4,7 +4,13 @@ from django.db import models
 
 class JournalClass(models.Model):
     teacher = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='classes', on_delete=models.CASCADE)
+    # Free text as typed by the teacher — kept for display/history. The
+    # partner school it belongs to is `partner_school`, set from the
+    # journal's school picker or matched automatically (schools/signals.py).
     school = models.CharField(max_length=255, blank=True)
+    partner_school = models.ForeignKey(
+        'schools.School', related_name='classes', null=True, blank=True, on_delete=models.SET_NULL,
+    )
     name = models.CharField(max_length=100)  # e.g. "8-A"
     created_at = models.DateTimeField(auto_now_add=True)
 

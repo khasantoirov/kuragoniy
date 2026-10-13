@@ -32,6 +32,8 @@ export interface StudentAccountRow {
   locked: boolean
   roster_id: number | null
   attempts: number
+  online: boolean
+  last_seen: string | null
 }
 
 export interface ClassStudents {
@@ -263,6 +265,7 @@ export function useClassStudents(classId: number | null) {
   return useQuery({
     queryKey: ['learning', 'class-students', classId],
     enabled: classId != null,
+    refetchInterval: 60_000, // keeps the "onlayn" dots current
     queryFn: async () => (await api.get<ClassStudents>(`/learning/classes/${classId}/students/`)).data,
   })
 }

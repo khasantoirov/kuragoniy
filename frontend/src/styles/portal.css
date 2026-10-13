@@ -444,3 +444,22 @@ a.hwcard__title:hover { color: var(--pick); }
   .overlay, .modal, .modal__body { overflow: visible !important; position: static !important; box-shadow: none !important; background: none !important; }
   .slip { break-inside: avoid; }
 }
+
+/* ── Onlayn holat ──────────────────────────────────────────── */
+.presence { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--ink-3); white-space: nowrap; font-weight: 500; }
+.presence__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); opacity: .55; flex: none; }
+.presence--on { color: var(--tone-ok); }
+.presence--on .presence__dot { background: var(--tone-ok); opacity: 1; box-shadow: 0 0 0 3px var(--tone-ok-bg); }
+
+/* ── Hamkor maktablar ──────────────────────────────────────── */
+.notice { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 12px 14px; margin-bottom: 16px; border-radius: var(--r); background: var(--tone-mid-bg); color: var(--ink); font-size: 13.5px; }
+.kv--grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px 24px; margin: 0; }
+.kv--grid li { flex-direction: column; gap: 2px; border-bottom: 0; padding: 0; }
+.linklist { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.linklist__row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 12px; border: 1px solid var(--rule); border-radius: var(--r); background: var(--paper); }
+.linklist__info { display: grid; gap: 2px; min-width: 0; }
+.linklist__info small { color: var(--ink-3); font-size: 12px; }
+.linklist__acts { display: flex; gap: 6px; align-items: center; }
+.stf__id .presence { margin-top: 4px; }

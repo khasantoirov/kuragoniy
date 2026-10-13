@@ -15,7 +15,8 @@ import {
   type StudentAccountRow,
 } from '@/features/learning/api'
 import { downloadCsv } from '@/features/portal/csv'
-import { errText, fmtDateTime, PageHead, StatusPill } from '@/features/portal/ui'
+import { Presence } from '@/features/portal/Presence'
+import { errText, PageHead, StatusPill } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 
@@ -209,7 +210,7 @@ export function StudentsPage() {
             <div className="tablewrap">
               <table className="dtable">
                 <thead>
-                  <tr><th>{t('Ism')}</th><th>{t('Login')}</th><th>{t('Holat')}</th><th>{t("So'nggi kirish")}</th><th>{t('Urinishlar')}</th><th /></tr>
+                  <tr><th>{t('Ism')}</th><th>{t('Login')}</th><th>{t('Holat')}</th><th>{t('Faollik')}</th><th>{t('Urinishlar')}</th><th /></tr>
                 </thead>
                 <tbody>
                   {active.map((s) => (
@@ -223,7 +224,7 @@ export function StudentsPage() {
                           : <StatusPill tone="ok">{t('Faol')}</StatusPill>}
                         {s.telegram_linked && <span title="Telegram"> {IC.telegram}</span>}
                       </td>
-                      <td>{fmtDateTime(s.last_login)}</td>
+                      <td><Presence online={s.online} lastSeen={s.last_seen} /></td>
                       <td>{s.attempts}</td>
                       <td className="dtable__acts">
                         <button className="btn btn--sm btn--ghost" disabled={busy} onClick={() => act(s, 'reset-password')}>{t('Parolni tiklash')}</button>
