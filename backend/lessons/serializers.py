@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from common.uploads import delete_file_field
 
-from .models import EquipmentItem, Experiment, Lesson, QuarterLock
+from .models import EquipmentItem, EquipmentSheet, Experiment, Lesson, QuarterLock
 
 
 class EquipmentItemSerializer(serializers.ModelSerializer):
@@ -57,6 +57,13 @@ class QuarterLockSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuarterLock
         fields = ['chorak', 'is_open']
+
+
+class EquipmentSheetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EquipmentSheet
+        fields = ['id', 'grade', 'hafta', 'title', 'image', 'created_at']
+        read_only_fields = ['id', 'created_at']
 
 
 class LessonSerializer(serializers.ModelSerializer):

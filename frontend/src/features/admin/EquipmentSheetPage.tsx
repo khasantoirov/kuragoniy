@@ -1,11 +1,24 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { useConfirm } from '@/components/ConfirmProvider'
 import { ExportMenu, type ExportFormat } from '@/components/ExportMenu'
+import { Modal } from '@/components/Modal'
+import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
+import { gradeLabel } from '@/features/lessons/labels'
 import { IC } from '@/icons'
 import { tableJpg, tableOffice } from '@/lib/export/tableExport'
 import { tablePdf } from '@/lib/pdf'
+import { useUIStore } from '@/store/uiStore'
+
+import {
+  useCreateEquipmentSheet,
+  useDeleteEquipmentSheet,
+  useEquipmentSheets,
+  useUpdateEquipmentSheet,
+  type SavedEquipmentSheet,
+} from './equipmentSheetsApi'
 
 interface SheetRow {
   id: string
@@ -75,13 +88,80 @@ async function runExport(
   })
 }
 
+function sheetFilename(s: SavedEquipmentSheet): string {
+  return `${s.grade}-sinf_${s.hafta}-hafta_jihozlar_${(s.title || 'jadval').trim().slice(0, 40)}.jpg`
+}
+
+/** Same as the poster gallery's edit dialog: only where the saved image is
+ * filed (grade / week / title) changes — the image itself stays as saved. */
+function EditSheetModal({ sheet, onClose }: { sheet: SavedEquipmentSheet; onClose: () => void }) {
+  const { t } = useTranslation()
+  const toast = useToast()
+  const update = useUpdateEquipmentSheet()
+  const [grade, setGrade] = useState(sheet.grade)
+  const [hafta, setHafta] = useState(sheet.hafta)
+  const [title, setTitle] = useState(sheet.title)
+
+  const submit = async () => {
+    try {
+      await update.mutateAsync({ id: sheet.id, grade, hafta, title })
+      toast(t('Saqlandi'))
+      onClose()
+    } catch {
+      toast(t('Saqlashda xatolik'), 'error')
+    }
+  }
+
+  return (
+    <Modal
+      title={t("Jadval ma'lumotlarini tahrirlash")}
+      onClose={onClose}
+      footer={
+        <>
+          <button className="btn" onClick={onClose}>{t('Bekor qilish')}</button>
+          <button className="btn btn--primary" onClick={submit} disabled={update.isPending}>{t('Saqlash')}</button>
+        </>
+      }
+    >
+      <p className="prose prose--note">
+        {t("Faqat sinf/hafta/sarlavha o'zgaradi — jadvalning o'zini qayta yaratish uchun yuqoridagi asosiy shakldan foydalaning.")}
+      </p>
+      <div className="row row--2">
+        <label className="field">
+          <span className="field__label">{t('Sinf')}</span>
+          <select className="input" value={grade} onChange={(e) => setGrade(Number(e.target.value))}>
+            {[7, 8, 9].map((g) => <option key={g} value={g}>{g}</option>)}
+          </select>
+        </label>
+        <label className="field">
+          <span className="field__label">{t('Hafta')}</span>
+          <input className="input" type="number" min={1} max={40} value={hafta} onChange={(e) => setHafta(Number(e.target.value) || 1)} />
+        </label>
+      </div>
+      <label className="field">
+        <span className="field__label">{t('Sarlavha')}</span>
+        <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} />
+      </label>
+    </Modal>
+  )
+}
+
 export function EquipmentSheetPage() {
   const { t } = useTranslation()
   const toast = useToast()
+  const confirm = useConfirm()
+  const { lang } = useUIStore()
   const captureRef = useRef<HTMLDivElement>(null)
   const [sheetTitle, setSheetTitle] = useState('')
+  const [grade, setGrade] = useState(7)
+  const [hafta, setHafta] = useState(1)
   const [rows, setRows] = useState<SheetRow[]>([emptyRow()])
   const [exporting, setExporting] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const { data: saved, isLoading: savedLoading } = useEquipmentSheets()
+  const createSheet = useCreateEquipmentSheet()
+  const deleteSheet = useDeleteEquipmentSheet()
+  const [editingSheet, setEditingSheet] = useState<SavedEquipmentSheet | null>(null)
 
   const updateRow = (id: string, patch: Partial<SheetRow>) => {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)))
@@ -112,6 +192,35 @@ export function EquipmentSheetPage() {
   const head = [t('Kerakli jihozlar'), t('Tavsif')]
   const title = sheetTitle.trim() || t('Jihozlar jadvali')
 
+  // "Galereyaga saqlash" — renders the preview table exactly like the JPG
+  // export, then files it server-side (same flow as the lesson poster).
+  const saveToGallery = async () => {
+    if (!captureRef.current) return
+    setSaving(true)
+    try {
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(captureRef.current, { backgroundColor: '#ffffff', scale: 2 })
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.95))
+      if (!blob) return
+      await createSheet.mutateAsync({ grade, hafta, title: sheetTitle.trim(), image: blob })
+      toast(t('Jadval galereyaga saqlandi — pastdan yuklab olishingiz mumkin'))
+    } catch {
+      toast(t('Saqlashda xatolik'), 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const onDeleteSheet = async (s: SavedEquipmentSheet) => {
+    if (!(await confirm({ title: t("O'chirish"), text: `${s.grade}-sinf, ${s.hafta}-hafta — ${t("galereyadan o'chiriladi.")}`, danger: true }))) return
+    try {
+      await deleteSheet.mutateAsync(s.id)
+      toast(t("O'chirildi"))
+    } catch {
+      toast(t("O'chirishda xatolik"), 'error')
+    }
+  }
+
   const onExport = async (format: ExportFormat) => {
     setExporting(true)
     try {
@@ -131,11 +240,26 @@ export function EquipmentSheetPage() {
           <p className="ttbar__sub">{t("Darslar uchun kerakli jihozlar ro'yxatini jadval sifatida tayyorlash va yuklab olish.")}</p>
         </div>
         <div className="ttbar__acts">
+          <button type="button" className="btn btn--sm btn--primary" onClick={saveToGallery} disabled={saving}>
+            {saving ? t('Saqlanmoqda…') : t('Galereyaga saqlash')}
+          </button>
           <ExportMenu formats={['jpg', 'pdf-portrait', 'pdf-landscape', 'xls', 'doc']} onExport={onExport} busy={exporting} />
         </div>
       </div>
 
       <section className="panel">
+        <div className="row row--2">
+          <label className="field">
+            <span className="field__label">{t('Sinf')}</span>
+            <select className="input" value={grade} onChange={(e) => setGrade(Number(e.target.value))}>
+              {[7, 8, 9].map((g) => <option key={g} value={g}>{gradeLabel(g, lang)}</option>)}
+            </select>
+          </label>
+          <label className="field">
+            <span className="field__label">{t('Hafta')}</span>
+            <input className="input" type="number" min={1} max={40} value={hafta} onChange={(e) => setHafta(Number(e.target.value) || 1)} />
+          </label>
+        </div>
         <label className="field">
           <span className="field__label">{t('Sarlavha')}</span>
           <input className="input" value={sheetTitle} onChange={(e) => setSheetTitle(e.target.value)} placeholder={t('Masalan: 4-hafta. Tezlik. Tekis va notekis harakat')} />
@@ -226,6 +350,51 @@ export function EquipmentSheetPage() {
           </div>
         </div>
       </section>
+
+      <section className="panel">
+        <h3 className="panel__title">{t('Saqlangan jadvallar')}</h3>
+        {savedLoading ? (
+          <Skeleton lines={3} />
+        ) : saved?.length ? (
+          [7, 8, 9].map((g) => {
+            const group = saved.filter((s) => s.grade === g)
+            if (!group.length) return null
+            return (
+              <div key={g} className="poster-gallery__group">
+                <h4 className="poster-gallery__grade">{gradeLabel(g, lang)}</h4>
+                <div className="poster-gallery__grid">
+                  {group.map((s) => (
+                    <div key={s.id} className="poster-gallery__item">
+                      <a href={s.image} target="_blank" rel="noopener noreferrer">
+                        <img src={s.image} alt="" className="poster-gallery__thumb poster-gallery__thumb--contain" />
+                      </a>
+                      <span className="poster-gallery__meta">
+                        <b>{s.hafta}-{t('hafta')}</b>
+                        {s.title && <span className="poster-gallery__topic">{s.title}</span>}
+                      </span>
+                      <span className="poster-gallery__tools">
+                        <a className="icon-btn" href={s.image} download={sheetFilename(s)} title={t('Yuklab olish')}>
+                          {IC.download}
+                        </a>
+                        <button type="button" className="icon-btn" title={t('Tahrirlash')} onClick={() => setEditingSheet(s)}>
+                          {IC.edit}
+                        </button>
+                        <button type="button" className="icon-btn icon-btn--danger" title={t("O'chirish")} onClick={() => onDeleteSheet(s)}>
+                          {IC.trash}
+                        </button>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })
+        ) : (
+          <p className="prose">{t("Hali jadval saqlanmagan. Tayyor jadvalni «Galereyaga saqlash» tugmasi bilan saqlang.")}</p>
+        )}
+      </section>
+
+      {editingSheet && <EditSheetModal sheet={editingSheet} onClose={() => setEditingSheet(null)} />}
     </div>
   )
 }

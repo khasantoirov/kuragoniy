@@ -1455,6 +1455,8 @@ tr.is-absent .table__name { color: var(--mark); text-decoration: line-through; o
 }
 .poster-gallery__item:hover { border-color: var(--ink-3); }
 .poster-gallery__thumb { width: 100%; aspect-ratio: 297 / 210; object-fit: cover; background: var(--paper); }
+/* Equipment-sheet tables vary in height — show the whole sheet, not a crop. */
+.poster-gallery__thumb--contain { object-fit: contain; background: #fff; display: block; }
 .poster-gallery__meta { display: grid; gap: 2px; padding: 8px 10px 4px; font-size: 12.5px; }
 .poster-gallery__meta b { font-family: var(--f-mono); }
 .poster-gallery__topic { color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

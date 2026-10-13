@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import EquipmentItem, Experiment, Lesson, QuarterLock
+from .models import EquipmentItem, EquipmentSheet, Experiment, Lesson, QuarterLock
 
 
 class ExperimentInline(admin.TabularInline):
@@ -35,3 +35,9 @@ class ExperimentAdmin(admin.ModelAdmin):
 @admin.register(QuarterLock)
 class QuarterLockAdmin(admin.ModelAdmin):
     list_display = ['chorak', 'is_open']
+
+
+@admin.register(EquipmentSheet)
+class EquipmentSheetAdmin(admin.ModelAdmin):
+    list_display = ['grade', 'hafta', 'title', 'created_at']
+    list_filter = ['grade']

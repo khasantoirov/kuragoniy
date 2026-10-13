@@ -5,7 +5,7 @@ from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 
@@ -13,8 +13,8 @@ from common.audit import diff_fields, notify_admin_action, snapshot
 from common.permissions import IsAdminOrDevSuperuser, IsApproved
 from common.uploads import delete_file_field, validate_upload
 
-from .models import EquipmentItem, Experiment, Lesson, QuarterLock
-from .serializers import EquipmentItemSerializer, LessonSerializer, QuarterLockSerializer
+from .models import EquipmentItem, EquipmentSheet, Experiment, Lesson, QuarterLock
+from .serializers import EquipmentItemSerializer, EquipmentSheetSerializer, LessonSerializer, QuarterLockSerializer
 from .signals import send_lessons_backup, suppress_lessons_backup
 from .visibility import visible_chorak_set
 
@@ -25,6 +25,8 @@ LESSON_FILE_MAX_MB = 20
 
 EQUIPMENT_IMAGE_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.webp')
 EQUIPMENT_IMAGE_MAX_MB = 10
+EQUIPMENT_SHEET_EXTENSIONS = ('.jpg', '.jpeg')
+EQUIPMENT_SHEET_MAX_MB = 20
 
 # Tracked for the admin-audit diff (common/audit.py) — translations
 # (_ru/_en) and `file`/`updated_at`/`translated_at` are excluded since
@@ -564,3 +566,30 @@ class EquipmentItemViewSet(viewsets.GenericViewSet):
         item.save(update_fields=['image'])
         notify_admin_action(request.user, f"Jihoz rasmini o'chirdi: «{item.name}» ({item.experiment.name})")
         return Response(EquipmentItemSerializer(item, context={'request': request}).data)
+
+
+class EquipmentSheetViewSet(viewsets.ModelViewSet):
+    """Saved equipment-sheet images from EquipmentSheetPage.tsx: JPEG-only
+    uploads on create, metadata-only (grade/hafta/title) PATCH afterwards —
+    the generated image itself isn't re-editable, only how it's filed."""
+
+    queryset = EquipmentSheet.objects.all()
+    serializer_class = EquipmentSheetSerializer
+    permission_classes = [IsApproved, IsAdminOrDevSuperuser]
+    # Multipart for create (carries the image file); JSON too, since
+    # editing only ever PATCHes grade/hafta/title — no file in that body.
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def perform_create(self, serializer):
+        image = serializer.validated_data.get('image')
+        if image:
+            validate_upload(image, EQUIPMENT_SHEET_EXTENSIONS, EQUIPMENT_SHEET_MAX_MB)
+        serializer.save()
+
+    def perform_update(self, serializer):
+        serializer.validated_data.pop('image', None)
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        delete_file_field(instance, 'image')
+        instance.delete()

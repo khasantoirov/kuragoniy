@@ -41,6 +41,25 @@ class Lesson(models.Model):
         return self.title
 
 
+class EquipmentSheet(models.Model):
+    """A generated "Kerakli jihozlar / Tavsif" table image (see
+    frontend/src/features/admin/EquipmentSheetPage.tsx), saved server-side
+    when an admin clicks "Galereyaga saqlash" — a permanent gallery, so a
+    finished sheet doesn't only live in one person's Downloads folder."""
+
+    grade = models.CharField(max_length=5, choices=Lesson.Grade.choices)
+    hafta = models.PositiveSmallIntegerField()
+    title = models.CharField(max_length=255, blank=True)
+    image = models.FileField(upload_to='equipment-sheets/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['grade', 'hafta', '-created_at']
+
+    def __str__(self):
+        return f'{self.grade}-sinf, {self.hafta}-hafta — {self.title}'
+
+
 class QuarterLock(models.Model):
     """Admin-controlled visibility gate for the Lessons page. All 4 quarters
     are lockable; a missing row means chorak 1 defaults open (its original
