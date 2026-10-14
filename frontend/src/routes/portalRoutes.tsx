@@ -10,8 +10,8 @@ import { isObserver, useAuth } from '@/lib/auth/AuthContext'
 import { RequireAdmin, RequireAuth, RequireOversight, RequirePasswordChange, RequireStudent, RequireTeacher } from './guards'
 
 // Every portal feature is its own lazy chunk: students never download the
-// staff pages (and vice versa), and a teacher who never opens the shop
-// never downloads it.
+// staff pages (and vice versa), and the shop (administration only for
+// now) is never downloaded by teachers.
 const StudentApp = lazy(() => import('@/features/student/routes'))
 const named = <T extends Record<string, unknown>>(loader: () => Promise<T>, key: keyof T) =>
   lazy(() => loader().then((m) => ({ default: m[key] as React.ComponentType })))
@@ -50,6 +50,7 @@ export function StaffHome() {
 
 const teacher = (el: ReactNode) => <RequireTeacher><Lazy>{el}</Lazy></RequireTeacher>
 const oversight = (el: ReactNode) => <RequireOversight><Lazy>{el}</Lazy></RequireOversight>
+const admin = (el: ReactNode) => <RequireAdmin><Lazy>{el}</Lazy></RequireAdmin>
 
 /** Children of the staff AppShell route. */
 export const staffPortalRoutes: RouteObject[] = [
@@ -58,11 +59,11 @@ export const staffPortalRoutes: RouteObject[] = [
   { path: '/assignments/:id', element: <Lazy><AssignmentResultsPage /></Lazy> },
   { path: '/reports', element: teacher(<ReportsPage />) },
   { path: '/readiness', element: teacher(<ReadinessPage />) },
-  { path: '/results', element: teacher(<TeacherResultsPage />) },
+  { path: '/results', element: oversight(<TeacherResultsPage />) },
   { path: '/class-stats', element: teacher(<MyClassesPage />) },
   { path: '/games', element: teacher(<GamesPage />) },
-  { path: '/shop', element: <Lazy><ShopPage /></Lazy> },
-  { path: '/shop/orders', element: <Lazy><OrdersPage /></Lazy> },
+  { path: '/shop', element: admin(<ShopPage />) },
+  { path: '/shop/orders', element: admin(<OrdersPage />) },
   { path: '/manage', element: oversight(<ManageDashboard />) },
   { path: '/manage/reports', element: oversight(<ReviewReportsPage />) },
   { path: '/manage/awards', element: oversight(<AwardsPage />) },
@@ -71,7 +72,7 @@ export const staffPortalRoutes: RouteObject[] = [
   { path: '/manage/schools', element: oversight(<SchoolsPage />) },
   { path: '/manage/schools/:id', element: oversight(<SchoolDetailPage />) },
   { path: '/manage/database', element: oversight(<DirectoryPage />) },
-  { path: '/manage/security', element: <RequireAdmin><Lazy><SecurityLogPage /></Lazy></RequireAdmin> },
+  { path: '/manage/security', element: admin(<SecurityLogPage />) },
 ]
 
 /** Top-level routes outside the staff shell. */

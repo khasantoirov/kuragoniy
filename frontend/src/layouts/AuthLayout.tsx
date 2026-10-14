@@ -95,7 +95,7 @@ export function AuthLayout() {
           <div className="gx__card">
             <div className="gx__mark">
               <img src="/logo.png" alt="Amaliy Fizika" width={64} height={64} />
-              <img className="gx__sign gx__sign--day" src="/sign-night.png" alt="Muhandis D" />
+              <img className="gx__sign" src="/muhandis-d-on-dark.png" alt="Muhandis D" width={751} height={160} />
             </div>
             <Outlet />
           </div>

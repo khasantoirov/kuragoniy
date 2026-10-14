@@ -6,14 +6,19 @@ import { AnalyticsDashboard } from '@/features/learning/AnalyticsDashboard'
 import type { AttemptSummary } from '@/features/learning/api'
 import { ATTEMPT_KIND_LABEL, fmtDateTime, PercentPill } from '@/features/portal/ui'
 import { api } from '@/lib/api/client'
+import { isOversight, useAuth } from '@/lib/auth/AuthContext'
 import type { Paginated } from '@/lib/api/types'
 
 import { AttemptModal } from './AssignmentsPage'
 
-/** "Natijalar" for a teacher: analytics over their own classes plus the
- * live feed of their students' latest submissions. */
+/** "Natijalar" — administration only for now (nav + RequireOversight):
+ * analytics across every school with a teacher filter, plus the live feed
+ * of the latest submissions. Still works for a teacher (own classes only)
+ * if the section is opened to teachers again. */
 export function TeacherResultsPage() {
   const { t } = useTranslation()
+  const { user } = useAuth()
+  const oversight = isOversight(user)
   const [open, setOpen] = useState<number | null>(null)
   const feed = useQuery({
     queryKey: ['learning', 'attempt-feed'],
@@ -22,7 +27,8 @@ export function TeacherResultsPage() {
 
   return (
     <div>
-      <AnalyticsDashboard oversight={false} title={t('Natijalar')} sub={t("O'quvchilaringizning test, masala va uy vazifasi natijalari.")} />
+      <AnalyticsDashboard oversight={oversight} title={t('Natijalar')}
+        sub={oversight ? t("Barcha maktablardagi o'quvchilarning test, masala va uy vazifasi natijalari.") : t("O'quvchilaringizning test, masala va uy vazifasi natijalari.")} />
       <section className="panel">
         <h3 className="panel__title">{t("So'nggi topshirilgan ishlar")}</h3>
         {feed.data?.length ? (

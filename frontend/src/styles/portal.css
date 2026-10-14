@@ -429,6 +429,7 @@ a.hwcard__title:hover { color: var(--pick); }
 .cert { position: relative; padding: 36px 30px; text-align: center; border: 6px double #C9A227; border-radius: 6px; background: #FFFDF6; color: #2B2B2B; }
 .cert__logo { width: 56px; height: 56px; border-radius: 12px; }
 .cert__org { margin: 6px 0 0; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #7A6A3A; }
+.cert__sign { display: block; height: 22px; width: auto; margin: 6px auto 0; }
 .cert__h { margin: 14px 0 6px; font: 700 34px/1.1 Georgia, 'Times New Roman', serif; letter-spacing: .14em; color: #8A6D12; }
 .cert__to { margin: 0; font-size: 13px; color: #6B6B6B; }
 .cert__name { margin: 10px 0; font: 700 28px/1.2 Georgia, 'Times New Roman', serif; color: #1D1D1D; }

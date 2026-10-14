@@ -89,6 +89,9 @@ const ru: Record<string, string> = {
   "Ism va familiyani to'liq yozing.": 'Укажите имя и фамилию полностью.',
   'Bu email bilan hisob allaqachon bor.': 'Аккаунт с таким email уже есть.',
   "Email noto'g'ri.": 'Неверный email.',
+  "Barcha maktablardagi o'quvchilarning test, masala va uy vazifasi natijalari.": 'Результаты тестов, задач и домашних заданий учеников всех школ.',
+  "O'quvchilaringizning test, masala va uy vazifasi natijalari.": 'Результаты тестов, задач и домашних заданий ваших учеников.',
+  "So'nggi topshirilgan ishlar": 'Последние сданные работы',
 }
 
 const en: Record<string, string> = {
@@ -167,6 +170,9 @@ const en: Record<string, string> = {
   "Ism va familiyani to'liq yozing.": 'Enter the full first name and surname.',
   'Bu email bilan hisob allaqachon bor.': 'An account with this email already exists.',
   "Email noto'g'ri.": 'Invalid email.',
+  "Barcha maktablardagi o'quvchilarning test, masala va uy vazifasi natijalari.": "Test, problem and homework results of students in every school.",
+  "O'quvchilaringizning test, masala va uy vazifasi natijalari.": "Your students' test, problem and homework results.",
+  "So'nggi topshirilgan ishlar": 'Latest submissions',
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)
