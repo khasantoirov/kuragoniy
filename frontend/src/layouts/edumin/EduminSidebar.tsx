@@ -17,7 +17,7 @@ export interface EduminNavItem {
 const GROUPS: { title: string; paths: string[] }[] = [
   { title: 'Asosiy', paths: ['/'] },
   { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/library'] },
-  { title: "Sinf va o'quvchilar", paths: ['/students', '/assignments', '/readiness', '/reports', '/results', '/games', '/shop'] },
+  { title: "Sinf va o'quvchilar", paths: ['/class-stats', '/students', '/assignments', '/readiness', '/reports', '/results', '/games', '/shop'] },
   { title: "Ma'muriyat", paths: ['/manage', '/manage/schools', '/manage/database', '/manage/reports', '/manage/awards', '/manage/materials', '/manage/shop', '/manage/security'] },
   { title: 'Tizim', paths: ['/statistics', '/admin', '/settings', '/about', '/equipment-sheet'] },
 ]

@@ -97,7 +97,7 @@ def test_reset_request_cooldown(api_client, linked_teacher, sent):
 def test_student_reset_by_username(api_client, student, sent):
     student.telegram_linked, student.telegram_chat_id = True, 555
     student.save()
-    api_client.post("/api/auth/password-reset/request/", {"login": "aliyev.vali"}, format="json")
+    api_client.post("/api/auth/password-reset/request/", {"login": "valialiyev"}, format="json")
     assert len(sent) == 1
 
 
@@ -128,7 +128,7 @@ def test_successful_login_resets_failure_counter(api_client, teacher):
 
 
 def test_student_logs_in_with_username(api_client, student):
-    resp = api_client.post("/api/auth/login/", {"login": "Aliyev.Vali", "password": "Talaba-2026x"}, format="json")
+    resp = api_client.post("/api/auth/login/", {"login": "ValiAliyev", "password": "Talaba-2026x"}, format="json")
     assert resp.status_code == 200
     assert resp.data["user"]["role"] == "student"
 

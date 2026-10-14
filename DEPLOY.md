@@ -131,12 +131,16 @@ qo'lda ishga tushirish uchun GitHub → Actions → Deploy → "Run workflow".
 
 | Rol | Oyna | Kirish |
 |---|---|---|
-| O'quvchi | `/s` — darslar (nazariya, formula, video), test/masala, uyga vazifa, o'yinlar, natijalar | login (masalan `aliyev.vali`) + parol |
-| O'qituvchi | asosiy ilova + «Sinf va o'quvchilar» bo'limi (o'quvchilar, vazifalar, tayyorgarlik, hisobotlar, natijalar, o'yinlar, do'kon) | email + parol |
+| O'quvchi | `/s` — darslar (nazariya, formula, video), test/masala, uyga vazifa, o'yinlar, natijalar | login (ism+familiya, masalan `valialiyev`; adashi bo'lsa `valialiyev2`) + parol |
+| O'qituvchi | asosiy ilova + «Sinf va o'quvchilar» bo'limi (sinflarim statistikasi, o'quvchilar, vazifalar, tayyorgarlik, hisobotlar, natijalar, o'yinlar, do'kon) — faqat o'z sinflari | login yoki email + parol |
 | Admin / Boshliq / Dasturchi | yuqoridagilar + «Ma'muriyat» (tahlil, hisobotlarni baholash, rag'batlantirish, o'quv materiallari, sotuv bo'limi, xavfsizlik jurnali) | email + parol |
 | Kuzatuvchi | faqat «Ma'muriyat» — hamma narsani **ko'radi**, hech narsani o'zgartira olmaydi (server darajasida) | email + parol |
 
+Kirish sahifasi hamma uchun bitta (rol tanlanmaydi), «Eslab qolish» belgilanmasa sessiya brauzer yopilganda tugaydi. O'zi ro'yxatdan o'tish bosh sahifadan olib tashlangan: yangi o'qituvchini admin yaratadi — Boshqaruv → Foydalanuvchilar → «+ Yangi xodim» (login ism+familiyadan, bir martalik parol). Sinfni boshqa o'qituvchiga o'tkazish: Hamkor maktablar → maktab → «Sinflar» jadvalidagi o'qituvchi tanlagichi.
+
 Rollarni faqat **dasturchi** beradi: Boshqaruv → Foydalanuvchilar → «Admin / Boshliq / Kuzatuvchi qilish».
+
+Yangilanishlar oynasiz, avtomatik o'rnatiladi — lekin faqat hech narsa yo'qolmaydigan paytda (saqlanmagan yozuv, ochiq oyna, test yoki jonli o'yin bo'lsa kutadi): `frontend/src/components/AutoUpdate.tsx`.
 
 ### Parolni tiklash (dasturchisiz)
 
@@ -169,6 +173,13 @@ sudo nginx -t && sudo systemctl reload nginx
 ```
 
 Shifrlangan zaxirani ochish: `./venv/bin/python manage.py decrypt_backup db-....sqlite3.gz.enc`
+
+O'quvchi loginlarini yangi formatga o'tkazish (2026-10, bir martalik; parollar o'zgarmaydi, eski login ham ishlayveradi va kirganda yangisi ko'rsatiladi):
+
+```bash
+./venv/bin/python manage.py rename_student_logins          # reja
+./venv/bin/python manage.py rename_student_logins --apply  # saqlash
+```
 
 ## 9. Kengaytirish (1000+ foydalanuvchi)
 

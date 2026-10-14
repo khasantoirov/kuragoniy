@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useConfirm } from '@/components/ConfirmProvider'
 import { useToast } from '@/components/Toast'
 import { api } from '@/lib/api/client'
+import { useUpdateGuard } from '@/lib/updateGuard'
 
 import { errText, fmtDuration } from './ui'
 
@@ -111,6 +112,8 @@ export function QuizRunner({ payload, submitUrl, onDone, title }: {
   const answeredCount = useMemo(() => qs.filter((x) => isAnswered(answers[x.id])).length, [qs, answers])
 
   useEffect(() => saveDraft(payload.id, answers), [payload.id, answers])
+  // No automatic update while a test is open (components/AutoUpdate).
+  useUpdateGuard()
 
   const set = (val: Answer) => setAnswers((prev) => ({ ...prev, [q.id]: val }))
 

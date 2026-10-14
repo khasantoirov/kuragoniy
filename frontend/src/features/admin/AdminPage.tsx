@@ -111,7 +111,12 @@ function cmpUser(a: User, b: User) {
 
 const fmtBday = (d: string | null) => (d ? `${d.slice(8, 10)}.${d.slice(5, 7)}.${d.slice(0, 4)}` : '—')
 
-function NewPasswordModal({ email, password, onClose }: { email: string; password: string; onClose: () => void }) {
+function NewPasswordModal({ email, password, onClose, title = 'Parolni tiklash' }: {
+  email: string
+  password: string
+  onClose: () => void
+  title?: string
+}) {
   const { t } = useTranslation()
   const toast = useToast()
 
@@ -126,7 +131,7 @@ function NewPasswordModal({ email, password, onClose }: { email: string; passwor
 
   return (
     <Modal
-      title={t('Parolni tiklash')}
+      title={t(title)}
       onClose={onClose}
       footer={<button className="btn btn--primary" onClick={onClose}>{t('Yopish')}</button>}
     >
@@ -140,6 +145,74 @@ function NewPasswordModal({ email, password, onClose }: { email: string; passwor
           <button type="button" className="btn" onClick={copy}>{t('Nusxalash')}</button>
         </div>
       </label>
+    </Modal>
+  )
+}
+
+/** New teacher (or, for the developer, observer) account — the login page
+ * no longer offers self-registration. The server builds the login from
+ * the name and returns a one-time password, changed at first sign-in. */
+function CreateStaffModal({ onClose, onCreated, canObserver }: {
+  onClose: () => void
+  onCreated: (login: string, password: string) => void
+  canObserver: boolean
+}) {
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [role, setRole] = useState('teacher')
+  const [error, setError] = useState('')
+  const create = useMutation({
+    mutationFn: async () => (await api.post<{ login: string; password: string }>('/accounts/users/create-staff/',
+      { name, email, phone, role })).data,
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      onCreated(res.login, res.password)
+    },
+    onError: (err: unknown) => {
+      const data = (err as { response?: { data?: Record<string, string[] | string> } }).response?.data
+      const first = data && Object.values(data)[0]
+      setError(t(Array.isArray(first) ? first[0] : first || "Amalni bajarib bo'lmadi"))
+    },
+  })
+
+  return (
+    <Modal
+      title={t('Yangi xodim')}
+      onClose={onClose}
+      footer={<>
+        <button className="btn" onClick={onClose}>{t('Bekor qilish')}</button>
+        <button className="btn btn--primary" disabled={create.isPending || name.trim().split(/\s+/).length < 2}
+          onClick={() => { setError(''); create.mutate() }}>{t('Yaratish')}</button>
+      </>}
+    >
+      <p className="prose prose--note">{t("Login ism va familiyadan avtomatik yaratiladi (masalan, hasantoirov). Bir martalik parol beriladi — xodim birinchi kirishda uni o'zgartiradi.")}</p>
+      <label className="field">
+        <span className="field__label">{t('Familiya va ism')}</span>
+        <input className="input" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Toirov Hasan" />
+      </label>
+      <div className="row row--2">
+        <label className="field">
+          <span className="field__label">{t('Email')} <small className="muted">({t('ixtiyoriy')})</small></span>
+          <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </label>
+        <label className="field">
+          <span className="field__label">{t('Telefon')} <small className="muted">({t('ixtiyoriy')})</small></span>
+          <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </label>
+      </div>
+      {canObserver && (
+        <label className="field">
+          <span className="field__label">{t('Rol')}</span>
+          <select className="input" value={role} onChange={(e) => setRole(e.target.value)}>
+            <option value="teacher">{t("O'qituvchi")}</option>
+            <option value="kuzatuvchi">{t('Kuzatuvchi')}</option>
+          </select>
+        </label>
+      )}
+      {error && <p className="form__note form__note--err" role="alert">{error}</p>}
     </Modal>
   )
 }
@@ -199,7 +272,8 @@ export function AdminPage() {
   const [announcing, setAnnouncing] = useState(false)
   const [importingLessons, setImportingLessons] = useState(false)
   const [importingTranslations, setImportingTranslations] = useState(false)
-  const [newPassword, setNewPassword] = useState<{ email: string; password: string } | null>(null)
+  const [newPassword, setNewPassword] = useState<{ email: string; password: string; title?: string } | null>(null)
+  const [creatingStaff, setCreatingStaff] = useState(false)
   const { data: locks } = useQuarterLocks()
   const setLock = useSetQuarterLock()
 
@@ -393,7 +467,10 @@ export function AdminPage() {
           )}
 
           <section className="panel">
-            <h3 className="panel__title">{t('Foydalanuvchilar')} <span className="badge">{approved.length}</span></h3>
+            <div className="thead">
+              <h3 className="panel__title">{t('Foydalanuvchilar')} <span className="badge">{approved.length}</span></h3>
+              <button className="btn btn--primary btn--sm" onClick={() => setCreatingStaff(true)}>+ {t('Yangi xodim')}</button>
+            </div>
             {approved.length ? (
               <ul className="people">
                 {approved.map((u) => {
@@ -461,8 +538,19 @@ export function AdminPage() {
           {announcing && <AnnounceModal onClose={() => setAnnouncing(false)} />}
           {importingLessons && <ImportLessonsModal onClose={() => setImportingLessons(false)} />}
           {importingTranslations && <ImportTranslationsModal onClose={() => setImportingTranslations(false)} />}
+          {creatingStaff && (
+            <CreateStaffModal
+              canObserver={!!me?.is_dev_superuser}
+              onClose={() => setCreatingStaff(false)}
+              onCreated={(login, password) => {
+                setCreatingStaff(false)
+                setNewPassword({ email: `${t('Login')}: ${login}`, password, title: 'Yangi xodim hisobi' })
+              }}
+            />
+          )}
           {newPassword && (
-            <NewPasswordModal email={newPassword.email} password={newPassword.password} onClose={() => setNewPassword(null)} />
+            <NewPasswordModal email={newPassword.email} password={newPassword.password} title={newPassword.title}
+              onClose={() => setNewPassword(null)} />
           )}
         </>
       )}

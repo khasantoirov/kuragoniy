@@ -6,49 +6,43 @@ import { Link, useNavigate } from 'react-router-dom'
 import { IC } from '@/icons'
 import { homePathFor, useAuth } from '@/lib/auth/AuthContext'
 
-type Portal = 'student' | 'teacher' | 'admin'
+// One form for everyone — students, teachers and administration all sign
+// in with a login (or email) and password; where they land afterwards is
+// decided by their role (homePathFor). The last login is remembered only
+// when "Eslab qolish" is ticked, so a shared school computer forgets it.
+const LAST_LOGIN_KEY = 'af-last-login'
+export const RENAMED_LOGIN_KEY = 'af-renamed-login'
 
-const PORTALS: { k: Portal; label: string; hint: string }[] = [
-  { k: 'student', label: "O'quvchi", hint: "O'qituvchingiz bergan login yoki o'zingiz tanlagan login bilan kiring." },
-  { k: 'teacher', label: "O'qituvchi", hint: 'Email va parolingiz bilan kiring.' },
-  { k: 'admin', label: "Ma'muriyat", hint: 'Administrator, boshliq, kuzatuvchi va dasturchi uchun.' },
-]
-
-function savedPortal(): Portal {
+function readLastLogin() {
   try {
-    const v = localStorage.getItem('af-portal')
-    if (v === 'student' || v === 'teacher' || v === 'admin') return v
+    return localStorage.getItem(LAST_LOGIN_KEY) || ''
   } catch {
-    // storage blocked — fall back to the default tab
+    return ''
   }
-  return 'teacher'
+}
+
+function rememberLogin(login: string | null) {
+  try {
+    if (login) localStorage.setItem(LAST_LOGIN_KEY, login)
+    else localStorage.removeItem(LAST_LOGIN_KEY)
+    localStorage.removeItem('af-portal') // the old per-role tab choice
+  } catch {
+    // storage blocked — nothing to remember
+  }
 }
 
 export function LoginPage() {
   const { t } = useTranslation()
   const { login, verifyTotp } = useAuth()
   const navigate = useNavigate()
-  const [portal, setPortal] = useState<Portal>(savedPortal)
-  const [loginName, setLoginName] = useState('')
+  const [loginName, setLoginName] = useState(readLastLogin)
   const [password, setPassword] = useState('')
+  const [remember, setRemember] = useState(true)
   const [showPw, setShowPw] = useState(false)
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
   const [challenge, setChallenge] = useState<string | null>(null)
   const [totpCode, setTotpCode] = useState('')
-
-  const isStudentTab = portal === 'student'
-  const current = PORTALS.find((p) => p.k === portal)!
-
-  const pickPortal = (p: Portal) => {
-    setPortal(p)
-    setNote('')
-    try {
-      localStorage.setItem('af-portal', p)
-    } catch {
-      // ignore
-    }
-  }
 
   const failMessage = (err: unknown) => {
     if (isAxiosError(err)) {
@@ -57,7 +51,7 @@ export function LoginPage() {
       if (err.response.status === 429 && detail) return t(detail)
       if (err.response.status === 429) return t("Juda ko'p urinish. Biroz kutib qayta urining")
     }
-    return isStudentTab ? t("Login yoki parol noto'g'ri") : t("Email yoki parol noto'g'ri")
+    return t("Login yoki parol noto'g'ri")
   }
 
   const onSubmit = async (e: FormEvent) => {
@@ -65,9 +59,20 @@ export function LoginPage() {
     setBusy(true)
     setNote('')
     try {
-      const result = await login(loginName.trim(), password)
-      if (result.totpRequired) setChallenge(result.challenge)
-      else navigate(homePathFor(result.user))
+      const result = await login(loginName.trim(), password, remember)
+      if (result.totpRequired) {
+        setChallenge(result.challenge)
+        return
+      }
+      rememberLogin(remember ? result.renamedLogin || loginName.trim() : null)
+      if (result.renamedLogin) {
+        try {
+          sessionStorage.setItem(RENAMED_LOGIN_KEY, result.renamedLogin)
+        } catch {
+          // shown only if storage works — the old login keeps working anyway
+        }
+      }
+      navigate(homePathFor(result.user))
     } catch (err) {
       setNote(failMessage(err))
     } finally {
@@ -82,6 +87,7 @@ export function LoginPage() {
     setNote('')
     try {
       const user = await verifyTotp(challenge, totpCode)
+      rememberLogin(remember ? loginName.trim() : null)
       navigate(homePathFor(user))
     } catch (err) {
       setNote(isAxiosError(err) && err.response?.status === 429 ? failMessage(err) : t("Kod noto'g'ri"))
@@ -92,8 +98,9 @@ export function LoginPage() {
 
   if (challenge) {
     return (
-      <form className="form" onSubmit={onVerifyTotp}>
-        <p className="form__note">{t("Ilova (Google Authenticator va h.k.) ko'rsatayotgan 6 xonali kodni kiriting.")}</p>
+      <form className="form gx-form" onSubmit={onVerifyTotp}>
+        <h1 className="gx-form__title">{t('Ikki bosqichli tekshiruv')}</h1>
+        <p className="gx-form__sub">{t("Ilova (Google Authenticator va h.k.) ko'rsatayotgan 6 xonali kodni kiriting.")}</p>
         <label className="field">
           <span className="field__label">{t('Tasdiqlash kodi')}</span>
           <input
@@ -109,11 +116,11 @@ export function LoginPage() {
             onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
           />
         </label>
-        <button className="btn btn--primary btn--block" type="submit" disabled={busy}>
+        <button className="btn btn--primary btn--block gx-form__go" type="submit" disabled={busy}>
           {busy ? t('Tekshirilmoqda…') : t('Tasdiqlash')}
         </button>
-        {note && <p className="form__note form__note--err">{note}</p>}
-        <p className="form__note">
+        {note && <p className="form__note form__note--err" role="alert">{note}</p>}
+        <p className="gx-form__foot">
           <button type="button" className="linklike" onClick={() => { setChallenge(null); setTotpCode('') }}>
             {t('Orqaga')}
           </button>
@@ -123,37 +130,24 @@ export function LoginPage() {
   }
 
   return (
-    <form className="form" onSubmit={onSubmit}>
-      <div className="portals" role="tablist" aria-label={t('Kirish oynasi')}>
-        {PORTALS.map((p) => (
-          <button
-            key={p.k}
-            type="button"
-            role="tab"
-            aria-selected={portal === p.k}
-            className={`portal ${portal === p.k ? 'is-on' : ''}`}
-            onClick={() => pickPortal(p.k)}
-          >
-            <span className="portal__ic">{p.k === 'student' ? IC.user : p.k === 'teacher' ? IC.book : IC.settings}</span>
-            {t(p.label)}
-          </button>
-        ))}
-      </div>
-      <p className="form__note">{t(current.hint)}</p>
+    <form className="form gx-form" onSubmit={onSubmit}>
+      <h1 className="gx-form__title">{t('Tizimga kirish')}</h1>
+      <p className="gx-form__sub">{t('Login va parolingiz bilan kiring.')}</p>
 
       <label className="field">
-        <span className="field__label">{isStudentTab ? t('Login') : t('Email')}</span>
+        <span className="field__label">{t('Login')}</span>
         <span className="ifield">
-          <span className="ifield__ic">{isStudentTab ? IC.user : IC.mail}</span>
+          <span className="ifield__ic">{IC.user}</span>
           <input
             className="input input--ic"
-            type={isStudentTab ? 'text' : 'email'}
+            type="text"
             required
+            autoFocus={!loginName}
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
             autoComplete="username"
-            placeholder={isStudentTab ? 'aliyev.vali' : 'ismfamiliya@email.uz'}
+            placeholder={t('Login')}
             value={loginName}
             onChange={(e) => setLoginName(e.target.value)}
           />
@@ -167,8 +161,9 @@ export function LoginPage() {
             className="input input--ic input--pw"
             type={showPw ? 'text' : 'password'}
             required
+            autoFocus={!!loginName}
             autoComplete="current-password"
-            placeholder="••••••••"
+            placeholder={t('Kamida 8 ta belgi')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -182,19 +177,21 @@ export function LoginPage() {
           </button>
         </span>
       </label>
-      <button className="btn btn--primary btn--block" type="submit" disabled={busy}>
+
+      <div className="gx-form__row">
+        <label className="gx-check">
+          <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+          <span>{t('Eslab qolish')}</span>
+        </label>
+        <Link className="gx-form__link" to="/forgot-password">{t('Parolni unutdingizmi?')}</Link>
+      </div>
+
+      <button className="btn btn--primary btn--block gx-form__go" type="submit" disabled={busy}>
         {busy ? t('Tekshirilmoqda…') : t('Kirish')}
       </button>
       {note && <p className="form__note form__note--err" role="alert">{note}</p>}
-      <p className="form__note">
-        <Link to="/forgot-password">{t('Parolni unutdingizmi?')}</Link>
-        {isStudentTab && (
-          <>
-            {' · '}
-            <Link to="/join">{t("Sinf kodi bilan ro'yxatdan o'tish")}</Link>
-          </>
-        )}
-      </p>
+
+      <p className="gx-form__foot">{t("Hisobingiz yo'qmi? O'qituvchingiz yoki administratorga murojaat qiling.")}</p>
     </form>
   )
 }

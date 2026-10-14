@@ -14,6 +14,7 @@ import { useLessonOptions, useTeacherClasses } from '@/features/learning/api'
 import { errText, PageHead, Segmented } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
+import { useUpdateGuard } from '@/lib/updateGuard'
 import type { Paginated } from '@/lib/api/types'
 
 interface QuizQ {
@@ -141,6 +142,7 @@ function QuizEditor({ initial, onClose }: { initial: Quiz | null; onClose: () =>
  * countdown, the answer histogram and the leaderboard. */
 function HostScreen({ initial, onClose }: { initial: HostState; onClose: () => void }) {
   const { t } = useTranslation()
+  useUpdateGuard()
   const toast = useToast()
   const [s, setS] = useState<HostState>(initial)
   const [left, setLeft] = useState(0)

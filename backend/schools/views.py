@@ -19,7 +19,7 @@ from accounts.models import User
 from common.audit import notify_admin_action
 from common.permissions import IsAdminOrDevSuperuser, IsApproved, IsOversight
 from common.presence import presence_for
-from journal.models import AttendanceEntry, GradeEntry, Student
+from journal.models import AttendanceEntry, GradeEntry, JournalClass, Student
 
 from . import stats
 from .matching import link_school, norm, unlinked_names
@@ -231,6 +231,50 @@ class StatsAttentionView(APIView):
         chorak = _chorak(request)
         classes = stats.classes_for(request.user, school_id=request.query_params.get('school') or None)
         return Response(_cached(request, 'attention', lambda: stats.attention(classes, chorak)))
+
+
+class StatsMineView(APIView):
+    """A teacher's own classes only (for anyone, administrators included,
+    it's the classes they teach themselves): totals, per partner school,
+    per class, monthly trend and pupils needing attention."""
+
+    permission_classes = [IsApproved]
+
+    def get(self, request):
+        chorak = _chorak(request)
+
+        def compute():
+            classes = stats.classes_for(request.user, teacher_id=request.user.id)
+            return {
+                'totals': stats.derive(stats.pool(stats.class_raw(classes, chorak).values())),
+                'schools': stats.grouped(classes, chorak, key=lambda c: c.partner_school_id or 'none',
+                                         label=lambda c: c.partner_school.name if c.partner_school_id else (c.school or '')),
+                'classes': stats.class_rows(classes, chorak),
+                'trend': stats.monthly_trend(classes, chorak),
+                'attention': stats.attention(classes, chorak, limit=50),
+            }
+
+        return Response(_cached(request, 'mine', compute))
+
+
+class ClassTeacherView(APIView):
+    """Hand a journal class (roster, marks, student accounts) over to
+    another teacher — e.g. when a class changes teachers mid-year."""
+
+    permission_classes = [IsAdminOrDevSuperuser]
+
+    def post(self, request, class_id):
+        journal_class = get_object_or_404(JournalClass.objects.select_related('teacher'), pk=class_id)
+        teacher = get_object_or_404(User.objects.exclude(role=User.Role.STUDENT).filter(approved=True, is_active=True),
+                                    pk=request.data.get('teacher'))
+        if teacher.pk == journal_class.teacher_id:
+            return Response({'ok': True})
+        previous = journal_class.teacher
+        journal_class.teacher = teacher
+        journal_class.save(update_fields=['teacher'])
+        notify_admin_action(request.user, f"Sinfni boshqa o'qituvchiga o'tkazdi: {journal_class.name} — "
+                                          f"{previous.name} → {teacher.name}")
+        return Response({'ok': True, 'teacher': teacher.id, 'teacher_name': teacher.name})
 
 
 class DirectoryPagination(PageNumberPagination):

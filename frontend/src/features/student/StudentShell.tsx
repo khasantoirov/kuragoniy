@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Outlet, useLocation } from 'react-router-dom'
 
 import { Avatar } from '@/components/Avatar'
 import { ScrollTopButton } from '@/components/ScrollTopButton'
+import { RENAMED_LOGIN_KEY } from '@/features/auth/LoginPage'
 import { PortalSidebar, type PortalNavItem } from '@/features/portal/PortalSidebar'
 import { IC, themeIconMoon, themeIconSun } from '@/icons'
 import { NavRail, type RailItem } from '@/layouts/NavRail'
@@ -20,6 +22,35 @@ const ITEMS: PortalNavItem[] = [
   { to: '/s/results', label: 'Natijalarim', icon: 'star' },
   { to: '/s/profile', label: 'Profil', icon: 'profile' },
 ]
+
+/** Shown once after signing in with a login that has since been
+ * regenerated (valialiyev instead of aliyev.vali) — the old one still
+ * works for now, but this is the one to use from here on. */
+function RenamedLoginNotice() {
+  const { t } = useTranslation()
+  const [login, setLogin] = useState(() => {
+    try {
+      return sessionStorage.getItem(RENAMED_LOGIN_KEY)
+    } catch {
+      return null
+    }
+  })
+  if (!login) return null
+  const close = () => {
+    try {
+      sessionStorage.removeItem(RENAMED_LOGIN_KEY)
+    } catch {
+      // nothing stored to clear
+    }
+    setLogin(null)
+  }
+  return (
+    <div className="notice" role="status">
+      <span>🔑 {t('Loginingiz yangilandi')}: <b>{login}</b>. {t('Keyingi safar shu login bilan kiring.')}</span>
+      <button type="button" className="btn" onClick={close}>{t('Tushunarli')}</button>
+    </div>
+  )
+}
 
 /** The student window — its own layout, separate from the staff app:
  * fewer, bigger targets, nothing a student can't use. */
@@ -66,6 +97,7 @@ export function StudentShell() {
       <div className="appmain">
         <div className="shell">
           <main className="main sportal">
+            <RenamedLoginNotice />
             <Outlet />
           </main>
         </div>

@@ -51,17 +51,19 @@ export function ForgotPasswordPage() {
 
   if (step === 'done') {
     return (
-      <div className="form">
-        <p className="prose">✅ {t('Parol yangilandi. Endi yangi parol bilan kiring.')}</p>
-        <Link className="btn btn--primary btn--block" to="/login">{t('Kirish sahifasiga qaytish')}</Link>
+      <div className="form gx-form">
+        <h1 className="gx-form__title">{t('Parol yangilandi')}</h1>
+        <p className="gx-form__sub">✅ {t('Parol yangilandi. Endi yangi parol bilan kiring.')}</p>
+        <Link className="btn btn--primary btn--block gx-form__go" to="/login">{t('Kirish sahifasiga qaytish')}</Link>
       </div>
     )
   }
 
   if (step === 'code') {
     return (
-      <form className="form" onSubmit={confirm}>
-        <p className="form__note">
+      <form className="form gx-form" onSubmit={confirm}>
+        <h1 className="gx-form__title">{t('Parolni tiklash')}</h1>
+        <p className="gx-form__sub">
           {t("Agar hisobingizga Telegram ulangan bo'lsa, @amaliyfizikabot sizga 6 xonali kod yubordi. Kod 10 daqiqa amal qiladi.")}
         </p>
         <label className="field">
@@ -74,7 +76,7 @@ export function ForgotPasswordPage() {
           <span className="ifield">
             <span className="ifield__ic">{IC.lock}</span>
             <input className="input input--ic input--pw" type={showPw ? 'text' : 'password'} required minLength={8}
-              autoComplete="new-password" placeholder={t('kamida 8 belgi')} value={pw} onChange={(e) => setPw(e.target.value)} />
+              autoComplete="new-password" placeholder={t('Kamida 8 ta belgi')} value={pw} onChange={(e) => setPw(e.target.value)} />
             <button type="button" className={`ifield__eye ${showPw ? 'is-on' : ''}`} aria-label={t("Parolni ko'rsatish")}
               onClick={() => setShowPw((v) => !v)}>{showPw ? IC.eyeOff : IC.eye}</button>
           </span>
@@ -84,7 +86,7 @@ export function ForgotPasswordPage() {
           <input className="input" type={showPw ? 'text' : 'password'} required minLength={8} autoComplete="new-password"
             value={pw2} onChange={(e) => setPw2(e.target.value)} />
         </label>
-        <button className="btn btn--primary btn--block" type="submit" disabled={busy || code.length !== 6}>
+        <button className="btn btn--primary btn--block gx-form__go" type="submit" disabled={busy || code.length !== 6}>
           {busy ? t('Tekshirilmoqda…') : t('Parolni yangilash')}
         </button>
         {note && <p className="form__note form__note--err" role="alert">{note}</p>}
@@ -102,21 +104,22 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <form className="form" onSubmit={request}>
-      <p className="form__note">{t('Email (o\'qituvchilar) yoki login (o\'quvchilar) kiriting — tasdiqlash kodi Telegram orqali keladi.')}</p>
+    <form className="form gx-form" onSubmit={request}>
+      <h1 className="gx-form__title">{t('Parolni tiklash')}</h1>
+      <p className="gx-form__sub">{t('Loginingizni kiriting — tasdiqlash kodi Telegram orqali keladi.')}</p>
       <label className="field">
-        <span className="field__label">{t('Email yoki login')}</span>
+        <span className="field__label">{t('Login')}</span>
         <span className="ifield">
           <span className="ifield__ic">{IC.user}</span>
           <input className="input input--ic" required autoFocus autoCapitalize="none" autoCorrect="off" spellCheck={false}
-            autoComplete="username" value={loginName} onChange={(e) => setLoginName(e.target.value)} />
+            autoComplete="username" placeholder={t('Login')} value={loginName} onChange={(e) => setLoginName(e.target.value)} />
         </span>
       </label>
-      <button className="btn btn--primary btn--block" type="submit" disabled={busy}>
+      <button className="btn btn--primary btn--block gx-form__go" type="submit" disabled={busy}>
         {busy ? t('Yuborilmoqda…') : t('Kod yuborish')}
       </button>
       {note && <p className="form__note form__note--err" role="alert">{note}</p>}
-      <p className="form__note"><Link to="/login">{t('Kirish sahifasiga qaytish')}</Link></p>
+      <p className="gx-form__foot"><Link className="gx-form__link" to="/login">{t('Kirish sahifasiga qaytish')}</Link></p>
     </form>
   )
 }

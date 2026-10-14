@@ -39,7 +39,10 @@ class UserManager(BaseUserManager):
         login = (login or '').strip()
         if '@' in login:
             return self.get(email__iexact=login)
-        return self.get(username__iexact=login)
+        try:
+            return self.get(username__iexact=login)
+        except self.model.DoesNotExist:
+            return self.get(previous_username__iexact=login)
 
     def find_by_login(self, login):
         """Same lookup as get_by_natural_key, but returns None instead of
@@ -50,7 +53,8 @@ class UserManager(BaseUserManager):
             return None
         if '@' in login:
             return self.filter(email__iexact=login).first()
-        return self.filter(username__iexact=login).first()
+        return (self.filter(username__iexact=login).first()
+                or self.filter(previous_username__iexact=login).first())
 
     def create_user(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', False)
@@ -92,6 +96,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     # and log in with `username` instead — staff accounts keep using email.
     email = models.EmailField(unique=True, null=True, blank=True)
     username = models.CharField(max_length=40, unique=True, null=True, blank=True)
+    # The login a student had before logins were regenerated
+    # (manage.py rename_student_logins) — still accepted at sign-in, so
+    # nobody is locked out before their teacher hands them the new one.
+    previous_username = models.CharField(max_length=40, null=True, blank=True, db_index=True)
     name = models.CharField(max_length=150)
     role = models.CharField(max_length=16, choices=Role.choices, default=Role.TEACHER)
 

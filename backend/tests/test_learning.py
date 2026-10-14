@@ -51,9 +51,9 @@ def test_teacher_creates_accounts_from_roster(as_user, teacher, journal_class):
     assert resp.status_code == 201
     created = resp.data["created"]
     assert len(created) == 3
-    assert {c["username"] for c in created} >= {"aliyev.vali", "karimova.nodira"}
-    kid = User.objects.get(username="aliyev.vali")
-    entry = next(c for c in created if c["username"] == "aliyev.vali")
+    assert {c["username"] for c in created} >= {"valialiyev", "nodirakarimova"}
+    kid = User.objects.get(username="valialiyev")
+    entry = next(c for c in created if c["username"] == "valialiyev")
     assert kid.role == "student" and kid.must_change_password
     assert kid.check_password(entry["password"])
     assert kid.student_profile.roster_entry.full_name == "Aliyev Vali"
@@ -98,7 +98,7 @@ def test_registration_rejects_bad_code_and_taken_username(api_client, as_user, t
                            format="json").status_code == 400
     code = as_user(teacher).post(f"/api/learning/classes/{journal_class.id}/invite/", {}, format="json").data["invite_code"]
     resp = api_client.post("/api/student/register/", {
-        "code": code, "full_name": "Aliyev Vali", "username": "aliyev.vali", "password": "Fizika-Sevaman-1"}, format="json")
+        "code": code, "full_name": "Aliyev Vali", "username": "valialiyev", "password": "Fizika-Sevaman-1"}, format="json")
     assert resp.status_code == 400
 
 

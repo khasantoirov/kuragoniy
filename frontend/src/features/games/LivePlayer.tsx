@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useToast } from '@/components/Toast'
 import { errText } from '@/features/portal/ui'
 import { api } from '@/lib/api/client'
+import { useUpdateGuard } from '@/lib/updateGuard'
 
 import { OPTION_STYLES, useGameSocket } from './gameSocket'
 
@@ -42,6 +43,7 @@ export function LivePlayer({ onExit }: { onExit?: () => void }) {
   }, [state])
 
   useGameSocket(state?.session ?? null, refresh)
+  useUpdateGuard(!!state && state.status !== 'finished')
 
   useEffect(() => {
     setLeft(Math.ceil(state?.question?.time_left ?? 0))

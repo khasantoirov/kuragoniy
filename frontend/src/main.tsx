@@ -11,12 +11,12 @@ import './legacy.css'
 // qo'llanmaydi.
 import './skin-edumin.css'
 import './styles/portal.css'
+import './styles/gate.css'
 
-// Service-worker registration/update handling lives in <UpdatePrompt>
-// (mounted in App.tsx) — it used to reload the page automatically the
-// moment a new deploy's worker took over, which wiped out anything someone
-// was mid-typing (a lesson edit, an announcement). It now just shows a
-// banner and waits for the user to click it.
+// Service-worker registration/update handling lives in <AutoUpdate>
+// (mounted in App.tsx): a new deploy is switched to automatically, but
+// only at a moment that loses nothing — never mid-typing, mid-test or
+// mid-game.
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

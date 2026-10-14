@@ -34,6 +34,7 @@ const ShopAdminPage = named(() => import('@/features/shop/ShopAdminPage'), 'Shop
 const SchoolsPage = named(() => import('@/features/schools/SchoolsPage'), 'SchoolsPage')
 const SchoolDetailPage = named(() => import('@/features/schools/SchoolDetailPage'), 'SchoolDetailPage')
 const DirectoryPage = named(() => import('@/features/schools/DirectoryPage'), 'DirectoryPage')
+const MyClassesPage = named(() => import('@/features/schools/MyClassesPage'), 'MyClassesPage')
 
 function Lazy({ children }: { children: ReactNode }) {
   return <Suspense fallback={<Skeleton lines={5} />}>{children}</Suspense>
@@ -58,6 +59,7 @@ export const staffPortalRoutes: RouteObject[] = [
   { path: '/reports', element: teacher(<ReportsPage />) },
   { path: '/readiness', element: teacher(<ReadinessPage />) },
   { path: '/results', element: teacher(<TeacherResultsPage />) },
+  { path: '/class-stats', element: teacher(<MyClassesPage />) },
   { path: '/games', element: teacher(<GamesPage />) },
   { path: '/shop', element: <Lazy><ShopPage /></Lazy> },
   { path: '/shop/orders', element: <Lazy><OrdersPage /></Lazy> },

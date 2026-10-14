@@ -99,7 +99,7 @@ class StudentRegisterView(APIView):
         username = normalize_username(request.data.get('username'))
         if username:
             if not USERNAME_RE.match(username):
-                raise ValidationError({'username': "Login 3–30 belgi: lotin harflari, raqamlar, nuqta yoki pastki chiziq."})
+                raise ValidationError({'username': "Login 3–40 belgi: lotin harflari, raqamlar, nuqta yoki pastki chiziq."})
             if User.objects.filter(username__iexact=username).exists():
                 raise ValidationError({'username': "Bu login band. Boshqasini tanlang."})
         password = str(request.data.get('password') or '')

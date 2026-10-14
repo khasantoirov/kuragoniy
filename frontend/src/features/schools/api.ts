@@ -100,6 +100,14 @@ export interface SchoolStats {
   attention: AttentionRow[]
 }
 
+export interface MyClassesStats {
+  totals: Metrics
+  schools: GroupRow[]
+  classes: ClassRow[]
+  trend: TrendPoint[]
+  attention: AttentionRow[]
+}
+
 export interface UnlinkedName {
   text: string
   variants: string[]
@@ -155,6 +163,13 @@ export function useSchoolStats(id: string | undefined, chorak: string) {
     queryKey: ['schools', 'stats', id, chorak],
     enabled: !!id,
     queryFn: async () => (await api.get<SchoolStats>(`/schools/stats/school/${id}/`, { params: chorakParam(chorak) })).data,
+  })
+}
+
+export function useMyClassesStats(chorak: string) {
+  return useQuery({
+    queryKey: ['schools', 'mine', chorak],
+    queryFn: async () => (await api.get<MyClassesStats>('/schools/stats/mine/', { params: chorakParam(chorak) })).data,
   })
 }
 

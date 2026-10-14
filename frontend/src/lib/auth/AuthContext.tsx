@@ -4,13 +4,15 @@ import { api, refreshAccessToken, setAccessToken } from '@/lib/api/client'
 import type { User } from '@/lib/api/types'
 import { clearHistory } from '@/lib/history'
 
-type LoginResult = { totpRequired: false; user: User } | { totpRequired: true; challenge: string }
+// renamedLogin: signed in with a login that has since been regenerated —
+// the new one, to show the student (the old one still works meanwhile).
+type LoginResult = { totpRequired: false; user: User; renamedLogin?: string } | { totpRequired: true; challenge: string }
 
 interface AuthState {
   user: User | null
   loading: boolean
   /** `login` is an email (staff) or a username (student). */
-  login: (login: string, password: string) => Promise<LoginResult>
+  login: (login: string, password: string, remember?: boolean) => Promise<LoginResult>
   verifyTotp: (challenge: string, code: string) => Promise<User>
   register: (email: string, name: string, password: string) => Promise<void>
   logout: () => Promise<void>
@@ -66,12 +68,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [userId])
 
-  const login = useCallback(async (loginName: string, password: string): Promise<LoginResult> => {
-    const res = await api.post('/auth/login/', { login: loginName, password })
+  const login = useCallback(async (loginName: string, password: string, remember = true): Promise<LoginResult> => {
+    const res = await api.post('/auth/login/', { login: loginName, password, remember })
     if (res.data.totp_required) return { totpRequired: true, challenge: res.data.challenge }
     setAccessToken(res.data.access)
     setUser(res.data.user)
-    return { totpRequired: false, user: res.data.user }
+    return { totpRequired: false, user: res.data.user, renamedLogin: res.data.renamed_login }
   }, [])
 
   const verifyTotp = useCallback(async (challenge: string, code: string) => {

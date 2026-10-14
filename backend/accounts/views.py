@@ -8,12 +8,13 @@ from django.contrib.auth.password_validation import validate_password
 from django.core import signing
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.mail import send_mail
+from django.core.validators import EmailValidator
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.crypto import constant_time_compare, salted_hmac
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import TokenError
@@ -43,6 +44,7 @@ from .serializers import AdminUserSerializer, MeSerializer, RegisterSerializer, 
 
 REFRESH_COOKIE = settings.JWT_REFRESH_COOKIE_NAME
 REFRESH_COOKIE_PATH = settings.JWT_REFRESH_COOKIE_PATH
+REMEMBER_CLAIM = 'rmb'
 
 TOTP_CHALLENGE_SALT = 'accounts.totp-challenge'
 TOTP_CHALLENGE_MAX_AGE = 300  # 5 minutes to enter the code after password step
@@ -54,8 +56,8 @@ RESET_CODE_COOLDOWN_SECONDS = 60
 GENERIC_LOGIN_ERROR = "Login yoki parol noto'g'ri."
 
 
-def _make_totp_challenge(user) -> str:
-    return signing.TimestampSigner(salt=TOTP_CHALLENGE_SALT).sign(str(user.pk))
+def _make_totp_challenge(user, remember=True) -> str:
+    return signing.TimestampSigner(salt=TOTP_CHALLENGE_SALT).sign(f'{user.pk}:{int(bool(remember))}')
 
 
 def _resolve_totp_challenge(challenge: str):
@@ -64,14 +66,36 @@ def _resolve_totp_challenge(challenge: str):
     2FA-enabled account can't be logged into with password alone."""
     signer = signing.TimestampSigner(salt=TOTP_CHALLENGE_SALT)
     try:
-        user_id = signer.unsign(str(challenge), max_age=TOTP_CHALLENGE_MAX_AGE)
+        value = signer.unsign(str(challenge), max_age=TOTP_CHALLENGE_MAX_AGE)
     except signing.BadSignature:
-        return None
-    return User.objects.filter(pk=user_id, totp_enabled=True, is_active=True).first()
+        return None, True
+    user_id, _, remember = value.partition(':')
+    user = User.objects.filter(pk=user_id, totp_enabled=True, is_active=True).first()
+    return user, remember != '0'
 
 
-def _issue_tokens_response(user, request=None) -> Response:
+def _cookie_remember(request) -> bool:
+    """Whether the session being replaced (password change) was a
+    "remember me" one — the new cookie keeps the same kind."""
+    try:
+        return bool(RefreshToken(request.COOKIES.get(REFRESH_COOKIE, '')).get(REMEMBER_CLAIM, True))
+    except TokenError:
+        return True
+
+
+def _wants_remember(request) -> bool:
+    """"Eslab qolish" on the login form. Older clients don't send it and
+    keep the old behaviour (stay signed in)."""
+    raw = request.data.get('remember', True)
+    return raw not in (False, 0, '0', 'false', 'False', '')
+
+
+def _issue_tokens_response(user, request=None, *, remember=True, extra=None) -> Response:
     refresh = RefreshToken.for_user(user)
+    # Carried in the token so a rotated refresh keeps the same kind of
+    # cookie (RefreshView): persistent when "Eslab qolish" was ticked,
+    # gone when the browser closes otherwise.
+    refresh[REMEMBER_CLAIM] = bool(remember)
     user.last_login = timezone.now()
     user.last_login_ip = client_ip(request)
     user.failed_login_count = 0
@@ -79,16 +103,17 @@ def _issue_tokens_response(user, request=None) -> Response:
     user.save(update_fields=['last_login', 'last_login_ip', 'failed_login_count', 'locked_until'])
     log_event('login_ok', actor=user, request=request)
     touch(user)
-    response = Response({'access': str(refresh.access_token), 'user': MeSerializer(user).data})
+    response = Response({'access': str(refresh.access_token), 'user': MeSerializer(user).data, **(extra or {})})
     _set_refresh_cookie(response, refresh)
     return response
 
 
 def _set_refresh_cookie(response, refresh_token):
+    remember = refresh_token.get(REMEMBER_CLAIM, True)
     response.set_cookie(
         REFRESH_COOKIE,
         str(refresh_token),
-        max_age=int(refresh_token.lifetime.total_seconds()),
+        max_age=int(refresh_token.lifetime.total_seconds()) if remember else None,
         httponly=True,
         secure=not settings.DEBUG,
         samesite='Lax',
@@ -179,9 +204,14 @@ class LoginView(generics.GenericAPIView):
             # account — hand back a short-lived challenge instead of
             # tokens; TwoFactorVerifyView issues the real tokens only once
             # a matching TOTP code comes back for it.
-            return Response({'totp_required': True, 'challenge': _make_totp_challenge(user)})
+            return Response({'totp_required': True, 'challenge': _make_totp_challenge(user, _wants_remember(request))})
 
-        return _issue_tokens_response(user, request)
+        extra = {}
+        if user.username and login.lower() != user.username and login.lower() == (user.previous_username or '').lower():
+            # Signed in with a login that has since been regenerated — tell
+            # them the new one (the old one keeps working meanwhile).
+            extra['renamed_login'] = user.username
+        return _issue_tokens_response(user, request, remember=_wants_remember(request), extra=extra)
 
 
 class TwoFactorVerifyView(generics.GenericAPIView):
@@ -194,7 +224,7 @@ class TwoFactorVerifyView(generics.GenericAPIView):
     throttle_classes = [LoginRateThrottle]
 
     def post(self, request, *args, **kwargs):
-        user = _resolve_totp_challenge(request.data.get('challenge', ''))
+        user, remember = _resolve_totp_challenge(request.data.get('challenge', ''))
         if not user:
             return Response({'detail': "Sessiya muddati tugagan, qaytadan kiring."}, status=status.HTTP_401_UNAUTHORIZED)
         if _is_locked(user):
@@ -205,7 +235,7 @@ class TwoFactorVerifyView(generics.GenericAPIView):
             _register_failed_login(user, request, reason='2fa')
             return Response({'detail': "Kod noto'g'ri."}, status=status.HTTP_400_BAD_REQUEST)
 
-        return _issue_tokens_response(user, request)
+        return _issue_tokens_response(user, request, remember=remember)
 
 
 class TwoFactorSetupView(generics.GenericAPIView):
@@ -386,6 +416,7 @@ class ChangePasswordView(generics.GenericAPIView):
         notify_user(user, "🔐 Amaliy Fizika: parolingiz o'zgartirildi. Agar bu siz bo'lmasangiz, darhol parolni tiklang.")
 
         refresh = RefreshToken.for_user(user)
+        refresh[REMEMBER_CLAIM] = _cookie_remember(request)
         response = Response({'detail': "Parol yangilandi.", 'access': str(refresh.access_token), 'user': MeSerializer(user).data})
         _set_refresh_cookie(response, refresh)
         return response
@@ -652,6 +683,41 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
 
     def _label(self, target):
         return f"{target.name} ({target.login_name})"
+
+    @action(detail=False, methods=['post'], url_path='create-staff')
+    def create_staff(self, request):
+        """New teacher / observer account made by an administrator — the
+        login page no longer offers self-registration. The login is built
+        from the name like a student's (first name + surname), the
+        password is one-time: it has to be changed at the first sign-in."""
+        from learning.student_accounts import unique_username
+
+        name = ' '.join(str(request.data.get('name') or '').split())
+        if not 3 <= len(name) <= 150 or len(name.split()) < 2:
+            raise ValidationError({'name': "Ism va familiyani to'liq yozing."})
+        role = request.data.get('role') or User.Role.TEACHER
+        if role not in (User.Role.TEACHER, User.Role.KUZATUVCHI):
+            raise ValidationError({'role': "Faqat o'qituvchi yoki kuzatuvchi yaratish mumkin."})
+        if role == User.Role.KUZATUVCHI and not request.user.is_dev_superuser:
+            raise PermissionDenied("Kuzatuvchini faqat dasturchi yarata oladi.")
+        email = str(request.data.get('email') or '').strip().lower() or None
+        if email:
+            try:
+                EmailValidator()(email)
+            except DjangoValidationError:
+                raise ValidationError({'email': "Email noto'g'ri."})
+            if User.objects.filter(email__iexact=email).exists():
+                raise ValidationError({'email': "Bu email bilan hisob allaqachon bor."})
+        password = generate_readable_password()
+        user = User.objects.create_user(
+            email=email, password=password, name=name, role=role,
+            username=unique_username(name), approved=True, must_change_password=True,
+            phone=str(request.data.get('phone') or '').strip()[:32],
+        )
+        log_event('staff_created', actor=request.user, request=request, detail=f'{user.name} ({user.username})')
+        notify_admin_action(request.user, f"Yangi xodim hisobini yaratdi: {self._label(user)}")
+        return Response({'id': user.id, 'name': user.name, 'login': user.username, 'email': user.email,
+                         'role': user.role, 'password': password}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):

@@ -5,6 +5,7 @@ import re
 import secrets
 
 from django.db import transaction
+from django.db.models import Q
 
 from accounts.models import User
 from common.security import generate_readable_password
@@ -18,7 +19,14 @@ _CYR = {
     'э': 'e', 'ю': 'yu', 'я': 'ya', 'ў': 'o', 'қ': 'q', 'ғ': 'g', 'ҳ': 'h',
 }
 
-USERNAME_RE = re.compile(r'^[a-z0-9][a-z0-9._]{2,29}$')
+USERNAME_RE = re.compile(r'^[a-z0-9][a-z0-9._]{2,39}$')
+
+# Generated logins: first name + surname run together, no dots
+# ("Aliyev Vali" -> "valialiyev"); a namesake gets "valialiyev2".
+USERNAME_MAX = 40
+_SURNAME = re.compile(r'(ov|ova|ev|eva|zoda|zade|skiy|skaya|dze|yan)$')
+_PATRONYMIC = re.compile(r'(ovich|evich|ovna|evna)$')
+_PATRONYMIC_WORDS = {'ogli', 'ugli', 'qizi', 'kizi'}
 
 # Join codes avoid look-alike characters (0/O, 1/I/L) — they're read off a
 # board or a printout.
@@ -35,22 +43,51 @@ def transliterate(text: str) -> str:
 
 
 def username_base(full_name: str) -> str:
+    """First name + surname, whole, lowercase Latin, nothing in between.
+
+    Journal rosters are written "Familiya Ism [Otasining ismi]" (that's
+    what the live data shows), so the second word is taken as the first
+    name — unless only the second word looks like a surname ("Vali
+    Aliyev"), then the order is the other way round. Patronymics are
+    dropped either way."""
     parts = [re.sub(r'[^a-z0-9]', '', p) for p in transliterate(full_name).split()]
-    parts = [p for p in parts if p]
-    base = '.'.join(parts[:2]) if parts else 'oquvchi'
-    base = base[:24].strip('.')
+    parts = [p for p in parts if p and p not in _PATRONYMIC_WORDS]
+    if len(parts) > 2:
+        parts = [p for i, p in enumerate(parts) if i < 2 or not _PATRONYMIC.search(p)]
+    if not parts:
+        base = 'oquvchi'
+    elif len(parts) == 1:
+        base = parts[0]
+    else:
+        first, second = parts[0], parts[1]
+        if _SURNAME.search(second) and not _SURNAME.search(first):
+            base = first + second
+        else:
+            base = second + first
+    base = base[:USERNAME_MAX - 3]
     if len(base) < 3:
-        base = f'oquvchi.{base}'.strip('.')
+        base = f'oquvchi{base}'
     return base
 
 
-def unique_username(full_name: str) -> str:
+def _login_taken(candidate: str, exclude_pk=None) -> bool:
+    # A renamed account still answers to its old login (User.previous_username),
+    # so a new account mustn't take that one either.
+    qs = User.objects.filter(Q(username__iexact=candidate) | Q(previous_username__iexact=candidate))
+    if exclude_pk:
+        qs = qs.exclude(pk=exclude_pk)
+    return qs.exists()
+
+
+def unique_username(full_name: str, exclude_pk=None, reserved=frozenset()) -> str:
+    """`reserved`: logins already promised in the same batch but not saved
+    yet (the rename command's dry run)."""
     base = username_base(full_name)
     candidate = base
     n = 1
-    while User.objects.filter(username__iexact=candidate).exists():
+    while candidate in reserved or _login_taken(candidate, exclude_pk):
         n += 1
-        candidate = f'{base}{n}' if n < 100 else f'{base}.{secrets.randbelow(10**6):06d}'
+        candidate = f'{base}{n}'
     return candidate
 
 

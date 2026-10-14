@@ -33,9 +33,23 @@ export function SchoolDetailPage() {
   const [addTeacher, setAddTeacher] = useState('')
   const staff = useQuery({
     queryKey: ['schools', 'staff-options'],
-    enabled: admin && !isNone,
+    enabled: admin,
     queryFn: async () => (await api.get<Paginated<User>>('/accounts/users/')).data.results.filter((u) => u.role !== 'kuzatuvchi'),
   })
+  const classTeacher = useSchoolsMutation(async ({ classId, teacher }: { classId: number; teacher: string }) =>
+    api.post(`/schools/classes/${classId}/teacher/`, { teacher }))
+
+  // Hand a class (roster, marks, student accounts) to another teacher.
+  const onClassTeacher = async (classId: number, className: string, teacher: string) => {
+    const name = staff.data?.find((u) => u.id === teacher)?.name ?? ''
+    if (!(await confirm({ title: t("Sinfni boshqa o'qituvchiga o'tkazish"), text: `${className} → ${name}` }))) return
+    try {
+      await classTeacher.mutateAsync({ classId, teacher })
+      toast(t("Sinf o'tkazildi"))
+    } catch (err) {
+      toast(t(errText(err)), 'error')
+    }
+  }
   const teacherAction = useSchoolsMutation(async ({ action, teacher }: { action: 'add-teacher' | 'remove-teacher'; teacher: string }) =>
     api.post(`/schools/${id}/${action}/`, { teacher }))
 
@@ -166,7 +180,16 @@ export function SchoolDetailPage() {
                 {data.classes.map((c) => (
                   <tr key={c.class_id}>
                     <td><Link to={`/manage/database?class=${c.class_id}`}><b>{c.name}</b></Link>{isNone && <><br /><small className="muted">«{c.school_text}»</small></>}</td>
-                    <td>{c.teacher}</td>
+                    <td>
+                      {admin && staff.data ? (
+                        <select className="input input--sm" value={c.teacher_id} aria-label={t("O'qituvchi")}
+                          disabled={classTeacher.isPending}
+                          onChange={(e) => onClassTeacher(c.class_id, c.name, e.target.value)}>
+                          {!staff.data.some((u) => u.id === c.teacher_id) && <option value={c.teacher_id}>{c.teacher}</option>}
+                          {staff.data.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+                        </select>
+                      ) : c.teacher}
+                    </td>
                     <td>{c.students}</td>
                     <td>{c.days}</td>
                     <MetricCells m={c} />

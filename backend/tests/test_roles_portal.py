@@ -54,7 +54,7 @@ def test_me_exposes_student_class(jwt_as, student):
     resp = jwt_as(student).get("/api/accounts/me/")
     assert resp.data["role"] == "student"
     assert resp.data["student"]["class_name"] == "8-A"
-    assert resp.data["username"] == "aliyev.vali"
+    assert resp.data["username"] == "valialiyev"
 
 
 def test_student_cannot_rename_self(jwt_as, student):
