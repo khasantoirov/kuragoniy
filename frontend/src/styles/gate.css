@@ -1,9 +1,7 @@
 /* ══ Kirish ekrani (AuthLayout) ═══════════════════════════════
    Ko'k gradient fon ustida suzuvchi dog'lar va formulalar, o'rtada keng
-   shisha panel: chapda platforma imkoniyatlari, markazda kirish kartasi,
-   o'ngda jonli tajriba (mayatnik — surgich bilan ip uzunligini
-   o'zgartirsa davr ham o'zgaradi). Tor ekranda faqat karta + imkoniyat
-   chiplari qoladi. Klasslar `gx*` — eski `.gate*` qoidalari bilan
+   shisha panel va uning ustiga chiqib turgan kirish kartasi. Tor ekranda
+   faqat karta qoladi. Klasslar `gx*` — eski `.gate*` qoidalari bilan
    to'qnashmaydi. */
 
 .gx {
@@ -128,9 +126,10 @@
 }
 .gx__panel {
   position: relative;
-  display: grid; grid-template-columns: minmax(0, 1fr) 470px minmax(0, 1fr); align-items: center; gap: 40px;
-  width: min(1380px, 100%);
-  padding: 44px 48px;
+  display: flex; justify-content: center;
+  width: min(1180px, 100%);
+  margin-top: 70px;
+  padding: 0 48px 96px;
   border: 1px solid var(--gx-line); border-radius: 34px;
   background: linear-gradient(160deg, rgba(255,255,255,.12), rgba(255,255,255,.04));
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
@@ -138,7 +137,8 @@
 
 .gx__card {
   position: relative; z-index: 1;
-  margin: -96px 0;
+  width: min(470px, 100%);
+  margin-top: -70px;
   padding: 34px 40px 30px;
   border: 1px solid rgba(255,255,255,.3); border-radius: 26px;
   background: linear-gradient(170deg, rgba(64,150,255,.94) 0%, rgba(84,110,245,.94) 100%);
@@ -208,57 +208,6 @@
 .gx__card .form__note a { color: #fff; text-decoration: underline; }
 .gx__card .prose { color: #fff; }
 
-/* ── Yon tomonlar: imkoniyatlar va jonli tajriba ─────────────── */
-.gx__side { min-width: 0; }
-.gx__eyebrow {
-  display: inline-flex; margin: 0 0 14px; padding: 7px 13px; border-radius: 99px;
-  background: var(--gx-glass-2); font: 600 12px/1 var(--f-body); letter-spacing: .06em; text-transform: uppercase;
-}
-.gx__headline { margin: 0 0 24px; font: 700 30px/1.22 var(--f-display); color: #fff; letter-spacing: -.01em; }
-.gx__feats { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
-.gx__feats li {
-  display: flex; align-items: flex-start; gap: 14px;
-  animation: gx-in .55s cubic-bezier(.2,.8,.2,1) both;
-}
-.gx__feats li:nth-child(1) { animation-delay: .15s; }
-.gx__feats li:nth-child(2) { animation-delay: .27s; }
-.gx__feats li:nth-child(3) { animation-delay: .39s; }
-.gx__feats li:nth-child(4) { animation-delay: .51s; }
-@keyframes gx-in { from { opacity: 0; transform: translateX(-14px); } }
-.gx__feat-ic {
-  display: grid; place-items: center; flex: none;
-  width: 42px; height: 42px; border-radius: 12px;
-  background: var(--gx-glass-2); border: 1px solid var(--gx-line);
-}
-.gx__feat-ic .svic { width: 20px; height: 20px; }
-.gx__feats b { display: block; font: 600 15.5px/1.3 var(--f-body); color: #fff; }
-.gx__feats small { display: block; margin-top: 3px; font-size: 13px; line-height: 1.45; color: var(--gx-ink-3); }
-
-.gx-lab {
-  margin: 0 0 0 auto; max-width: 320px;
-  padding: 18px 20px 16px; border-radius: 22px;
-  background: var(--gx-glass); border: 1px solid var(--gx-line);
-}
-.gx-lab__head { display: flex; align-items: center; gap: 8px; font: 600 13px/1.3 var(--f-body); color: var(--gx-ink-2); }
-.gx-lab__live {
-  width: 8px; height: 8px; border-radius: 50%; background: #4ade80; flex: none;
-  box-shadow: 0 0 0 0 rgba(74,222,128,.6); animation: gx-pulse 1.8s ease-out infinite;
-}
-@keyframes gx-pulse { to { box-shadow: 0 0 0 10px rgba(74,222,128,0); } }
-.gx-lab__svg { display: block; width: 100%; height: auto; margin: 6px 0 4px; }
-.gx-lab__beam { stroke: rgba(255,255,255,.75); stroke-width: 4; stroke-linecap: round; }
-.gx-lab__axis { stroke: rgba(255,255,255,.18); stroke-dasharray: 4 6; }
-.gx-lab__rod { stroke: #fff; stroke-width: 2; }
-.gx-lab__bob { fill: #ffd166; stroke: #fff; stroke-width: 2; }
-.gx-lab__pivot { fill: #fff; }
-.gx-lab__ctl { display: grid; gap: 8px; font-size: 13px; color: var(--gx-ink-2); }
-.gx-lab__ctl b { color: #fff; }
-.gx-lab__ctl input { width: 100%; accent-color: #ffd166; cursor: pointer; }
-.gx-lab__out { margin: 10px 0 0; font: 500 14px/1.3 var(--f-mono); color: var(--gx-ink-2); }
-.gx-lab__out b { color: #fff; }
-
-.gx__chips { display: none; }
-
 /* ── Pastki qator ────────────────────────────────────────────── */
 .gx__foot {
   display: flex; flex-direction: column; align-items: center; gap: 10px;
@@ -276,29 +225,12 @@
 .gx__social .svic { width: 17px; height: 17px; }
 
 /* ── Moslashuv ───────────────────────────────────────────────── */
-@media (max-width: 1180px) {
-  .gx__panel { grid-template-columns: minmax(0, 1fr) 450px; gap: 32px; padding: 40px; }
-  .gx__side--right { display: none; }
-  .gx__card { margin: -70px 0; }
-}
 @media (max-width: 900px) {
   .gx__panel {
     display: block; width: min(500px, 100%);
-    padding: 0; border: 0; background: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+    margin: 0; padding: 0; border: 0; background: none; backdrop-filter: none; -webkit-backdrop-filter: none;
   }
-  .gx__side--left { display: none; }
-  .gx__card { margin: 0; }
-  .gx__chips {
-    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
-    max-width: 500px; margin: 20px 0 0; padding: 0; list-style: none;
-  }
-  .gx__chips li {
-    display: inline-flex; align-items: center; gap: 7px;
-    padding: 8px 12px; border-radius: 99px;
-    background: var(--gx-glass-2); border: 1px solid var(--gx-line);
-    font-size: 13px; font-weight: 500;
-  }
-  .gx__chips .svic { width: 15px; height: 15px; }
+  .gx__card { width: 100%; margin: 0; }
 }
 @media (max-width: 560px) {
   .gx__top { padding: 16px 16px 0; }
@@ -315,5 +247,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gx__blob, .gx__ring, .gx__f, .gx__feats li, .gx__card, .gx-lab__live { animation: none !important; }
+  .gx__blob, .gx__ring, .gx__f, .gx__card { animation: none !important; }
 }
