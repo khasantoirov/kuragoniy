@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { createPortal } from 'react-dom'
 
 import { IC } from '@/icons'
+import { lockPageScroll } from '@/lib/scroll'
 
 interface Props {
   title: string
@@ -32,10 +33,10 @@ export function Modal({ title, onClose, children, footer, narrow }: Props) {
   const { t } = useTranslation()
   useEffect(() => {
     openModalCount++
-    document.body.classList.add('is-locked')
+    const unlock = lockPageScroll()
     return () => {
       openModalCount--
-      document.body.classList.remove('is-locked')
+      unlock()
     }
   }, [])
 

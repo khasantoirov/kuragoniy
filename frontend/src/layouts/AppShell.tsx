@@ -5,6 +5,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { Avatar } from '@/components/Avatar'
 import { isAnyModalOpen } from '@/components/Modal'
 import { RoleBadge } from '@/components/RoleBadge'
+import { ScrollTopButton } from '@/components/ScrollTopButton'
 import { useToast } from '@/components/Toast'
 import { AnnouncementsBell } from '@/features/announcements/AnnouncementsBell'
 import { GRADES, gradeLabel } from '@/features/lessons/labels'
@@ -12,6 +13,7 @@ import { IC, themeIconMoon, themeIconSun } from '@/icons'
 import { isAdminInView, isObserver, useAuth } from '@/lib/auth/AuthContext'
 import { setupEnterKeyNav } from '@/lib/enterKeyNav'
 import { redoLast, undoLast } from '@/lib/history'
+import { useScrollRestoration } from '@/lib/scroll'
 import { useUIStore } from '@/store/uiStore'
 
 import { BottomNav } from './BottomNav'
@@ -42,6 +44,9 @@ export function AppShell() {
 
   const [acctOpen, setAcctOpen] = useState(false)
   const topbarRef = useRef<HTMLElement>(null)
+
+  // New page opens at the top; Back/Forward return to where you were.
+  useScrollRestoration()
 
   const closeAll = () => {
     setAcctOpen(false)
@@ -281,6 +286,8 @@ export function AppShell() {
           </main>
         </div>
       </div>
+
+      <ScrollTopButton />
 
       <BottomNav items={visibleNavItems} />
     </>

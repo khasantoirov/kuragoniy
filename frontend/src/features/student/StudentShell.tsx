@@ -2,11 +2,14 @@ import { useTranslation } from 'react-i18next'
 import { Outlet, useLocation } from 'react-router-dom'
 
 import { Avatar } from '@/components/Avatar'
+import { ScrollTopButton } from '@/components/ScrollTopButton'
 import { PortalSidebar, type PortalNavItem } from '@/features/portal/PortalSidebar'
 import { IC, themeIconMoon, themeIconSun } from '@/icons'
 import { NavRail, type RailItem } from '@/layouts/NavRail'
 import { BrandMark } from '@/layouts/edumin/BrandMark'
+import { SidebarToggle } from '@/layouts/edumin/Sidebar'
 import { useAuth } from '@/lib/auth/AuthContext'
+import { usePageScrolled, useScrollRestoration } from '@/lib/scroll'
 import { useUIStore } from '@/store/uiStore'
 
 const ITEMS: PortalNavItem[] = [
@@ -25,14 +28,17 @@ export function StudentShell() {
   const { user, logout } = useAuth()
   const { theme, toggleTheme, navStyle } = useUIStore()
   const { pathname } = useLocation()
+  const scrolled = usePageScrolled(4)
+  useScrollRestoration()
 
   const active = [...ITEMS].reverse().find((it) => (it.end ? pathname === it.to : pathname.startsWith(it.to)))
   const rail: RailItem[] = ITEMS.filter((it) => it.to !== '/s/results').map((it) => ({ to: it.to, icon: IC[it.icon], label: t(it.label) }))
 
   return (
     <>
-      <header className="edtop">
+      <header className={`edtop ${scrolled ? 'is-scrolled' : ''}`}>
         <div className="edtop__inner">
+          <SidebarToggle />
           <span className="edtop__brand">
             <img className="edtop__logo" src="/logo.png" alt="Amaliy Fizika" width={44} height={44} />
             <BrandMark />
@@ -64,6 +70,8 @@ export function StudentShell() {
           </main>
         </div>
       </div>
+
+      <ScrollTopButton />
 
       <nav className="bottomnav" aria-label={t('Asosiy navigatsiya')}>
         <NavRail items={rail} activeTo={active?.to ?? ''} styleKey={navStyle} />

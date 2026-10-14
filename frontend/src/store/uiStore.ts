@@ -21,6 +21,8 @@ interface UIState {
   grade: Grade
   viewMode: ViewMode
   navStyle: NavStyleKey
+  // Desktop side menu folded down to icons (the topbar's ≡ button).
+  sidebarMini: boolean
   setLang: (lang: Lang) => void
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
@@ -28,6 +30,11 @@ interface UIState {
   setGrade: (grade: Grade) => void
   setViewMode: (mode: ViewMode) => void
   setNavStyle: (style: NavStyleKey) => void
+  toggleSidebarMini: () => void
+}
+
+function applySidebarMini(mini: boolean) {
+  document.documentElement.toggleAttribute('data-side-mini', mini)
 }
 
 // Brauzer UI rangi (Android manzil paneli, PWA) — har bir rejimning o'z
@@ -71,9 +78,15 @@ export const useUIStore = create<UIState>()(
       grade: '1-2',
       viewMode: 'admin',
       navStyle: 'raised',
+      sidebarMini: false,
       setGrade: (grade) => set({ grade }),
       setViewMode: (viewMode) => set({ viewMode }),
       setNavStyle: (navStyle) => set({ navStyle }),
+      toggleSidebarMini: () => {
+        const next = !get().sidebarMini
+        applySidebarMini(next)
+        set({ sidebarMini: next })
+      },
       setLang: (lang) => {
         i18n.changeLanguage(lang)
         document.documentElement.lang = lang
@@ -143,6 +156,7 @@ export const useUIStore = create<UIState>()(
         if (!state) return
         applySkin(state.skin)
         applyTheme(state.theme, state.skin)
+        applySidebarMini(state.sidebarMini)
         i18n.changeLanguage(state.lang)
         document.documentElement.lang = state.lang
       },
@@ -152,7 +166,8 @@ export const useUIStore = create<UIState>()(
 
 // Apply immediately on load too (before any React render / rehydration callback).
 if (typeof document !== 'undefined') {
-  const { theme, skin } = useUIStore.getState()
+  const { theme, skin, sidebarMini } = useUIStore.getState()
   applySkin(skin)
   applyTheme(theme, skin)
+  applySidebarMini(sidebarMini)
 }

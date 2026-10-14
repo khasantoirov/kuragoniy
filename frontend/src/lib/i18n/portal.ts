@@ -15,6 +15,7 @@ const ru: Record<string, string> = {
   "O'quv materiallari": 'Учебные материалы', "Sotuv bo'limi": 'Отдел продаж', 'Xavfsizlik jurnali': 'Журнал безопасности',
   "Sinf va o'quvchilar": 'Класс и ученики', "Ma'muriyat": 'Администрация', "O'quvchi oynasi": 'Окно ученика',
   'Uyga vazifa': 'Домашнее задание', 'Natijalarim': 'Мои результаты', 'Profil': 'Профиль',
+  'Menyu': 'Меню', 'Tepaga': 'Наверх',
   // Kirish
   "O'quvchi": 'Ученик', "O'qituvchi": 'Учитель', 'Login': 'Логин',
   "O'qituvchingiz bergan login yoki o'zingiz tanlagan login bilan kiring.": 'Войдите с логином, который выдал учитель или который вы выбрали.',
@@ -95,6 +96,7 @@ const en: Record<string, string> = {
   'Savat': 'Cart', 'Buyurtmalarim': 'My orders', 'Xaridlarim': 'My purchases', 'Buyurtma berish': 'Place order',
   "To'ladim": "I've paid", 'Dars ishlanmasi': 'Lesson plan', "Tajriba qo'llanmasi": 'Experiment guide',
   "To'plam": 'Bundle', 'Tajriba jihozlari': 'Lab equipment', 'Bepul': 'Free',
+  'Menyu': 'Menu', 'Tepaga': 'Back to top',
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

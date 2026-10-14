@@ -64,7 +64,25 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-body.is-locked { overflow: hidden; }
+/* Sahifa oyna (viewport) bo'ylab aylanadi, <body> o'zi scroll konteyner
+   emas: `hidden` o'rniga `clip` gorizontal toshishni xuddi shunday
+   kesadi, lekin overflow-y'ni `auto`ga aylantirmaydi. Aks holda body
+   balandligi 100% bo'lib, ichida alohida aylanardi — mobil brauzer manzil
+   satrini yashirmasdi, sahifa scroll'ini tiklash ishlamasdi. `clip`ni
+   bilmaydigan eski brauzerlarda avvalgi joylashuv (body aylanadi)
+   o'zgarishsiz qoladi — lib/scroll.ts ikkalasini ham hisobga oladi. */
+@supports (overflow-x: clip) {
+  html, body { overflow-x: clip; }
+  body { height: auto; min-height: 100%; }
+}
+
+/* Oyna/tortma ochiq paytda orqadagi sahifa aylanmaydi (lib/scroll.ts
+   lockPageScroll). --lock-gap — yo'qolgan scrollbar kengligi: sahifa
+   yon tomonga sakramasligi uchun o'rniga shuncha bo'sh joy qoladi. */
+html.is-locked { overflow: hidden; padding-right: var(--lock-gap, 0px); }
+@supports not (overflow-x: clip) {
+  body.is-locked { overflow: hidden; }
+}
 
 h1, h2, h3, h4 { font-family: var(--f-display); font-weight: 600; margin: 0; letter-spacing: -.01em; }
 

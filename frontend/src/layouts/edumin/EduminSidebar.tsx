@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next'
-import { Link, NavLink } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
-import { IC } from '@/icons'
+import type { IC } from '@/icons'
 
-import { BrandMark } from './BrandMark'
+import { Sidebar } from './Sidebar'
 
 export interface EduminNavItem {
   to: string
@@ -36,34 +36,21 @@ function groupItems(items: EduminNavItem[]) {
 
 export function EduminSidebar({ items, onNav }: { items: EduminNavItem[]; onNav: () => void }) {
   const { t } = useTranslation()
-  const groups = groupItems(items)
+  const groups = groupItems(items).map((g) => ({
+    title: g.title,
+    items: g.items.map((item) => ({ ...item, end: item.to === '/' || item.to === '/manage' })),
+  }))
 
   return (
-    <aside className="edside">
-      <Link className="edside__brand" to="/" onClick={onNav}>
-        <img className="edside__logo" src="/logo.png" alt="KO'RAGONIY" width={56} height={56} />
-        <BrandMark />
-      </Link>
-
-      <nav className="edside__nav" aria-label={t('Asosiy navigatsiya')}>
-        {groups.map((g) => (
-          <div className="edside__sec" key={g.title}>
-            <p className="edside__gt">{t(g.title)}</p>
-            {g.items.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === '/' || item.to === '/manage'}
-                className={({ isActive }) => `edside__item ${isActive ? 'is-on' : ''}`}
-                onClick={onNav}
-              >
-                <span className="edside__ic">{IC[item.icon]}</span>
-                <span className="edside__lb">{t(item.label)}</span>
-              </NavLink>
-            ))}
-          </div>
-        ))}
-      </nav>
-    </aside>
+    <Sidebar
+      home="/"
+      groups={groups}
+      onNav={onNav}
+      footer={
+        <Link className="edside__made" to="/about" onClick={onNav}>
+          {t('Dastur yaratuvchisi')}: Hasan Toirov
+        </Link>
+      }
+    />
   )
 }
