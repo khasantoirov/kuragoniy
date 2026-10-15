@@ -132,7 +132,7 @@ export function LoginPage() {
   return (
     <form className="form gx-form" onSubmit={onSubmit}>
       <h1 className="gx-form__title">{t('Tizimga kirish')}</h1>
-      <p className="gx-form__sub">{t('Login va parolingiz bilan kiring.')}</p>
+      <p className="gx-form__sub gx-form__sub--opt">{t('Login va parolingiz bilan kiring.')}</p>
 
       <label className="field">
         <span className="field__label">{t('Login')}</span>
@@ -190,8 +190,6 @@ export function LoginPage() {
         {busy ? t('Tekshirilmoqda…') : t('Kirish')}
       </button>
       {note && <p className="form__note form__note--err" role="alert">{note}</p>}
-
-      <p className="gx-form__foot">{t("Hisobingiz yo'qmi? O'qituvchingiz yoki administratorga murojaat qiling.")}</p>
     </form>
   )
 }
