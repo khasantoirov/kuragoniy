@@ -68,7 +68,7 @@ def test_adding_an_experiment_via_lesson_update_notifies(mock_notify, as_user, a
     client = as_user(admin)
     resp = client.patch(
         f'/api/lessons/{lesson.id}/',
-        {'experiments': [{'name': 'Yangi tajriba', 'type': 'oddiy', 'desc': '', 'materials': [], 'steps': []}]},
+        {'experiments': [{'name': 'Yangi tajriba', 'type': 'oddiy', 'desc': '', 'equipment_items': [], 'steps': []}]},
         format='json',
     )
     assert resp.status_code == 200
@@ -84,7 +84,7 @@ def test_editing_an_experiment_field_shows_diff(mock_notify, as_user, admin):
     client = as_user(admin)
     resp = client.patch(
         f'/api/lessons/{lesson.id}/',
-        {'experiments': [{'id': exp.id, 'name': 'Yangi tajriba', 'type': 'oddiy', 'desc': 'Yangi tavsif', 'materials': [], 'steps': []}]},
+        {'experiments': [{'id': exp.id, 'name': 'Yangi tajriba', 'type': 'oddiy', 'desc': 'Yangi tavsif', 'equipment_items': [], 'steps': []}]},
         format='json',
     )
     assert resp.status_code == 200

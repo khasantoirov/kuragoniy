@@ -50,6 +50,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': 'http://127.0.0.1:8000',
+      // Uploaded files (poster / equipment-sheet galleries, avatars) — Django
+      // serves MEDIA_URL itself in DEBUG; nginx does it in production.
+      '/media': 'http://127.0.0.1:8000',
       '/ws': { target: 'ws://127.0.0.1:8000', ws: true },
     },
   },

@@ -62,7 +62,7 @@ export function LessonDetail() {
   const saveExperiments = async (experiments: Experiment[], label?: string) => {
     const before = lesson.experiments
     try {
-      await save.mutateAsync({ id: lesson.id, experiments })
+      const saved = await save.mutateAsync({ id: lesson.id, experiments })
       if (label) {
         record(
           label,
@@ -71,8 +71,10 @@ export function LessonDetail() {
         )
       }
       toast(t('Saqlandi'))
+      return saved
     } catch {
       toast(t('Saqlashda xatolik'), 'error')
+      return undefined
     }
   }
 
@@ -256,12 +258,16 @@ export function LessonDetail() {
           exp={editingExp === 'new' ? null : editingExp}
           onClose={() => setEditingExp(null)}
           onSave={async (exp) => {
-            const next =
-              editingExp === 'new'
-                ? [...lesson.experiments, { ...exp, order: lesson.experiments.length }]
-                : lesson.experiments.map((e) => (e.id === (editingExp as Experiment).id ? { ...exp, id: e.id } : e))
-            await saveExperiments(next, editingExp === 'new' ? t("Amaliy topshiriq qo'shildi") : t('Amaliy topshiriq tahrirlandi'))
+            const isNewExp = editingExp === 'new'
+            const next = isNewExp
+              ? [...lesson.experiments, { ...exp, order: lesson.experiments.length }]
+              : lesson.experiments.map((e) => (e.id === (editingExp as Experiment).id ? { ...exp, id: e.id } : e))
+            const saved = await saveExperiments(next, isNewExp ? t("Amaliy topshiriq qo'shildi") : t('Amaliy topshiriq tahrirlandi'))
             setEditingExp(null)
+            if (!saved) return exp
+            return isNewExp
+              ? saved.experiments[lesson.experiments.length]
+              : (saved.experiments.find((e) => e.id === (editingExp as Experiment).id) ?? exp)
           }}
         />
       )}

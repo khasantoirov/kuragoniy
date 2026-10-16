@@ -8,6 +8,8 @@ export interface Student {
 export interface JournalClass {
   id: number
   school: string
+  partner_school?: number | null
+  partner_school_name?: string
   name: string
   created_at: string
   students: Student[]

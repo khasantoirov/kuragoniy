@@ -5,16 +5,19 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { Avatar } from '@/components/Avatar'
 import { isAnyModalOpen } from '@/components/Modal'
 import { RoleBadge } from '@/components/RoleBadge'
+import { ScrollTopButton } from '@/components/ScrollTopButton'
 import { useToast } from '@/components/Toast'
 import { AnnouncementsBell } from '@/features/announcements/AnnouncementsBell'
 import { GRADES, gradeLabel } from '@/features/lessons/labels'
 import { IC, themeIconMoon, themeIconSun } from '@/icons'
-import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
+import { isAdminInView, isObserver, useAuth } from '@/lib/auth/AuthContext'
 import { setupEnterKeyNav } from '@/lib/enterKeyNav'
 import { redoLast, undoLast } from '@/lib/history'
+import { useScrollRestoration } from '@/lib/scroll'
 import { useUIStore } from '@/store/uiStore'
 
 import { BottomNav } from './BottomNav'
+import { OBSERVER_HIDDEN, portalNavItems } from './portalNav'
 import { EduminSidebar } from './edumin/EduminSidebar'
 import { EduminTopbar } from './edumin/EduminTopbar'
 
@@ -28,6 +31,7 @@ const NAV_ITEMS: { to: string; label: string; icon: keyof typeof IC; adminOnly?:
   { to: '/about', label: 'Platforma haqida', icon: 'info' },
   { to: '/statistics', label: 'Statistika', icon: 'chart', adminOnly: true },
   { to: '/admin', label: 'Boshqaruv', icon: 'settings', adminOnly: true },
+  { to: '/equipment-sheet', label: 'Jihozlar jadvali', icon: 'grid', adminOnly: true },
 ]
 
 export function AppShell() {
@@ -40,6 +44,9 @@ export function AppShell() {
 
   const [acctOpen, setAcctOpen] = useState(false)
   const topbarRef = useRef<HTMLElement>(null)
+
+  // New page opens at the top; Back/Forward return to where you were.
+  useScrollRestoration()
 
   const closeAll = () => {
     setAcctOpen(false)
@@ -120,7 +127,10 @@ export function AppShell() {
 
   const onLessons = location.pathname.startsWith('/lessons')
 
-  const visibleNavItems = NAV_ITEMS.filter((item) => !item.adminOnly || isAdminInView(user, viewMode))
+  const visibleNavItems = [
+    ...NAV_ITEMS.filter((item) => (!item.adminOnly || isAdminInView(user, viewMode)) && !(isObserver(user) && OBSERVER_HIDDEN.has(item.to))),
+    ...portalNavItems(user, viewMode),
+  ]
 
   const acctPop = (align: 'up' | 'down') => (
     <div className="acct">
@@ -276,6 +286,8 @@ export function AppShell() {
           </main>
         </div>
       </div>
+
+      <ScrollTopButton />
 
       <BottomNav items={visibleNavItems} />
     </>

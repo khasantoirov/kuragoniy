@@ -11,11 +11,27 @@ class StudentSerializer(serializers.ModelSerializer):
 
 class JournalClassSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
+    partner_school_name = serializers.CharField(source='partner_school.name', read_only=True, default='')
 
     class Meta:
         model = JournalClass
-        fields = ['id', 'school', 'name', 'created_at', 'students']
+        fields = ['id', 'school', 'partner_school', 'partner_school_name', 'name', 'created_at', 'students']
         read_only_fields = ['created_at']
+
+    def validate(self, attrs):
+        # Picking a partner school fills in the display name too; typing a
+        # different free-text name clears a stale link so the auto-matcher
+        # (schools/signals.py) can re-resolve it.
+        school = attrs.get('partner_school')
+        if school is not None:
+            if school and not school.is_active:
+                raise serializers.ValidationError({'partner_school': "Bu maktab faol emas."})
+            if school:
+                attrs['school'] = school.name
+        elif 'school' in attrs and 'partner_school' not in attrs and self.instance is not None:
+            if self.instance.partner_school_id and attrs['school'] != self.instance.school:
+                attrs['partner_school'] = None
+        return attrs
 
 
 class ClassDaySerializer(serializers.ModelSerializer):

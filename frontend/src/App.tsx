@@ -1,9 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from 'react-router-dom'
 
+import { AutoUpdate } from '@/components/AutoUpdate'
 import { ConfirmProvider } from '@/components/ConfirmProvider'
 import { ToastProvider } from '@/components/Toast'
-import { UpdatePrompt } from '@/components/UpdatePrompt'
 import { AuthProvider } from '@/lib/auth/AuthContext'
 import { router } from '@/routes'
 
@@ -20,7 +20,7 @@ export default function App() {
         <ToastProvider>
           <ConfirmProvider>
             <RouterProvider router={router} />
-            <UpdatePrompt />
+            <AutoUpdate />
           </ConfirmProvider>
         </ToastProvider>
       </AuthProvider>

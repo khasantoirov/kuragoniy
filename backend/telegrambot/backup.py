@@ -12,6 +12,7 @@ different now (one .sqlite3 file, not per-collection JSON).
 """
 
 import gzip
+import os
 import shutil
 import sqlite3
 from datetime import datetime, timezone
@@ -32,7 +33,13 @@ def run_backup(compress: bool = True) -> Path:
     with dest_conn:
         src_conn.backup(dest_conn)
     src_conn.close()
+    # A backup nobody can restore is worse than none — verify the copy
+    # before it replaces older ones in the rotation.
+    status = dest_conn.execute("PRAGMA integrity_check").fetchone()[0]
     dest_conn.close()
+    if status != "ok":
+        dest.unlink(missing_ok=True)
+        raise RuntimeError(f"Backup integrity check failed: {status}")
 
     if compress:
         gz_path = dest.with_suffix(dest.suffix + ".gz")
@@ -41,6 +48,28 @@ def run_backup(compress: bool = True) -> Path:
         dest.unlink()
         return gz_path
     return dest
+
+
+def encryption_key() -> bytes | None:
+    key = os.environ.get("BACKUP_ENCRYPTION_KEY", "").strip()
+    return key.encode() if key else None
+
+
+def encrypt_bytes(payload: bytes) -> bytes:
+    """Fernet (AES-128-CBC + HMAC-SHA256) with BACKUP_ENCRYPTION_KEY — used
+    for every copy that leaves the server (Telegram), since the database
+    now holds students' personal data and results. Keep the key somewhere
+    other than this server: without it the encrypted copies can't be
+    restored (`manage.py decrypt_backup`)."""
+    from cryptography.fernet import Fernet
+
+    return Fernet(encryption_key()).encrypt(payload)
+
+
+def decrypt_bytes(payload: bytes, key: bytes) -> bytes:
+    from cryptography.fernet import Fernet
+
+    return Fernet(key).decrypt(payload)
 
 
 def list_backups() -> list[Path]:

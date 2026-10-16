@@ -36,14 +36,21 @@ def test_login_still_rejects_wrong_password(api_client):
 # always reports the same IP, so leftover state here would otherwise bleed
 # into every other test in this file depending on run order.
 
-def test_login_is_rate_limited_per_ip(api_client):
+def test_login_is_rate_limited_per_ip(api_client, monkeypatch):
+    # The real per-IP ceiling is deliberately loose (a whole class logs in
+    # from one school NAT address); shrink it here so the test checks the
+    # mechanism without depending on 120 password hashes finishing inside
+    # one minute on a busy machine. Guesses go to unknown logins so the
+    # per-account lockout doesn't kick in first.
+    from common.throttling import LoginRateThrottle
+
+    monkeypatch.setattr(LoginRateThrottle, 'THROTTLE_RATES', {**LoginRateThrottle.THROTTLE_RATES, 'login': '5/min'})
     cache.clear()
     try:
-        User.objects.create_user(email="throttle@example.com", password="testpass123", name="T", approved=True)
-        for _ in range(10):
-            resp = api_client.post("/api/auth/login/", {"email": "throttle@example.com", "password": "wrong"}, format="json")
+        for i in range(5):
+            resp = api_client.post("/api/auth/login/", {"email": f"nobody{i}@example.com", "password": "wrong"}, format="json")
             assert resp.status_code == 401
-        blocked = api_client.post("/api/auth/login/", {"email": "throttle@example.com", "password": "wrong"}, format="json")
+        blocked = api_client.post("/api/auth/login/", {"email": "nobody@example.com", "password": "wrong"}, format="json")
         assert blocked.status_code == 429
     finally:
         cache.clear()

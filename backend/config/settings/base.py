@@ -53,6 +53,10 @@ INSTALLED_APPS = [
     'dashboard',
     'globalsearch',
     'migration_tools',
+    'learning',
+    'games',
+    'shop',
+    'schools',
 ]
 
 MIDDLEWARE = [
@@ -91,6 +95,9 @@ ASGI_APPLICATION = 'config.asgi.application'
 # SQLite with WAL journal mode so the Django server process and the
 # Telegram bot process (a separate OS process, see telegrambot app) can
 # both hold open connections without "database is locked" errors.
+# DATABASE_URL (e.g. postgres://user:pass@127.0.0.1:5432/kuragoniy)
+# switches to PostgreSQL once the user base outgrows SQLite — see
+# DEPLOY.md "Kengaytirish". Unset = the SQLite setup below, unchanged.
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -108,6 +115,9 @@ DATABASES = {
         },
     }
 }
+if env('DATABASE_URL', default=''):
+    DATABASES['default'] = env.db('DATABASE_URL')
+    DATABASES['default']['CONN_MAX_AGE'] = 60
 
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -146,18 +156,42 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Django REST Framework
 
 REST_FRAMEWORK = {
+    # Role-aware subclass of simplejwt's JWTAuthentication — also enforces
+    # the student/observer portal split and revoked sessions centrally.
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'common.authentication.RoleAwareJWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 50,
+    # Blanket per-user/per-IP ceilings on top of the scoped auth limits —
+    # generous enough for the admin lesson import (one request per lesson)
+    # and a live quiz, low enough to blunt scraping or a runaway client.
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ),
+    # Per-IP limits stay loose on purpose: a whole school logs in from
+    # behind one NAT address, and mobile carriers put thousands of pupils
+    # behind shared CGNAT addresses. Per-account lockout (accounts/views.py)
+    # is what actually stops password guessing.
     'DEFAULT_THROTTLE_RATES': {
-        'login': '10/min',
+        'anon': '600/min',
+        'user': '600/min',
+        'login': '120/min',
         'register': '5/hour',
+        'student_register': '200/hour',
+        'password_reset': '30/hour',
+        'password_reset_confirm': '60/hour',
+        'game_answer': '120/min',
     },
+    # None = trust X-Forwarded-For as-is (dev, no proxy). prod.py sets 1:
+    # nginx appends the real peer address last, and anything before it is
+    # client-supplied — otherwise a forged header gives every request a
+    # fresh throttle identity.
+    'NUM_PROXIES': None,
 }
 
 SIMPLE_JWT = {
@@ -183,6 +217,28 @@ SIMPLE_JWT = {
 JWT_REFRESH_COOKIE_NAME = 'refresh_token'
 JWT_REFRESH_COOKIE_PATH = '/api/auth/'
 
+# Brute-force lockout per account (accounts/views.py LoginView).
+LOGIN_LOCKOUT_THRESHOLD = env.int('LOGIN_LOCKOUT_THRESHOLD', default=5)
+LOGIN_LOCKOUT_MINUTES = env.int('LOGIN_LOCKOUT_MINUTES', default=15)
+
+# Public bot username (no @) for the Telegram link deep link, and the
+# frontend origin used in password-reset messages.
+TELEGRAM_BOT_USERNAME = env('TELEGRAM_BOT_USERNAME', default='kuragoniybot')
+FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
+
+# Password-reset codes go out by email too, but only when SMTP is actually
+# configured (EMAIL_HOST in .env) — Telegram is the primary channel.
+EMAIL_ENABLED = bool(env('EMAIL_HOST', default=''))
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default="KO'RAGONIY EDU <noreply@kuragoniy.uz>")
+
+# Django admin lives at an unguessable path in production when set
+# (e.g. DJANGO_ADMIN_URL=boshqaruv-7f3k/); default keeps the old URL.
+DJANGO_ADMIN_URL = env('DJANGO_ADMIN_URL', default='admin/')
+
+X_FRAME_OPTIONS = 'DENY'
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
 
 # Channels — Redis-backed channel layer so the Django ASGI server and the
 # separate Telegram bot process can publish/receive on the same groups.
@@ -191,6 +247,21 @@ JWT_REFRESH_COOKIE_PATH = '/api/auth/'
 # `runserver` testing, but the bot process (Milestone 6) needs real Redis
 # since it runs in a separate OS process.
 _redis_url = env('REDIS_URL', default=None)
+
+# Shared cache — throttling counters, analytics results. Redis when
+# available so every process (and a future second worker) sees the same
+# counters; per-process memory otherwise.
+if _redis_url:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': _redis_url,
+            'KEY_PREFIX': 'af',
+        },
+    }
+else:
+    CACHES = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}}
+
 if _redis_url:
     CHANNEL_LAYERS = {
         'default': {

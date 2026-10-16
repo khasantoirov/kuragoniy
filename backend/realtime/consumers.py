@@ -10,7 +10,10 @@ class AnnouncementConsumer(AsyncJsonWebsocketConsumer):
 
     async def connect(self):
         user = self.scope['user']
-        if not user or not user.is_authenticated or not user.is_approved_effective:
+        # Staff only — announcements are for teachers/admins, and a student
+        # account is approved too (for the student portal), so
+        # is_approved_effective alone would let them in.
+        if not user or not user.is_authenticated or not user.is_staff_member:
             await self.close(code=4401)
             return
         await self.channel_layer.group_add(self.group_name, self.channel_name)
@@ -29,7 +32,7 @@ class TranslationConsumer(AsyncJsonWebsocketConsumer):
 
     async def connect(self):
         user = self.scope['user']
-        if not user or not user.is_authenticated:
+        if not user or not user.is_authenticated or not user.is_staff_member:
             await self.close(code=4401)
             return
         lesson_id = self.scope['url_route']['kwargs']['lesson_id']
@@ -42,3 +45,32 @@ class TranslationConsumer(AsyncJsonWebsocketConsumer):
 
     async def translation_done(self, event):
         await self.send_json(event['payload'])
+
+
+class GameConsumer(AsyncJsonWebsocketConsumer):
+    """Live-quiz fanout: the host and the joined players of one session
+    get a bare "changed" ping on every transition and refetch their own
+    state over REST (games/views.py), so nothing per-user — like the
+    correct answer before the reveal — ever goes over this socket."""
+
+    async def connect(self):
+        from channels.db import database_sync_to_async
+
+        from games.views import is_session_member
+
+        user = self.scope['user']
+        session_id = self.scope['url_route']['kwargs']['session_id']
+        allowed = await database_sync_to_async(is_session_member)(user, session_id)
+        if not allowed:
+            await self.close(code=4403)
+            return
+        self.group_name = f'game_{session_id}'
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
+        await self.accept()
+
+    async def disconnect(self, code):
+        if hasattr(self, 'group_name'):
+            await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+    async def game_changed(self, event):
+        await self.send_json({'type': 'changed'})

@@ -1,5 +1,17 @@
 import type { Grade } from './labels'
 
+export interface EquipmentItem {
+  id?: number
+  order: number
+  name: string
+  name_ru?: string
+  name_en?: string
+  quantity: number
+  image?: string | null
+  image_name?: string | null
+  image_size?: number | null
+}
+
 export interface Experiment {
   id?: number
   order: number
@@ -9,7 +21,7 @@ export interface Experiment {
   desc: string
   desc_ru?: string
   desc_en?: string
-  materials: string[]
+  equipment_items: EquipmentItem[]
   steps: string[]
   concepts: string[]
   minutes: number | null

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { useToast } from '@/components/Toast'
 import { IC } from '@/icons'
@@ -82,6 +82,9 @@ export function RegisterPage() {
         {busy ? t('Yuborilmoqda…') : t('Ariza yuborish')}
       </button>
       <p className="form__note">{t("Ariza yuborilgach, administrator tasdiqlaydi. Tasdiqlangach kira olasiz.")}</p>
+      <p className="form__note">
+        {t("O'quvchimisiz?")} <Link to="/join">{t("Sinf kodi bilan ro'yxatdan o'ting")}</Link>
+      </p>
     </form>
   )
 }

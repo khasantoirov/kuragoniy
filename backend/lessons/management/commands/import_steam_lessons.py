@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from lessons.fixtures.steam_lessons_data import LESSONS
-from lessons.models import Experiment, Lesson
+from lessons.models import EquipmentItem, Experiment, Lesson
 
 FIXTURES_DIR = Path(__file__).resolve().parent.parent.parent / "fixtures"
 IMAGES_DIR = FIXTURES_DIR / "steam_images"
@@ -102,14 +102,17 @@ class Command(BaseCommand):
                     dest_dir.mkdir(parents=True, exist_ok=True)
                     shutil.copyfile(IMAGES_DIR / row["grade"] / image_name, dest_dir / image_name)
 
-                Experiment.objects.create(
+                experiment = Experiment.objects.create(
                     lesson=lesson,
                     order=0,
                     name=row["title"],
                     desc=desc,
-                    materials=split_materials(row["materials"]),
                     concepts=row["concepts"],
                     image=image_url,
+                )
+                EquipmentItem.objects.bulk_create(
+                    EquipmentItem(experiment=experiment, order=i, name=name)
+                    for i, name in enumerate(split_materials(row["materials"]))
                 )
             created += 1
 

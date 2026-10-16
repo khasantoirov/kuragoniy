@@ -123,3 +123,78 @@ sudo visudo -c   # sintaksisni tekshirish
 
 Sozlangandan so'ng `main`'ga push qilinganda deploy avtomatik ishga tushadi;
 qo'lda ishga tushirish uchun GitHub → Actions → Deploy → "Run workflow".
+---
+
+## 9. Rollar, portallar va xavfsizlik (2026-10 yangilanishi)
+
+### Oynalar (portallar)
+
+| Rol | Oyna | Kirish |
+|---|---|---|
+| O'quvchi | `/s` — darslar (nazariya, formula, video), test/masala, uyga vazifa, o'yinlar, natijalar | login (ism+familiya, masalan `valialiyev`; adashi bo'lsa `valialiyev2`) + parol |
+| O'qituvchi | asosiy ilova + «Sinf va o'quvchilar» bo'limi (sinflarim statistikasi, o'quvchilar, vazifalar, tayyorgarlik, hisobotlar, natijalar, o'yinlar, do'kon) — faqat o'z sinflari | login yoki email + parol |
+| Admin / Boshliq / Dasturchi | yuqoridagilar + «Ma'muriyat» (tahlil, hisobotlarni baholash, rag'batlantirish, o'quv materiallari, sotuv bo'limi, xavfsizlik jurnali) | email + parol |
+| Kuzatuvchi | faqat «Ma'muriyat» — hamma narsani **ko'radi**, hech narsani o'zgartira olmaydi (server darajasida) | email + parol |
+
+Kirish sahifasi hamma uchun bitta (rol tanlanmaydi), «Eslab qolish» belgilanmasa sessiya brauzer yopilganda tugaydi. O'zi ro'yxatdan o'tish bosh sahifadan olib tashlangan: yangi o'qituvchini admin yaratadi — Boshqaruv → Foydalanuvchilar → «+ Yangi xodim» (login ism+familiyadan, bir martalik parol). Sinfni boshqa o'qituvchiga o'tkazish: Hamkor maktablar → maktab → «Sinflar» jadvalidagi o'qituvchi tanlagichi.
+
+Rollarni faqat **dasturchi** beradi: Boshqaruv → Foydalanuvchilar → «Admin / Boshliq / Kuzatuvchi qilish».
+
+Yangilanishlar oynasiz, avtomatik o'rnatiladi — lekin faqat hech narsa yo'qolmaydigan paytda (saqlanmagan yozuv, ochiq oyna, test yoki jonli o'yin bo'lsa kutadi): `frontend/src/components/AutoUpdate.tsx`.
+
+### Parolni tiklash (dasturchisiz)
+
+1. **O'zi** — «Parolni unutdingizmi?» → login/email → kod Telegram bot orqali keladi (10 daqiqa, 5 urinish). Buning uchun foydalanuvchi oldindan Sozlamalar/Profil'da «Telegramni ulash»ni bosgan bo'lishi kerak. SMTP sozlansa (`EMAIL_HOST` ...), kod emailga ham boradi.
+2. **O'quvchi** — o'z o'qituvchisi: O'quvchilar → «Parolni tiklash» (vaqtinchalik parol, birinchi kirishda almashtiriladi).
+3. **O'qituvchi** — administrator: Boshqaruv → «Parolni tiklash».
+
+### Xavfsizlik choralari
+
+- Hisob bloklash: 5 marta noto'g'ri parol → 15 daqiqa (`LOGIN_LOCKOUT_*`), egasiga Telegram ogohlantirishi.
+- Parol o'zgarsa/tiklansa/hisob bloklansa — barcha qurilmalardagi sessiyalar darhol bekor qilinadi.
+- O'quvchi hisobi xodimlar API'siga umuman kira olmaydi (markaziy tekshiruv: `common/authentication.py`).
+- Test javoblari faqat serverda tekshiriladi; variantlar har urinishda aralashtiriladi.
+- Telegram ulash — bir martalik 15 daqiqalik token (avvalgi ID orqali ulash teshigi yopildi).
+- Barcha kirishlar va ma'muriy amallar «Xavfsizlik jurnali»da (IP bilan) 400 kun saqlanadi.
+
+### Birinchi marta yangilashda (bir martalik)
+
+```bash
+cd /opt/kuragoniy/backend
+# 1) Zaxira shifrlash kaliti — chiqqan qiymatni .env ga BACKUP_ENCRYPTION_KEY= qilib yozing
+#    va serverdan TASHQARIDA ham saqlang (parol menejeri). Usiz shifrlangan zaxira ochilmaydi.
+./venv/bin/python manage.py backup_db --generate-key
+# 2) Nginx xavfsizlik sarlavhalari
+sudo cp /opt/kuragoniy/deploy/nginx/security-headers.conf /etc/nginx/snippets/kuragoniy-security.conf
+#    jonli /etc/nginx/sites-enabled/kuragoniy ichidagi 443-server blokiga va
+#    o'z add_header'i bor har bir location'ga qo'shing:
+#        include snippets/kuragoniy-security.conf;
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Shifrlangan zaxirani ochish: `./venv/bin/python manage.py decrypt_backup db-....sqlite3.gz.enc`
+
+O'quvchi loginlarini yangi formatga o'tkazish (2026-10, bir martalik; parollar o'zgarmaydi, eski login ham ishlayveradi va kirganda yangisi ko'rsatiladi):
+
+```bash
+./venv/bin/python manage.py rename_student_logins          # reja
+./venv/bin/python manage.py rename_student_logins --apply  # saqlash
+```
+
+## 9. Kengaytirish (1000+ foydalanuvchi)
+
+Hozirgi server (1 vCPU, 512 MB RAM, SQLite) bir necha yuz faol foydalanuvchini ko'taradi.
+Ming va undan ko'p o'quvchi bir vaqtda ishlashi kutilsa:
+
+1. **Serverni kattalashtirish** — kamida 2 vCPU / 2–4 GB RAM.
+2. **PostgreSQL'ga o'tish** (kod tayyor, faqat sozlama):
+   ```bash
+   sudo apt install postgresql && sudo -u postgres createuser kuragoniy -P && sudo -u postgres createdb -O kuragoniy kuragoniy
+   ./venv/bin/pip install "psycopg[binary]"
+   ./venv/bin/python manage.py dumpdata --natural-foreign --exclude contenttypes --exclude auth.permission > dump.json
+   # .env:  DATABASE_URL=postgres://kuragoniy:PAROL@127.0.0.1:5432/kuragoniy
+   ./venv/bin/python manage.py migrate && ./venv/bin/python manage.py loaddata dump.json
+   ```
+   (`backup_db` hozircha SQLite uchun; PostgreSQL'da `pg_dump` bilan zaxira oling.)
+3. **Bir nechta daphne jarayoni** — systemd unit'ni `-p 8001`, `-p 8002` bilan ko'paytirib, nginx `upstream`ga qo'shing (Redis allaqachon umumiy kesh va kanal qatlami vazifasini bajaradi).
+4. Statik/media fayllarni CDN orqali berish (ixtiyoriy).

@@ -15,12 +15,13 @@ import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import type { Paginated, User } from '@/lib/api/types'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
+import { Presence } from '@/features/portal/Presence'
 import { useUIStore } from '@/store/uiStore'
 
 import { ImportLessonsModal } from './ImportLessonsModal'
 import { ImportTranslationsModal } from './ImportTranslationsModal'
 
-const rank = (u: User) => (u.is_dev_superuser ? 0 : u.role === 'admin' || u.role === 'boshliq' ? 1 : 2)
+const rank = (u: User) => (u.is_dev_superuser ? 0 : u.role === 'admin' || u.role === 'boshliq' || u.role === 'kuzatuvchi' ? 1 : 2)
 
 // Static reference only — not derived from the actual permission code, so
 // keep it in sync by hand when accounts/models.py's is_admin or a
@@ -60,6 +61,24 @@ const ROLE_CAPABILITIES: { user: Pick<User, 'is_dev_superuser' | 'role'>; label:
     ],
   },
   {
+    user: { is_dev_superuser: false, role: 'kuzatuvchi' },
+    label: 'Kuzatuvchi',
+    items: [
+      "Barcha tahlil, reyting, natija va dars hisobotlarini ko'radi (barcha o'qituvchilar bo'yicha)",
+      "Hech narsani o'zgartira olmaydi — server darajasida faqat o'qish huquqi",
+      "Faqat dasturchi tayinlaydi",
+    ],
+  },
+  {
+    user: { is_dev_superuser: false, role: 'student' },
+    label: "O'quvchi",
+    items: [
+      "Faqat o'quvchi oynasi: darslar (nazariya, formula, video), test va masalalar, uyga vazifa, o'yinlar, natijalari",
+      "O'qituvchi oynasi va ma'muriyat bo'limlariga umuman kira olmaydi",
+      "Hisobini o'qituvchisi yaratadi yoki sinf kodi bilan o'zi ro'yxatdan o'tadi; parolini o'qituvchisi tiklaydi",
+    ],
+  },
+  {
     user: { is_dev_superuser: false, role: 'teacher' },
     label: 'Ustoz',
     items: [
@@ -92,7 +111,12 @@ function cmpUser(a: User, b: User) {
 
 const fmtBday = (d: string | null) => (d ? `${d.slice(8, 10)}.${d.slice(5, 7)}.${d.slice(0, 4)}` : '—')
 
-function NewPasswordModal({ email, password, onClose }: { email: string; password: string; onClose: () => void }) {
+function NewPasswordModal({ email, password, onClose, title = 'Parolni tiklash' }: {
+  email: string
+  password: string
+  onClose: () => void
+  title?: string
+}) {
   const { t } = useTranslation()
   const toast = useToast()
 
@@ -107,7 +131,7 @@ function NewPasswordModal({ email, password, onClose }: { email: string; passwor
 
   return (
     <Modal
-      title={t('Parolni tiklash')}
+      title={t(title)}
       onClose={onClose}
       footer={<button className="btn btn--primary" onClick={onClose}>{t('Yopish')}</button>}
     >
@@ -121,6 +145,74 @@ function NewPasswordModal({ email, password, onClose }: { email: string; passwor
           <button type="button" className="btn" onClick={copy}>{t('Nusxalash')}</button>
         </div>
       </label>
+    </Modal>
+  )
+}
+
+/** New teacher (or, for the developer, observer) account — the login page
+ * no longer offers self-registration. The server builds the login from
+ * the name and returns a one-time password, changed at first sign-in. */
+function CreateStaffModal({ onClose, onCreated, canObserver }: {
+  onClose: () => void
+  onCreated: (login: string, password: string) => void
+  canObserver: boolean
+}) {
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [role, setRole] = useState('teacher')
+  const [error, setError] = useState('')
+  const create = useMutation({
+    mutationFn: async () => (await api.post<{ login: string; password: string }>('/accounts/users/create-staff/',
+      { name, email, phone, role })).data,
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      onCreated(res.login, res.password)
+    },
+    onError: (err: unknown) => {
+      const data = (err as { response?: { data?: Record<string, string[] | string> } }).response?.data
+      const first = data && Object.values(data)[0]
+      setError(t(Array.isArray(first) ? first[0] : first || "Amalni bajarib bo'lmadi"))
+    },
+  })
+
+  return (
+    <Modal
+      title={t('Yangi xodim')}
+      onClose={onClose}
+      footer={<>
+        <button className="btn" onClick={onClose}>{t('Bekor qilish')}</button>
+        <button className="btn btn--primary" disabled={create.isPending || name.trim().split(/\s+/).length < 2}
+          onClick={() => { setError(''); create.mutate() }}>{t('Yaratish')}</button>
+      </>}
+    >
+      <p className="prose prose--note">{t("Login ism va familiyadan avtomatik yaratiladi (masalan, hasantoirov). Bir martalik parol beriladi — xodim birinchi kirishda uni o'zgartiradi.")}</p>
+      <label className="field">
+        <span className="field__label">{t('Familiya va ism')}</span>
+        <input className="input" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Toirov Hasan" />
+      </label>
+      <div className="row row--2">
+        <label className="field">
+          <span className="field__label">{t('Email')} <small className="muted">({t('ixtiyoriy')})</small></span>
+          <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </label>
+        <label className="field">
+          <span className="field__label">{t('Telefon')} <small className="muted">({t('ixtiyoriy')})</small></span>
+          <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </label>
+      </div>
+      {canObserver && (
+        <label className="field">
+          <span className="field__label">{t('Rol')}</span>
+          <select className="input" value={role} onChange={(e) => setRole(e.target.value)}>
+            <option value="teacher">{t("O'qituvchi")}</option>
+            <option value="kuzatuvchi">{t('Kuzatuvchi')}</option>
+          </select>
+        </label>
+      )}
+      {error && <p className="form__note form__note--err" role="alert">{error}</p>}
     </Modal>
   )
 }
@@ -180,7 +272,8 @@ export function AdminPage() {
   const [announcing, setAnnouncing] = useState(false)
   const [importingLessons, setImportingLessons] = useState(false)
   const [importingTranslations, setImportingTranslations] = useState(false)
-  const [newPassword, setNewPassword] = useState<{ email: string; password: string } | null>(null)
+  const [newPassword, setNewPassword] = useState<{ email: string; password: string; title?: string } | null>(null)
+  const [creatingStaff, setCreatingStaff] = useState(false)
   const { data: locks } = useQuarterLocks()
   const setLock = useSetQuarterLock()
 
@@ -188,6 +281,7 @@ export function AdminPage() {
     queryKey: ['admin', 'users'],
     queryFn: async () => (await api.get<Paginated<User>>('/accounts/users/')).data.results,
     enabled: admin,
+    refetchInterval: 60_000, // keeps the "onlayn" dots current
   })
 
   const act = useMutation({
@@ -256,6 +350,11 @@ export function AdminPage() {
     }))) return
     act.mutate({ id: u.id, action: 'demote' }, { onSuccess: () => toast(isBoshliq ? t('Boshliqlik olindi') : t('Adminlik olindi')) })
   }
+  const onSetKuzatuvchi = async (u: User) => {
+    if (!(await confirm({ title: t('Kuzatuvchi qilish'), text: `${u.email || ''} — ${t("barcha ma'lumotlarni faqat ko'rish huquqi beriladi.")}` }))) return
+    act.mutate({ id: u.id, action: 'set-kuzatuvchi' }, { onSuccess: () => toast(t('Kuzatuvchi qilindi')) })
+  }
+  const onUnlock = (u: User) => act.mutate({ id: u.id, action: 'unlock' }, { onSuccess: () => toast(t('Blok ochildi')) })
   const onBlock = async (u: User) => {
     if (!(await confirm({ title: t("Kirishni to'xtatish"), text: `${u.email || ''} ${t('endi tizimga kira olmaydi. Keyin qayta tasdiqlashingiz mumkin.')}` }))) return
     act.mutate({ id: u.id, action: 'block' }, { onSuccess: () => toast(t("Kirish to'xtatildi")) })
@@ -264,7 +363,7 @@ export function AdminPage() {
     if (!(await confirm({ title: t('Parolni tiklash'), text: `${u.email || ''} — ${t("yangi parol yaratiladi.")}` }))) return
     try {
       const res = await api.post<{ password: string }>(`/accounts/users/${u.id}/reset-password/`)
-      setNewPassword({ email: u.email, password: res.data.password })
+      setNewPassword({ email: u.email ?? u.username ?? '', password: res.data.password })
     } catch {
       toast(t("Amalni bajarib bo'lmadi"), 'error')
     }
@@ -329,7 +428,12 @@ export function AdminPage() {
 
           {approved.length > 0 && (
             <section className="panel">
-              <h3 className="panel__title">{t('Xodimlar')} <span className="badge">{approved.length}</span></h3>
+              <h3 className="panel__title">
+                {t('Xodimlar')} <span className="badge">{approved.length}</span>
+                <span className="presence presence--on" style={{ marginLeft: 'auto' }}>
+                  <span className="presence__dot" aria-hidden="true" />{t('Hozir onlayn')}: {approved.filter((u) => u.online).length}
+                </span>
+              </h3>
               <div className="staff">
                 {approved.map((u) => (
                   <article key={u.id} className="stf">
@@ -340,6 +444,7 @@ export function AdminPage() {
                       <div className="stf__id">
                         <p className="stf__nm">{u.name || '—'}</p>
                         <RoleBadge user={u} />
+                        <Presence online={u.online} lastSeen={u.last_seen} />
                       </div>
                     </div>
                     <div className="stf__b">
@@ -362,19 +467,23 @@ export function AdminPage() {
           )}
 
           <section className="panel">
-            <h3 className="panel__title">{t('Foydalanuvchilar')} <span className="badge">{approved.length}</span></h3>
+            <div className="thead">
+              <h3 className="panel__title">{t('Foydalanuvchilar')} <span className="badge">{approved.length}</span></h3>
+              <button className="btn btn--primary btn--sm" onClick={() => setCreatingStaff(true)}>+ {t('Yangi xodim')}</button>
+            </div>
             {approved.length ? (
               <ul className="people">
                 {approved.map((u) => {
                   const isSelf = u.id === me?.id
                   const targetIsDev = u.is_dev_superuser
-                  const targetIsAdm = u.role === 'admin' || u.role === 'boshliq'
+                  const targetIsAdm = u.role === 'admin' || u.role === 'boshliq' || u.role === 'kuzatuvchi'
                   const canManage = !isSelf && !targetIsDev && (me?.is_dev_superuser || !targetIsAdm)
+                  const locked = !!u.locked_until && new Date(u.locked_until) > new Date()
                   return (
                     <li key={u.id} className="person">
                       <div>
                         <p className="person__name">{u.name || '—'} <RoleBadge user={u} /></p>
-                        <p className="person__mail">{u.email || ''}</p>
+                        <p className="person__mail">{u.email || ''} · <Presence online={u.online} lastSeen={u.last_seen} /></p>
                       </div>
                       {isSelf ? (
                         <span className="person__you">{t('siz')}</span>
@@ -383,14 +492,16 @@ export function AdminPage() {
                           {me?.is_dev_superuser &&
                             (targetIsAdm ? (
                               <button className="btn btn--sm btn--ghost" onClick={() => onDemote(u)}>
-                                {u.role === 'boshliq' ? t('Boshliqlikni olish') : t('Adminlikni olish')}
+                                {u.role === 'boshliq' ? t('Boshliqlikni olish') : u.role === 'kuzatuvchi' ? t('Kuzatuvchilikni olish') : t('Adminlikni olish')}
                               </button>
                             ) : (
                               <>
                                 <button className="btn btn--sm btn--ghost" onClick={() => onPromote(u)}>{t('Admin qilish')}</button>
                                 <button className="btn btn--sm btn--ghost" onClick={() => onSetBoshliq(u)}>{t('Boshliq qilish')}</button>
+                                <button className="btn btn--sm btn--ghost" onClick={() => onSetKuzatuvchi(u)}>{t('Kuzatuvchi qilish')}</button>
                               </>
                             ))}
+                          {locked && <button className="btn btn--sm btn--primary" onClick={() => onUnlock(u)}>{t('Blokni ochish')}</button>}
                           <button className="btn btn--sm btn--ghost" onClick={() => onResetPassword(u)}>{t('Parolni tiklash')}</button>
                           <button className="btn btn--sm btn--ghost" onClick={() => onBlock(u)}>{t("Kirishni to'xtatish")}</button>
                         </div>
@@ -427,8 +538,19 @@ export function AdminPage() {
           {announcing && <AnnounceModal onClose={() => setAnnouncing(false)} />}
           {importingLessons && <ImportLessonsModal onClose={() => setImportingLessons(false)} />}
           {importingTranslations && <ImportTranslationsModal onClose={() => setImportingTranslations(false)} />}
+          {creatingStaff && (
+            <CreateStaffModal
+              canObserver={!!me?.is_dev_superuser}
+              onClose={() => setCreatingStaff(false)}
+              onCreated={(login, password) => {
+                setCreatingStaff(false)
+                setNewPassword({ email: `${t('Login')}: ${login}`, password, title: 'Yangi xodim hisobi' })
+              }}
+            />
+          )}
           {newPassword && (
-            <NewPasswordModal email={newPassword.email} password={newPassword.password} onClose={() => setNewPassword(null)} />
+            <NewPasswordModal email={newPassword.email} password={newPassword.password} title={newPassword.title}
+              onClose={() => setNewPassword(null)} />
           )}
         </>
       )}
