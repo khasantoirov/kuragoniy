@@ -20,7 +20,7 @@ def _clear_cache():
 
 @pytest.fixture
 def lesson(db):
-    lesson = Lesson.objects.create(title="Nyuton qonunlari", grade=8, chorak=1, hafta=1, cat="mexanika",
+    lesson = Lesson.objects.create(title="Nyuton qonunlari", grade="8-9", chorak=1, hafta=1,
                                    goal="Kuch va tezlanish bog'lanishini o'rganish")
     LessonMaterial.objects.create(
         lesson=lesson, theory="Kuch — jismlarning o'zaro ta'siri.", is_published=True,
@@ -86,7 +86,7 @@ def test_self_registration_with_join_code(api_client, as_user, teacher, journal_
     }, format="json")
     assert resp.status_code == 201 and resp.data["approved"] is False
     kid = User.objects.get(username="jasur.r")
-    assert kid.student_profile.journal_class == journal_class and kid.student_profile.grade == 8
+    assert kid.student_profile.journal_class == journal_class and kid.student_profile.grade == "8-9"
 
     assert as_user(teacher).post(f"/api/learning/students/{kid.id}/approve/").status_code == 200
     kid.refresh_from_db()
@@ -105,7 +105,7 @@ def test_registration_rejects_bad_code_and_taken_username(api_client, as_user, t
 # ── Lessons, practice, grading ─────────────────────────────────────────
 
 def test_student_sees_published_material_only(as_user, student, lesson):
-    hidden = Lesson.objects.create(title="Yashirin", grade=8, chorak=1, hafta=2)
+    hidden = Lesson.objects.create(title="Yashirin", grade="8-9", chorak=1, hafta=2)
     LessonMaterial.objects.create(lesson=hidden, is_published=False)
     ids = {row["id"] for row in as_user(student).get("/api/student/lessons/").data}
     assert lesson.id in ids and hidden.id not in ids
@@ -210,7 +210,7 @@ def test_readiness_check_built_from_lesson_content(as_user, teacher, lesson):
 
 
 def test_readiness_refuses_empty_lesson(as_user, teacher):
-    empty = Lesson.objects.create(title="Bo'sh", grade=7, chorak=1, hafta=1)
+    empty = Lesson.objects.create(title="Bo'sh", grade="7", chorak=1, hafta=1)
     assert as_user(teacher).post(f"/api/learning/readiness/{empty.id}/start/").status_code == 400
 
 
@@ -291,7 +291,7 @@ def test_assignment_visible_only_to_its_class(as_user, teacher, journal_class, m
 
 
 def test_material_list_and_user_search(as_user, admin, lesson, student):
-    rows = as_user(admin).get("/api/learning/materials/", {"grade": 8}).data
+    rows = as_user(admin).get("/api/learning/materials/", {"grade": "8-9"}).data
     row = next(r for r in rows if r["lesson"] == lesson.id)
     assert row["is_published"] and row["question_counts"]["student"] == 2 and row["question_counts"]["teacher"] == 1
     found = as_user(admin).get("/api/accounts/users/", {"role": "student", "q": "aliyev"}).data["results"]
