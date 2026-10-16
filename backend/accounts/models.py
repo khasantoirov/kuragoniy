@@ -236,3 +236,26 @@ class PasswordResetCode(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+class UserSession(models.Model):
+    """One signed-in device: created at login, refreshed whenever its
+    refresh token is used, ended by logging out there, by "Chiqish" in the
+    sessions list, or by any revoke-all (password change/reset, block).
+    `jti` is the refresh token's id, so ending a session also blacklists
+    exactly that token."""
+
+    user = models.ForeignKey(User, related_name='sessions', on_delete=models.CASCADE)
+    jti = models.CharField(max_length=64, unique=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=300, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_seen_at = models.DateTimeField(auto_now_add=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-last_seen_at']
+        indexes = [models.Index(fields=['user', 'revoked_at'])]
+
+    def __str__(self):
+        return f'{self.user_id} · {self.jti[:8]}'

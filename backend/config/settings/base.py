@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'games',
     'shop',
     'schools',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -229,6 +230,8 @@ FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
 # Password-reset codes go out by email too, but only when SMTP is actually
 # configured (EMAIL_HOST in .env) — Telegram is the primary channel.
 EMAIL_ENABLED = bool(env('EMAIL_HOST', default=''))
+# Shown in notification emails and messages.
+PLATFORM_NAME = env('PLATFORM_NAME', default="KO'RAGONIY EDU")
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default="KO'RAGONIY EDU <noreply@kuragoniy.uz>")
 
 # Django admin lives at an unguessable path in production when set

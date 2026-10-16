@@ -7,16 +7,29 @@ import type { NavStyleKey } from '@/layouts/navStyles'
 
 export type Lang = 'uz' | 'ru' | 'en'
 export type Theme = 'light' | 'dark'
+/** What the user picked in Sozlamalar → Ko'rinish; `theme` is the
+ *  resolved light/dark actually applied ('system' follows the device). */
+export type ThemeMode = 'system' | Theme
 export type ViewMode = 'admin' | 'teacher'
 /** Butun platformaning ko'rinish uslubi: 'r1' — asl "texnik chizma"
  *  ko'rinishi (standart, legacy.css), 'r2' — EDUMIN uslubidagi ikkinchi
  *  rejim (skin-edumin.css, hammasi `[data-skin="r2"]` ostida). Ikkalasi
  *  ham kunduzgi/tungi mavzu bilan mustaqil birlashadi → 4 kombinatsiya. */
 export type Skin = 'r1' | 'r2'
+export type NavDock = 'float' | 'full'
+
+export const DEFAULT_NAV_ITEMS = ['/', '/lessons', '/journal', '/timetable']
+export const MAX_NAV_ITEMS = 4
 
 interface UIState {
   lang: Lang
   theme: Theme
+  themeMode: ThemeMode
+  // Phone bottom bar (Sozlamalar → Ko'rinish): floating card or full width,
+  // labels under icons, which sections (up to 4, Sozlamalar always last).
+  navDock: NavDock
+  navLabels: boolean
+  navItems: string[]
   skin: Skin
   grade: Grade
   viewMode: ViewMode
@@ -25,6 +38,10 @@ interface UIState {
   sidebarMini: boolean
   setLang: (lang: Lang) => void
   setTheme: (theme: Theme) => void
+  setThemeMode: (mode: ThemeMode) => void
+  setNavDock: (dock: NavDock) => void
+  setNavLabels: (on: boolean) => void
+  setNavItems: (items: string[]) => void
   toggleTheme: () => void
   setSkin: (skin: Skin) => void
   setGrade: (grade: Grade) => void
@@ -42,6 +59,16 @@ function applySidebarMini(mini: boolean) {
 const THEME_COLOR: Record<Skin, Record<Theme, string>> = {
   r1: { light: '#12212E', dark: '#0E1620' },
   r2: { light: '#6A73FA', dark: '#1A1D2E' },
+}
+
+const DARK_QUERY = '(prefers-color-scheme: dark)'
+
+function systemTheme(): Theme {
+  return typeof window !== 'undefined' && window.matchMedia?.(DARK_QUERY).matches ? 'dark' : 'light'
+}
+
+export function resolveTheme(mode: ThemeMode): Theme {
+  return mode === 'system' ? systemTheme() : mode
 }
 
 function applyTheme(theme: Theme, skin: Skin) {
@@ -74,6 +101,18 @@ export const useUIStore = create<UIState>()(
     (set, get) => ({
       lang: 'uz',
       theme: 'light',
+      themeMode: 'light',
+      navDock: 'full',
+      navLabels: true,
+      navItems: DEFAULT_NAV_ITEMS,
+      setNavDock: (navDock) => set({ navDock }),
+      setNavLabels: (navLabels) => set({ navLabels }),
+      setNavItems: (items) => set({ navItems: items.slice(0, MAX_NAV_ITEMS) }),
+      setThemeMode: (themeMode) => {
+        const theme = resolveTheme(themeMode)
+        applyTheme(theme, get().skin)
+        set({ themeMode, theme })
+      },
       skin: 'r2',
       grade: '1-2',
       viewMode: 'admin',
@@ -94,12 +133,12 @@ export const useUIStore = create<UIState>()(
       },
       setTheme: (theme) => {
         applyTheme(theme, get().skin)
-        set({ theme })
+        set({ theme, themeMode: theme })
       },
       toggleTheme: () => {
         const next: Theme = get().theme === 'dark' ? 'light' : 'dark'
         applyTheme(next, get().skin)
-        set({ theme: next })
+        set({ theme: next, themeMode: next })
       },
       setSkin: (skin) => {
         applySkin(skin)
@@ -133,7 +172,9 @@ export const useUIStore = create<UIState>()(
       // select a grade the picker no longer offers and show an empty list;
       // it lands on '7', which is where every existing lesson from the old
       // band went (see lessons/migrations/0011).
-      version: 6,
+      // v7: themeMode + bottom-bar layout (Sozlamalar → Ko'rinish) — start
+      // from what the user already had.
+      version: 7,
       migrate: (persisted, version) => {
         const state = persisted as UIState
         if (version < 1) state.navStyle = 'raised'
@@ -150,11 +191,18 @@ export const useUIStore = create<UIState>()(
         }
         if (version < 5) state.skin = 'r2'
         if (version < 6 && (state.grade as unknown) === '7-8-9') state.grade = '7'
+        if (version < 7) {
+          state.themeMode = state.theme ?? 'light'
+          state.navDock = 'full'
+          state.navLabels = true
+          state.navItems = DEFAULT_NAV_ITEMS
+        }
         return state
       },
       onRehydrateStorage: () => (state) => {
         if (!state) return
         applySkin(state.skin)
+        if (state.themeMode === 'system') state.theme = resolveTheme('system')
         applyTheme(state.theme, state.skin)
         applySidebarMini(state.sidebarMini)
         i18n.changeLanguage(state.lang)
@@ -170,4 +218,12 @@ if (typeof document !== 'undefined') {
   applySkin(skin)
   applyTheme(theme, skin)
   applySidebarMini(sidebarMini)
+  // 'Tizim bo'yicha' keeps following the device's light/dark switch.
+  window.matchMedia?.(DARK_QUERY).addEventListener?.('change', () => {
+    const state = useUIStore.getState()
+    if (state.themeMode !== 'system') return
+    const next = resolveTheme('system')
+    applyTheme(next, state.skin)
+    useUIStore.setState({ theme: next })
+  })
 }

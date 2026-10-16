@@ -39,7 +39,11 @@ from common.throttling import (
     RegisterRateThrottle,
 )
 
+from notifications.models import Kind as NotifyKind
+from notifications.service import notify
+
 from .models import PasswordResetCode, TelegramLinkToken, User
+from .sessions import end_session, session_for_token, start_session, touch_session
 from .serializers import AdminUserSerializer, MeSerializer, RegisterSerializer, UserSerializer
 
 REFRESH_COOKIE = settings.JWT_REFRESH_COOKIE_NAME
@@ -103,6 +107,7 @@ def _issue_tokens_response(user, request=None, *, remember=True, extra=None) -> 
     user.save(update_fields=['last_login', 'last_login_ip', 'failed_login_count', 'locked_until'])
     log_event('login_ok', actor=user, request=request)
     touch(user)
+    start_session(user, refresh, request)
     response = Response({'access': str(refresh.access_token), 'user': MeSerializer(user).data, **(extra or {})})
     _set_refresh_cookie(response, refresh)
     return response
@@ -146,11 +151,13 @@ def _register_failed_login(user, request, reason='password') -> None:
         user.failed_login_count = 0
         fields.append('locked_until')
         log_event('login_locked', actor=user, request=request, detail=f'sabab: {reason}')
-        notify_user(
-            user,
-            "⚠️ KO'RAGONIY EDU: hisobingizga bir necha marta noto'g'ri parol bilan kirishga urinildi. "
-            f"Hisob {settings.LOGIN_LOCKOUT_MINUTES} daqiqaga bloklandi.\n"
-            "Agar bu siz bo'lmasangiz, parolingizni almashtiring.",
+        notify(
+            user, NotifyKind.XAVFSIZLIK, 'Hisob vaqtincha bloklandi',
+            f"Bir necha marta noto'g'ri parol kiritildi — {settings.LOGIN_LOCKOUT_MINUTES} daqiqaga bloklandi.",
+            '/settings/profile?tab=security',
+            telegram_text=("⚠️ KO'RAGONIY EDU: hisobingizga bir necha marta noto'g'ri parol bilan kirishga urinildi. "
+                           f"Hisob {settings.LOGIN_LOCKOUT_MINUTES} daqiqaga bloklandi.\n"
+                           "Agar bu siz bo'lmasangiz, parolingizni almashtiring."),
         )
     user.save(update_fields=fields)
 
@@ -276,6 +283,9 @@ class TwoFactorConfirmView(generics.GenericAPIView):
         user.totp_enabled = True
         user.save(update_fields=['totp_enabled'])
         notify_admin_action(user, "Ikki bosqichli tasdiqlashni yoqdi")
+        log_event('2fa_enabled', actor=user, request=request)
+        notify(user, NotifyKind.XAVFSIZLIK, 'Ikki bosqichli tasdiqlash yoqildi', 'Endi kirishda parol bilan birga kod ham so\'raladi.',
+               '/settings/profile?tab=security')
         return Response(MeSerializer(user).data)
 
 
@@ -295,6 +305,9 @@ class TwoFactorDisableView(generics.GenericAPIView):
         user.totp_enabled = False
         user.save(update_fields=['totp_secret', 'totp_enabled'])
         notify_admin_action(user, "Ikki bosqichli tasdiqlashni o'chirdi")
+        log_event('2fa_disabled', actor=user, request=request)
+        notify(user, NotifyKind.XAVFSIZLIK, "Ikki bosqichli tasdiqlash o'chirildi",
+               "Agar buni siz qilmagan bo'lsangiz, darhol parolni almashtiring.", '/settings/profile?tab=security')
         return Response(MeSerializer(user).data)
 
 
@@ -328,10 +341,19 @@ class RefreshView(TokenRefreshView):
         except TokenError:
             return self._reject("Refresh token yaroqsiz.")
 
+        session = session_for_token(parsed)
+        if session is not None and session.revoked_at:
+            return self._reject("Bu qurilmadagi seans yakunlangan, qaytadan kiring.")
+        touch_session(session, request)
+
         response = Response({'access': serializer.validated_data['access']})
         new_refresh = serializer.validated_data.get('refresh')
         if new_refresh:
-            _set_refresh_cookie(response, RefreshToken(new_refresh))
+            rotated = RefreshToken(new_refresh)
+            if session is not None:
+                session.jti = str(rotated['jti'])
+                session.save(update_fields=['jti'])
+            _set_refresh_cookie(response, rotated)
         return response
 
 
@@ -342,7 +364,9 @@ class LogoutView(generics.GenericAPIView):
         refresh_raw = request.COOKIES.get(REFRESH_COOKIE)
         if refresh_raw:
             try:
-                RefreshToken(refresh_raw).blacklist()
+                token = RefreshToken(refresh_raw)
+                end_session(token)
+                token.blacklist()
             except TokenError:
                 pass
         mark_logged_out(request.user)
@@ -413,10 +437,13 @@ class ChangePasswordView(generics.GenericAPIView):
         user.save(update_fields=['password', 'must_change_password'])
         revoke_all_tokens(user)
         log_event('password_changed', actor=user, request=request)
-        notify_user(user, "🔐 KO'RAGONIY EDU: parolingiz o'zgartirildi. Agar bu siz bo'lmasangiz, darhol parolni tiklang.")
+        notify(user, NotifyKind.XAVFSIZLIK, "Parol o'zgartirildi", "Boshqa qurilmalardagi seanslar yopildi.",
+               '/settings/profile?tab=security',
+               telegram_text="🔐 KO'RAGONIY EDU: parolingiz o'zgartirildi. Agar bu siz bo'lmasangiz, darhol parolni tiklang.")
 
         refresh = RefreshToken.for_user(user)
         refresh[REMEMBER_CLAIM] = _cookie_remember(request)
+        start_session(user, refresh, request)
         response = Response({'detail': "Parol yangilandi.", 'access': str(refresh.access_token), 'user': MeSerializer(user).data})
         _set_refresh_cookie(response, refresh)
         return response
@@ -540,7 +567,8 @@ class PasswordResetConfirmView(generics.GenericAPIView):
         user.save(update_fields=['password', 'must_change_password', 'failed_login_count', 'locked_until'])
         revoke_all_tokens(user)
         log_event('password_reset_done', actor=user, request=request)
-        notify_user(user, "🔐 KO'RAGONIY EDU: parolingiz tiklandi. Agar bu siz bo'lmasangiz, darhol administratorga xabar bering.")
+        notify(user, NotifyKind.XAVFSIZLIK, 'Parol tiklandi', 'Barcha qurilmalardagi seanslar yopildi.', '/settings/profile?tab=security',
+               telegram_text="🔐 KO'RAGONIY EDU: parolingiz tiklandi. Agar bu siz bo'lmasangiz, darhol administratorga xabar bering.")
         return Response({'detail': "Parol yangilandi. Endi yangi parol bilan kiring."})
 
 
@@ -716,6 +744,9 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
         )
         log_event('staff_created', actor=request.user, request=request, detail=f'{user.name} ({user.username})')
         notify_admin_action(request.user, f"Yangi xodim hisobini yaratdi: {self._label(user)}")
+        admins = [u for u in User.objects.filter(is_active=True).exclude(pk__in=[request.user.pk, user.pk]) if u.is_admin]
+        notify(admins, NotifyKind.JAMOA, f"Jamoaga yangi xodim qo'shildi: {user.name}", user.get_role_display(), '/admin',
+               channels=('app', 'email'))
         return Response({'id': user.id, 'name': user.name, 'login': user.username, 'email': user.email,
                          'role': user.role, 'password': password}, status=status.HTTP_201_CREATED)
 
@@ -726,6 +757,7 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
         target.approved = True
         target.save(update_fields=['approved'])
         notify_admin_action(request.user, f"Foydalanuvchini tasdiqladi: {self._label(target)}")
+        notify(target, NotifyKind.TIZIM, 'Hisobingiz tasdiqlandi', 'Endi platformaning barcha bo\'limlaridan foydalanishingiz mumkin.', '/')
         return Response(UserSerializer(target).data)
 
     @action(detail=True, methods=['post'])

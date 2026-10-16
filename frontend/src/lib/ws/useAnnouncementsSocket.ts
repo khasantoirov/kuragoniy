@@ -2,8 +2,6 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 
 import { getAccessToken } from '@/lib/api/client'
-import { playNotifySound } from '@/lib/push/sound'
-import { useToast } from '@/components/Toast'
 
 /**
  * Subscribes to the backend's 'announcements' Channels group (see
@@ -13,7 +11,6 @@ import { useToast } from '@/components/Toast'
  */
 export function useAnnouncementsSocket(enabled: boolean) {
   const queryClient = useQueryClient()
-  const toast = useToast()
   const socketRef = useRef<WebSocket | null>(null)
 
   useEffect(() => {
@@ -27,15 +24,12 @@ export function useAnnouncementsSocket(enabled: boolean) {
     const socket = new WebSocket(url)
     socketRef.current = socket
 
-    socket.onmessage = (event) => {
-      try {
-        const payload = JSON.parse(event.data)
-        toast(payload.text ?? 'Yangi e\'lon')
-        playNotifySound()
-        queryClient.invalidateQueries({ queryKey: ['announcements'] })
-      } catch {
-        // ignore malformed frames
-      }
+    // The new announcement is also an inbox message: the notifications
+    // poller (features/notifications/live.tsx) checks at once and plays the
+    // user's chosen sound / popup, so nothing is announced twice.
+    socket.onmessage = () => {
+      queryClient.invalidateQueries({ queryKey: ['announcements'] })
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'summary'] })
     }
 
     return () => {

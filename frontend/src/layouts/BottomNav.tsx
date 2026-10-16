@@ -2,41 +2,34 @@ import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router-dom'
 
 import { IC } from '@/icons'
-import { useUIStore } from '@/store/uiStore'
+import { DEFAULT_NAV_ITEMS, useUIStore } from '@/store/uiStore'
 
+import type { NavItem } from './navItems'
 import { NavRail, type RailItem } from './NavRail'
-
-type NavItem = { to: string; label: string; icon: keyof typeof IC }
-
-// On narrow screens we keep only the core pages visible, with a direct
-// Settings button in place of the previous overflow menu.
-const PRIMARY_PATHS = ['/', '/lessons', '/journal', '/timetable']
 
 function isOn(pathname: string, to: string) {
   return to === '/' ? pathname === '/' : pathname.startsWith(to)
 }
 
-/** Fixed bottom tab bar for narrow screens. */
+/** Fixed bottom tab bar for narrow screens: the sections the user picked in
+ * Sozlamalar → Ko'rinish (up to 4), then Sozlamalar. */
 export function BottomNav({ items }: { items: NavItem[] }) {
   const { t } = useTranslation()
   const location = useLocation()
-  const navStyle = useUIStore((s) => s.navStyle)
+  const { navStyle, navDock, navLabels, navItems } = useUIStore()
 
-  const primary = items.filter((it) => PRIMARY_PATHS.includes(it.to))
+  const byPath = new Map(items.map((it) => [it.to, it]))
+  let picked = navItems.map((p) => byPath.get(p)).filter((it): it is NavItem => !!it)
+  if (!picked.length) picked = DEFAULT_NAV_ITEMS.map((p) => byPath.get(p)).filter((it): it is NavItem => !!it)
   const settingsItem: NavItem = { to: '/settings', label: 'Sozlamalar', icon: 'gear' }
-  const activePrimary = [...primary, settingsItem].reverse().find((it) => isOn(location.pathname, it.to))
+  const all = [...picked, settingsItem]
+  const active = [...all].reverse().find((it) => isOn(location.pathname, it.to))
 
-  const [home, ...restPrimary] = primary
-
-  const railItems: RailItem[] = [
-    { to: home.to, icon: IC[home.icon], label: t(home.label) },
-    ...restPrimary.map((it) => ({ to: it.to, icon: IC[it.icon], label: t(it.label) })),
-    { to: settingsItem.to, icon: IC[settingsItem.icon], label: t(settingsItem.label) },
-  ]
+  const railItems: RailItem[] = all.map((it) => ({ to: it.to, icon: IC[it.icon], label: t(it.label) }))
 
   return (
-    <nav className="bottomnav" aria-label={t('Asosiy navigatsiya')}>
-      <NavRail items={railItems} activeTo={activePrimary?.to ?? ''} styleKey={navStyle} />
+    <nav className={`bottomnav bottomnav--${navDock} ${navLabels ? '' : 'bottomnav--nolabels'}`} aria-label={t('Asosiy navigatsiya')}>
+      <NavRail items={railItems} activeTo={active?.to ?? ''} styleKey={navStyle} />
     </nav>
   )
 }

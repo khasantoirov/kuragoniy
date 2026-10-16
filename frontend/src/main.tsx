@@ -12,6 +12,7 @@ import './legacy.css'
 import './skin-edumin.css'
 import './styles/portal.css'
 import './styles/gate.css'
+import './styles/settings.css'
 
 // Service-worker registration/update handling lives in <AutoUpdate>
 // (mounted in App.tsx): a new deploy is switched to automatically, but

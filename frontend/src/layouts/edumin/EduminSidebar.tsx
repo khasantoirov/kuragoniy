@@ -1,7 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
+import { useNotifyLive } from '@/features/notifications/liveStore'
 import type { IC } from '@/icons'
+import { SETTINGS_PAGES } from '@/layouts/navItems'
 
 import { Sidebar } from './Sidebar'
 
@@ -19,7 +21,7 @@ const GROUPS: { title: string; paths: string[] }[] = [
   { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/library'] },
   { title: "Sinf va o'quvchilar", paths: ['/class-stats', '/students', '/assignments', '/readiness', '/reports', '/games'] },
   { title: "Ma'muriyat", paths: ['/manage', '/results', '/manage/schools', '/manage/database', '/manage/reports', '/manage/awards', '/manage/materials', '/shop', '/manage/shop', '/manage/security'] },
-  { title: 'Tizim', paths: ['/statistics', '/admin', '/settings', '/about', '/equipment-sheet'] },
+  { title: 'Tizim', paths: ['/statistics', '/admin', '/notifications', '/settings', '/about', '/equipment-sheet'] },
 ]
 
 function groupItems(items: EduminNavItem[]) {
@@ -36,9 +38,15 @@ function groupItems(items: EduminNavItem[]) {
 
 export function EduminSidebar({ items, onNav }: { items: EduminNavItem[]; onNav: () => void }) {
   const { t } = useTranslation()
+  const unread = useNotifyLive((s) => s.unread)
   const groups = groupItems(items).map((g) => ({
     title: g.title,
-    items: g.items.map((item) => ({ ...item, end: item.to === '/' || item.to === '/manage' })),
+    items: g.items.map((item) => ({
+      ...item,
+      end: item.to === '/' || item.to === '/manage',
+      children: item.to === '/settings' ? SETTINGS_PAGES : undefined,
+      badge: item.to === '/notifications' ? unread : undefined,
+    })),
   }))
 
   return (

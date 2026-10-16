@@ -79,6 +79,9 @@ def revoke_all_tokens(user) -> None:
     BlacklistedToken.objects.bulk_create(
         [BlacklistedToken(token=t) for t in outstanding], ignore_conflicts=True,
     )
+    from accounts.sessions import revoke_all_sessions
+
+    revoke_all_sessions(user)
 
 
 def token_predates_revocation(user, iat) -> bool:

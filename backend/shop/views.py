@@ -10,7 +10,9 @@ from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from common.audit import notify_admin_action, notify_user
+from notifications.models import Kind as NotifyKind
+from notifications.service import notify
+from common.audit import notify_admin_action
 from common.permissions import IsAdminOrDevSuperuser, IsApproved, IsOversight, IsTeacher
 
 from .models import Order, OrderItem, Product, ShopSettings
@@ -251,7 +253,8 @@ class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
         order.admin_note = str(request.data.get('admin_note') or order.admin_note)[:500]
         order.save(update_fields=['status', 'admin_note', 'updated_at'])
         if not is_owner:
-            notify_user(order.buyer, f"Buyurtma {order.number} bekor qilindi." + (f" Izoh: {order.admin_note}" if order.admin_note else ''))
+            notify(order.buyer, NotifyKind.DOKON, f"Buyurtma {order.number} bekor qilindi", order.admin_note or '', '/shop/orders',
+                   telegram_text=f"Buyurtma {order.number} bekor qilindi." + (f" Izoh: {order.admin_note}" if order.admin_note else ''))
         return Response(OrderSerializer(order).data)
 
     def _admin(self, request):
@@ -277,7 +280,9 @@ class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
             order.confirmed_by = request.user
             order.admin_note = str(request.data.get('admin_note') or order.admin_note)[:500]
             order.save(update_fields=['status', 'paid_at', 'confirmed_by', 'admin_note', 'updated_at'])
-        notify_user(order.buyer, f"✅ Buyurtma {order.number} to'lovi tasdiqlandi. Xaridlaringiz «Do'kon → Xaridlarim» bo'limida.")
+        notify(order.buyer, NotifyKind.DOKON, f"Buyurtma {order.number} to'lovi tasdiqlandi", "Xaridlaringiz «Do'kon → Xaridlarim» bo'limida.",
+               '/shop/orders?tab=purchases',
+               telegram_text=f"✅ Buyurtma {order.number} to'lovi tasdiqlandi. Xaridlaringiz «Do'kon → Xaridlarim» bo'limida.")
         notify_admin_action(request.user, f"Buyurtma {order.number} to'lovini tasdiqladi — {order.buyer.name}, {order.total:,} so'm".replace(',', ' '))
         return Response(OrderSerializer(order).data)
 
@@ -289,7 +294,8 @@ class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
             raise ValidationError({'detail': "Avval to'lov tasdiqlansin."})
         order.status = Order.Status.DELIVERED
         order.save(update_fields=['status', 'updated_at'])
-        notify_user(order.buyer, f"📦 Buyurtma {order.number} yetkazildi.")
+        notify(order.buyer, NotifyKind.DOKON, f"Buyurtma {order.number} yetkazildi", '', '/shop/orders',
+               telegram_text=f"📦 Buyurtma {order.number} yetkazildi.")
         return Response(OrderSerializer(order).data)
 
     @action(detail=True, methods=['post'])

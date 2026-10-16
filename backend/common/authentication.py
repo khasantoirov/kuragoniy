@@ -28,7 +28,7 @@ STUDENT_ALLOWED_PREFIXES = (
     '/api/games/mini/',
     '/api/push/',
 )
-SELF_SERVICE_PREFIXES = ('/api/auth/', '/api/accounts/me/', '/api/push/')
+SELF_SERVICE_PREFIXES = ('/api/auth/', '/api/accounts/me/', '/api/push/', '/api/notifications/')
 PASSWORD_CHANGE_PREFIXES = ('/api/auth/', '/api/accounts/me/')
 
 

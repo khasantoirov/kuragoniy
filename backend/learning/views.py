@@ -17,7 +17,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import User
-from common.audit import notify_admin_action, notify_user
+from notifications.models import Kind as NotifyKind
+from notifications.service import notify
+from common.audit import notify_admin_action
 from common.permissions import IsAdminOrDevSuperuser, IsApproved, IsOversight, IsTeacher
 from common.presence import presence_for
 from common.security import generate_readable_password, log_event, revoke_all_tokens
@@ -218,7 +220,8 @@ class StudentManageViewSet(viewsets.GenericViewSet):
         profile.user.approved = True
         profile.user.save(update_fields=['approved'])
         log_event('student_approved', actor=request.user, request=request, detail=profile.user.username or '')
-        notify_user(profile.user, "✅ KO'RAGONIY EDU: o'qituvchingiz hisobingizni tasdiqladi. Endi kirishingiz mumkin.")
+        notify(profile.user, NotifyKind.TIZIM, 'Hisobingiz tasdiqlandi', "O'qituvchingiz hisobingizni tasdiqladi. Endi kirishingiz mumkin.", '/s',
+               telegram_text="✅ KO'RAGONIY EDU: o'qituvchingiz hisobingizni tasdiqladi. Endi kirishingiz mumkin.")
         return Response({'ok': True})
 
     @action(detail=True, methods=['post'])
@@ -423,10 +426,11 @@ class AssignmentViewSet(viewsets.ModelViewSet):
             return
         due = timezone.localtime(assignment.due_at).strftime('%d.%m %H:%M') if assignment.due_at else "muddatsiz"
         text = f"📚 Yangi uyga vazifa: «{assignment.title}» (muddat: {due}). Platformadagi «Uyga vazifa» bo'limini oching."
-        for user in User.objects.filter(
-            student_profile__journal_class=assignment.journal_class, approved=True, is_active=True, telegram_linked=True,
-        )[:200]:
-            notify_user(user, text)
+        students = list(User.objects.filter(
+            student_profile__journal_class=assignment.journal_class, approved=True, is_active=True,
+        )[:200])
+        notify(students, NotifyKind.VAZIFA, f"Yangi uyga vazifa: «{assignment.title}»", f"Muddat: {due}", '/s/homework',
+               telegram_text=text)
 
     @action(detail=True, methods=['get'])
     def results(self, request, pk=None):
@@ -590,6 +594,10 @@ class LessonReportViewSet(viewsets.ModelViewSet):
         lesson = serializer.validated_data.get('lesson')
         report = serializer.save(teacher=self.request.user, readiness_attempt=self._latest_readiness(lesson))
         notify_admin_action(self.request.user, f"Dars hisobotini topshirdi: «{report.topic}» ({report.date:%d.%m.%Y})")
+        # Admins already get the Telegram audit feed above — inbox (+ email) only.
+        admins = [u for u in User.objects.filter(is_active=True).exclude(pk=self.request.user.pk) if u.is_admin]
+        notify(admins, NotifyKind.HISOBOT, f"Yangi dars hisoboti: {self.request.user.name}",
+               f"«{report.topic}» · {report.date:%d.%m.%Y}", '/manage/reports', channels=('app', 'email'))
 
     def perform_update(self, serializer):
         report = serializer.instance
@@ -621,8 +629,10 @@ class LessonReportViewSet(viewsets.ModelViewSet):
         report.reviewed_at = timezone.now()
         report.save()
         verdict = f"{report.rating}/5" if report.rating else "qayta ishlashga qaytarildi"
-        notify_user(report.teacher, f"📝 Dars hisobotingiz («{report.topic}») ko'rib chiqildi: {verdict}."
-                                    + (f"\nIzoh: {report.review_comment}" if report.review_comment else ''))
+        notify(report.teacher, NotifyKind.HISOBOT, "Dars hisobotingiz ko'rib chiqildi",
+               f"«{report.topic}» — {verdict}" + (f". Izoh: {report.review_comment}" if report.review_comment else ''), '/reports',
+               telegram_text=f"📝 Dars hisobotingiz («{report.topic}») ko'rib chiqildi: {verdict}."
+                             + (f"\nIzoh: {report.review_comment}" if report.review_comment else ''))
         notify_admin_action(request.user, f"Dars hisobotini baholadi: {report.teacher.name} — «{report.topic}» — {verdict}")
         return Response(LessonReportSerializer(report).data)
 
@@ -652,8 +662,9 @@ class AwardViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Destro
 
     def perform_create(self, serializer):
         award = serializer.save(granted_by=self.request.user)
-        notify_user(award.recipient, f"🏆 Tabriklaymiz! Sizga «{award.title}» rag'bati berildi."
-                                     + (f"\n{award.reason}" if award.reason else ''))
+        notify(award.recipient, NotifyKind.RAGBAT, f"Sizga «{award.title}» rag'bati berildi", award.reason or '',
+               '/s' if award.recipient.is_student else '/settings/profile?tab=awards',
+               telegram_text=f"🏆 Tabriklaymiz! Sizga «{award.title}» rag'bati berildi." + (f"\n{award.reason}" if award.reason else ''))
         notify_admin_action(self.request.user, f"Rag'bat berdi: {award.recipient.name} — «{award.title}»")
 
     def perform_destroy(self, instance):

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate as useNavigateTo } from 'react-router-dom'
 
 import { IC } from '@/icons'
 import { lockPageScroll } from '@/lib/scroll'
@@ -14,6 +14,10 @@ export interface SideItem {
   label: string
   icon: keyof typeof IC
   end?: boolean
+  // Sub-pages shown under the item while you're inside it (Sozlamalar).
+  children?: { to: string; label: string }[]
+  // Small count next to the label (unread notifications).
+  badge?: number
 }
 
 export interface SideGroup {
@@ -43,6 +47,51 @@ function writeJson(storage: () => Storage, key: string, value: unknown) {
 
 function isActive(item: SideItem, pathname: string) {
   return item.end ? pathname === item.to : pathname === item.to || pathname.startsWith(item.to + '/')
+}
+
+/** An item with sub-pages: the row opens/closes the list (and jumps to the
+ * first sub-page when you're not inside yet); the list stays open on any
+ * of its pages. */
+function NestedItem({ item, onNavigate }: { item: SideItem; onNavigate: () => void }) {
+  const { t } = useTranslation()
+  const { pathname } = useLocation()
+  const inside = isActive(item, pathname)
+  const [openHere, setOpenHere] = useState<boolean | null>(null)
+  const expanded = openHere ?? inside
+  useEffect(() => setOpenHere(null), [inside])
+  const goFirst = useNavigateTo()
+
+  return (
+    <div className={`edside__nest ${expanded ? 'is-open' : ''}`}>
+      <button
+        type="button"
+        className={`edside__item edside__item--parent ${inside ? 'is-in' : ''}`}
+        aria-expanded={expanded}
+        onClick={() => {
+          if (!inside && item.children?.length) {
+            goFirst(item.children[0].to)
+            onNavigate()
+          } else {
+            setOpenHere(!expanded)
+          }
+        }}
+      >
+        <span className="edside__ic">{IC[item.icon]}</span>
+        <span className="edside__lb">{t(item.label)}</span>
+        <span className="edside__caret">{IC.chevron}</span>
+      </button>
+      {expanded && (
+        <div className="edside__sub">
+          {item.children!.map((c) => (
+            <NavLink key={c.to} to={c.to} className={({ isActive: on }) => `edside__subitem ${on ? 'is-on' : ''}`} onClick={onNavigate}>
+              <span className="edside__subdot" aria-hidden="true" />
+              <span className="edside__lb">{t(c.label)}</span>
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 /** The ≡ button: folds the desktop menu down to icons, or opens the
@@ -217,7 +266,9 @@ export function Sidebar({ home, groups, onNav, footer }: {
                     )}
                     <div className="edside__items">
                       <div className="edside__itemsin" inert={shut}>
-                        {g.items.map((item) => (
+                        {g.items.map((item) => item.children?.length ? (
+                          <NestedItem key={item.to} item={item} onNavigate={navigate} />
+                        ) : (
                           <NavLink
                             key={item.to}
                             to={item.to}
@@ -227,6 +278,7 @@ export function Sidebar({ home, groups, onNav, footer }: {
                           >
                             <span className="edside__ic">{IC[item.icon]}</span>
                             <span className="edside__lb">{t(item.label)}</span>
+                            {!!item.badge && <span className="edside__badge">{item.badge > 99 ? '99+' : item.badge}</span>}
                           </NavLink>
                         ))}
                       </div>

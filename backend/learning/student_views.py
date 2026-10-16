@@ -18,7 +18,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import User
-from common.audit import notify_user
+from notifications.models import Kind as NotifyKind
+from notifications.service import notify
 from common.permissions import IsStudent
 from common.security import log_event
 from common.throttling import StudentRegisterRateThrottle
@@ -114,9 +115,10 @@ class StudentRegisterView(APIView):
                 password=password, approved=inv.auto_approve, must_change_password=False,
             )
         log_event('register_student', actor=user, request=request, detail=f'{inv.journal_class.name} ({inv.code})')
-        notify_user(
-            inv.journal_class.teacher,
-            f"👤 {user.name} «{inv.journal_class.name}» sinfiga ro'yxatdan o'tdi"
+        notify(
+            inv.journal_class.teacher, NotifyKind.OQUVCHI, f"{user.name} «{inv.journal_class.name}» sinfiga qo'shildi",
+            "O'quvchi sinf kodi bilan ro'yxatdan o'tdi." if inv.auto_approve else "Tasdiqlashingizni kutmoqda.", '/students',
+            telegram_text=f"👤 {user.name} «{inv.journal_class.name}» sinfiga ro'yxatdan o'tdi"
             + ("." if inv.auto_approve else " — tasdiqlashingizni kutmoqda (O'quvchilar bo'limi)."),
         )
         return Response({'username': user.username, 'approved': user.approved}, status=status.HTTP_201_CREATED)

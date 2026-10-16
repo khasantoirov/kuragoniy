@@ -8,36 +8,25 @@ import { RoleBadge } from '@/components/RoleBadge'
 import { ScrollTopButton } from '@/components/ScrollTopButton'
 import { useToast } from '@/components/Toast'
 import { AnnouncementsBell } from '@/features/announcements/AnnouncementsBell'
+import { NotificationsLive } from '@/features/notifications/live'
+import { usePrefsSync } from '@/features/settings/syncPrefs'
 import { GRADES, gradeLabel } from '@/features/lessons/labels'
 import { IC, themeIconMoon, themeIconSun } from '@/icons'
-import { isAdminInView, isObserver, useAuth } from '@/lib/auth/AuthContext'
+import { useAuth } from '@/lib/auth/AuthContext'
 import { setupEnterKeyNav } from '@/lib/enterKeyNav'
 import { redoLast, undoLast } from '@/lib/history'
 import { useScrollRestoration } from '@/lib/scroll'
 import { useUIStore } from '@/store/uiStore'
 
 import { BottomNav } from './BottomNav'
-import { OBSERVER_HIDDEN, portalNavItems } from './portalNav'
+import { useVisibleNavItems } from './navItems'
 import { EduminSidebar } from './edumin/EduminSidebar'
 import { EduminTopbar } from './edumin/EduminTopbar'
-
-const NAV_ITEMS: { to: string; label: string; icon: keyof typeof IC; adminOnly?: boolean }[] = [
-  { to: '/', label: 'Bosh sahifa', icon: 'home' },
-  { to: '/lessons', label: 'Darslar', icon: 'file' },
-  { to: '/journal', label: 'Jurnal', icon: 'clipboard' },
-  { to: '/timetable', label: 'Jadval', icon: 'calendar' },
-  { to: '/library', label: 'Kutubxona', icon: 'book' },
-  { to: '/settings', label: 'Sozlamalar', icon: 'gear' },
-  { to: '/about', label: 'Platforma haqida', icon: 'info' },
-  { to: '/statistics', label: 'Statistika', icon: 'chart', adminOnly: true },
-  { to: '/admin', label: 'Boshqaruv', icon: 'settings', adminOnly: true },
-  { to: '/equipment-sheet', label: 'Jihozlar jadvali', icon: 'grid', adminOnly: true },
-]
 
 export function AppShell() {
   const { t } = useTranslation()
   const { user, logout } = useAuth()
-  const { lang, theme, toggleTheme, skin, grade, setGrade, viewMode } = useUIStore()
+  const { lang, theme, toggleTheme, skin, grade, setGrade } = useUIStore()
   const location = useLocation()
   const navigate = useNavigate()
   const toast = useToast()
@@ -127,10 +116,8 @@ export function AppShell() {
 
   const onLessons = location.pathname.startsWith('/lessons')
 
-  const visibleNavItems = [
-    ...NAV_ITEMS.filter((item) => (!item.adminOnly || isAdminInView(user, viewMode)) && !(isObserver(user) && OBSERVER_HIDDEN.has(item.to))),
-    ...portalNavItems(user, viewMode),
-  ]
+  const visibleNavItems = useVisibleNavItems()
+  usePrefsSync(!!user)
 
   const acctPop = (align: 'up' | 'down') => (
     <div className="acct">
@@ -144,6 +131,8 @@ export function AppShell() {
             {user?.name}
             {user && <RoleBadge user={user} />}
           </p>
+          <Link className="acct__item" to="/settings/profile" onClick={closeAll}>{IC.user} {t('Profil')}</Link>
+          <Link className="acct__item" to="/settings/appearance" onClick={closeAll}>{IC.gear} {t('Sozlamalar')}</Link>
           <button className="acct__item acct__item--out" onClick={() => logout()}>
             {IC.logout} {t('Chiqish')}
           </button>
@@ -199,6 +188,8 @@ export function AppShell() {
           </div>
         </div>
 
+        <ScrollTopButton />
+        <NotificationsLive />
         <BottomNav items={visibleNavItems} />
       </>
     )
@@ -288,6 +279,7 @@ export function AppShell() {
       </div>
 
       <ScrollTopButton />
+      <NotificationsLive />
 
       <BottomNav items={visibleNavItems} />
     </>

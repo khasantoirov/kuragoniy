@@ -39,7 +39,14 @@ def _mark_initialized():
 
 @sync_to_async
 def _linked_users():
-    return list(User.objects.filter(telegram_linked=True).values_list("id", "telegram_chat_id"))
+    """Linked accounts that keep Telegram on for announcements
+    (Sozlamalar → Bildirishnomalar)."""
+    from notifications.models import Kind
+    from notifications.prefs import channels_for_users
+
+    rows = list(User.objects.filter(telegram_linked=True).values_list("id", "telegram_chat_id"))
+    prefs = channels_for_users([uid for uid, _ in rows])
+    return [(uid, chat) for uid, chat in rows if prefs[uid][Kind.ELON]["telegram"]]
 
 
 @sync_to_async
