@@ -196,7 +196,7 @@ export function Sidebar({ home, groups, onNav, footer }: {
     <>
       <aside className={`edside ${open ? 'is-open' : ''}`}>
         <Link className="edside__brand" to={home} onClick={navigate}>
-          <img className="edside__logo" src="/logo.png" alt="Amaliy Fizika" width={56} height={56} />
+          <img className="edside__logo" src="/logo.png" alt="KO'RAGONIY" width={56} height={56} />
           <BrandMark />
         </Link>
 
@@ -236,7 +236,7 @@ export function Sidebar({ home, groups, onNav, footer }: {
               })}
 
               <div className="edside__foot">
-                <p className="edside__copy"><strong>Amaliy Fizika</strong> © {new Date().getFullYear()}</p>
+                <p className="edside__copy"><strong>KO'RAGONIY EDU</strong> © {new Date().getFullYear()}</p>
                 {footer}
               </div>
             </div>

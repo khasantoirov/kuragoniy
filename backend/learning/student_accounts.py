@@ -102,12 +102,15 @@ def new_join_code() -> str:
             return code
 
 
+# Sinf raqami → Ko'ragoniy Edu'dagi darslar guruhi (Lesson.Grade).
+_GRADE_GROUP = {1: '1-2', 2: '1-2', 3: '3-4', 4: '3-4', 5: '5-6', 6: '5-6', 7: '7', 8: '8-9', 9: '8-9'}
+
+
 def grade_from_class_name(name: str):
+    """"7-A" → '7', "4 B" → '3-4', "9-sinf" → '8-9'; None if no class number."""
     m = re.match(r'\s*(\d{1,2})', str(name or ''))
     if m:
-        g = int(m.group(1))
-        if 5 <= g <= 11:
-            return g
+        return _GRADE_GROUP.get(int(m.group(1)))
     return None
 
 

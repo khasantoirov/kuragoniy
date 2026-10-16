@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import type { AttemptSummary, Award } from '@/features/learning/api'
 import { api } from '@/lib/api/client'
+import type { Grade } from '@/features/lessons/labels'
 
 export interface XpInfo {
   xp: number
@@ -37,10 +38,9 @@ export interface StudentLesson {
   title: string
   title_ru: string
   title_en: string
-  grade: number
+  grade: Grade
   chorak: number
   hafta: number
-  cat: string
   question_count: number
   progress: LessonProgress
 }
@@ -50,7 +50,7 @@ export interface StudentLessonDetail {
   title: string
   title_ru: string
   title_en: string
-  grade: number
+  grade: Grade
   chorak: number
   hafta: number
   goal: string

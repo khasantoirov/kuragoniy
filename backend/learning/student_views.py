@@ -181,7 +181,7 @@ class StudentLessonsView(APIView):
             p = progress.get(lesson.id)
             out.append({
                 'id': lesson.id, 'title': lesson.title, 'title_ru': lesson.title_ru, 'title_en': lesson.title_en,
-                'grade': lesson.grade, 'chorak': lesson.chorak, 'hafta': lesson.hafta, 'cat': lesson.cat,
+                'grade': lesson.grade, 'chorak': lesson.chorak, 'hafta': lesson.hafta,
                 'question_count': counts.get(lesson.id, 0),
                 'progress': {
                     'opened': bool(p), 'theory_done': bool(p and p.theory_done), 'video_done': bool(p and p.video_done),

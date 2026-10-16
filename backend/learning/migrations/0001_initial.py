@@ -172,7 +172,7 @@ class Migration(migrations.Migration):
             name='StudentProfile',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('grade', models.PositiveSmallIntegerField(blank=True, choices=[(5, '5-sinf'), (6, '6-sinf'), (7, '7-sinf'), (8, '8-sinf'), (9, '9-sinf'), (10, '10-sinf'), (11, '11-sinf')], null=True)),
+                ('grade', models.CharField(blank=True, choices=[('1-2', '1-2-sinf'), ('3-4', '3-4-sinf'), ('5-6', '5-6-sinf'), ('7', '7-sinf'), ('8-9', '8-9-sinf')], max_length=5, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL)),
                 ('journal_class', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='student_profiles', to='journal.journalclass')),

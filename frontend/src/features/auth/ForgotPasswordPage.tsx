@@ -64,7 +64,7 @@ export function ForgotPasswordPage() {
       <form className="form gx-form" onSubmit={confirm}>
         <h1 className="gx-form__title">{t('Parolni tiklash')}</h1>
         <p className="gx-form__sub">
-          {t("Agar hisobingizga Telegram ulangan bo'lsa, @amaliyfizikabot sizga 6 xonali kod yubordi. Kod 10 daqiqa amal qiladi.")}
+          {t("Agar hisobingizga Telegram ulangan bo'lsa, @kuragoniybot sizga 6 xonali kod yubordi. Kod 10 daqiqa amal qiladi.")}
         </p>
         <label className="field">
           <span className="field__label">{t('Tasdiqlash kodi')}</span>

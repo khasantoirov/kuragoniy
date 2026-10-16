@@ -250,7 +250,7 @@
 }
 @media (max-width: 560px) {
   .gx__top { padding: 16px 16px 0; }
-  .gx__brand { font-size: 17px; gap: 10px; }
+  .gx__brand { font-size: 16px; gap: 10px; white-space: nowrap; }
   .gx__brand img { width: 34px; height: 34px; }
   .gx-tool { height: 40px; padding: 0 11px; }
   .gx-tool--sq { width: 40px; padding: 0; }

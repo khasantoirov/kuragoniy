@@ -59,7 +59,7 @@ class Migration(migrations.Migration):
                 ('title', models.CharField(max_length=200)),
                 ('short', models.CharField(blank=True, max_length=300)),
                 ('description', models.TextField(blank=True)),
-                ('grade', models.PositiveSmallIntegerField(blank=True, null=True)),
+                ('grade', models.CharField(blank=True, choices=[('1-2', '1-2-sinf'), ('3-4', '3-4-sinf'), ('5-6', '5-6-sinf'), ('7', '7-sinf'), ('8-9', '8-9-sinf')], max_length=5, null=True)),
                 ('price', models.PositiveIntegerField(default=0)),
                 ('old_price', models.PositiveIntegerField(blank=True, null=True)),
                 ('cover_url', models.URLField(blank=True, max_length=500)),

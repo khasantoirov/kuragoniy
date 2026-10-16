@@ -338,6 +338,12 @@
   [data-skin="r2"] .edtop__brand .brandmark { display: none; }
 }
 
+/* Telefonda ≡ tugmasi va qidiruv sig'ishi uchun yuqori paneldagi brend
+   yashiriladi — u ≡ bosilganda ochiladigan tortma tepasida turadi. */
+@media (max-width: 480px) {
+  [data-skin="r2"] .edtop__brand { display: none; }
+}
+
 /* ── Yon menyu ───────────────────────────────────────────── */
 /* Brend tepada qotib turadi, menyu esa o'zi alohida aylanadi: ingichka
    scrollbar faqat menyu ustiga kelganda ko'rinadi, yuqori/pastki chetdagi

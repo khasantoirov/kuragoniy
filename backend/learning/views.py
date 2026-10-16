@@ -52,6 +52,13 @@ from .services import (
 from .student_accounts import create_student_account, new_join_code
 
 
+def _grade_param(request):
+    """?grade= as a Lesson.Grade value ('1-2' … '8-9'), or None."""
+    from lessons.models import Lesson
+    value = (request.query_params.get('grade') or '').strip()
+    return value if value in Lesson.Grade.values else None
+
+
 def _int_param(request, name):
     raw = request.query_params.get(name)
     try:
@@ -211,7 +218,7 @@ class StudentManageViewSet(viewsets.GenericViewSet):
         profile.user.approved = True
         profile.user.save(update_fields=['approved'])
         log_event('student_approved', actor=request.user, request=request, detail=profile.user.username or '')
-        notify_user(profile.user, "✅ Amaliy Fizika: o'qituvchingiz hisobingizni tasdiqladi. Endi kirishingiz mumkin.")
+        notify_user(profile.user, "✅ KO'RAGONIY EDU: o'qituvchingiz hisobingizni tasdiqladi. Endi kirishingiz mumkin.")
         return Response({'ok': True})
 
     @action(detail=True, methods=['post'])
@@ -306,7 +313,7 @@ class LessonMaterialListView(APIView):
     permission_classes = [IsApproved]
 
     def get(self, request):
-        grade = _int_param(request, 'grade')
+        grade = _grade_param(request)
         lessons = Lesson.objects.all()
         if grade:
             lessons = lessons.filter(grade=grade)
@@ -682,7 +689,7 @@ class AnalyticsView(APIView):
         since = analytics.period_start(params['period'] or 'month')
         teacher_id = params['teacher'] or None
         class_id = _int_param(request, 'class')
-        grade = _int_param(request, 'grade')
+        grade = _grade_param(request)
         limit = min(_int_param(request, 'limit') or 20, 100)
         scope = {'teacher_id': teacher_id, 'class_id': class_id, 'grade': grade}
         if report == 'overview':

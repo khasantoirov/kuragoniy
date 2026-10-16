@@ -11,6 +11,8 @@ revealed only to buyers of a paid order — nothing is stored on the server.
 from django.conf import settings
 from django.db import models
 
+from learning.models import GRADE_CHOICES
+
 
 class ShopSettings(models.Model):
     """Singleton (pk=1) — what buyers see on the payment step."""
@@ -46,7 +48,7 @@ class Product(models.Model):
     title = models.CharField(max_length=200)
     short = models.CharField(max_length=300, blank=True)
     description = models.TextField(blank=True)
-    grade = models.PositiveSmallIntegerField(null=True, blank=True)
+    grade = models.CharField(max_length=5, choices=GRADE_CHOICES, null=True, blank=True)
     lesson = models.ForeignKey('lessons.Lesson', related_name='+', null=True, blank=True, on_delete=models.SET_NULL)
     price = models.PositiveIntegerField(default=0)  # so'm
     old_price = models.PositiveIntegerField(null=True, blank=True)

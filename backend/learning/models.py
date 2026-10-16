@@ -22,7 +22,8 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
-GRADE_CHOICES = [(g, f'{g}-sinf') for g in range(5, 12)]
+# Ko'ragoniy Edu: sinf guruhlari darslar bilan bir xil (Lesson.Grade).
+GRADE_CHOICES = [('1-2', '1-2-sinf'), ('3-4', '3-4-sinf'), ('5-6', '5-6-sinf'), ('7', '7-sinf'), ('8-9', '8-9-sinf')]
 
 
 class ClassInvite(models.Model):
@@ -48,7 +49,7 @@ class StudentProfile(models.Model):
     roster_entry = models.OneToOneField(
         'journal.Student', related_name='account', null=True, blank=True, on_delete=models.SET_NULL,
     )
-    grade = models.PositiveSmallIntegerField(choices=GRADE_CHOICES, null=True, blank=True)
+    grade = models.CharField(max_length=5, choices=GRADE_CHOICES, null=True, blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name='+', null=True, blank=True, on_delete=models.SET_NULL,
     )

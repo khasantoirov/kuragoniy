@@ -42,7 +42,7 @@ def validate_link_list(value, field='media_links'):
 
 class LessonMaterialSerializer(serializers.ModelSerializer):
     lesson_title = serializers.CharField(source='lesson.title', read_only=True)
-    grade = serializers.IntegerField(source='lesson.grade', read_only=True)
+    grade = serializers.CharField(source='lesson.grade', read_only=True)
 
     class Meta:
         model = LessonMaterial

@@ -160,15 +160,15 @@ Yangilanishlar oynasiz, avtomatik o'rnatiladi — lekin faqat hech narsa yo'qolm
 ### Birinchi marta yangilashda (bir martalik)
 
 ```bash
-cd /opt/amaliy-fizika/backend
+cd /opt/kuragoniy/backend
 # 1) Zaxira shifrlash kaliti — chiqqan qiymatni .env ga BACKUP_ENCRYPTION_KEY= qilib yozing
 #    va serverdan TASHQARIDA ham saqlang (parol menejeri). Usiz shifrlangan zaxira ochilmaydi.
 ./venv/bin/python manage.py backup_db --generate-key
 # 2) Nginx xavfsizlik sarlavhalari
-sudo cp /opt/amaliy-fizika/deploy/nginx/security-headers.conf /etc/nginx/snippets/amaliyfizika-security.conf
-#    jonli /etc/nginx/sites-available/amaliyfizika ichidagi 443-server blokiga va
+sudo cp /opt/kuragoniy/deploy/nginx/security-headers.conf /etc/nginx/snippets/kuragoniy-security.conf
+#    jonli /etc/nginx/sites-enabled/kuragoniy ichidagi 443-server blokiga va
 #    o'z add_header'i bor har bir location'ga qo'shing:
-#        include snippets/amaliyfizika-security.conf;
+#        include snippets/kuragoniy-security.conf;
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
@@ -189,10 +189,10 @@ Ming va undan ko'p o'quvchi bir vaqtda ishlashi kutilsa:
 1. **Serverni kattalashtirish** — kamida 2 vCPU / 2–4 GB RAM.
 2. **PostgreSQL'ga o'tish** (kod tayyor, faqat sozlama):
    ```bash
-   sudo apt install postgresql && sudo -u postgres createuser amaliy -P && sudo -u postgres createdb -O amaliy amaliyfizika
+   sudo apt install postgresql && sudo -u postgres createuser kuragoniy -P && sudo -u postgres createdb -O kuragoniy kuragoniy
    ./venv/bin/pip install "psycopg[binary]"
    ./venv/bin/python manage.py dumpdata --natural-foreign --exclude contenttypes --exclude auth.permission > dump.json
-   # .env:  DATABASE_URL=postgres://amaliy:PAROL@127.0.0.1:5432/amaliyfizika
+   # .env:  DATABASE_URL=postgres://kuragoniy:PAROL@127.0.0.1:5432/kuragoniy
    ./venv/bin/python manage.py migrate && ./venv/bin/python manage.py loaddata dump.json
    ```
    (`backup_db` hozircha SQLite uchun; PostgreSQL'da `pg_dump` bilan zaxira oling.)

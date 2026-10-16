@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
+import { GRADES, type Grade } from '@/features/lessons/labels'
 
 // ── Types (mirror backend/learning serializers) ─────────────────────
 
@@ -11,7 +12,7 @@ export interface TeacherClass {
   school: string
   teacher: string
   teacher_name: string
-  grade: number | null
+  grade: Grade | null
   invite_code: string | null
   invite_active: boolean
   auto_approve: boolean
@@ -166,7 +167,7 @@ export interface Award {
 export interface LessonMaterial {
   lesson: number
   lesson_title: string
-  grade: number
+  grade: Grade
   theory: string
   formulas: { expr: string; desc: string }[]
   video_url: string
@@ -200,7 +201,7 @@ export interface TopStudent {
   name: string
   class_id: number | null
   class_name: string
-  grade: number | null
+  grade: Grade | null
   attempts: number
   avg_percent: number
   quality: number
@@ -237,7 +238,7 @@ export interface ClassRow {
 export interface LessonStatRow {
   lesson: number
   title: string
-  grade: number
+  grade: Grade
   attempts: number
   students: number
   avg_percent: number
@@ -351,28 +352,28 @@ export const PERIOD_OPTIONS = [
 export interface LessonOption {
   id: number
   title: string
-  grade: number
+  grade: Grade
   chorak: number
   hafta: number
 }
 
 /** All lessons (optionally one grade) as light options for selects —
  * walks every page, since a grade can exceed one page of results. */
-export function useLessonOptions(grade?: number | null) {
+export function useLessonOptions(grade?: Grade | null) {
   return useQuery({
     queryKey: ['learning', 'lesson-options', grade ?? 'all'],
     staleTime: 5 * 60_000,
     queryFn: async () => {
       const out: LessonOption[] = []
       let url: string | null = '/lessons/'
-      let params: Record<string, number> | undefined = grade ? { grade } : undefined
+      let params: Record<string, string | number> | undefined = grade ? { grade } : undefined
       while (url) {
         const res: { data: Paginated<LessonOption> } = await api.get(url, { params })
         out.push(...res.data.results.map(({ id, title, grade: g, chorak, hafta }) => ({ id, title, grade: g, chorak, hafta })))
         url = res.data.next ? res.data.next.replace(/^.*\/api/, '') : null
         params = undefined
       }
-      return out.sort((a, b) => a.grade - b.grade || a.chorak - b.chorak || a.hafta - b.hafta)
+      return out.sort((a, b) => GRADES.indexOf(a.grade) - GRADES.indexOf(b.grade) || a.chorak - b.chorak || a.hafta - b.hafta)
     },
   })
 }

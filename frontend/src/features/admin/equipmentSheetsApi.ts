@@ -1,3 +1,4 @@
+import type { Grade } from '@/features/lessons/labels'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '@/lib/api/client'
@@ -7,7 +8,7 @@ import type { Paginated } from '@/lib/api/types'
 // table image, filed by grade/week, re-editable only in its metadata.
 export interface SavedEquipmentSheet {
   id: number
-  grade: number
+  grade: Grade
   hafta: number
   title: string
   image: string
@@ -26,7 +27,7 @@ export function useEquipmentSheets() {
 export function useCreateEquipmentSheet() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ grade, hafta, title, image }: { grade: number; hafta: number; title: string; image: Blob }) => {
+    mutationFn: async ({ grade, hafta, title, image }: { grade: Grade; hafta: number; title: string; image: Blob }) => {
       const form = new FormData()
       form.append('grade', String(grade))
       form.append('hafta', String(hafta))
@@ -41,7 +42,7 @@ export function useCreateEquipmentSheet() {
 export function useUpdateEquipmentSheet() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, grade, hafta, title }: { id: number; grade: number; hafta: number; title: string }) =>
+    mutationFn: async ({ id, grade, hafta, title }: { id: number; grade: Grade; hafta: number; title: string }) =>
       (await api.patch<SavedEquipmentSheet>(`/lessons/equipment-sheets/${id}/`, { grade, hafta, title })).data,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: KEY }),
   })

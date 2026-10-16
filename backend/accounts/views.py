@@ -148,7 +148,7 @@ def _register_failed_login(user, request, reason='password') -> None:
         log_event('login_locked', actor=user, request=request, detail=f'sabab: {reason}')
         notify_user(
             user,
-            "⚠️ Amaliy Fizika: hisobingizga bir necha marta noto'g'ri parol bilan kirishga urinildi. "
+            "⚠️ KO'RAGONIY EDU: hisobingizga bir necha marta noto'g'ri parol bilan kirishga urinildi. "
             f"Hisob {settings.LOGIN_LOCKOUT_MINUTES} daqiqaga bloklandi.\n"
             "Agar bu siz bo'lmasangiz, parolingizni almashtiring.",
         )
@@ -413,7 +413,7 @@ class ChangePasswordView(generics.GenericAPIView):
         user.save(update_fields=['password', 'must_change_password'])
         revoke_all_tokens(user)
         log_event('password_changed', actor=user, request=request)
-        notify_user(user, "🔐 Amaliy Fizika: parolingiz o'zgartirildi. Agar bu siz bo'lmasangiz, darhol parolni tiklang.")
+        notify_user(user, "🔐 KO'RAGONIY EDU: parolingiz o'zgartirildi. Agar bu siz bo'lmasangiz, darhol parolni tiklang.")
 
         refresh = RefreshToken.for_user(user)
         refresh[REMEMBER_CLAIM] = _cookie_remember(request)
@@ -479,7 +479,7 @@ class PasswordResetRequestView(generics.GenericAPIView):
             expires_at=now + timedelta(seconds=PasswordResetCode.MAX_AGE_SECONDS),
         )
         text = (
-            f"🔑 Amaliy Fizika — parolni tiklash kodi: {code}\n"
+            f"🔑 KO'RAGONIY EDU — parolni tiklash kodi: {code}\n"
             "Kod 10 daqiqa amal qiladi. Uni hech kimga bermang.\n"
             "Agar parolni siz tiklamoqchi bo'lmasangiz, bu xabarga e'tibor bermang."
         )
@@ -540,7 +540,7 @@ class PasswordResetConfirmView(generics.GenericAPIView):
         user.save(update_fields=['password', 'must_change_password', 'failed_login_count', 'locked_until'])
         revoke_all_tokens(user)
         log_event('password_reset_done', actor=user, request=request)
-        notify_user(user, "🔐 Amaliy Fizika: parolingiz tiklandi. Agar bu siz bo'lmasangiz, darhol administratorga xabar bering.")
+        notify_user(user, "🔐 KO'RAGONIY EDU: parolingiz tiklandi. Agar bu siz bo'lmasangiz, darhol administratorga xabar bering.")
         return Response({'detail': "Parol yangilandi. Endi yangi parol bilan kiring."})
 
 

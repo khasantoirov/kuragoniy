@@ -117,7 +117,7 @@ function Certificate({ award, onClose }: { award: Award; onClose: () => void }) 
       footer={<><button className="btn" onClick={onClose}>{t('Yopish')}</button><button className="btn btn--primary" onClick={() => window.print()}>{IC.print} {t('Chop etish / PDF')}</button></>}>
       <div className="cert printable">
         <img className="cert__logo" src="/logo.png" alt="" />
-        <p className="cert__org">Amaliy Fizika</p>
+        <p className="cert__org">KO'RAGONIY EDU</p>
         <img className="cert__sign" src="/muhandis-d-on-light.png" alt="Muhandis D" />
         <h2 className="cert__h">{t('SERTIFIKAT')}</h2>
         <p className="cert__to">{t('Ushbu sertifikat')}</p>

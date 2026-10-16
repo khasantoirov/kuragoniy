@@ -15,6 +15,7 @@ import { api } from '@/lib/api/client'
 import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
 
 import { KIND_LABEL, ORDER_STATUS, useOrders, useProducts, useShopSettings, type Order, type Product, type ProductKind } from './api'
+import { GRADES, type Grade } from '@/features/lessons/labels'
 
 const EMPTY: Partial<Product> = { kind: 'ishlanma', delivery: 'digital', title: '', short: '', description: '', price: 0, old_price: null, cover_url: '', preview_url: '', content_url: '', content_note: '', stock: null, is_active: true, grade: null }
 
@@ -56,8 +57,8 @@ function ProductEditor({ initial, onClose }: { initial: Partial<Product>; onClos
             <option value="digital">{t('Elektron (havola)')}</option><option value="physical">{t('Jismoniy')}</option>
           </select></label>
         <label className="field"><span className="field__label">{t('Sinf')}</span>
-          <select className="input" value={p.grade ?? ''} onChange={(e) => set({ grade: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">—</option>{[7, 8, 9].map((g) => <option key={g} value={g}>{g}</option>)}
+          <select className="input" value={p.grade ?? ''} onChange={(e) => set({ grade: (e.target.value || null) as Grade | null })}>
+            <option value="">—</option>{GRADES.map((g) => <option key={g} value={g}>{g}</option>)}
           </select></label>
       </div>
       <div className="row row--3">

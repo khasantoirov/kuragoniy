@@ -1,7 +1,9 @@
+import type { Grade } from '@/features/lessons/labels'
+
 export type Role = 'teacher' | 'admin' | 'boshliq' | 'kuzatuvchi' | 'student'
 
 export interface StudentInfo {
-  grade: number | null
+  grade: Grade | null
   class_id: number | null
   class_name: string
   school: string

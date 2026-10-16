@@ -24,6 +24,7 @@ import { AttemptReview, type AttemptResult } from '@/features/portal/quiz'
 import { errText, fmtDateTime, fmtDuration, Meter, PageHead, PercentPill, StatusPill } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
+import { GRADES, type Grade } from '@/features/lessons/labels'
 
 const toLocalInput = (iso: string | null) => {
   if (!iso) return ''
@@ -39,7 +40,7 @@ function AssignmentEditor({ initial, onClose }: { initial: Assignment | null; on
   const { data: classes } = useTeacherClasses()
   const [classIds, setClassIds] = useState<number[]>(initial ? [initial.journal_class] : [])
   const firstGrade = classes?.find((c) => classIds.includes(c.id))?.grade ?? null
-  const [grade, setGrade] = useState<number | null>(null)
+  const [grade, setGrade] = useState<Grade | null>(null)
   const effGrade = grade ?? firstGrade
   const { data: lessons } = useLessonOptions(effGrade)
   const [lesson, setLesson] = useState<number | ''>(initial?.lesson ?? '')
@@ -109,9 +110,9 @@ function AssignmentEditor({ initial, onClose }: { initial: Assignment | null; on
       <div className="row row--2">
         <label className="field">
           <span className="field__label">{t('Sinf darajasi')}</span>
-          <select className="input" value={effGrade ?? ''} onChange={(e) => { setGrade(e.target.value ? Number(e.target.value) : null); setLesson('') }}>
+          <select className="input" value={effGrade ?? ''} onChange={(e) => { setGrade((e.target.value || null) as Grade | null); setLesson('') }}>
             <option value="">{t('Hammasi')}</option>
-            {[7, 8, 9].map((g) => <option key={g} value={g}>{g}-{t('sinf')}</option>)}
+            {GRADES.map((g) => <option key={g} value={g}>{g}-{t('sinf')}</option>)}
           </select>
         </label>
         <label className="field">

@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=200)),
-                ('grade', models.PositiveSmallIntegerField(blank=True, null=True)),
+                ('grade', models.CharField(blank=True, choices=[('1-2', '1-2-sinf'), ('3-4', '3-4-sinf'), ('5-6', '5-6-sinf'), ('7', '7-sinf'), ('8-9', '8-9-sinf')], max_length=5, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('lesson', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='lessons.lesson')),

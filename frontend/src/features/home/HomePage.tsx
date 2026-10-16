@@ -29,7 +29,7 @@ const LINKS: { view: string; ic: keyof typeof IC; title: string; sub: string; ad
   { view: '/statistics', ic: 'chart', title: 'Statistika', sub: "Ko'rsatkichlar va sinflar kesimi", adminOnly: true },
   { view: '/about', ic: 'info', title: 'Platforma haqida', sub: "Bo'limlar va imkoniyatlar" },
   { view: '/admin', ic: 'settings', title: 'Boshqaruv', sub: 'Foydalanuvchilar va tizim sozlamalari', adminOnly: true },
-  { view: '/equipment-sheet', ic: 'grid', title: 'Jihozlar jadvali', sub: 'Darslar uchun jihozlar ro'yxatini tayyorlash', adminOnly: true },
+  { view: '/equipment-sheet', ic: 'grid', title: 'Jihozlar jadvali', sub: "Darslar uchun jihozlar ro'yxatini tayyorlash", adminOnly: true },
 ]
 
 export function HomePage() {

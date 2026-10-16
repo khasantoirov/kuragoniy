@@ -80,7 +80,7 @@ export function AuthLayout() {
       <header className="gx__top">
         <Link className="gx__brand" to="/login">
           <img src="/logo.png" alt="" width={40} height={40} />
-          <span>Amaliy Fizika</span>
+          <span>KO'RAGONIY EDU</span>
         </Link>
         <div className="gx__tools">
           <LangMenu />
@@ -94,7 +94,7 @@ export function AuthLayout() {
         <div className="gx__panel">
           <div className="gx__card">
             <div className="gx__mark">
-              <img src="/logo.png" alt="Amaliy Fizika" width={64} height={64} />
+              <img src="/logo.png" alt="KO'RAGONIY EDU" width={64} height={64} />
               <img className="gx__sign" src="/muhandis-d-on-dark.png" alt="Muhandis D" width={751} height={160} />
             </div>
             <Outlet />
@@ -110,7 +110,7 @@ export function AuthLayout() {
             <a key={s.ic} href={s.url} target="_blank" rel="noreferrer" aria-label={s.label} title={s.label}>{IC[s.ic]}</a>
           ))}
         </nav>
-        <p>© {new Date().getFullYear()} Amaliy Fizika · {t('Barcha huquqlar himoyalangan')}</p>
+        <p>© {new Date().getFullYear()} KO'RAGONIY EDU · {t('Barcha huquqlar himoyalangan')}</p>
       </footer>
     </div>
   )

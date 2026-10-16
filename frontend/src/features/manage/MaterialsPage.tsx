@@ -14,11 +14,12 @@ import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
 import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
+import { GRADES, type Grade } from '@/features/lessons/labels'
 
 interface MaterialRow {
   lesson: number
   title: string
-  grade: number
+  grade: Grade
   chorak: number
   hafta: number
   is_published: boolean
@@ -183,7 +184,7 @@ function MaterialEditor({ lessonId, readOnly, onBack }: { lessonId: number; read
 export function MaterialsPage() {
   const { t } = useTranslation()
   const { user } = useAuth()
-  const [grade, setGrade] = useState(7)
+  const [grade, setGrade] = useState<Grade>(GRADES[0])
   const [open, setOpen] = useState<number | null>(null)
   const { data, isLoading } = useQuery({
     queryKey: ['learning', 'materials', grade],
@@ -196,7 +197,7 @@ export function MaterialsPage() {
   return (
     <div>
       <PageHead title={t("O'quv materiallari")} sub={`${t("O'quvchilar ko'radigan nazariya, formula, video va savollar.")} ${data ? `${ready}/${data.length} ${t("tayyor")}` : ''}`}
-        actions={<Segmented value={grade} onChange={setGrade} options={[7, 8, 9].map((g) => ({ value: g, label: `${g}-${t('sinf')}` }))} />} />
+        actions={<Segmented value={grade} onChange={setGrade} options={GRADES.map((g) => ({ value: g, label: `${g}-${t('sinf')}` }))} />} />
       {isLoading ? <Skeleton lines={8} /> : (
         <section className="panel">
           <div className="tablewrap">

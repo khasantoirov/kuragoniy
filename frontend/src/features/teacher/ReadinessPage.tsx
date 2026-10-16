@@ -8,6 +8,7 @@ import { useLessonOptions, useReadinessStatus, type LessonOption } from '@/featu
 import { AttemptReview, QuizRunner, type AttemptPayload, type AttemptResult } from '@/features/portal/quiz'
 import { errText, PageHead, PercentPill, Segmented } from '@/features/portal/ui'
 import { api } from '@/lib/api/client'
+import { GRADES, type Grade } from '@/features/lessons/labels'
 
 /** "Darsga tayyormisiz?" — the platform quizzes the teacher on the
  * lesson's own content (experiment steps, equipment, safety, formulas,
@@ -16,7 +17,7 @@ export function ReadinessPage() {
   const { t } = useTranslation()
   const toast = useToast()
   const qc = useQueryClient()
-  const [grade, setGrade] = useState(7)
+  const [grade, setGrade] = useState<Grade>(GRADES[0])
   const { data: lessons, isLoading } = useLessonOptions(grade)
   const { data: status } = useReadinessStatus()
   const [active, setActive] = useState<{ lesson: LessonOption; attempt: AttemptPayload } | null>(null)
@@ -57,7 +58,7 @@ export function ReadinessPage() {
     <div>
       <PageHead title={t('Darsga tayyorgarlik')}
         sub={t("Darsdan oldin o'zingizni tekshiring: platforma darsning nazariyasi, formulalari va tajribasini o'tkazish bo'yicha savollar tuzadi. 70% va undan yuqori — «tayyor».")}
-        actions={<Segmented value={grade} onChange={setGrade} options={[7, 8, 9].map((g) => ({ value: g, label: `${g}-${t('sinf')}` }))} />} />
+        actions={<Segmented value={grade} onChange={setGrade} options={GRADES.map((g) => ({ value: g, label: `${g}-${t('sinf')}` }))} />} />
       {isLoading ? <Skeleton lines={6} /> : (
         <section className="panel">
           <ul className="people">

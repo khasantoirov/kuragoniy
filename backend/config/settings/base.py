@@ -95,7 +95,7 @@ ASGI_APPLICATION = 'config.asgi.application'
 # SQLite with WAL journal mode so the Django server process and the
 # Telegram bot process (a separate OS process, see telegrambot app) can
 # both hold open connections without "database is locked" errors.
-# DATABASE_URL (e.g. postgres://user:pass@127.0.0.1:5432/amaliyfizika)
+# DATABASE_URL (e.g. postgres://user:pass@127.0.0.1:5432/kuragoniy)
 # switches to PostgreSQL once the user base outgrows SQLite — see
 # DEPLOY.md "Kengaytirish". Unset = the SQLite setup below, unchanged.
 DATABASES = {
@@ -223,13 +223,13 @@ LOGIN_LOCKOUT_MINUTES = env.int('LOGIN_LOCKOUT_MINUTES', default=15)
 
 # Public bot username (no @) for the Telegram link deep link, and the
 # frontend origin used in password-reset messages.
-TELEGRAM_BOT_USERNAME = env('TELEGRAM_BOT_USERNAME', default='amaliyfizikabot')
+TELEGRAM_BOT_USERNAME = env('TELEGRAM_BOT_USERNAME', default='kuragoniybot')
 FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
 
 # Password-reset codes go out by email too, but only when SMTP is actually
 # configured (EMAIL_HOST in .env) — Telegram is the primary channel.
 EMAIL_ENABLED = bool(env('EMAIL_HOST', default=''))
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='Amaliy Fizika <noreply@amaliyfizika.uz>')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default="KO'RAGONIY EDU <noreply@kuragoniy.uz>")
 
 # Django admin lives at an unguessable path in production when set
 # (e.g. DJANGO_ADMIN_URL=boshqaruv-7f3k/); default keeps the old URL.

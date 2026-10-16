@@ -5,11 +5,13 @@ single-player physics mini-games that run entirely in the browser."""
 from django.conf import settings
 from django.db import models
 
+from learning.models import GRADE_CHOICES
+
 
 class Quiz(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='quizzes', on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
-    grade = models.PositiveSmallIntegerField(null=True, blank=True)
+    grade = models.CharField(max_length=5, choices=GRADE_CHOICES, null=True, blank=True)
     lesson = models.ForeignKey('lessons.Lesson', related_name='+', null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

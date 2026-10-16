@@ -13,6 +13,7 @@ import { api } from '@/lib/api/client'
 import { isTeacherLike, useAuth } from '@/lib/auth/AuthContext'
 
 import { KIND_LABEL, useCart, useProducts, useShopSettings, type Order, type Product, type ProductKind } from './api'
+import { GRADES } from '@/features/lessons/labels'
 
 function ProductModal({ p, onClose }: { p: Product; onClose: () => void }) {
   const { t } = useTranslation()
@@ -131,7 +132,7 @@ export function ShopPage() {
         </div>
         <select className="input input--sm" value={grade} onChange={(e) => setGrade(e.target.value)}>
           <option value="">{t('Barcha sinflar')}</option>
-          {[7, 8, 9].map((g) => <option key={g} value={g}>{g}-{t('sinf')}</option>)}
+          {GRADES.map((g) => <option key={g} value={g}>{g}-{t('sinf')}</option>)}
         </select>
         <input className="input input--sm" placeholder={t('Qidirish…')} value={q} onChange={(e) => setQ(e.target.value)} />
       </div>

@@ -71,7 +71,7 @@ export function StudentShell() {
         <div className="edtop__inner">
           <SidebarToggle />
           <span className="edtop__brand">
-            <img className="edtop__logo" src="/logo.png" alt="Amaliy Fizika" width={44} height={44} />
+            <img className="edtop__logo" src="/logo.png" alt="KO'RAGONIY" width={44} height={44} />
             <BrandMark />
           </span>
           <div className="edtop__acts">

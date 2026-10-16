@@ -16,6 +16,7 @@ import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import { useUpdateGuard } from '@/lib/updateGuard'
 import type { Paginated } from '@/lib/api/types'
+import { GRADES, type Grade } from '@/features/lessons/labels'
 
 interface QuizQ {
   id?: number
@@ -30,7 +31,7 @@ interface QuizQ {
 interface Quiz {
   id: number
   title: string
-  grade: number | null
+  grade: Grade | null
   lesson: number | null
   questions: QuizQ[]
   question_count: number
@@ -59,7 +60,7 @@ function QuizEditor({ initial, onClose }: { initial: Quiz | null; onClose: () =>
   const toast = useToast()
   const qc = useQueryClient()
   const [title, setTitle] = useState(initial?.title ?? '')
-  const [grade, setGrade] = useState<number | ''>(initial?.grade ?? '')
+  const [grade, setGrade] = useState<Grade | ''>(initial?.grade ?? '')
   const [qs, setQs] = useState<QuizQ[]>(initial?.questions.length ? initial.questions : [blankQ()])
   const [importLesson, setImportLesson] = useState<number | ''>('')
   const { data: lessons } = useLessonOptions(grade || null)
@@ -98,9 +99,9 @@ function QuizEditor({ initial, onClose }: { initial: Quiz | null; onClose: () =>
         </label>
         <label className="field">
           <span className="field__label">{t('Sinf darajasi')}</span>
-          <select className="input" value={grade} onChange={(e) => setGrade(e.target.value ? Number(e.target.value) : '')}>
+          <select className="input" value={grade} onChange={(e) => setGrade(e.target.value as Grade | '')}>
             <option value="">—</option>
-            {[7, 8, 9].map((g) => <option key={g} value={g}>{g}-{t('sinf')}</option>)}
+            {GRADES.map((g) => <option key={g} value={g}>{g}-{t('sinf')}</option>)}
           </select>
         </label>
       </div>
@@ -301,7 +302,7 @@ export function GamesPage() {
 
   return (
     <div>
-      <PageHead title={t("O'yinlar")} sub={t("Darsda jonli viktorina o'tkazing yoki fizika mini-o'yinlarini doskaga chiqaring.")}
+      <PageHead title={t("O'yinlar")} sub={t("Darsda jonli viktorina o'tkazing yoki mini-o'yinlarni doskaga chiqaring.")}
         actions={<Segmented value={tab} onChange={setTab} options={[
           { value: 'live', label: t('Jonli viktorina') }, { value: 'mini', label: t("Mini-o'yinlar") }, { value: 'join', label: t("O'yinchi sifatida") },
         ]} />} />

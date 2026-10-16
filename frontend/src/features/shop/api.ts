@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware'
 
 import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
+import type { Grade } from '@/features/lessons/labels'
 
 export type ProductKind = 'ishlanma' | 'tajriba' | 'toplam' | 'jihoz' | 'boshqa'
 
@@ -14,7 +15,7 @@ export interface Product {
   title: string
   short: string
   description: string
-  grade: number | null
+  grade: Grade | null
   lesson: number | null
   price: number
   old_price: number | null
