@@ -1,10 +1,14 @@
-/** Brend yozuvi — "KO'RAGONIY". Imzosiz: matnning eni endi hech qanday
- * tashqi rasmga (avvalgi "Muhandis D" imzosiga) moslashtirilishi shart
- * emas, shu sabab avvalgi SVG o'lchash-va-cho'zish mexanizmi (textLength,
- * alohida viewBox) butunlay ortiqcha bo'lib qoldi — endi shunchaki matn.
- * O'lcham/balandlik konteyner CSS'i orqali (.edside__brand .brandmark /
- * .edtop__brand .brandmark, skin-edumin.css) belgilanadi, logotip bilan
- * bir xil balandlikda ko'rinishi uchun. */
+/** Brend belgisi — "KO'RAGONIY" yozuvi, uning tagida "Muhandis D" imzosi
+ * (Amaliy Fizikadagi kabi). Imzoning kunduzgi rasmida yozuv to'q,
+ * tungisida oq; D belgisi ikkalasida ham oq ramkali plitka ichida, shuning
+ * uchun har qanday fonda to'g'ri o'qiladi. O'lcham konteyner CSS'i orqali
+ * (.edside__brand / .edtop__brand, skin-edumin.css) beriladi. */
 export function BrandMark() {
-  return <span className="brandmark">KO'RAGONIY</span>
+  return (
+    <span className="brandmark">
+      <span className="brandmark__name">KO'RAGONIY</span>
+      <img className="brandmark__sig brandmark__sig--day" src="/muhandis-d-on-light.png" alt="Muhandis D" width={751} height={160} />
+      <img className="brandmark__sig brandmark__sig--night" src="/muhandis-d-on-dark.png" alt="Muhandis D" width={751} height={160} />
+    </span>
+  )
 }

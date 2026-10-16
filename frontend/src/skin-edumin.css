@@ -310,13 +310,17 @@
   min-height: 4.5rem; padding: 10px 28px;
   max-width: 1760px; margin: 0 auto;
 }
-/* ── Brend belgisi: "KO'RAGONIY" yozuvi, logotip bilan bir xil
-   balandlikda, yonma-yon (BrandMark.tsx — endi imzosiz, oddiy matn). ── */
-[data-skin="r2"] .brandmark {
-  display: block; min-width: 0; flex: none;
+/* ── Brend belgisi: "KO'RAGONIY" yozuvi, tagida "Muhandis D" imzosi
+   (BrandMark.tsx). Kunduzgi/tungi imzo mavzuga qarab almashadi. ── */
+[data-skin="r2"] .brandmark { display: grid; gap: 4px; justify-items: start; min-width: 0; flex: none; }
+[data-skin="r2"] .brandmark__name {
   font: 800 26px/1 var(--f-display); letter-spacing: -.01em;
   color: var(--ink); white-space: nowrap;
 }
+[data-skin="r2"] .brandmark__sig { display: block; height: 17px; width: auto; }
+[data-skin="r2"] .brandmark__sig--night { display: none; }
+[data-skin="r2"][data-theme="dark"] .brandmark__sig--day { display: none; }
+[data-skin="r2"][data-theme="dark"] .brandmark__sig--night { display: block; }
 
 [data-skin="r2"] .edtop__brand {
   display: flex; align-items: center; gap: 10px;
@@ -366,7 +370,8 @@
   overflow: hidden;
 }
 [data-skin="r2"] .edside__logo { border-radius: 13px; flex: none; transition: width .22s ease, height .22s ease; }
-[data-skin="r2"] .edside__brand .brandmark { font-size: 27px; }
+[data-skin="r2"] .edside__brand .brandmark__name { font-size: 27px; }
+[data-skin="r2"] .edside__brand .brandmark__sig { height: 18px; }
 
 [data-skin="r2"] .edside__body { position: relative; flex: 1; min-height: 0; }
 [data-skin="r2"] .edside__body::before,
