@@ -1,6 +1,7 @@
 import { isAxiosError } from 'axios'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { useConfirm } from '@/components/ConfirmProvider'
 import { EmptyState } from '@/components/EmptyState'
@@ -13,6 +14,7 @@ import { record } from '@/lib/history'
 import { useUIStore, type Lang } from '@/store/uiStore'
 
 import { useDeleteLibraryItem, useLibraryItems, useRemoveLibraryFile, useSaveLibraryItem, useUploadLibraryFile } from './api'
+import { pdfSource } from './reader/source'
 import { KIND_ICONS, KIND_LABELS, KINDS, type LibraryItem, type LibraryKind, UPLOADABLE_KINDS } from './types'
 
 const LIBRARY_FILE_ACCEPT = '.pdf,.doc,.docx,.epub,.jpg,.jpeg,.png,.webp'
@@ -228,10 +230,17 @@ function LibraryCard({ item, admin, onEdit, onDelete }: { item: LibraryItem; adm
   const gradient = COVER_GRADIENTS[item.id % COVER_GRADIENTS.length]
   const gradeText = item.grade ? libraryGradeLabel(item.grade, lang) : t(KIND_LABELS[item.kind])
   const openHref = item.file || item.url
+  const readable = !!pdfSource(item)
+  const navigate = useNavigate()
+  const read = () => navigate(`/library/${item.id}/read`)
 
   return (
     <article className="bkcard">
-      <div className="bkcard__cover" style={{ background: gradient }}>
+      <div
+        className={`bkcard__cover ${readable ? 'bkcard__cover--read' : ''}`}
+        style={{ background: gradient }}
+        {...(readable ? { role: 'button', tabIndex: 0, onClick: read, onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter') read() }, title: t('Varaqlash') } : {})}
+      >
         <div className="bkcard__top">
           <span className="bkcard__badge">{gradeText}</span>
           {ext && (
@@ -259,7 +268,16 @@ function LibraryCard({ item, admin, onEdit, onDelete }: { item: LibraryItem; adm
         <p className="bkcard__title">{item.title}</p>
         <div className="bkcard__divider" />
         <div className="bkcard__acts">
-          {item.file ? (
+          {readable ? (
+            <>
+              <Link className="btn btn--primary bkcard__dl" to={`/library/${item.id}/read`}>
+                {IC.book} {t('Varaqlash')}
+              </Link>
+              {item.file && (
+                <a className="icon-btn" title={t('Yuklab olish')} href={item.file} download={downloadFilename(item)}>{IC.download}</a>
+              )}
+            </>
+          ) : item.file ? (
             <a className="btn btn--primary bkcard__dl" href={item.file} download={downloadFilename(item)}>
               {IC.download} {t('Yuklab olish')}
             </a>

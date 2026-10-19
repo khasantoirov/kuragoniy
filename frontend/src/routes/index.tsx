@@ -29,6 +29,8 @@ const AppearancePage = lazy(() => import('@/features/settings/AppearancePage').t
 const NotificationSettingsPage = lazy(() => import('@/features/settings/NotificationSettingsPage').then((m) => ({ default: m.NotificationSettingsPage })))
 const IntegrationsPage = lazy(() => import('@/features/settings/IntegrationsPage').then((m) => ({ default: m.IntegrationsPage })))
 const InboxPage = lazy(() => import('@/features/notifications/InboxPage').then((m) => ({ default: m.InboxPage })))
+// pdf.js comes with it — only loaded when a book is opened.
+const BookReaderPage = lazy(() => import('@/features/library/reader/BookReaderPage').then((m) => ({ default: m.BookReaderPage })))
 
 const page = (el: React.ReactNode) => <Suspense fallback={<Skeleton lines={5} />}>{el}</Suspense>
 
@@ -49,6 +51,7 @@ export const router = createBrowserRouter([
       { path: '/timetable', element: <TimetablePage /> },
       { path: '/library', element: <LibraryPage /> },
       { path: '/statistics', element: <StatisticsPage /> },
+      { path: '/library/:id/read', element: page(<BookReaderPage />) },
       {
         path: '/admin',
         element: (

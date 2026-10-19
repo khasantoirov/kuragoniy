@@ -882,6 +882,8 @@ label.btn { display: inline-flex; align-items: center; }
   position: relative; min-height: 210px; padding: 16px; color: #fff;
   display: grid; grid-template-rows: auto 1fr auto; gap: 10px;
 }
+/* A PDF book's cover opens the reader (features/library/reader). */
+.bkcard__cover--read { cursor: pointer; }
 .bkcard__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .bkcard__badge {
   display: inline-flex; align-items: center; gap: 5px;
