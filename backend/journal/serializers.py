@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import AttendanceEntry, ClassDay, FinalGrade, GradeEntry, JournalClass, Student
+from .models import AttendanceEntry, ClassDay, FinalGrade, GradeEntry, JournalClass, JournalEditGrant, Student
 
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -66,3 +66,62 @@ class BulkDaySerializer(serializers.Serializer):
     topic = serializers.CharField(required=False, allow_blank=True, default='')
     marks = BulkMarkSerializer(many=True, required=False, default=list)
     attendance = BulkAttendanceSerializer(many=True, required=False, default=list)
+
+
+def class_label(journal_class) -> str:
+    if journal_class is None:
+        return 'Barcha sinflar'
+    return f'{journal_class.school} | {journal_class.name}' if journal_class.school else journal_class.name
+
+
+class EditGrantSerializer(serializers.ModelSerializer):
+    teacher_name = serializers.CharField(source='teacher.name', read_only=True)
+    class_label = serializers.SerializerMethodField()
+    decided_by_name = serializers.CharField(source='decided_by.name', read_only=True, default='')
+    active = serializers.SerializerMethodField()
+
+    class Meta:
+        model = JournalEditGrant
+        fields = [
+            'id', 'teacher', 'teacher_name', 'journal_class', 'class_label', 'date_from', 'date_to', 'reason',
+            'status', 'created_at', 'decided_by_name', 'decided_at', 'note', 'expires_at', 'active',
+        ]
+
+    def get_class_label(self, obj):
+        return class_label(obj.journal_class)
+
+    def get_active(self, obj):
+        from django.utils import timezone
+        return obj.status == JournalEditGrant.Status.APPROVED and bool(obj.expires_at and obj.expires_at > timezone.now())
+
+
+class GrantRequestSerializer(serializers.Serializer):
+    """A teacher asking to reopen one past day of one class."""
+
+    journal_class = serializers.IntegerField()
+    date = serializers.DateField()
+    reason = serializers.CharField(max_length=500, trim_whitespace=True)
+
+
+class GrantCreateSerializer(serializers.Serializer):
+    """An administrator opening days directly."""
+
+    teacher = serializers.CharField(max_length=40)
+    journal_class = serializers.IntegerField(required=False, allow_null=True)
+    date_from = serializers.DateField()
+    date_to = serializers.DateField(required=False, allow_null=True)
+    hours = serializers.IntegerField(min_value=1, max_value=168, default=24)
+    note = serializers.CharField(max_length=300, required=False, allow_blank=True, default='')
+
+    def validate(self, attrs):
+        attrs['date_to'] = attrs.get('date_to') or attrs['date_from']
+        if attrs['date_to'] < attrs['date_from']:
+            raise serializers.ValidationError({'date_to': "Oxirgi sana boshlang'ich sanadan oldin bo'lmasin."})
+        if (attrs['date_to'] - attrs['date_from']).days > 366:
+            raise serializers.ValidationError({'date_to': "Oraliq bir yildan oshmasin."})
+        return attrs
+
+
+class GrantDecisionSerializer(serializers.Serializer):
+    hours = serializers.IntegerField(min_value=1, max_value=168, default=24)
+    note = serializers.CharField(max_length=300, required=False, allow_blank=True, default='')

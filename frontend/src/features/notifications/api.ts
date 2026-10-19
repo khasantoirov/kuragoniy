@@ -4,7 +4,7 @@ import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
 
 export type NotifyKind =
-  | 'elon' | 'hisobot' | 'ragbat' | 'oquvchi' | 'vazifa' | 'tugilgan' | 'xavfsizlik' | 'dokon' | 'jamoa' | 'tizim'
+  | 'elon' | 'hisobot' | 'ragbat' | 'oquvchi' | 'vazifa' | 'tugilgan' | 'xavfsizlik' | 'dokon' | 'jamoa' | 'jurnal' | 'tizim'
 
 export interface AppNotification {
   id: number

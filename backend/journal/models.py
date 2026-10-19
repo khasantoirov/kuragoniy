@@ -81,3 +81,40 @@ class FinalGrade(models.Model):
 
     class Meta:
         unique_together = ('student', 'chorak')
+
+
+class JournalEditGrant(models.Model):
+    """Permission to change a past day's marks and attendance. A teacher
+    may only edit the lesson day itself (journal/locks.py); anything older
+    needs one of these — asked for by the teacher and approved, or given
+    directly by an administrator — and it works until `expires_at`."""
+
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Kutilmoqda'
+        APPROVED = 'approved', 'Ruxsat berilgan'
+        REJECTED = 'rejected', 'Rad etilgan'
+        REVOKED = 'revoked', 'Bekor qilingan'
+
+    teacher = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='journal_grants', on_delete=models.CASCADE)
+    # Empty = every class of this teacher.
+    journal_class = models.ForeignKey(
+        JournalClass, related_name='edit_grants', null=True, blank=True, on_delete=models.CASCADE,
+    )
+    date_from = models.DateField()
+    date_to = models.DateField()
+    reason = models.CharField(max_length=500, blank=True)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name='+', null=True, blank=True, on_delete=models.SET_NULL,
+    )
+    decided_at = models.DateTimeField(null=True, blank=True)
+    note = models.CharField(max_length=300, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [models.Index(fields=['teacher', 'status'])]
+
+    def __str__(self):
+        return f'{self.teacher} {self.date_from}–{self.date_to} ({self.status})'

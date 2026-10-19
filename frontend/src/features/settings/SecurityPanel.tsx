@@ -175,6 +175,8 @@ export function SecurityTab() {
   )
 }
 
+const KIND_LABEL: Record<string, string> = { phone: 'Telefon', tablet: 'Planshet', desktop: 'Kompyuter' }
+
 export function SessionsTab() {
   const { t } = useTranslation()
   const toast = useToast()
@@ -199,15 +201,27 @@ export function SessionsTab() {
       <p className="prose prose--note">
         {t("Hisobingiz ochiq turgan qurilmalar. Tanimagan qurilmani chiqaring va parolni almashtiring. Chiqarilgan qurilma 15 daqiqa ichida tizimdan chiqadi.")}
       </p>
+      <p className="sess__policy">
+        {IC.shield} {t("Xavfsizlik: har 24 soatda login va parol bilan qayta kirish talab qilinadi; 30 daqiqa faollik bo'lmasa, tizimdan avtomatik chiqiladi.")}
+      </p>
       {sessions.data?.length ? (
         <ul className="sesslist">
           {sessions.data.map((s) => (
             <li key={s.id} className={`sess ${s.current ? 'is-current' : ''}`}>
-              <span className="sess__ic">{s.mobile ? IC.smartphone : IC.monitor}</span>
+              <span className="sess__ic">{s.kind === 'desktop' ? IC.monitor : IC.smartphone}</span>
               <span className="sess__txt">
-                <span className="sess__nm">{s.label} {s.current && <em className="sess__cur">{t('Joriy qurilma')}</em>}</span>
+                <span className="sess__nm">
+                  {s.device || t(KIND_LABEL[s.kind] ?? 'Kompyuter')}
+                  {s.device && <span className="sess__kind">{t(KIND_LABEL[s.kind] ?? 'Kompyuter')}</span>}
+                  {s.current && <em className="sess__cur">{t('Joriy qurilma')}</em>}
+                </span>
+                <span className="sess__sys">
+                  {s.os_full} · {s.browser_full}
+                  {s.model && !s.device.includes(s.model) ? ` · ${t('Model')}: ${s.model}` : ''}
+                </span>
                 <span className="sess__meta">
-                  {s.ip ? `${s.ip} · ` : ''}{t('Oxirgi faollik')}: {fmtDateTime(s.last_seen_at)} · {t('Kirgan')}: {fmtDateTime(s.created_at)}
+                  {s.ip ? `IP ${s.ip} · ` : ''}{t('Oxirgi faollik')}: {fmtDateTime(s.last_seen_at)} · {t('Kirgan')}: {fmtDateTime(s.created_at)}
+                  {' · '}{t('Seans tugashi')}: {fmtDateTime(s.expires_at)}
                 </span>
               </span>
               {!s.current && (

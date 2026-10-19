@@ -144,7 +144,7 @@ def _login(api_client, email, ua='Mozilla/5.0 (Windows NT 10.0) Chrome/130'):
 def test_login_creates_session_listed_as_current(api_client, teacher):
     assert _login(api_client, teacher.email).status_code == 200
     rows = api_client.get('/api/auth/sessions/', HTTP_AUTHORIZATION=f"Bearer {api_client.post('/api/auth/refresh/').data['access']}").data
-    assert len(rows) == 1 and rows[0]['current'] and rows[0]['label'] == 'Chrome · Windows'
+    assert len(rows) == 1 and rows[0]['current'] and rows[0]['label'] == 'Kompyuter · Windows · Chrome 130'
 
 
 def test_new_device_login_warns(api_client, teacher):

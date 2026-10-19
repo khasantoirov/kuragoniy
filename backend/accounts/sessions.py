@@ -14,7 +14,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from common.security import client_ip, log_event
-from common.useragent import summarize
+from common.useragent import parse_hints, summarize
 
 from .models import UserSession
 
@@ -23,8 +23,41 @@ NEW_DEVICE_LOOKBACK = timedelta(days=90)
 REFRESH_COOKIE = 'refresh_token'
 
 
+def idle_window() -> timedelta:
+    """How long a session may go without a refresh before it counts as
+    abandoned. An open tab refreshes at least every ACCESS_TOKEN_LIFETIME
+    (the heartbeat keeps the access token in use) and last_seen_at moves in
+    TOUCH_EVERY steps, so silence past idle timeout + both of those means
+    the tab was closed or frozen for longer than the idle limit."""
+    return settings.SESSION_IDLE_TIMEOUT + settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'] + TOUCH_EVERY
+
+
 def _ua(request) -> str:
     return (request.META.get('HTTP_USER_AGENT', '') if request is not None else '')[:300]
+
+
+def _hints(request) -> dict:
+    return parse_hints(request.META.get('HTTP_X_DEVICE')) if request is not None else {}
+
+
+def describe(session) -> dict:
+    return summarize(session.user_agent, session.device)
+
+
+def _seen_before(info, previous) -> bool:
+    """Same browser on the same system — and the same phone model once
+    models are known. Sessions from before device details were collected
+    only know the family; they count as a match only while no session of
+    that family has a model yet (so the first login after this change
+    doesn't warn everyone)."""
+    same = [summarize(ua, device) for ua, device in previous]
+    same = [old for old in same if old['family'] == info['family']]
+    if not same:
+        return False
+    known = {old['model'] for old in same if old['model']}
+    if not info['model'] or not known:
+        return True
+    return info['model'] in known
 
 
 def start_session(user, refresh, request) -> UserSession | None:
@@ -32,23 +65,33 @@ def start_session(user, refresh, request) -> UserSession | None:
     password change). Warns over the user's channels when the device is
     one this account hasn't signed in from lately."""
     ua = _ua(request)
-    label = summarize(ua)['label']
+    hints = _hints(request)
+    info = summarize(ua, hints)
     since = timezone.now() - NEW_DEVICE_LOOKBACK
-    previous = list(UserSession.objects.filter(user=user, created_at__gte=since).values_list('user_agent', flat=True))
+    previous = list(UserSession.objects.filter(user=user, created_at__gte=since).values_list('user_agent', 'device'))
     try:
-        session = UserSession.objects.create(user=user, jti=str(refresh['jti']), ip=client_ip(request), user_agent=ua)
+        session = UserSession.objects.create(
+            user=user, jti=str(refresh['jti']), ip=client_ip(request), user_agent=ua, device=hints,
+        )
     except Exception:
         return None
-    if previous and label not in {summarize(p)['label'] for p in previous}:
+    if previous and not _seen_before(info, previous):
         from notifications.models import Kind
         from notifications.service import notify
         ip = session.ip or "noma'lum IP"
+        when = timezone.localtime(session.created_at).strftime('%d.%m.%Y %H:%M')
+        title = info['device'] or info['kind_label']
         notify(
-            user, Kind.XAVFSIZLIK, 'Yangi qurilmadan kirildi', f'{label} · {ip}', '/settings/profile?tab=sessions',
+            user, Kind.XAVFSIZLIK, 'Yangi qurilmadan kirildi', f"{info['label']} · IP {ip}", '/settings/profile?tab=sessions',
             telegram_text=(
-                f"🔐 Hisobingizga yangi qurilmadan kirildi: {label} ({ip}).\n"
+                "🔐 Hisobingizga yangi qurilmadan kirildi\n\n"
+                f"📱 Qurilma: {title} ({info['kind_label'].lower()})\n"
+                f"💻 Tizim: {info['os_full']} · {info['browser_full']}\n"
+                f"🌐 IP: {ip}\n"
+                f"🕒 Vaqt: {when}\n\n"
                 "Agar bu siz bo'lmasangiz, Sozlamalar → Profil → Aktiv seanslar bo'limidan uni chiqarib, parolni almashtiring."
             ),
+            data={'device': title, 'kind': info['kind'], 'os': info['os_full'], 'browser': info['browser_full'], 'ip': ip},
         )
     return session
 
@@ -61,6 +104,13 @@ def session_for_token(token) -> UserSession | None:
 def touch_session(session, request) -> None:
     if session is None:
         return
+    if not session.device:
+        # Sessions opened before the app sent device details pick them up
+        # on their next refresh.
+        hints = _hints(request)
+        if hints:
+            session.device = hints
+            session.save(update_fields=['device'])
     now = timezone.now()
     if now - session.last_seen_at < TOUCH_EVERY:
         return
@@ -91,8 +141,11 @@ def _current_jti(request):
 
 
 def _active(user):
-    cutoff = timezone.now() - settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME']
-    return UserSession.objects.filter(user=user, revoked_at__isnull=True, last_seen_at__gte=cutoff)
+    now = timezone.now()
+    return UserSession.objects.filter(
+        user=user, revoked_at__isnull=True,
+        created_at__gte=now - settings.SESSION_MAX_AGE, last_seen_at__gte=now - idle_window(),
+    )
 
 
 class SessionListView(APIView):
@@ -105,10 +158,13 @@ class SessionListView(APIView):
         current = _current_jti(request)
         rows = []
         for s in _active(request.user):
-            info = summarize(s.user_agent)
+            info = describe(s)
             rows.append({
                 'id': s.id, 'label': info['label'], 'browser': info['browser'], 'os': info['os'],
-                'mobile': info['mobile'], 'ip': s.ip, 'created_at': s.created_at, 'last_seen_at': s.last_seen_at,
+                'mobile': info['mobile'], 'kind': info['kind'], 'device': info['device'], 'model': info['model'],
+                'os_full': info['os_full'], 'browser_full': info['browser_full'],
+                'ip': s.ip, 'created_at': s.created_at, 'last_seen_at': s.last_seen_at,
+                'expires_at': s.created_at + settings.SESSION_MAX_AGE,
                 'current': s.jti == current,
             })
         rows.sort(key=lambda r: (not r['current'], -r['last_seen_at'].timestamp()))
@@ -136,7 +192,7 @@ class SessionRevokeView(APIView):
             BlacklistedToken.objects.get_or_create(token=token)
         session.revoked_at = timezone.now()
         session.save(update_fields=['revoked_at'])
-        log_event('session_revoked', actor=request.user, request=request, detail=summarize(session.user_agent)['label'])
+        log_event('session_revoked', actor=request.user, request=request, detail=describe(session)['label'])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -155,10 +211,23 @@ class SecurityLogView(APIView):
     def get(self, request):
         from common.models import AuditLog
 
-        rows = AuditLog.objects.filter(actor=request.user, action__in=SECURITY_ACTIONS).order_by('-created_at')[:40]
+        rows = list(AuditLog.objects.filter(actor=request.user, action__in=SECURITY_ACTIONS).order_by('-created_at')[:40])
+        # A sign-in's session is created in the same request, so its device
+        # details (phone model etc.) can be matched back by time.
+        sessions = []
+        if rows:
+            sessions = list(UserSession.objects.filter(
+                user=request.user, created_at__gte=rows[-1].created_at - timedelta(seconds=5),
+            ).exclude(device={}).values_list('created_at', 'device'))
+
+        def device(r):
+            if not r.user_agent:
+                return ''
+            hints = next((d for at, d in sessions if abs((at - r.created_at).total_seconds()) < 5), None)
+            return summarize(r.user_agent, hints)['label']
+
         return Response([
-            {'id': r.id, 'action': r.action, 'at': r.created_at, 'ip': r.ip,
-             'device': summarize(r.user_agent)['label'] if r.user_agent else '', 'detail': r.detail}
+            {'id': r.id, 'action': r.action, 'at': r.created_at, 'ip': r.ip, 'device': device(r), 'detail': r.detail}
             for r in rows
         ])
 

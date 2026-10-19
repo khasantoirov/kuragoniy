@@ -213,6 +213,18 @@
   background: rgba(255,92,108,.16); color: #ffc2c8;
   border: 1px solid rgba(255,120,134,.38); box-shadow: none;
 }
+/* Why the app signed this browser out (idle / 24 hours) — calm, not red. */
+.gx__card .form__note.form__note--info {
+  display: flex; gap: 8px; align-items: flex-start;
+  margin-top: 14px; padding: 10px 12px; border-radius: 10px;
+  background: #fff; color: #1d4fb8; font-weight: 600; line-height: 1.4;
+  box-shadow: 0 .4rem 1rem rgba(8,20,50,.16);
+}
+.gx__card .form__note--info svg { flex: none; width: 16px; height: 16px; margin-top: 1px; }
+[data-theme="dark"] .gx__card .form__note.form__note--info {
+  background: rgba(96,150,255,.16); color: #cfe0ff;
+  border: 1px solid rgba(120,160,255,.38); box-shadow: none;
+}
 .gx-form__foot {
   margin: 22px 0 0; padding-top: 18px; border-top: 1px solid var(--gx-line);
   text-align: center; font-size: 13.5px; color: var(--gx-ink-2);
@@ -288,6 +300,7 @@
   .gx-form__row { margin-bottom: 16px; }
   .gx__card .gx-form__go { height: 50px; }
   .gx__card .form__note.form__note--err { margin-top: 12px; padding: 8px 12px; }
+  .gx__card .form__note.form__note--info { margin-top: 12px; padding: 8px 12px; font-size: 13px; }
   .gx__foot { gap: 6px; padding-bottom: 14px; }
 }
 @media (max-height: 720px) {

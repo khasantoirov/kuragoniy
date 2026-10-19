@@ -25,6 +25,7 @@ class Kind(models.TextChoices):
     XAVFSIZLIK = 'xavfsizlik', 'Kirish va xavfsizlik'
     DOKON = 'dokon', "Do'kon"
     JAMOA = 'jamoa', 'Jamoa'
+    JURNAL = 'jurnal', 'Jurnal ruxsatlari'
     TIZIM = 'tizim', 'Tizim'
 
 

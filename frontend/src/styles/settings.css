@@ -146,6 +146,10 @@
 .sess__nm { font-weight: 600; color: var(--ink); }
 .sess__cur { margin-left: 8px; font-style: normal; font-size: 12px; font-weight: 600; color: var(--tone-ok, #0B7A2C); }
 .sess__meta { font-size: 13px; color: var(--ink-2); }
+.sess__kind { margin-left: 8px; padding: 1px 7px; border-radius: 999px; background: var(--rule-2); font-size: 11.5px; font-weight: 600; color: var(--ink-2); }
+.sess__sys { font-size: 13.5px; color: var(--ink); }
+.sess__policy { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--pick, #2f7bff) 9%, transparent); font-size: 13px; color: var(--ink); }
+.sess__policy svg { flex: none; width: 16px; height: 16px; margin-top: 1px; color: var(--pick, #2f7bff); }
 .sess__out { flex: none; }
 
 /* ── Ko'rinish ──────────────────────────────────────────────── */
@@ -316,3 +320,61 @@
 .inbox__chev.is-open { transform: rotate(-90deg); }
 .nreader__at { margin: 0 0 10px; font-size: 13px; color: var(--ink-3); }
 .nreader { margin: 0; white-space: pre-line; line-height: 1.6; color: var(--ink); }
+
+/* ── Idle auto-logout warning (lib/auth/AuthContext.tsx) ── */
+.idlewarn {
+  position: fixed; z-index: 1200; left: 50%; bottom: 24px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center;
+  max-width: calc(100vw - 32px); padding: 12px 16px; border-radius: 14px;
+  background: var(--surface, #fff); color: var(--ink, #1b2333);
+  border: 1px solid rgba(226,70,90,.35); box-shadow: 0 1rem 2.4rem rgba(8,20,50,.22);
+  animation: idlewarn-in .2s ease-out;
+}
+.idlewarn__t { font-weight: 700; color: #e2465a; }
+.idlewarn__b b { font-variant-numeric: tabular-nums; font-size: 1.05em; }
+@keyframes idlewarn-in { from { opacity: 0; transform: translate(-50%, 12px); } }
+@media (max-width: 560px) { .idlewarn { bottom: 84px; } }
+
+/* ── Journal: closed past days & permissions (features/journal) ── */
+.jlock__why {
+  display: flex; gap: 8px; align-items: flex-start; margin: 0 0 12px; padding: 10px 12px;
+  border-radius: 10px; background: rgba(226,160,32,.12); border: 1px solid rgba(226,160,32,.35);
+  font-size: 13px; line-height: 1.45; color: var(--ink);
+}
+.jlock__why svg { flex: none; width: 16px; height: 16px; margin-top: 1px; color: #b7791f; }
+.jt th.jt__d.is-locked { background: color-mix(in srgb, var(--solid) 72%, #7a8194); }
+.jt td.jt__c.is-locked { background: var(--rule-2); }
+.jt td.jt__c.is-locked .at { cursor: not-allowed; }
+.jt td.jt__c.is-locked .at:disabled { opacity: .55; }
+.jt td.jt__c.is-locked .mk:disabled { opacity: .75; background: transparent; color: var(--ink); }
+.jt__lk, .jt__open {
+  position: absolute; top: 2px; right: 2px; display: grid; place-items: center;
+  border: 0; background: none; padding: 2px; line-height: 0; cursor: pointer; color: rgba(255,255,255,.92);
+}
+.jt__lk svg, .jt__open svg { width: 13px; height: 13px; }
+.jt__lk:hover { color: #fff; }
+.jt__lk.is-pending { color: #ffd479; }
+.jt__open { left: 2px; right: auto; cursor: help; color: #7ee2b8; }
+.chip__count {
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; display: inline-grid; place-items: center;
+  background: #e2465a; color: #fff; font-size: 11px; font-weight: 700; margin-left: 2px;
+}
+.jgrants .panel { margin-bottom: 16px; }
+.jgrant__list { list-style: none; margin: 0; padding: 0; }
+.jgrant { display: flex; gap: 12px; align-items: flex-start; padding: 12px 2px; border-bottom: 1px solid var(--rule-2); }
+.jgrant:last-child { border-bottom: 0; }
+.jgrant__ic { flex: none; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: rgba(226,160,32,.14); color: #b7791f; }
+.jgrant__ic--on { background: rgba(20,163,127,.14); color: #0f8a6b; }
+.jgrant__ic svg { width: 17px; height: 17px; }
+.jgrant__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; font-size: 13.5px; color: var(--ink); }
+.jgrant__txt small { color: var(--ink-2); font-size: 12px; }
+.jgrant__reason { color: var(--ink-2); font-style: italic; }
+.jgrant__acts { flex: none; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.jgrant__dur { height: 32px; padding: 0 8px; width: auto; font-size: 13px; }
+.jgrant__form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 14px; margin-bottom: 6px; }
+@media (max-width: 860px) { .jgrant__form { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) {
+  .jgrant { flex-wrap: wrap; }
+  .jgrant__acts { width: 100%; justify-content: flex-start; }
+  .jgrant__form { grid-template-columns: 1fr; }
+}

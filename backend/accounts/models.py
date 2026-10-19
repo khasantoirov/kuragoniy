@@ -249,6 +249,9 @@ class UserSession(models.Model):
     jti = models.CharField(max_length=64, unique=True)
     ip = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.CharField(max_length=300, blank=True)
+    # The browser's User-Agent Client Hints (model, platform version…) —
+    # common/useragent.py turns them into "Samsung Galaxy A52 · Android 13".
+    device = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_seen_at = models.DateTimeField(auto_now_add=True)
     revoked_at = models.DateTimeField(null=True, blank=True)

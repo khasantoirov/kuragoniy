@@ -1,5 +1,6 @@
 import secrets
-from datetime import timedelta
+from datetime import datetime, timedelta
+from datetime import timezone as dt_timezone
 
 import pyotp
 from django.conf import settings
@@ -43,7 +44,7 @@ from notifications.models import Kind as NotifyKind
 from notifications.service import notify
 
 from .models import PasswordResetCode, TelegramLinkToken, User
-from .sessions import end_session, session_for_token, start_session, touch_session
+from .sessions import end_session, idle_window, session_for_token, start_session, touch_session
 from .serializers import AdminUserSerializer, MeSerializer, RegisterSerializer, UserSerializer
 
 REFRESH_COOKIE = settings.JWT_REFRESH_COOKIE_NAME
@@ -315,10 +316,28 @@ class RefreshView(TokenRefreshView):
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
 
-    def _reject(self, detail):
-        response = Response({'detail': detail}, status=status.HTTP_401_UNAUTHORIZED)
+    def _reject(self, detail, code='invalid'):
+        # `code` lets the app tell the user why they were signed out
+        # ("expired" → the daily re-login, "idle" → 30 minutes untouched).
+        response = Response({'detail': detail, 'code': code}, status=status.HTTP_401_UNAUTHORIZED)
         response.delete_cookie(REFRESH_COOKIE, path=REFRESH_COOKIE_PATH)
         return response
+
+    def _end(self, parsed, session):
+        """Closes a session that ran past a limit, so its cookie is dead
+        even if something replays it."""
+        end_session(parsed)
+        try:
+            parsed.blacklist()
+        except Exception:
+            pass
+
+    @staticmethod
+    def _client_idle_seconds(request) -> float:
+        try:
+            return max(0.0, float(request.data.get('idle') or 0))
+        except (TypeError, ValueError, AttributeError):
+            return 0.0
 
     def post(self, request, *args, **kwargs):
         refresh_raw = request.COOKIES.get(REFRESH_COOKIE)
@@ -333,7 +352,20 @@ class RefreshView(TokenRefreshView):
             return self._reject("Refresh token yaroqsiz.")
         user = User.objects.filter(pk=parsed.get(settings.SIMPLE_JWT['USER_ID_CLAIM'])).first()
         if not user or not user.is_active or token_predates_revocation(user, parsed.get('iat')):
-            return self._reject("Sessiya bekor qilingan, qaytadan kiring.")
+            return self._reject("Sessiya bekor qilingan, qaytadan kiring.", 'revoked')
+
+        # Absolute limit: tokens issued before the 24-hour policy carry a
+        # 30-day expiry, so the sign-in time decides, not just `exp`.
+        session = session_for_token(parsed)
+        now = timezone.now()
+        try:
+            issued = datetime.fromtimestamp(int(parsed.get('iat')), tz=dt_timezone.utc)
+        except (TypeError, ValueError):
+            issued = None
+        if (issued is None or now - issued > settings.SESSION_MAX_AGE
+                or (session is not None and now - session.created_at > settings.SESSION_MAX_AGE)):
+            self._end(parsed, session)
+            return self._reject("Xavfsizlik uchun har 24 soatda login va parol bilan qaytadan kirish kerak.", 'expired')
 
         serializer = self.get_serializer(data={'refresh': refresh_raw})
         try:
@@ -341,9 +373,15 @@ class RefreshView(TokenRefreshView):
         except TokenError:
             return self._reject("Refresh token yaroqsiz.")
 
-        session = session_for_token(parsed)
         if session is not None and session.revoked_at:
-            return self._reject("Bu qurilmadagi seans yakunlangan, qaytadan kiring.")
+            return self._reject("Bu qurilmadagi seans yakunlangan, qaytadan kiring.", 'revoked')
+        # Idle limit: the app reports how long the screen has been untouched;
+        # a session nobody refreshed for that long was closed or asleep.
+        idle_limit = settings.SESSION_IDLE_TIMEOUT.total_seconds()
+        if self._client_idle_seconds(request) > idle_limit or (
+                session is not None and now - session.last_seen_at > idle_window()):
+            self._end(parsed, session)
+            return self._reject("30 daqiqa faollik bo'lmagani uchun tizimdan chiqildi. Qaytadan kiring.", 'idle')
         touch_session(session, request)
 
         response = Response({'access': serializer.validated_data['access']})
@@ -358,7 +396,12 @@ class RefreshView(TokenRefreshView):
 
 
 class LogoutView(generics.GenericAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    """Works from the refresh cookie alone: the idle auto-logout fires
+    after half an hour, when the access token has long expired, and must
+    still end the session on the server."""
+
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
 
     def post(self, request, *args, **kwargs):
         refresh_raw = request.COOKIES.get(REFRESH_COOKIE)
@@ -366,10 +409,12 @@ class LogoutView(generics.GenericAPIView):
             try:
                 token = RefreshToken(refresh_raw)
                 end_session(token)
+                user = User.objects.filter(pk=token.get(settings.SIMPLE_JWT['USER_ID_CLAIM'])).first()
+                if user:
+                    mark_logged_out(user)
                 token.blacklist()
             except TokenError:
                 pass
-        mark_logged_out(request.user)
         response = Response(status=status.HTTP_204_NO_CONTENT)
         response.delete_cookie(REFRESH_COOKIE, path=REFRESH_COOKIE_PATH)
         return response

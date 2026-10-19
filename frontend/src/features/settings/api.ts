@@ -8,9 +8,15 @@ export interface SessionRow {
   browser: string
   os: string
   mobile: boolean
+  kind: 'phone' | 'tablet' | 'desktop'
+  device: string
+  model: string
+  os_full: string
+  browser_full: string
   ip: string | null
   created_at: string
   last_seen_at: string
+  expires_at: string
   current: boolean
 }
 

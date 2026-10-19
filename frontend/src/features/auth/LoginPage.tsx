@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { IC } from '@/icons'
-import { homePathFor, useAuth } from '@/lib/auth/AuthContext'
+import { homePathFor, LOGOUT_REASON_KEY, useAuth } from '@/lib/auth/AuthContext'
 
 // One form for everyone — students, teachers and administration all sign
 // in with a login (or email) and password; where they land afterwards is
@@ -31,6 +31,23 @@ function rememberLogin(login: string | null) {
   }
 }
 
+const REASON_TEXT: Record<string, string> = {
+  idle: "30 daqiqa faollik bo'lmagani uchun xavfsizlik maqsadida tizimdan chiqdingiz. Qaytadan kiring.",
+  expired: "Xavfsizlik uchun har 24 soatda login va parol bilan qaytadan kirish talab qilinadi.",
+  revoked: "Bu qurilmadagi seans yakunlangan. Qaytadan kiring.",
+}
+
+/** Read once: why the app just signed this browser out. */
+function takeLogoutReason() {
+  try {
+    const code = sessionStorage.getItem(LOGOUT_REASON_KEY) || ''
+    sessionStorage.removeItem(LOGOUT_REASON_KEY)
+    return REASON_TEXT[code] ?? ''
+  } catch {
+    return ''
+  }
+}
+
 export function LoginPage() {
   const { t } = useTranslation()
   const { login, verifyTotp } = useAuth()
@@ -41,6 +58,7 @@ export function LoginPage() {
   const [showPw, setShowPw] = useState(false)
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
+  const [reason, setReason] = useState(takeLogoutReason)
   const [challenge, setChallenge] = useState<string | null>(null)
   const [totpCode, setTotpCode] = useState('')
 
@@ -58,6 +76,7 @@ export function LoginPage() {
     e.preventDefault()
     setBusy(true)
     setNote('')
+    setReason('')
     try {
       const result = await login(loginName.trim(), password, remember)
       if (result.totpRequired) {
@@ -190,6 +209,7 @@ export function LoginPage() {
         {busy ? t('Tekshirilmoqda…') : t('Kirish')}
       </button>
       {note && <p className="form__note form__note--err" role="alert">{note}</p>}
+      {!note && reason && <p className="form__note form__note--info" role="status">{IC.lock} {t(reason)}</p>}
     </form>
   )
 }

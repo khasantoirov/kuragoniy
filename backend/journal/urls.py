@@ -1,10 +1,11 @@
 from rest_framework.routers import DefaultRouter
 
-from .views import FinalGradeViewSet, JournalClassViewSet, StudentViewSet
+from .views import EditGrantViewSet, FinalGradeViewSet, JournalClassViewSet, StudentViewSet
 
 router = DefaultRouter()
 router.register('classes', JournalClassViewSet, basename='journal-class')
 router.register('students', StudentViewSet, basename='journal-student')
 router.register('finals', FinalGradeViewSet, basename='journal-final')
+router.register('grants', EditGrantViewSet, basename='journal-grant')
 
 urlpatterns = router.urls

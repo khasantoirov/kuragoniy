@@ -195,9 +195,17 @@ REST_FRAMEWORK = {
     'NUM_PROXIES': None,
 }
 
+# Security policy: the password is asked again at least once a day, and
+# after half an hour without any activity on the screen (the frontend's
+# idle tracker logs out; accounts/views.py RefreshView backs it up).
+SESSION_MAX_AGE = timedelta(hours=24)
+SESSION_IDLE_TIMEOUT = timedelta(minutes=30)
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    # No rotation (below), so a refresh token's expiry is fixed at sign-in:
+    # this is the absolute session length.
+    'REFRESH_TOKEN_LIFETIME': SESSION_MAX_AGE,
     # Rotation made every refresh token single-use (old one blacklisted the
     # moment a new one is issued). The refresh cookie is shared across every
     # tab/device on the same browser, so two tabs refreshing within

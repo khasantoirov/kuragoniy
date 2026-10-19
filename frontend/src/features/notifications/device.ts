@@ -29,6 +29,7 @@ export const DEFAULT_SOUNDS: Record<NotifyKind, SoundKey> = {
   xavfsizlik: 'alert',
   dokon: 'short',
   jamoa: 'soft',
+  jurnal: 'short',
   tizim: 'signal',
 }
 

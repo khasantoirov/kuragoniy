@@ -18,6 +18,7 @@ DEFAULTS = {
     Kind.XAVFSIZLIK: {'app': True, 'telegram': True, 'email': False},
     Kind.DOKON: {'app': True, 'telegram': True, 'email': False},
     Kind.JAMOA: {'app': True, 'telegram': False, 'email': False},
+    Kind.JURNAL: {'app': True, 'telegram': True, 'email': False},
     Kind.TIZIM: {'app': True, 'telegram': True, 'email': False},
 }
 
@@ -31,6 +32,7 @@ DESCRIPTIONS = {
     Kind.XAVFSIZLIK: "Yangi qurilmadan kirish, parol va ikki bosqichli tasdiqlash o'zgarishlari, hisob bloklanishi",
     Kind.DOKON: "Buyurtmangiz holati o'zgarganda",
     Kind.JAMOA: "Jamoaga yangi xodim qo'shilganda",
+    Kind.JURNAL: "O'tgan kun jurnalini tahrirlash uchun ruxsat so'ralganda, berilganda yoki rad etilganda",
     Kind.TIZIM: 'Hisobingiz tasdiqlanganda va boshqa tizim xabarlari',
 }
 
@@ -40,6 +42,8 @@ def kinds_for(user) -> list[str]:
     if user.is_student:
         return [Kind.VAZIFA, Kind.RAGBAT, Kind.XAVFSIZLIK, Kind.TIZIM]
     out = [Kind.ELON, Kind.HISOBOT, Kind.RAGBAT, Kind.OQUVCHI, Kind.TUGILGAN, Kind.XAVFSIZLIK]
+    if not user.is_observer:
+        out.append(Kind.JURNAL)
     if user.is_admin:
         out += [Kind.DOKON, Kind.JAMOA]
     out.append(Kind.TIZIM)

@@ -18,16 +18,21 @@ import { useNotifyLive } from './liveStore'
 const ALL_TPL = "🎉 Hurmatli hamkasblar!\n\nBugun ustozimiz {nm}ning tavallud ayyomlari.\n\nMuhandis_D jamoasi nomidan ustozimizni ushbu qutlug' sana bilan samimiy muborakbod etamiz. Ustozimizga mustahkam sog'lik, uzoq va mazmunli umr, oilaviy baxt-saodat hamda kasbiy faoliyatlarida yanada yuksak muvaffaqiyatlar tilaymiz.\n\nUlarning fidokorona mehnati, bilim va tajribasi ko'plab shogirdlar kamolotiga xizmat qilib kelmoqda. Kelgusida ham ularga kuch-g'ayrat, ilhom va yangi zafarlar yor bo'lishini tilab qolamiz.\n\n🎂 Tavallud ayyomingiz muborak bo'lsin, {nm}!"
 const OWN_TPL = "🎂 Hurmatli {nm}!\n\nMuhandis_D jamoasi nomidan Sizni tavallud ayyomingiz bilan chin dildan muborakbod etamiz.\n\nUshbu qutlug' kunda Sizga mustahkam sog'lik, uzoq umr, xonadoningizga fayz-u baraka, qalbingizga xotirjamlik va hayotingizga cheksiz quvonch tilaymiz. Ta'lim va tarbiya yo'lidagi sharafli faoliyatingizda doimo ulkan muvaffaqiyatlarga erishib, mehnatingiz samarasini ko'rib yurishingizni tilaymiz.\n\nBilimingiz, tajribangiz va fidoyiligingiz jamoadoshlar hamda shogirdlaringiz uchun doimo ibrat bo'lib qolsin. Hayot yo'lingiz ezgu amallar, samimiy ehtirom va yorqin yutuqlar bilan bezanib borsin.\n\nBaxt-u saodat, sharaf va muvaffaqiyat hamisha hayotingizning ajralmas hamrohi bo'lib qolsin. Barcha ezgu niyat va maqsadlaringiz ro'yobga chiqsin.\n\n🎉 Tug'ilgan kuningiz muborak bo'lsin!\n\nHurmat bilan,\nMuhandis_D jamoasi"
 
-const LOCALE: Record<string, string> = { uz: 'uz', ru: 'ru', en: 'en' }
-
+/** "2 soat oldin" — browsers ship no Uzbek data for Intl.RelativeTimeFormat
+ * (it came out as "-2 h"), so Uzbek is spelled out here; ru/en use Intl. */
 function ago(iso: string, lang: string): string {
-  const diff = (Date.now() - new Date(iso).getTime()) / 1000
-  const rtf = new Intl.RelativeTimeFormat(LOCALE[lang] ?? 'uz', { numeric: 'auto' })
-  if (diff < 60) return rtf.format(0, 'second')
-  if (diff < 3600) return rtf.format(-Math.floor(diff / 60), 'minute')
-  if (diff < 86400) return rtf.format(-Math.floor(diff / 3600), 'hour')
-  if (diff < 86400 * 7) return rtf.format(-Math.floor(diff / 86400), 'day')
-  return fmtDateTime(iso)
+  const diff = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000)
+  if (diff >= 86400 * 7) return fmtDateTime(iso)
+  const [n, unit] = diff < 60 ? [0, 'second'] as const
+    : diff < 3600 ? [Math.floor(diff / 60), 'minute'] as const
+    : diff < 86400 ? [Math.floor(diff / 3600), 'hour'] as const
+    : [Math.floor(diff / 86400), 'day'] as const
+  if (lang === 'ru' || lang === 'en') {
+    return new Intl.RelativeTimeFormat(lang, { numeric: 'auto' }).format(-n, unit)
+  }
+  if (unit === 'second') return 'hozirgina'
+  if (unit === 'day' && n === 1) return 'kecha'
+  return `${n} ${{ minute: 'daqiqa', hour: 'soat', day: 'kun' }[unit]} oldin`
 }
 
 /** Messages whose whole content is the text itself open in a reader; the

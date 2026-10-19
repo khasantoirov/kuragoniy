@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
 
-import type { AttendanceStatus, Grid, JournalClass, Student } from './types'
+import type { AttendanceStatus, EditGrant, Grid, GrantTeacher, JournalClass, Student } from './types'
 
 export function useClasses() {
   return useQuery({
@@ -134,4 +134,53 @@ export function useSetFinal(classId: number) {
       (await api.post<Grid>(`/journal/classes/${classId}/set-final/`, data)).data,
     onSuccess: (data) => queryClient.setQueryData(['journal', 'grid', classId], data),
   })
+}
+
+// ── Past-day edit permissions (Jurnal → Ruxsatlar) ─────────────────────
+
+export function useGrants(status: '' | 'pending' | 'active' | 'history', enabled = true) {
+  return useQuery({
+    queryKey: ['journal', 'grants', status],
+    queryFn: async () => (await api.get<EditGrant[]>('/journal/grants/', { params: status ? { status } : {} })).data,
+    enabled,
+    refetchInterval: status === 'pending' ? 60_000 : false,
+  })
+}
+
+export function useGrantTeachers(enabled: boolean) {
+  return useQuery({
+    queryKey: ['journal', 'grant-teachers'],
+    queryFn: async () => (await api.get<GrantTeacher[]>('/journal/grants/teachers/')).data,
+    enabled,
+  })
+}
+
+function useGrantMutation<T>(fn: (data: T) => Promise<unknown>) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['journal', 'grants'] })
+      queryClient.invalidateQueries({ queryKey: ['journal', 'grid'] })
+    },
+  })
+}
+
+/** Teacher: ask to reopen one closed day. */
+export function useRequestGrant() {
+  return useGrantMutation(async (data: { journal_class: number; date: string; reason: string }) =>
+    (await api.post<EditGrant>('/journal/grants/', data)).data)
+}
+
+/** Administrator: open days directly. */
+export function useCreateGrant() {
+  return useGrantMutation(async (data: {
+    teacher: string; journal_class: number | null; date_from: string; date_to: string; hours: number; note: string
+  }) => (await api.post<EditGrant>('/journal/grants/', data)).data)
+}
+
+export function useDecideGrant() {
+  return useGrantMutation(async ({ id, action, hours, note }: {
+    id: number; action: 'approve' | 'reject' | 'revoke'; hours?: number; note?: string
+  }) => (await api.post<EditGrant>(`/journal/grants/${id}/${action}/`, { hours, note })).data)
 }

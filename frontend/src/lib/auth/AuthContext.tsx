@@ -1,8 +1,26 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
-import { api, refreshAccessToken, setAccessToken } from '@/lib/api/client'
+import { api, refreshAccessToken, SESSION_ENDED_EVENT, setAccessToken } from '@/lib/api/client'
 import type { User } from '@/lib/api/types'
 import { clearHistory } from '@/lib/history'
+
+import { IDLE_LIMIT_MS, IDLE_WARN_MS, idleMs, markActive } from './idle'
+
+/** Why the app signed the user out — shown once on the login page. */
+export const LOGOUT_REASON_KEY = 'af-logout-reason'
+const REASONS = ['idle', 'expired', 'revoked']
+
+function noteReason(code: string) {
+  if (!REASONS.includes(code)) return
+  try {
+    sessionStorage.setItem(LOGOUT_REASON_KEY, code)
+  } catch {
+    // storage blocked — the login page just won't say why
+  }
+}
+
+const ACTIVITY_EVENTS = ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart', 'scroll'] as const
 
 // renamedLogin: signed in with a login that has since been regenerated —
 // the new one, to show the student (the old one still works meanwhile).
@@ -25,8 +43,10 @@ interface AuthState {
 const AuthContext = createContext<AuthState | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { t } = useTranslation()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [idleLeft, setIdleLeft] = useState<number | null>(null)
 
   const refreshMe = useCallback(async () => {
     const res = await api.get<User>('/accounts/me/')
@@ -68,9 +88,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [userId])
 
+  // The server ended the session on a refresh (24 hours passed, idle, or
+  // signed out elsewhere) — drop to the login page, which says why.
+  useEffect(() => {
+    const onEnded = (e: Event) => {
+      noteReason(String((e as CustomEvent<string>).detail ?? ''))
+      setAccessToken(null)
+      setUser(null)
+      setIdleLeft(null)
+      clearHistory()
+    }
+    window.addEventListener(SESSION_ENDED_EVENT, onEnded)
+    return () => window.removeEventListener(SESSION_ENDED_EVENT, onEnded)
+  }, [])
+
+  // 30 minutes without touching the screen → signed out. The countdown
+  // warning shows for the last two minutes; any movement cancels it.
+  useEffect(() => {
+    if (!userId) return
+    markActive(true)
+    const onActivity = () => markActive()
+    for (const ev of ACTIVITY_EVENTS) window.addEventListener(ev, onActivity, { passive: true, capture: true })
+    let ending = false
+    const check = () => {
+      const idle = idleMs()
+      if (idle >= IDLE_LIMIT_MS) {
+        if (ending) return
+        ending = true
+        noteReason('idle')
+        void api.post('/auth/logout/').catch(() => {}).finally(() => {
+          setAccessToken(null)
+          setUser(null)
+          setIdleLeft(null)
+          clearHistory()
+        })
+        return
+      }
+      setIdleLeft(idle >= IDLE_LIMIT_MS - IDLE_WARN_MS ? Math.ceil((IDLE_LIMIT_MS - idle) / 1000) : null)
+    }
+    const id = setInterval(check, 1000)
+    document.addEventListener('visibilitychange', check)
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', check)
+      for (const ev of ACTIVITY_EVENTS) window.removeEventListener(ev, onActivity, { capture: true })
+    }
+  }, [userId])
+
   const login = useCallback(async (loginName: string, password: string, remember = true): Promise<LoginResult> => {
     const res = await api.post('/auth/login/', { login: loginName, password, remember })
     if (res.data.totp_required) return { totpRequired: true, challenge: res.data.challenge }
+    markActive(true)
     setAccessToken(res.data.access)
     setUser(res.data.user)
     return { totpRequired: false, user: res.data.user, renamedLogin: res.data.renamed_login }
@@ -78,6 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const verifyTotp = useCallback(async (challenge: string, code: string) => {
     const res = await api.post('/auth/2fa/verify/', { challenge, code })
+    markActive(true)
     setAccessToken(res.data.access)
     setUser(res.data.user)
     return res.data.user as User
@@ -96,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const applySession = useCallback((access: string, next: User) => {
+    markActive(true)
     setAccessToken(access)
     setUser(next)
   }, [])
@@ -103,6 +173,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider value={{ user, loading, login, verifyTotp, register, logout, refreshMe, applySession }}>
       {children}
+      {user && idleLeft !== null && (
+        <div className="idlewarn" role="alertdialog" aria-live="assertive">
+          <span className="idlewarn__t">{t("Faollik yo'q")}</span>
+          <span className="idlewarn__b">
+            {t("Xavfsizlik uchun tizimdan chiqasiz:")} <b>{Math.floor(idleLeft / 60)}:{String(idleLeft % 60).padStart(2, '0')}</b>
+          </span>
+          <button type="button" className="btn btn--primary btn--sm" onClick={() => { markActive(true); setIdleLeft(null) }}>
+            {t('Davom etish')}
+          </button>
+        </div>
+      )}
     </AuthContext.Provider>
   )
 }

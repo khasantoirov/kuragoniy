@@ -13,6 +13,7 @@ export const KIND_META: Record<NotifyKind, { label: string; icon: keyof typeof I
   xavfsizlik: { label: 'Kirish va xavfsizlik', icon: 'lock', tone: '#e2465a' },
   dokon: { label: "Do'kon", icon: 'cards', tone: '#f08c2e' },
   jamoa: { label: 'Jamoa', icon: 'users', tone: '#6a73fa' },
+  jurnal: { label: 'Jurnal ruxsatlari', icon: 'book', tone: '#0e9f9a' },
   tizim: { label: 'Tizim', icon: 'info', tone: '#7a8194' },
 }
 
