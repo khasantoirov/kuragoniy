@@ -577,3 +577,6 @@ button.vbook:focus-visible { outline: 2px solid #f3d38b; outline-offset: 3px; }
   .vbook__title { font-size: 9px; -webkit-line-clamp: 3; }
   .vcard { justify-content: center; }
 }
+.vcases { display: grid; gap: 26px; }
+.vcase__no { margin: 0 0 8px; font: 700 13px/1 var(--f-mono, inherit); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.vshelf__fill { padding-top: 0; }

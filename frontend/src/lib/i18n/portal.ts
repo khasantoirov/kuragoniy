@@ -451,6 +451,10 @@ const ru: Record<string, string> = {
   "Format": "Формат",
   "Hajmi": "Размер",
   "Yangilangan": "Обновлено",
+  // Kitob javonlari
+  "javon": "шкаф",
+  "davomi": "продолжение",
+  "Sinfsiz": "Без класса",
 }
 
 const en: Record<string, string> = {
@@ -891,6 +895,10 @@ const en: Record<string, string> = {
   "Format": "Format",
   "Hajmi": "Size",
   "Yangilangan": "Updated",
+  // Kitob javonlari
+  "javon": "bookcase",
+  "davomi": "continued",
+  "Sinfsiz": "No grade",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

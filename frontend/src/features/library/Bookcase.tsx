@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
@@ -69,9 +69,79 @@ function Volume({ item, big, onClick }: { item: LibraryItem; big?: boolean; onCl
   )
 }
 
-/** The library as a bookcase: one shelf per kind (books, guides, videos,
- * links), volumes standing cover-out on wooden planks. Picking a volume
- * opens its card with the actions. */
+// Must match the .vcase sizes in styles/portal.css (wide / ≤560px).
+const SIZES = {
+  wide: { bw: 112, bh: 160, gap: 18, pad: 26, border: 12, frameY: 12 + 14 + 4 + 16 },
+  narrow: { bw: 86, bh: 124, gap: 12, pad: 12, border: 8, frameY: 8 + 12 + 4 + 12 },
+}
+const PLANK = 14
+const TOP_GAP = 30
+const PLATE = 24
+
+type Fit = { perRow: number; rowh: number; capacity: number; height: number }
+
+/** How many volumes stand in a row and how many rows a bookcase that
+ * reaches the bottom of the screen holds. Measured in the page's CSS px:
+ * body has CSS zoom, so viewport rects are divided by it. */
+function useBookcaseFit(ref: React.RefObject<HTMLDivElement | null>) {
+  const [fit, setFit] = useState<Fit | null>(null)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const measure = () => {
+      const sz = window.innerWidth <= 560 ? SIZES.narrow : SIZES.wide
+      const zoom = parseFloat(getComputedStyle(document.body).zoom || '1') || 1
+      const rowh = sz.bh + TOP_GAP + PLANK
+      const booksW = el.clientWidth - 2 * sz.border - 2 * sz.pad
+      const perRow = Math.max(1, Math.floor((booksW + sz.gap) / (sz.bw + sz.gap)))
+      const bottomBar = window.innerWidth <= 760 ? 84 : 24
+      const room = (window.innerHeight - el.getBoundingClientRect().top) / zoom - bottomBar
+      const height = Math.max(sz.frameY + PLATE + rowh, Math.floor(room))
+      setFit({ perRow, rowh, capacity: height - sz.frameY, height })
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    window.addEventListener('resize', measure)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [ref])
+  return fit
+}
+
+type ShelfPart = { kind: LibraryKind; total: number; rows: LibraryItem[][]; cont: boolean }
+type CasePlan = { parts: ShelfPart[]; used: number }
+
+/** Fills bookcases shelf by shelf; when a case is full the rest goes on
+ * the next one ("2-javon"), each case as tall as the screen. */
+function planCases(shelves: { kind: LibraryKind; items: LibraryItem[] }[], fit: Fit): CasePlan[] {
+  const cases: CasePlan[] = [{ parts: [], used: 0 }]
+  for (const s of shelves) {
+    const rows: LibraryItem[][] = []
+    for (let i = 0; i < s.items.length; i += fit.perRow) rows.push(s.items.slice(i, i + fit.perRow))
+    let i = 0
+    while (i < rows.length) {
+      let cur = cases[cases.length - 1]
+      if (cur.used > 0 && cur.used + PLATE + fit.rowh > fit.capacity) {
+        cur = { parts: [], used: 0 }
+        cases.push(cur)
+      }
+      const take = Math.max(1, Math.floor((fit.capacity - cur.used - PLATE) / fit.rowh))
+      cur.parts.push({ kind: s.kind, total: s.items.length, rows: rows.slice(i, i + take), cont: i > 0 })
+      cur.used += PLATE + Math.min(take, rows.length - i) * fit.rowh
+      i += take
+    }
+  }
+  return cases
+}
+
+/** The library as bookcases: one shelf per kind (books, guides, videos,
+ * links), volumes standing cover-out on wooden planks. A case reaches the
+ * bottom of the screen — empty planks fill what's left — and when it's
+ * full the next case ("2-javon") starts below. Picking a volume opens its
+ * card with the actions. */
 export function Bookcase({ items, admin, onEdit, onDelete }: {
   items: LibraryItem[]
   admin: boolean
@@ -80,25 +150,40 @@ export function Bookcase({ items, admin, onEdit, onDelete }: {
 }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState<LibraryItem | null>(null)
+  const wrap = useRef<HTMLDivElement>(null)
+  const fit = useBookcaseFit(wrap)
   const shelves = KINDS.map((kind) => ({
     kind,
     items: items.filter((x) => x.kind === kind).sort((a, b) => (a.grade ?? 99) - (b.grade ?? 99) || a.title.localeCompare(b.title)),
   })).filter((s) => s.items.length)
+  const cases = fit ? planCases(shelves, fit) : []
 
   return (
     <>
-      <div className="vcase">
-        {shelves.map((s) => (
-          <section key={s.kind} className="vshelf" aria-label={t(SHELF_TITLES[s.kind])}>
-            <span className="vshelf__plate">{t(SHELF_TITLES[s.kind])} · {s.items.length}</span>
-            <div className="vshelf__books">
-              {s.items.map((item) => (
-                <div key={item.id} className="vslot">
-                  <Volume item={item} onClick={() => setOpen(item)} />
-                </div>
+      <div ref={wrap} className="vcases">
+        {fit && cases.map((c, ci) => (
+          <div key={ci}>
+            {cases.length > 1 && <p className="vcase__no">{ci + 1}-{t('javon')}</p>}
+            <div className="vcase" style={{ minHeight: fit.height }}>
+              {c.parts.map((part) => (
+                <section key={`${part.kind}-${part.cont}`} className="vshelf" aria-label={t(SHELF_TITLES[part.kind])}>
+                  <span className="vshelf__plate">
+                    {t(SHELF_TITLES[part.kind])} · {part.total}{part.cont ? ` (${t('davomi')})` : ''}
+                  </span>
+                  <div className="vshelf__books">
+                    {part.rows.flat().map((item) => (
+                      <div key={item.id} className="vslot">
+                        <Volume item={item} onClick={() => setOpen(item)} />
+                      </div>
+                    ))}
+                  </div>
+                </section>
               ))}
+              {fit.capacity - c.used >= fit.rowh && (
+                <div className="vshelf__books vshelf__fill" style={{ height: Math.floor((fit.capacity - c.used) / fit.rowh) * fit.rowh }} aria-hidden="true" />
+              )}
             </div>
-          </section>
+          </div>
         ))}
       </div>
       {open && (

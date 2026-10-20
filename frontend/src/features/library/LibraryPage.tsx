@@ -120,9 +120,9 @@ function LibraryEditor({ item, onClose }: { item: LibraryItem | null; onClose: (
           </select>
         </label>
         <label className="field">
-          <span className="field__label">{t('Sinf')} <span className="field__opt">({t('ixtiyoriy')})</span></span>
+          <span className="field__label">{t('Sinf')}</span>
           <select className="input" value={draft.grade ?? ''} onChange={(e) => setDraft({ ...draft, grade: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">—</option>
+            <option value="">{t('Sinfsiz')}</option>
             {LIBRARY_GRADES.map((g) => (
               <option key={g} value={g}>{libraryGradeLabel(g, lang)}</option>
             ))}
