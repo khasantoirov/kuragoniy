@@ -29,17 +29,17 @@ export function MetricPill({ value, good, fair, suffix = '%', digits = 0 }: {
 }
 
 export const METRIC_HELP =
-  "O'zlashtirish — o'rtacha bahosi 2,5 va undan yuqori (ya'ni «3» va yuqori) o'quvchilar ulushi. " +
-  "Sifat — o'rtacha bahosi 3,5 va undan yuqori («4»–«5»). " +
-  "Davomat — (sababli + sababsiz) qoldirilgan darslardan tashqari qatnashuv; kechikish alohida sanaladi."
+  "O'zlashtirish — o'rtacha bahosi 3,5 va undan yuqori («4»–«5») o'quvchilar ulushi. " +
+  "Davomat — (sababli + sababsiz) qoldirilgan darslardan tashqari qatnashuv; kechikish alohida sanaladi. " +
+  "Sifat — baho va davomatning umumlashmasi: o'zlashtirish va davomat foizlarining o'rtachasi."
 
 /** The four journal metric cells shared by every table on these pages. */
 export function MetricCells({ m }: { m: Metrics }) {
   return (
     <>
       <td><MetricPill value={m.avg_mark} good={4} fair={3} suffix="" digits={2} /></td>
-      <td><MetricPill value={m.uzlashtirish} good={90} fair={70} /></td>
-      <td><MetricPill value={m.sifat} good={60} fair={40} /></td>
+      <td><MetricPill value={m.uzlashtirish} good={60} fair={40} /></td>
+      <td><MetricPill value={m.sifat} good={75} fair={55} /></td>
       <td><MetricPill value={m.attendance} good={95} fair={85} /></td>
     </>
   )

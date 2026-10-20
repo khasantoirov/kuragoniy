@@ -8,5 +8,8 @@ export function computeStats(grid: Pick<Grid, 'students'>, days: Grid['days']) {
   })
   const all = perStudent.filter((s) => s.avg !== null) as { avg: number; n: number }[]
   const classAvg = all.length ? all.reduce((a, b) => a + b.avg, 0) / all.length : null
-  return { perStudent, classAvg, pct: classAvg === null ? null : Math.round((classAvg / 5) * 100) }
+  // O'zlashtirish: share of pupils averaging 3.5 or more («4»–«5») — the
+  // same definition as the statistics pages (backend schools/stats.py).
+  const pct = all.length ? Math.round((100 * all.filter((s) => s.avg >= 3.5).length) / all.length) : null
+  return { perStudent, classAvg, pct }
 }

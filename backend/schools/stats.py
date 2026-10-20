@@ -2,13 +2,13 @@
 
 Definitions (shown to users as written here):
   O'rtacha baho  — mean of all marks in the period.
-  O'zlashtirish  — share of graded students whose average mark is >= 2.5,
-                   i.e. would round to "3" or better.
-  Sifat          — share of graded students whose average is >= 3.5
+  O'zlashtirish  — share of graded students whose average mark is >= 3.5
                    (rounds to "4" or "5").
   Davomat        — 1 - (sababli + sababsiz absences) / (students x lesson
                    days). Late ("kech") is counted separately, not as an
                    absence.
+  Sifat          — marks and attendance together: the mean of
+                   O'zlashtirish and Davomat.
 
 Everything is computed with a handful of grouped queries and pooled from
 raw sums, so a school's figure is the true figure over all its pupils, not
@@ -96,14 +96,18 @@ def derive(raw: dict) -> dict:
         return round(100 * a / b, 1) if b else None
 
     absences = raw['abs_s'] + raw['abs_n']
+    mastery = pct(raw['quality'], raw['graded'])
+    attendance = round(100 - 100 * absences / raw['student_days'], 1) if raw['student_days'] else None
+    quality = (round((mastery + attendance) / 2 + 1e-9, 1)
+               if mastery is not None and attendance is not None else None)
     return {
         'students': raw['students'],
         'days': raw['days'],
         'marks': raw['marks_n'],
         'avg_mark': round(raw['marks_sum'] / raw['marks_n'], 2) if raw['marks_n'] else None,
-        'uzlashtirish': pct(raw['passing'], raw['graded']),
-        'sifat': pct(raw['quality'], raw['graded']),
-        'attendance': round(100 - 100 * absences / raw['student_days'], 1) if raw['student_days'] else None,
+        'uzlashtirish': mastery,
+        'sifat': quality,
+        'attendance': attendance,
         'abs_s': raw['abs_s'],
         'abs_n': raw['abs_n'],
         'late': raw['late'],

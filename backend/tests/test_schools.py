@@ -104,9 +104,10 @@ def test_stats_formulas(as_user, admin, teacher):
     row = next(r for r in data["schools"] if r["id"] == school.id)
     assert row["students"] == 4 and row["days"] == 2
     assert row["avg_mark"] == round((5 + 4 + 4 + 2 + 4 + 2) / 6, 2)
-    assert row["uzlashtirish"] == 75.0
-    assert row["sifat"] == 50.0
+    # O'zlashtirish: averages >= 3.5 (2 of 4); Sifat: (50 + 62.5) / 2.
+    assert row["uzlashtirish"] == 50.0
     assert row["attendance"] == 62.5
+    assert row["sifat"] == 56.3
     assert (row["abs_s"], row["abs_n"], row["late"]) == (1, 2, 1)
     assert {t["month"] for t in data["trend"]} == {"2026-09", "2026-10"}
 
@@ -116,7 +117,7 @@ def test_school_detail_stats_and_attention(as_user, admin, teacher):
     _class_with_data(teacher, school)
     data = as_user(admin).get(f"/api/schools/stats/school/{school.id}/").data
     assert data["teachers"][0]["name"] == teacher.name
-    assert data["classes"][0]["uzlashtirish"] == 75.0
+    assert data["classes"][0]["uzlashtirish"] == 50.0
     flagged = {r["name"]: r for r in data["attention"]}
     assert "O'quvchi 3" in flagged and "low_mark" in flagged["O'quvchi 3"]["reasons"]
 
