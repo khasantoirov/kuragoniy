@@ -11,10 +11,10 @@ class LibraryItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LibraryItem
-        fields = ['id', 'title', 'url', 'file', 'file_name', 'file_size', 'kind', 'grade', 'note', 'updated_at']
-        # `file` is written only via LibraryItemViewSet.upload_file (a
-        # dedicated multipart action).
-        read_only_fields = ['updated_at', 'file', 'file_name', 'file_size']
+        fields = ['id', 'title', 'url', 'file', 'file_name', 'file_size', 'cover', 'kind', 'grade', 'note', 'updated_at']
+        # `file` and `cover` are written only via LibraryItemViewSet's
+        # upload-file / upload-cover (dedicated multipart actions).
+        read_only_fields = ['updated_at', 'file', 'file_name', 'file_size', 'cover']
 
     def get_file_name(self, obj):
         return os.path.basename(obj.file.name) if obj.file else None

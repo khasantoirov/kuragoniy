@@ -15,6 +15,9 @@ class LibraryItem(models.Model):
     # expected to be set, enforced by the frontend form per kind.
     url = models.URLField(blank=True)
     file = models.FileField(upload_to='library-files/', null=True, blank=True)
+    # Front cover shown on the bookcase, for any kind (see
+    # LibraryItemViewSet.upload_cover). The client sends it already shrunk.
+    cover = models.FileField(upload_to='library-covers/', null=True, blank=True)
     kind = models.CharField(max_length=10, choices=Kind.choices)
     grade = models.PositiveSmallIntegerField(null=True, blank=True)
     note = models.TextField(blank=True)

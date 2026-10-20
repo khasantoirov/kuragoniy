@@ -459,6 +459,15 @@ const ru: Record<string, string> = {
   "Kichraytirish": "Уменьшить",
   "Ekranga moslash": "По ширине экрана",
   "Masshtab": "Масштаб",
+  // Kutubxona muqovalari
+  "Muqova": "Обложка",
+  "Rasm tanlash": "Выбрать изображение",
+  "PDF 1-sahifasidan": "С 1-й страницы PDF",
+  "Olib tashlash": "Убрать",
+  "Muqova tayyorlanmoqda…": "Готовится обложка…",
+  "Kitob yuzidagi rasm — JPG, PNG yoki WEBP. Javonda material shu muqova bilan turadi.": "Изображение на лицевой стороне — JPG, PNG или WEBP. На полке материал стоит с этой обложкой.",
+  "PDF'dan muqova olib bo'lmadi": "Не удалось получить обложку из PDF",
+  "Rasmni o'qib bo'lmadi": "Не удалось прочитать изображение",
 }
 
 const en: Record<string, string> = {
@@ -907,6 +916,15 @@ const en: Record<string, string> = {
   "Kichraytirish": "Zoom out",
   "Ekranga moslash": "Fit to screen",
   "Masshtab": "Zoom",
+  // Kutubxona muqovalari
+  "Muqova": "Cover",
+  "Rasm tanlash": "Choose image",
+  "PDF 1-sahifasidan": "From PDF page 1",
+  "Olib tashlash": "Remove",
+  "Muqova tayyorlanmoqda…": "Preparing the cover…",
+  "Kitob yuzidagi rasm — JPG, PNG yoki WEBP. Javonda material shu muqova bilan turadi.": "The front picture — JPG, PNG or WEBP. The item stands on the shelf with this cover.",
+  "PDF'dan muqova olib bo'lmadi": "Couldn't take a cover from the PDF",
+  "Rasmni o'qib bo'lmadi": "Couldn't read the image",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

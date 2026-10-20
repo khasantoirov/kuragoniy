@@ -43,6 +43,26 @@ export function useRemoveLibraryFile() {
   })
 }
 
+export function useUploadLibraryCover() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, cover }: { id: number; cover: File }) => {
+      const form = new FormData()
+      form.append('cover', cover)
+      return (await api.post<LibraryItem>(`/library/${id}/upload-cover/`, form)).data
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['library'] }),
+  })
+}
+
+export function useRemoveLibraryCover() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: number) => (await api.post<LibraryItem>(`/library/${id}/remove-cover/`)).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['library'] }),
+  })
+}
+
 export function useDeleteLibraryItem() {
   const queryClient = useQueryClient()
   return useMutation({

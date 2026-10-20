@@ -17,11 +17,12 @@ export type { PDFDocumentProxy }
  * half-destroyed if the reader closes and reopens quickly. The worker is
  * bundled by Vite as a plain .js asset — nginx may not know the .mjs MIME
  * type, and module workers refuse anything that isn't JavaScript. */
-export function openPdf(url: string, onProgress: (fraction: number) => void) {
+export function openPdf(src: string | Uint8Array, onProgress: (fraction: number) => void) {
   const port = new Worker(new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url), { type: 'module' })
   // pdf.js 4.10's generated typings declare `port` as null-only; a Worker is what it takes.
   const worker = new pdfjs.PDFWorker({ port } as unknown as ConstructorParameters<typeof pdfjs.PDFWorker>[0])
-  const task = pdfjs.getDocument({ url, worker, isEvalSupported: false, disableAutoFetch: true, rangeChunkSize: 262144 })
+  const source = typeof src === 'string' ? { url: src, disableAutoFetch: true, rangeChunkSize: 262144 } : { data: src }
+  const task = pdfjs.getDocument({ ...source, worker, isEvalSupported: false })
   task.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
     if (total) onProgress(Math.min(1, loaded / total))
   }

@@ -13,6 +13,8 @@ from .serializers import LibraryItemSerializer
 
 LIBRARY_FILE_EXTENSIONS = ('.pdf', '.doc', '.docx', '.epub', '.jpg', '.jpeg', '.png', '.webp')
 LIBRARY_FILE_MAX_MB = 150
+COVER_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.webp')
+COVER_MAX_MB = 5
 
 LIBRARY_AUDIT_FIELDS = ['title', 'url', 'kind', 'grade', 'note']
 LIBRARY_AUDIT_LABELS = {
@@ -53,6 +55,7 @@ class LibraryItemViewSet(viewsets.ModelViewSet):
             if v:
                 lines.append(f"• {LIBRARY_AUDIT_LABELS[f]}: {v}")
         delete_file_field(instance, 'file')
+        delete_file_field(instance, 'cover')
         instance.delete()
         notify_admin_action(self.request.user, '\n'.join(lines))
 
@@ -80,4 +83,26 @@ class LibraryItemViewSet(viewsets.ModelViewSet):
         item.file = None
         item.save(update_fields=['file'])
         notify_admin_action(request.user, f"Kutubxona faylini o'chirdi: «{item.title}»")
+        return Response(LibraryItemSerializer(item, context={'request': request}).data)
+
+    @action(detail=True, methods=['post'], url_path='upload-cover', parser_classes=[MultiPartParser, FormParser])
+    def upload_cover(self, request, pk=None):
+        item = self.get_object()
+        f = request.FILES.get('cover')
+        if not f:
+            return Response({'detail': 'cover required'}, status=400)
+        validate_upload(f, COVER_EXTENSIONS, COVER_MAX_MB)
+        delete_file_field(item, 'cover')
+        item.cover = f
+        item.save(update_fields=['cover'])
+        notify_admin_action(request.user, f"Kutubxona materialiga muqova qo'ydi: «{item.title}»")
+        return Response(LibraryItemSerializer(item, context={'request': request}).data)
+
+    @action(detail=True, methods=['post'], url_path='remove-cover')
+    def remove_cover(self, request, pk=None):
+        item = self.get_object()
+        delete_file_field(item, 'cover')
+        item.cover = None
+        item.save(update_fields=['cover'])
+        notify_admin_action(request.user, f"Kutubxona materiali muqovasini o'chirdi: «{item.title}»")
         return Response(LibraryItemSerializer(item, context={'request': request}).data)

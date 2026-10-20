@@ -171,3 +171,78 @@ def test_deleting_library_item_removes_its_file_from_storage(as_user, admin):
     resp = as_user(admin).delete(f"/api/library/{item.id}/")
     assert resp.status_code == 204
     assert not field.storage.exists(field.name)
+
+
+# ── Library covers ──────────────────────────────────────────
+
+def jpg(name="cover.jpg", size=200):
+    return SimpleUploadedFile(name, b"\xff\xd8\xff\xe0" + b"0" * size, content_type="image/jpeg")
+
+
+def test_admin_can_put_a_cover_on_any_kind(as_user, admin):
+    """Covers aren't limited to books: video and havola items get one too."""
+    for kind in ("kitob", "qollanma", "video", "havola"):
+        item = make_library_item(kind=kind)
+        resp = as_user(admin).post(f"/api/library/{item.id}/upload-cover/", {"cover": jpg()}, format="multipart")
+        assert resp.status_code == 200, kind
+        assert resp.data["cover"]
+        item.refresh_from_db()
+        assert item.cover.name.startswith("library-covers/")
+        assert not item.file
+
+
+def test_teacher_cannot_upload_cover(as_user, teacher):
+    item = make_library_item()
+    resp = as_user(teacher).post(f"/api/library/{item.id}/upload-cover/", {"cover": jpg()}, format="multipart")
+    assert resp.status_code == 403
+
+
+def test_cover_must_be_a_real_image(as_user, admin):
+    item = make_library_item()
+    for bad in (pdf("cover.pdf"), SimpleUploadedFile("cover.png", b"<svg onload=alert(1)>", content_type="image/png")):
+        resp = as_user(admin).post(f"/api/library/{item.id}/upload-cover/", {"cover": bad}, format="multipart")
+        assert resp.status_code == 400
+    item.refresh_from_db()
+    assert not item.cover
+
+
+def test_cover_over_5mb_is_rejected(as_user, admin):
+    item = make_library_item()
+    resp = as_user(admin).post(f"/api/library/{item.id}/upload-cover/", {"cover": jpg(size=5 * 1024 * 1024 + 1)}, format="multipart")
+    assert resp.status_code == 400
+
+
+def test_replacing_and_removing_a_cover_frees_storage(as_user, admin):
+    item = make_library_item()
+    client = as_user(admin)
+    client.post(f"/api/library/{item.id}/upload-cover/", {"cover": jpg()}, format="multipart")
+    item.refresh_from_db()
+    first = item.cover
+    assert first.storage.exists(first.name)
+
+    client.post(f"/api/library/{item.id}/upload-cover/", {"cover": jpg("second.jpg")}, format="multipart")
+    item.refresh_from_db()
+    assert not first.storage.exists(first.name)
+    second = item.cover
+
+    resp = client.post(f"/api/library/{item.id}/remove-cover/")
+    assert resp.status_code == 200 and resp.data["cover"] is None
+    assert not second.storage.exists(second.name)
+
+
+def test_cover_is_not_writable_through_a_plain_update(as_user, admin):
+    item = make_library_item()
+    resp = as_user(admin).patch(f"/api/library/{item.id}/", {"cover": "library-covers/../../etc/passwd"}, format="json")
+    assert resp.status_code == 200
+    item.refresh_from_db()
+    assert not item.cover
+
+
+def test_deleting_library_item_removes_its_cover_from_storage(as_user, admin):
+    item = make_library_item(kind="video")
+    as_user(admin).post(f"/api/library/{item.id}/upload-cover/", {"cover": jpg()}, format="multipart")
+    item.refresh_from_db()
+    field = item.cover
+    assert field.storage.exists(field.name)
+    assert as_user(admin).delete(f"/api/library/{item.id}/").status_code == 204
+    assert not field.storage.exists(field.name)

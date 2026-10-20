@@ -7,6 +7,7 @@ export interface LibraryItem {
   file: string | null
   file_name: string | null
   file_size: number | null
+  cover: string | null
   kind: LibraryKind
   grade: number | null
   note: string

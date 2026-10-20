@@ -12,8 +12,14 @@ import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { record } from '@/lib/history'
 import { useUIStore, type Lang } from '@/store/uiStore'
 
-import { useDeleteLibraryItem, useLibraryItems, useRemoveLibraryFile, useSaveLibraryItem, useUploadLibraryFile } from './api'
+import {
+  useDeleteLibraryItem, useLibraryItems, useRemoveLibraryCover, useRemoveLibraryFile, useSaveLibraryItem, useUploadLibraryCover,
+  useUploadLibraryFile,
+} from './api'
 import { Bookcase } from './Bookcase'
+import { fileToDataUrl, mediaSrc, shrinkImage } from './cover'
+import { CoverField } from './CoverField'
+import { pdfSource } from './reader/source'
 import { KIND_ICONS, KIND_LABELS, KINDS, type LibraryItem, type LibraryKind, UPLOADABLE_KINDS } from './types'
 
 const LIBRARY_FILE_ACCEPT = '.pdf,.doc,.docx,.epub,.jpg,.jpeg,.png,.webp'
@@ -42,10 +48,54 @@ function LibraryEditor({ item, onClose }: { item: LibraryItem | null; onClose: (
   const del = useDeleteLibraryItem()
   const upload = useUploadLibraryFile()
   const removeFile = useRemoveLibraryFile()
+  const uploadCover = useUploadLibraryCover()
+  const removeCover = useRemoveLibraryCover()
   const toast = useToast()
+  // Cover: a picked/generated file waiting for Save, or the current one removed.
+  const [cover, setCover] = useState<{ file: File | null; preview: string | null; removed: boolean }>({ file: null, preview: null, removed: false })
+  const [coverBusy, setCoverBusy] = useState(false)
+  const applyCover = async (file: File) => setCover({ file, preview: await fileToDataUrl(file), removed: false })
 
   const canUpload = UPLOADABLE_KINDS.includes(draft.kind as LibraryKind)
   const effectiveMode = canUpload ? fileMode : 'url'
+  const coverPreview = cover.preview ?? (cover.removed ? null : mediaSrc(item?.cover))
+  // Where a first-page cover can come from: the PDF being uploaded, the
+  // uploaded one, or a PDF link on this site.
+  const pdfFrom: string | File | null = (() => {
+    if (effectiveMode === 'url') return pdfSource({ file: null, url: (draft.url ?? '').trim() })
+    if (pendingFile) return /\.pdf$/i.test(pendingFile.name) ? pendingFile : null
+    return item ? pdfSource({ file: item.file, url: '' }) : null
+  })()
+
+  const coverFromPdf = async (src: string | File, quiet = false) => {
+    setCoverBusy(true)
+    try {
+      const { pdfCover } = await import('./reader/cover')
+      await applyCover(await pdfCover(src))
+    } catch {
+      if (!quiet) toast(t("PDF'dan muqova olib bo'lmadi"), 'error')
+    } finally {
+      setCoverBusy(false)
+    }
+  }
+
+  const coverFromImage = async (f: File) => {
+    setCoverBusy(true)
+    try {
+      await applyCover(await shrinkImage(f))
+    } catch {
+      toast(t("Rasmni o'qib bo'lmadi"), 'error')
+    } finally {
+      setCoverBusy(false)
+    }
+  }
+
+  // A new PDF with no cover yet gets its first page as one (shown before
+  // saving, so it can still be replaced or removed).
+  const pickFile = (f: File | null) => {
+    setPendingFile(f)
+    if (f && /\.pdf$/i.test(f.name) && !cover.file && (cover.removed || !item?.cover)) void coverFromPdf(f, true)
+  }
 
   const submit = async () => {
     const title = (draft.title ?? '').trim()
@@ -66,6 +116,8 @@ function LibraryEditor({ item, onClose }: { item: LibraryItem | null; onClose: (
       if (effectiveMode === 'file' && pendingFile) {
         await upload.mutateAsync({ id: saved.id, file: pendingFile })
       }
+      if (cover.file) await uploadCover.mutateAsync({ id: saved.id, cover: cover.file })
+      else if (cover.removed && item?.cover) await removeCover.mutateAsync(item.id)
       if (item) {
         record(
           t('Material tahrirlandi'),
@@ -98,7 +150,7 @@ function LibraryEditor({ item, onClose }: { item: LibraryItem | null; onClose: (
       footer={
         <>
           <button className="btn" onClick={onClose}>{t('Bekor qilish')}</button>
-          <button className="btn btn--primary" onClick={submit} disabled={save.isPending}>{t('Saqlash')}</button>
+          <button className="btn btn--primary" onClick={submit} disabled={save.isPending || upload.isPending || uploadCover.isPending || coverBusy}>{t('Saqlash')}</button>
         </>
       }
     >
@@ -174,12 +226,21 @@ function LibraryEditor({ item, onClose }: { item: LibraryItem | null; onClose: (
               className="input"
               type="file"
               accept={LIBRARY_FILE_ACCEPT}
-              onChange={(e) => setPendingFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
             />
             {pendingFile && <span className="field__opt">{pendingFile.name}</span>}
           </>
         )}
       </div>
+
+      <CoverField
+        preview={coverPreview}
+        busy={coverBusy}
+        canFromPdf={!!pdfFrom}
+        onImage={coverFromImage}
+        onPdf={() => pdfFrom && coverFromPdf(pdfFrom)}
+        onRemove={() => setCover({ file: null, preview: null, removed: true })}
+      />
 
       <label className="field">
         <span className="field__label">{t('Izoh')} <span className="field__opt">({t('ixtiyoriy')})</span></span>

@@ -6,6 +6,7 @@ import { Modal } from '@/components/Modal'
 import { IC } from '@/icons'
 import { useUIStore, type Lang } from '@/store/uiStore'
 
+import { mediaSrc } from './cover'
 import { pdfSource } from './reader/source'
 import { KIND_LABELS, KINDS, type LibraryItem, type LibraryKind } from './types'
 
@@ -46,26 +47,35 @@ function downloadFilename(item: LibraryItem): string {
   return ext ? `${item.title}.${ext}` : item.title
 }
 
-/** One volume standing on the shelf: its cover, spine and page edges. */
+/** One volume standing on the shelf: its cover, spine and page edges.
+ * With an uploaded cover picture that is the face; otherwise a coloured
+ * cover with the grade (or kind icon) and the title. */
 function Volume({ item, big, onClick }: { item: LibraryItem; big?: boolean; onClick?: () => void }) {
   const { t } = useTranslation()
   const ext = fileExt(item.file_name)
   const tag = ext || t(KIND_LABELS[item.kind])
+  const cover = mediaSrc(item.cover)
   const body = (
     <>
+      {cover && <img className="vbook__img" src={cover} alt="" loading="lazy" draggable={false} />}
       <span className="vbook__tag">{tag}</span>
       {pdfSource(item) && <span className="vbook__ribbon" aria-hidden="true" />}
-      {item.grade ? <span className="vbook__num">{item.grade}</span> : <span className="vbook__ic">{item.kind === 'video' ? IC.play : item.kind === 'havola' ? IC.external : IC.book}</span>}
-      <span className="vbook__title">{item.title}</span>
+      {!cover && (
+        <>
+          {item.grade ? <span className="vbook__num">{item.grade}</span> : <span className="vbook__ic">{item.kind === 'video' ? IC.play : item.kind === 'havola' ? IC.external : IC.book}</span>}
+          <span className="vbook__title">{item.title}</span>
+        </>
+      )}
     </>
   )
   const style = { background: COVERS[item.id % COVERS.length] }
+  const cls = `vbook ${big ? 'vbook--big' : ''} ${cover ? 'vbook--cover' : ''}`
   return onClick ? (
-    <button type="button" className={`vbook ${big ? 'vbook--big' : ''}`} style={style} onClick={onClick} title={item.title} aria-label={item.title}>
+    <button type="button" className={cls} style={style} onClick={onClick} title={item.title} aria-label={item.title}>
       {body}
     </button>
   ) : (
-    <span className={`vbook ${big ? 'vbook--big' : ''}`} style={style} aria-hidden="true">{body}</span>
+    <span className={cls} style={style} aria-hidden="true">{body}</span>
   )
 }
 
