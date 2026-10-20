@@ -5,8 +5,7 @@ import { IC } from '@/icons'
 import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
 import { useVisibleNavItems } from '@/layouts/navItems'
 import { NavRail, type RailItem } from '@/layouts/NavRail'
-import { NAV_STYLES } from '@/layouts/navStyles'
-import { MAX_NAV_ITEMS, useUIStore, type Lang, type NavDock, type ThemeMode } from '@/store/uiStore'
+import { MAX_NAV_ITEMS, useUIStore, type Lang, type ThemeMode } from '@/store/uiStore'
 
 const LANGS: { k: Lang; label: string }[] = [
   { k: 'uz', label: "O'zbekcha" },
@@ -18,11 +17,6 @@ const THEMES: { k: ThemeMode; label: string; sub?: string }[] = [
   { k: 'system', label: "Tizim bo'yicha", sub: 'Qurilma sozlamasiga ergashadi' },
   { k: 'light', label: 'Och' },
   { k: 'dark', label: "Qorong'i" },
-]
-
-const DOCKS: { k: NavDock; label: string; sub: string }[] = [
-  { k: 'float', label: 'Suzuvchi panel', sub: 'Ekran pastida qalqib turadi' },
-  { k: 'full', label: "To'liq panel", sub: 'Ekran pastiga yopishadi' },
 ]
 
 function Choice({ on, onClick, title, sub }: { on: boolean; onClick: () => void; title: string; sub?: string }) {
@@ -49,7 +43,7 @@ export function AppearancePage() {
     s.setNavItems(next)
   }
 
-  const previewItems: RailItem[] = [...chosen.map((p) => byPath.get(p)!), { to: '/settings', label: 'Sozlamalar', icon: 'gear' as const }]
+  const previewItems: RailItem[] = [...chosen.map((p) => byPath.get(p)!), { to: '#menu', label: 'Menyu', icon: 'menu' as const }]
     .map((it) => ({ to: it.to, icon: IC[it.icon], label: t(it.label) }))
 
   return (
@@ -89,27 +83,13 @@ export function AppearancePage() {
       )}
 
       <section className="panel">
-        <h3 className="panel__title">{t("Pastki navbar ko'rinishi")}</h3>
-        <p className="prose prose--note">{t('Faqat telefonda ko\'rinadi')}</p>
-        <div className="choices choices--2">
-          {DOCKS.map((x) => (
-            <Choice key={x.k} on={s.navDock === x.k} onClick={() => s.setNavDock(x.k)} title={t(x.label)} sub={t(x.sub)} />
-          ))}
-        </div>
-        <label className="check setcheck">
-          <input type="checkbox" checked={s.navLabels} onChange={(e) => s.setNavLabels(e.target.checked)} />
-          <span>{t("Ikonka tagida bo'lim nomi ko'rinsin")}</span>
-        </label>
-        <div className={`navpreview bottomnav--${s.navDock} ${s.navLabels ? '' : 'bottomnav--nolabels'}`}>
-          <NavRail items={previewItems} activeTo={previewItems[0]?.to ?? ''} styleKey={s.navStyle} interactive={false} />
-        </div>
-      </section>
-
-      <section className="panel">
         <h3 className="panel__title">{t("Pastki navbar bo'limlari")}</h3>
         <p className="prose prose--note">
-          {t("Eng ko'pi 4 ta bo'lim. Tartibni o'zgartirish uchun o'qlardan foydalaning. «Sozlamalar» doim oxirida turadi.")}
+          {t("Telefonda ekran pastida turadi. Eng ko'pi 4 ta bo'lim; tartibni o'qlar bilan o'zgartirasiz. Oxirida doim «Menyu» turadi — u yon tomondan barcha bo'limlarni ochadi.")}
         </p>
+        <div className="navpreview">
+          <NavRail items={previewItems} activeTo={previewItems[0]?.to ?? ''} interactive={false} />
+        </div>
         <ol className="navpick">
           {chosen.map((p, i) => {
             const it = byPath.get(p)!
@@ -142,23 +122,6 @@ export function AppearancePage() {
             </div>
           </>
         )}
-      </section>
-
-      <section className="panel">
-        <h3 className="panel__title">{t('Pastki navigatsiya uslubi')}</h3>
-        <p className="prose prose--note">{t("Tugmalar pastki navigatsiya panelida qanday ko'rinishini tanlang.")}</p>
-        <div className="navstyle-grid">
-          {NAV_STYLES.map((x) => (
-            <button key={x.key} type="button" className={`navstyle-card ${x.key === s.navStyle ? 'is-on' : ''}`} onClick={() => s.setNavStyle(x.key)}>
-              <span className="navstyle-card__preview">
-                <NavRail items={previewItems} activeTo={previewItems[0]?.to ?? ''} styleKey={x.key} interactive={false} />
-              </span>
-              <span className="navstyle-card__name">{x.label}</span>
-              <span className="navstyle-card__desc">{t(x.desc)}</span>
-              {x.key === s.navStyle && <span className="navstyle-card__check">{IC.check2}</span>}
-            </button>
-          ))}
-        </div>
       </section>
     </div>
   )

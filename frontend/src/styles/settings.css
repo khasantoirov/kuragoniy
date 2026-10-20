@@ -76,11 +76,17 @@
 .infobox__t { margin: 0 0 3px; font-weight: 600; color: var(--ink); }
 .infobox__s { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
 
+/* Tabs wrap onto a new line instead of scrolling sideways; on phones they
+   form a tidy two-column grid (an odd last tab takes the full row). */
 .ptabs {
-  display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+  display: flex; flex-wrap: wrap; gap: 6px;
   padding: 6px; border-radius: 14px; background: var(--surface); border: 1px solid var(--rule);
 }
-.ptabs::-webkit-scrollbar { display: none; }
+@media (max-width: 640px) {
+  .ptabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ptabs .ptab { justify-content: center; text-align: center; white-space: normal; line-height: 1.25; padding: 10px 8px; }
+  .ptabs .ptab:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
 .ptab {
   display: inline-flex; align-items: center; gap: 8px; flex: none;
   padding: 10px 16px; border: 0; border-radius: 10px; background: none;
@@ -155,7 +161,6 @@
 /* ── Ko'rinish ──────────────────────────────────────────────── */
 .choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
 .choices--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-@media (max-width: 640px) { .choices, .choices--2 { grid-template-columns: 1fr; } }
 .choice {
   display: flex; flex-direction: column; gap: 4px; align-items: flex-start; justify-content: center;
   min-height: 70px; padding: 14px 16px; border-radius: 12px; text-align: left; cursor: pointer;
@@ -182,21 +187,7 @@
 .navpick__row .icon-btn:disabled { opacity: .35; cursor: default; }
 .navpick__addt { margin: 16px 0 8px; font-size: 13px; color: var(--ink-2); }
 
-/* Pastki navbar: suzuvchi panel / nomsiz ikonkalar */
-@media (max-width: 900px) {
-  .bottomnav--float::before { display: none; }
-  .bottomnav--float { padding: 0 12px calc(10px + env(safe-area-inset-bottom)); }
-  :where(.bottomnav--float) .bottomnav__rail {
-    max-width: 560px; margin: 0 auto;
-    background: var(--surface); border: 1px solid var(--rule); border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(20,30,45,.18);
-    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
-  }
-  [data-theme="dark"] :where(.bottomnav--float) .bottomnav__rail { box-shadow: 0 10px 30px rgba(0,0,0,.5); }
-}
-.bottomnav--nolabels .bottomnav__lb { display: none; }
-.bottomnav--nolabels .bottomnav__item { padding-top: 11px; padding-bottom: 11px; }
-.navpreview.bottomnav--full .bottomnav__rail { border-radius: 0; box-shadow: none; max-width: none; }
+.navpreview .bottomnav__rail { border-radius: 0; box-shadow: none; max-width: none; }
 
 /* ── Bildirishnomalar sozlamalari ───────────────────────────── */
 .setrow {
@@ -410,4 +401,36 @@ button.jt__open:hover { color: #fff; }
   .jteach { flex-wrap: wrap; }
   .jteach .jgrant__acts { width: 100%; justify-content: flex-start; }
   .jteach__q { max-width: 100%; }
+}
+
+/* ══ Telefonda tartib: hech narsa yonga surilmaydi ════════════════════
+   Sig'magan narsa keyingi qatorga o'tadi; mayda kartochka va tugmalar
+   bittadan emas, 2–3 tadan bir qatorda turadi. */
+.panel, .cols2 > * { min-width: 0; }
+@media (max-width: 760px) {
+  .pkpis { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .pkpi { padding: 12px 14px; gap: 4px; }
+  .pkpi__v { font-size: 24px; }
+  .pkpi__l { font-size: 12.5px; line-height: 1.3; }
+  .pkpi__ic { top: 10px; right: 10px; }
+
+  .jhead .jsum { width: 100%; }
+  .jhead__acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  .jhead__acts .btn { justify-content: center; text-align: center; white-space: normal; }
+  .jhead__acts .btn:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+  .choices { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .choices .choice:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .choice { min-height: 0; padding: 12px; }
+}
+@media (max-width: 640px) {
+  .person > div:first-child { min-width: 0; }
+  .person__acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  .person__acts .btn { justify-content: center; text-align: center; white-space: normal; line-height: 1.25; }
+  .person__acts .btn:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .person__mail { overflow-wrap: anywhere; line-height: 1.35; }
+
+  .dtable { font-size: 12.5px; }
+  .dtable th { white-space: normal; padding: 6px; }
+  .dtable td { padding: 7px 6px; }
 }

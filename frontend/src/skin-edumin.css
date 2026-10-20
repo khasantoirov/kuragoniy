@@ -244,6 +244,9 @@
   [data-skin="r2"][data-theme="dark"] .bottomnav::before { background: rgba(26,29,46,.85); }
 }
 [data-skin="r2"] .bottomnav__rail { border-radius: 1rem; }
+/* Faqat telefonda (≤760px): undan kengda yon menyu doim ko'rinib turadi,
+   "Menyu" tugmasi ochadigan tortma ham faqat shu kenglikda bor. */
+@media (min-width: 761px) { [data-skin="r2"] .bottomnav { display: none !important; } }
 [data-skin="r2"][data-theme="dark"] .bottomnav__rail { background: rgba(26,29,46,.92); }
 
 /* ── Jadvallar ───────────────────────────────────────────── */
@@ -696,17 +699,10 @@
    uchun ham bir xil dumaloq shakl kerak. */
 [data-skin="r2"] .acct__av { background: var(--solid); color: var(--on-solid); }
 
-/* "Raised" indikatori `var(--ink)`ni o'qiydi (1-rejimda qora siyoh) —
-   2-rejimda u to'q kulrang bo'lib qolardi, asosiy rangga o'tkazamiz. */
-[data-skin="r2"] .navind--raised {
-  background: var(--pick);
-  box-shadow: 0 4px 10px rgba(106,115,250,.35);
-}
-[data-skin="r2"][data-theme="dark"] .navind--raised {
-  background: var(--pick);
-  box-shadow: 0 4px 10px rgba(0,0,0,.45);
-}
-[data-skin="r2"][data-theme="dark"] [data-style="raised"] .bottomnav__item.is-on .bottomnav__ic { color: #fff; }
+/* ── Pastki navigatsiya: faol bo'lim bloki asosiy rangda ──── */
+[data-skin="r2"] .navind { background: var(--pick); box-shadow: 0 4px 10px rgba(106,115,250,.3); }
+[data-skin="r2"] .bottomnav__item.is-on,
+[data-skin="r2"] .bottomnav__item.is-on .bottomnav__lb { color: #fff; }
 
 /* ── Tungi rejimdagi maydon foni ─────────────────────────── */
 /* `legacy.css` tungi rejimda maydonlarga qattiq #101A25 (deyarli qora,

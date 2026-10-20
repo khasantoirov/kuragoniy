@@ -380,6 +380,8 @@ const ru: Record<string, string> = {
   "Bu o'qituvchining jurnalida hali sinf yo'q.": "В журнале этого учителя пока нет классов.",
   "jurnali (faqat ko'rish)": "журнал (только просмотр)",
   "Bu jurnalni faqat uning o'qituvchisi to'ldiradi.": "Этот журнал заполняет только его учитель.",
+  // Pastki navigatsiya (Menyu)
+  "Telefonda ekran pastida turadi. Eng ko'pi 4 ta bo'lim; tartibni o'qlar bilan o'zgartirasiz. Oxirida doim «Menyu» turadi — u yon tomondan barcha bo'limlarni ochadi.": "На телефоне внизу экрана. Не больше 4 разделов; порядок меняется стрелками. В конце всегда «Меню» — оно открывает сбоку все разделы.",
 }
 
 const en: Record<string, string> = {
@@ -749,6 +751,8 @@ const en: Record<string, string> = {
   "Bu o'qituvchining jurnalida hali sinf yo'q.": "This teacher's journal has no classes yet.",
   "jurnali (faqat ko'rish)": "journal (view only)",
   "Bu jurnalni faqat uning o'qituvchisi to'ldiradi.": "Only its teacher fills in this journal.",
+  // Pastki navigatsiya (Menyu)
+  "Telefonda ekran pastida turadi. Eng ko'pi 4 ta bo'lim; tartibni o'qlar bilan o'zgartirasiz. Oxirida doim «Menyu» turadi — u yon tomondan barcha bo'limlarni ochadi.": "Sits at the bottom of the screen on a phone. Up to 4 sections; reorder them with the arrows. \"Menu\" always comes last and slides in every section from the side.",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

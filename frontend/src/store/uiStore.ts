@@ -3,7 +3,6 @@ import { persist } from 'zustand/middleware'
 
 import type { Grade } from '@/features/lessons/labels'
 import i18n from '@/lib/i18n'
-import type { NavStyleKey } from '@/layouts/navStyles'
 
 export type Lang = 'uz' | 'ru' | 'en'
 export type Theme = 'light' | 'dark'
@@ -16,7 +15,6 @@ export type ViewMode = 'admin' | 'teacher'
  *  rejim (skin-edumin.css, hammasi `[data-skin="r2"]` ostida). Ikkalasi
  *  ham kunduzgi/tungi mavzu bilan mustaqil birlashadi → 4 kombinatsiya. */
 export type Skin = 'r1' | 'r2'
-export type NavDock = 'float' | 'full'
 
 export const DEFAULT_NAV_ITEMS = ['/', '/lessons', '/journal', '/timetable']
 export const MAX_NAV_ITEMS = 4
@@ -25,28 +23,22 @@ interface UIState {
   lang: Lang
   theme: Theme
   themeMode: ThemeMode
-  // Phone bottom bar (Sozlamalar → Ko'rinish): floating card or full width,
-  // labels under icons, which sections (up to 4, Sozlamalar always last).
-  navDock: NavDock
-  navLabels: boolean
+  // Phone bottom bar (Sozlamalar → Ko'rinish): which sections, up to 4;
+  // "Menyu" (the side menu with everything) always comes last.
   navItems: string[]
   skin: Skin
   grade: Grade
   viewMode: ViewMode
-  navStyle: NavStyleKey
   // Desktop side menu folded down to icons (the topbar's ≡ button).
   sidebarMini: boolean
   setLang: (lang: Lang) => void
   setTheme: (theme: Theme) => void
   setThemeMode: (mode: ThemeMode) => void
-  setNavDock: (dock: NavDock) => void
-  setNavLabels: (on: boolean) => void
   setNavItems: (items: string[]) => void
   toggleTheme: () => void
   setSkin: (skin: Skin) => void
   setGrade: (grade: Grade) => void
   setViewMode: (mode: ViewMode) => void
-  setNavStyle: (style: NavStyleKey) => void
   toggleSidebarMini: () => void
 }
 
@@ -102,11 +94,7 @@ export const useUIStore = create<UIState>()(
       lang: 'uz',
       theme: 'light',
       themeMode: 'light',
-      navDock: 'full',
-      navLabels: true,
       navItems: DEFAULT_NAV_ITEMS,
-      setNavDock: (navDock) => set({ navDock }),
-      setNavLabels: (navLabels) => set({ navLabels }),
       setNavItems: (items) => set({ navItems: items.slice(0, MAX_NAV_ITEMS) }),
       setThemeMode: (themeMode) => {
         const theme = resolveTheme(themeMode)
@@ -116,11 +104,9 @@ export const useUIStore = create<UIState>()(
       skin: 'r2',
       grade: '1-2',
       viewMode: 'admin',
-      navStyle: 'raised',
       sidebarMini: false,
       setGrade: (grade) => set({ grade }),
       setViewMode: (viewMode) => set({ viewMode }),
-      setNavStyle: (navStyle) => set({ navStyle }),
       toggleSidebarMini: () => {
         const next = !get().sidebarMini
         applySidebarMini(next)
@@ -174,10 +160,10 @@ export const useUIStore = create<UIState>()(
       // band went (see lessons/migrations/0011).
       // v7: themeMode + bottom-bar layout (Sozlamalar → Ko'rinish) — start
       // from what the user already had.
-      version: 7,
+      // v8: one bottom-bar look only — the style/dock/label choices are gone.
+      version: 8,
       migrate: (persisted, version) => {
-        const state = persisted as UIState
-        if (version < 1) state.navStyle = 'raised'
+        const state = persisted as UIState & Record<string, unknown>
         if (version < 2) {
           const oldGrade = state.grade as unknown
           state.grade = (oldGrade === 9 || oldGrade === '9' ? '9' : oldGrade === 7 || oldGrade === 8 || oldGrade === '7' || oldGrade === '8' ? '7-8' : '1-2') as UIState['grade']
@@ -193,10 +179,11 @@ export const useUIStore = create<UIState>()(
         if (version < 6 && (state.grade as unknown) === '7-8-9') state.grade = '7'
         if (version < 7) {
           state.themeMode = state.theme ?? 'light'
-          state.navDock = 'full'
-          state.navLabels = true
           state.navItems = DEFAULT_NAV_ITEMS
         }
+        delete state.navStyle
+        delete state.navDock
+        delete state.navLabels
         return state
       },
       onRehydrateStorage: () => (state) => {

@@ -5,14 +5,13 @@
 import { useEffect, useRef } from 'react'
 
 import { usePrefs, useSavePrefs } from '@/features/notifications/api'
-import { NAV_STYLE_KEYS, type NavStyleKey } from '@/layouts/navStyles'
-import { MAX_NAV_ITEMS, useUIStore, type Lang, type NavDock, type ThemeMode } from '@/store/uiStore'
+import { MAX_NAV_ITEMS, useUIStore, type Lang, type ThemeMode } from '@/store/uiStore'
 
-type Synced = { themeMode: ThemeMode; lang: Lang; navStyle: NavStyleKey; navDock: NavDock; navLabels: boolean; navItems: string[] }
+type Synced = { themeMode: ThemeMode; lang: Lang; navItems: string[] }
 
 function pick(): Synced {
   const s = useUIStore.getState()
-  return { themeMode: s.themeMode, lang: s.lang, navStyle: s.navStyle, navDock: s.navDock, navLabels: s.navLabels, navItems: s.navItems }
+  return { themeMode: s.themeMode, lang: s.lang, navItems: s.navItems }
 }
 
 function applyServer(ui: Record<string, unknown>) {
@@ -21,9 +20,6 @@ function applyServer(ui: Record<string, unknown>) {
     if (ui.themeMode !== s.themeMode) s.setThemeMode(ui.themeMode)
   }
   if ((ui.lang === 'uz' || ui.lang === 'ru' || ui.lang === 'en') && ui.lang !== s.lang) s.setLang(ui.lang)
-  if (typeof ui.navStyle === 'string' && (NAV_STYLE_KEYS as readonly string[]).includes(ui.navStyle)) s.setNavStyle(ui.navStyle as NavStyleKey)
-  if (ui.navDock === 'float' || ui.navDock === 'full') s.setNavDock(ui.navDock)
-  if (typeof ui.navLabels === 'boolean') s.setNavLabels(ui.navLabels)
   if (Array.isArray(ui.navItems) && ui.navItems.every((x) => typeof x === 'string')) {
     s.setNavItems((ui.navItems as string[]).slice(0, MAX_NAV_ITEMS))
   }

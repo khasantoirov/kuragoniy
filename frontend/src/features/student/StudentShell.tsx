@@ -57,7 +57,7 @@ function RenamedLoginNotice() {
 export function StudentShell() {
   const { t } = useTranslation()
   const { user, logout } = useAuth()
-  const { theme, toggleTheme, navStyle } = useUIStore()
+  const { theme, toggleTheme } = useUIStore()
   const { pathname } = useLocation()
   const scrolled = usePageScrolled(4)
   useScrollRestoration()
@@ -106,7 +106,7 @@ export function StudentShell() {
       <ScrollTopButton />
 
       <nav className="bottomnav" aria-label={t('Asosiy navigatsiya')}>
-        <NavRail items={rail} activeTo={active?.to ?? ''} styleKey={navStyle} />
+        <NavRail items={rail} activeTo={active?.to ?? ''} />
       </nav>
     </>
   )

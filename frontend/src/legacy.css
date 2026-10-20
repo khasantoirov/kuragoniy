@@ -991,9 +991,14 @@ tr.is-absent .table__name { color: var(--mark); text-decoration: line-through; o
 .jbar  { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
 .jfoot { display: flex; gap: 8px; margin-top: 14px; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.chips--nowrap { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-.chips--nowrap::-webkit-scrollbar { display: none; }
+/* Kept on one line where it fits; on a phone it wraps (never scrolls
+   sideways) and the chips stretch to fill each row evenly. */
+.chips--nowrap { flex-wrap: nowrap; }
 .chips--nowrap .chip { flex: none; }
+@media (max-width: 760px) {
+  .chips--nowrap { flex-wrap: wrap; width: 100%; }
+  .chips--nowrap .chip { flex: 1 1 auto; text-align: center; }
+}
 .chip {
   border: 1px solid var(--rule); background: var(--surface);
   padding: 6px 11px; border-radius: var(--r); cursor: pointer;
@@ -2002,25 +2007,10 @@ img.pf__av   { width: 72px; height: 72px; max-width: 72px; max-height: 72px; bor
 }
 
 /* ══ Navigatsiya "rail" — pastki navigatsiya PANELI ════════
-   .bottomnav__rail o'zi HAR DOIM (istalgan ekran kengligida) stillangan,
-   chunki Sozlamalar sahifasidagi 10 ta uslub preview kartochkasi ham
-   xuddi shu classdan foydalanadi (position:static holatda). Faqat
-   .bottomnav (tashqi o'ram) mobil kenglikda ekranning pastiga
-   qadalgan holda ko'rinadi — shuning uchun position:fixed FAQAT shu
-   o'ramda, media-query ichida. */
-:root {
-  --navacc:   #e07a2e;   /* orbit/wave uchun asosiy urg'u rangi */
-  --navacc-2: #eb8f3f;
-  --navglow:  rgba(224, 122, 46, .5);
-  --neon:     #57f2c4;
-}
-[data-theme="dark"] {
-  --navacc:   #ff9e5c;
-  --navacc-2: #ffb677;
-  --navglow:  rgba(255, 158, 92, .6);
-  --neon:     #6bffd9;
-}
-
+   .bottomnav__rail o'zi har doim stillangan (Sozlamalar → Ko'rinish'dagi
+   namuna ham shu classni ishlatadi); faqat .bottomnav (tashqi o'ram)
+   telefonda ekran pastiga qadaladi. Bitta ko'rinish: faol bo'lim to'q
+   yumaloq to'rtburchak ustida turadi va u bo'limdan bo'limga sirpanadi. */
 .bottomnav__rail {
   position: relative;
   display: flex; align-items: stretch; justify-content: space-around;
@@ -2050,114 +2040,16 @@ img.pf__av   { width: 72px; height: 72px; max-width: 72px; max-height: 72px; bor
 .bottomnav__item.is-on { color: var(--ink); }
 .bottomnav__item.is-on .bottomnav__lb { font-weight: 600; }
 
-/* Faol-belgi qatlami — har doim ikonkadan pastda (z-index:1 < 2).
-   React `rect` o'lchanmaguncha hech narsa render qilmaydi (Indicator
-   null qaytaradi), shuning uchun bu yerda opacity fade-in shart emas. */
+/* Faol bo'lim bloki — har doim ikonkadan pastda (z-index:1 < 2). */
 .navind {
   position: absolute; z-index: 1; pointer-events: none;
-  transition: transform .34s cubic-bezier(.34,1.4,.64,1), width .34s cubic-bezier(.34,1.4,.64,1);
-}
-
-/* 0) Raised Action Dock — faol ikonka atrofida qora yumaloq
-   to'rtburchak fon, panel chizig'idan yuqoriga chiqmaydi */
-.navind--raised {
-  top: 4px; left: 0; width: 46px; height: 34px;
-  border-radius: 14px; background: var(--ink);
-  box-shadow: 0 4px 10px rgba(18,33,46,.25);
-}
-[data-theme="dark"] .navind--raised { background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,.4); }
-[data-style="raised"] .bottomnav__item.is-on .bottomnav__ic { color: #fff; }
-[data-theme="dark"] [data-style="raised"] .bottomnav__item.is-on .bottomnav__ic { color: #12212e; }
-[data-style="raised"] .bottomnav__item.is-on .bottomnav__lb { font-weight: 700; }
-
-/* 1) Liquid Floating Bar — yumshoq to'ldirilgan shakl siljib yuradi */
-.navind--liquid {
-  top: 4px; bottom: 4px; left: 0; border-radius: 16px;
-  background: linear-gradient(135deg, var(--pick), var(--pick-2));
-}
-[data-style="liquid"] .bottomnav__item.is-on,
-[data-style="liquid"] .bottomnav__item.is-on .bottomnav__lb { color: #fff; }
-
-/* 2) Magnetic Dock — snappy to'rtburchak, faol ikonka oq rangga aylanadi */
-.navind--magnetic {
   top: 2px; bottom: 2px; left: 0; border-radius: 10px;
   background: var(--solid);
-  transition: transform .28s cubic-bezier(.17,1.6,.55,1), width .28s cubic-bezier(.17,1.6,.55,1), opacity .2s;
+  transition: transform .28s cubic-bezier(.17,1.6,.55,1), width .28s cubic-bezier(.17,1.6,.55,1);
 }
-[data-style="magnetic"] .bottomnav__item.is-on,
-[data-style="magnetic"] .bottomnav__item.is-on .bottomnav__lb { color: var(--on-solid); }
-
-/* 3) Glass Capsule Dock — kapsula panel, faol ikonka doira ichida */
-.bottomnav__rail[data-style="capsule"] { border-radius: 999px; }
-.navind--capsule {
-  top: 50%; left: 0; width: 38px; height: 38px; margin-top: -19px; border-radius: 50%;
-  background: var(--pick);
-}
-[data-style="capsule"] .bottomnav__item.is-on .bottomnav__ic { color: #fff; }
-
-/* 4) Segmented Dynamic Bar — panel o'rtasida ko'rinadigan chok chizig'i */
-.bottomnav__rail[data-style="segmented"]::after {
-  content: ''; position: absolute; left: 50%; top: 9px; bottom: 9px; width: 1px;
-  background: var(--rule);
-}
-.navind--segmented {
-  top: 50%; left: 0; width: 38px; height: 38px; margin-top: -19px; border-radius: 12px;
-  background: var(--ok);
-}
-[data-style="segmented"] .bottomnav__item.is-on .bottomnav__ic { color: #fff; }
-
-/* 5) Orbit Navigation — kesishgan ellipslar + aylanuvchi nuqtalar */
-.navind--orbit { top: 50%; left: 0; width: 64px; height: 64px; margin-top: -32px; }
-.navind__orbit-spin { transform-origin: 0 0; animation: navind-spin 7s linear infinite; }
-.navind__ring { fill: none; stroke: var(--navacc); stroke-width: 1.6; filter: drop-shadow(0 0 3px var(--navglow)); }
-.navind__dot { fill: var(--navacc-2); filter: drop-shadow(0 0 3px var(--navglow)); }
-@keyframes navind-spin { to { transform: rotate(360deg); } }
-
-/* 6) Wave Indicator Nav — panel ostidagi to'lqin faol ikonka tagida ko'tariladi */
-.navind--wave { top: 0; left: 0; transition: opacity .2s; }
-.navind__wavepath { stroke: var(--navacc); stroke-width: 2.4; stroke-linecap: round; filter: drop-shadow(0 0 4px var(--navglow)); }
-
-/* 7) Cyber Neon Dock — doim to'q panel, faol ikonka neon nur bilan yonadi */
-.bottomnav__rail[data-style="neon"] { background: #0b0f14; border-color: rgba(255,255,255,.1); }
-[data-style="neon"] .bottomnav__item { color: rgba(255,255,255,.5); }
-[data-style="neon"] .bottomnav__item.is-on { color: var(--neon); }
-.navind--neon {
-  top: 2px; bottom: 2px; left: 0; border-radius: 12px;
-  border: 1px solid var(--neon); background: rgba(87,242,196,.12);
-  box-shadow: 0 0 12px var(--neon), inset 0 0 8px rgba(87,242,196,.3);
-}
-
-/* 8) Morphing Blob Nav — organik gradient tomchi, sekin "nafas oladi" */
-.navind--blob {
-  top: 50%; left: 0; width: 44px; height: 44px; margin-top: -22px;
-  background: linear-gradient(135deg, #ff7a7a, #7a5cff);
-  border-radius: 42% 58% 65% 35% / 45% 45% 55% 55%;
-  animation: navind-blob 4.5s ease-in-out infinite;
-  transition: transform .4s cubic-bezier(.34,1.2,.4,1), opacity .2s;
-}
-@keyframes navind-blob {
-  0%, 100% { border-radius: 42% 58% 65% 35% / 45% 45% 55% 55%; }
-  33%      { border-radius: 58% 42% 35% 65% / 55% 60% 40% 45%; }
-  66%      { border-radius: 50% 50% 40% 60% / 40% 55% 45% 60%; }
-}
-[data-style="blob"] .bottomnav__item.is-on .bottomnav__ic { color: #fff; }
-
-/* 9) Layered Card Navigation — faol ikonka qatlamli kartochka sifatida */
-.navind--cards { top: 50%; left: 0; width: 42px; height: 34px; margin-top: -17px; }
-.navind__cardL, .navind__cardR, .navind__cardM {
-  position: absolute; inset: 0; border-radius: 9px;
-  background: var(--surface); border: 1px solid var(--rule);
-  box-shadow: 0 3px 8px rgba(20,30,45,.14);
-}
-.navind__cardL { transform: rotate(-16deg) translate(-3px, 3px); }
-.navind__cardR { transform: rotate(16deg) translate(3px, 3px); }
-.navind__cardM { background: var(--solid); border-color: var(--solid); z-index: 1; }
-[data-style="cards"] .bottomnav__item.is-on .bottomnav__ic { color: var(--on-solid); }
-
-/* 10) Minimal Luxury Dock — faqat kichik nuqta, ortiqcha bezaksiz panel */
-.bottomnav__rail[data-style="minimal"] { box-shadow: none; background: var(--surface); }
-.navind--minimal { bottom: 3px; left: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--ink); }
-[data-style="minimal"] .bottomnav__item.is-on .bottomnav__lb { font-weight: 700; letter-spacing: .03em; }
+.bottomnav__item.is-on,
+.bottomnav__item.is-on .bottomnav__lb { color: var(--on-solid); }
+button.bottomnav__item { border: 0; background: none; font: inherit; cursor: pointer; }
 
 /* ══ Pastki navigatsiya — mobil kenglikda ekran tagiga qadaladi ══
    Suzuvchi "karta" emas — topbar singari ekran chekkalarigacha cho'ziladi,
@@ -2180,9 +2072,6 @@ img.pf__av   { width: 72px; height: 72px; max-width: 72px; max-height: 72px; bor
     -webkit-mask-image: linear-gradient(to top, #000 calc(100% - 6px), transparent 100%);
   }
   [data-theme="dark"] .bottomnav::before { background: rgba(14,22,32,.82); }
-  /* :where() keeps this at .bottomnav__rail's own specificity so the
-     per-style background overrides above (neon's forced-dark panel,
-     minimal's flat surface) still win over this reset either way. */
   :where(.bottomnav) .bottomnav__rail {
     pointer-events: auto;
     max-width: none; margin: 0;
@@ -2190,16 +2079,9 @@ img.pf__av   { width: 72px; height: 72px; max-width: 72px; max-height: 72px; bor
     -webkit-backdrop-filter: none; backdrop-filter: none;
   }
 }
-/* Nav-style picker (Settings) only matters where .bottomnav actually
-   renders — same breakpoint as above. */
-.panel--mobile-only { display: none; }
-@media (max-width: 900px) {
-  .panel--mobile-only { display: block; }
-}
 @media (max-width: 520px) {
   .bottomnav__ic .svic { width: 18px; height: 18px; }
   .bottomnav__lb { font-size: 9px; }
-  .navind--orbit { width: 54px; height: 54px; margin-top: -27px; }
 }
 
 /* ══ Sozlamalar sahifasi ═══════════════════════════════════ */
@@ -2207,32 +2089,6 @@ img.pf__av   { width: 72px; height: 72px; max-width: 72px; max-height: 72px; bor
 .settings__row { display: flex; gap: 8px; flex-wrap: wrap; }
 .settings__opt { display: inline-flex; align-items: center; gap: 6px; }
 .settings__opt svg { width: 15px; height: 15px; }
-
-.navstyle-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 14px; margin-top: 14px;
-}
-.navstyle-card {
-  position: relative; text-align: left; cursor: pointer;
-  border: 1px solid var(--rule); border-radius: var(--r); background: var(--surface);
-  padding: 14px; display: flex; flex-direction: column; gap: 10px;
-  font: inherit; color: inherit;
-  transition: border-color .15s, box-shadow .15s;
-}
-.navstyle-card:hover { border-color: var(--pick); }
-.navstyle-card.is-on { border-color: var(--pick); box-shadow: 0 0 0 2px var(--pick) inset; }
-.navstyle-card__preview {
-  position: relative; display: block; border-radius: 12px; overflow: hidden;
-  background: var(--rule-2); padding: 16px 6px;
-}
-.navstyle-card__preview .bottomnav__rail { box-shadow: none; max-width: 100%; }
-.navstyle-card__name { font-weight: 600; font-size: 13.5px; }
-.navstyle-card__desc { font-size: 12px; color: var(--ink-2); line-height: 1.4; }
-.navstyle-card__check {
-  position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; border-radius: 50%;
-  background: var(--pick); color: #fff; display: flex; align-items: center; justify-content: center;
-}
-.navstyle-card__check .svic { width: 12px; height: 12px; }
 
 @media (max-width: 520px) {
   .topbar { padding: 12px 0; }
