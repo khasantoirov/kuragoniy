@@ -65,6 +65,20 @@
   margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--rule);
   font-size: 14px; color: var(--ink-2);
 }
+/* Phone: name, role and status beside the photo; "Tahrirlash" at the
+   card's bottom right, under the details. */
+@media (max-width: 640px) {
+  .prof { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; align-items: center; }
+  .prof__head { display: contents; }
+  .prof__av, img.prof__av { grid-column: 1; grid-row: 1; width: 64px; height: 64px; max-width: 64px; font-size: 22px; }
+  .prof__id { grid-column: 2; grid-row: 1; }
+  .prof__nm { font-size: 19px; overflow-wrap: anywhere; }
+  .prof__role { margin: 2px 0 6px; font-size: 13.5px; }
+  .prof__tags { flex-wrap: wrap; gap: 6px 10px; }
+  .prof__meta { grid-column: 1 / -1; grid-row: 2; gap: 6px 18px; font-size: 13.5px; }
+  .prof__meta > span { overflow-wrap: anywhere; }
+  .prof__edit { grid-column: 1 / -1; grid-row: 3; justify-self: end; margin: 14px 0 0; }
+}
 
 .infobox {
   display: flex; gap: 14px; align-items: flex-start;
