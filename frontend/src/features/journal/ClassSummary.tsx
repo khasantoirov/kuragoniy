@@ -14,10 +14,11 @@ import { MasteryPanel } from './MasteryPanel'
 import { computeStats } from './stats'
 import type { JournalClass } from './types'
 
-export function ClassSummary({ cls }: { cls: JournalClass }) {
+export function ClassSummary({ cls, teacherId }: { cls: JournalClass; teacherId?: string }) {
   const { t } = useTranslation()
   const { lang } = useUIStore()
-  const { data: grid, isLoading } = useGrid(cls.id)
+  const { data: grid, isLoading } = useGrid(cls.id, teacherId)
+  const owner = !teacherId
   const deleteClass = useDeleteClass()
   const toast = useToast()
   const confirm = useConfirm()
@@ -27,6 +28,9 @@ export function ClassSummary({ cls }: { cls: JournalClass }) {
 
   if (isLoading || !grid) return <Skeleton lines={4} />
 
+  if (!grid.students.length && !owner) {
+    return <p className="prose prose--note">{cls.name} — {t("o'quvchi yo'q")}</p>
+  }
   if (!grid.students.length) {
     return (
       <div className="empty">
@@ -64,9 +68,11 @@ export function ClassSummary({ cls }: { cls: JournalClass }) {
           <div className="jsum__b"><span>{t("O'quvchi")}</span><b>{grid.students.length}</b></div>
           <div className="jsum__b"><span>{t('Darslar soni')}</span><b>{grid.days.length}</b></div>
         </div>
-        <div className="jhead__acts">
-          <button className="btn btn--sm btn--ghost" onClick={onRemoveClass}>{t("Sinfni o'chirish")}</button>
-        </div>
+        {owner && (
+          <div className="jhead__acts">
+            <button className="btn btn--sm btn--ghost" onClick={onRemoveClass}>{t("Sinfni o'chirish")}</button>
+          </div>
+        )}
       </div>
       <div className="table-wrap">
         <table className="table table--quarters">

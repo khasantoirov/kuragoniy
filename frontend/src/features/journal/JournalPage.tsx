@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { EmptyState } from '@/components/EmptyState'
 import { Skeleton } from '@/components/Skeleton'
@@ -8,7 +8,7 @@ import { IC } from '@/icons'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore } from '@/store/uiStore'
 
-import { useClasses, useGrants } from './api'
+import { useClasses, useGrants, useGrantTeachers } from './api'
 import { ClassGrid } from './ClassGrid'
 import { ClassModal } from './ClassModal'
 import { ClassSummary } from './ClassSummary'
@@ -21,21 +21,25 @@ function clsLabel(c: { school: string; name: string }) {
   return c.school ? `${c.school} | ${c.name}` : c.name
 }
 
-export function JournalPage() {
-  const { t } = useTranslation()
-  const lang = useUIStore((s) => s.lang)
-  const viewMode = useUIStore((s) => s.viewMode)
-  const { user } = useAuth()
-  const admin = isAdminInView(user, viewMode)
-  const [params, setParams] = useSearchParams()
-  // ?tab=access — where the "permission asked" notification points.
-  const [mode, setMode] = useState<'mine' | 'access'>(() => (params.get('tab') === 'access' ? 'access' : 'mine'))
-  const pendingGrants = useGrants('pending', admin)
+function useChorak() {
   const [chorak, setChorak] = useState<Chorak>(() => {
     const raw = localStorage.getItem('afmd.chorak')
     return raw === 'u' ? 'u' : (Number(raw) as Chorak) || 1
   })
-  const { data: classes, isLoading } = useClasses()
+  const change = (q: Chorak) => {
+    setChorak(q)
+    localStorage.setItem('afmd.chorak', String(q))
+  }
+  return [chorak, change] as const
+}
+
+/** Class chips + quarter chips + the grid. With `teacherId` it shows that
+ * teacher's journal to an administrator, read-only (locks open days). */
+function JournalBody({ teacherId, head }: { teacherId?: string; head?: React.ReactNode }) {
+  const { t } = useTranslation()
+  const lang = useUIStore((s) => s.lang)
+  const [chorak, changeChorak] = useChorak()
+  const { data: classes, isLoading } = useClasses(teacherId)
   const [openId, setOpenId] = useState<number | null>(null)
   const [creatingClass, setCreatingClass] = useState(false)
 
@@ -45,48 +49,21 @@ export function JournalPage() {
     }
   }, [classes, openId])
 
-  const changeChorak = (q: Chorak) => {
-    setChorak(q)
-    localStorage.setItem('afmd.chorak', String(q))
-  }
-  const changeMode = (m: 'mine' | 'access') => {
-    setMode(m)
-    if (params.has('tab')) setParams({}, { replace: true })
-  }
-  const waiting = pendingGrants.data?.length ?? 0
-
-  // Administrators: their own journal, or teachers' requests to reopen past days.
-  const ModeBar = admin ? (
-    <div className="chips" style={{ marginBottom: 14 }}>
-      <button className={`chip ${mode === 'mine' ? 'is-on' : ''}`} onClick={() => changeMode('mine')}>
-        {IC.user} {t('Mening jurnalim')}
-      </button>
-      <button className={`chip ${mode === 'access' ? 'is-on' : ''}`} onClick={() => changeMode('access')}>
-        {IC.lock} {t('Ruxsatlar')} {waiting > 0 && <span className="chip__count">{waiting}</span>}
-      </button>
-    </div>
-  ) : null
-
-  if (admin && mode === 'access') {
-    return (
-      <div>
-        {ModeBar}
-        <EditGrantsPanel />
-      </div>
-    )
-  }
-
-  if (isLoading) return <Skeleton lines={3} />
+  if (isLoading) return <div>{head}<Skeleton lines={3} /></div>
 
   if (!classes?.length) {
     return (
       <div>
-        {ModeBar}
-        <EmptyState
-          title={t("Sinf qo'shilmagan")}
-          hint={t("Jurnal yuritish uchun avval sinf qo'shing.")}
-          action={<button className="btn btn--primary" onClick={() => setCreatingClass(true)}>{t("Sinf qo'shish")}</button>}
-        />
+        {head}
+        {teacherId ? (
+          <EmptyState title={t("Sinf qo'shilmagan")} hint={t("Bu o'qituvchining jurnalida hali sinf yo'q.")} />
+        ) : (
+          <EmptyState
+            title={t("Sinf qo'shilmagan")}
+            hint={t("Jurnal yuritish uchun avval sinf qo'shing.")}
+            action={<button className="btn btn--primary" onClick={() => setCreatingClass(true)}>{t("Sinf qo'shish")}</button>}
+          />
+        )}
         {creatingClass && <ClassModal cls={null} onClose={() => setCreatingClass(false)} onCreated={setOpenId} />}
       </div>
     )
@@ -96,15 +73,15 @@ export function JournalPage() {
 
   return (
     <div>
-      {ModeBar}
+      {head}
       <div className="jbar">
         <div className="chips">
           {classes.map((c) => (
-            <button key={c.id} className={`chip ${c.id === openId ? 'is-on' : ''}`} onClick={() => setOpenId(c.id)}>
+            <button key={c.id} className={`chip ${c.id === cls.id ? 'is-on' : ''}`} onClick={() => setOpenId(c.id)}>
               {clsLabel(c)}
             </button>
           ))}
-          <button className="chip chip--add" onClick={() => setCreatingClass(true)}>+ {t('Sinf')}</button>
+          {!teacherId && <button className="chip chip--add" onClick={() => setCreatingClass(true)}>+ {t('Sinf')}</button>}
         </div>
         <div className="jbar__sp" />
         <div className="chips chips--nowrap">
@@ -115,9 +92,76 @@ export function JournalPage() {
         </div>
       </div>
 
-      {chorak === 'u' ? <ClassSummary cls={cls} /> : <ClassGrid cls={cls} chorak={chorak} />}
+      {chorak === 'u'
+        ? <ClassSummary key={cls.id} cls={cls} teacherId={teacherId} />
+        : <ClassGrid key={cls.id} cls={cls} chorak={chorak} teacherId={teacherId} />}
 
       {creatingClass && <ClassModal cls={null} onClose={() => setCreatingClass(false)} onCreated={setOpenId} />}
     </div>
   )
+}
+
+export function JournalPage() {
+  const { t } = useTranslation()
+  const viewMode = useUIStore((s) => s.viewMode)
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const admin = isAdminInView(user, viewMode)
+  const [params, setParams] = useSearchParams()
+  // ?tab=access — where the "permission asked" notification points;
+  // ?teacher=<id> — an administrator looking at that teacher's journal.
+  const viewing = admin ? params.get('teacher') : null
+  const [mode, setMode] = useState<'mine' | 'access'>(() => (params.get('tab') === 'access' ? 'access' : 'mine'))
+  const pendingGrants = useGrants('pending', admin)
+  const teachers = useGrantTeachers(!!viewing)
+
+  const changeMode = (m: 'mine' | 'access') => {
+    setMode(m)
+    if (params.has('tab') || params.has('teacher')) setParams({}, { replace: true })
+  }
+  const waiting = pendingGrants.data?.length ?? 0
+
+  // Administrators: their own journal, or permissions for past days.
+  const ModeBar = admin ? (
+    <div className="chips" style={{ marginBottom: 14 }}>
+      <button className={`chip ${mode === 'mine' && !viewing ? 'is-on' : ''}`} onClick={() => changeMode('mine')}>
+        {IC.user} {t('Mening jurnalim')}
+      </button>
+      <button className={`chip ${mode === 'access' || viewing ? 'is-on' : ''}`} onClick={() => changeMode('access')}>
+        {IC.lock} {t('Ruxsatlar')} {waiting > 0 && <span className="chip__count">{waiting}</span>}
+      </button>
+    </div>
+  ) : null
+
+  if (viewing) {
+    const name = teachers.data?.find((p) => p.id === viewing)?.name ?? ''
+    return (
+      <JournalBody
+        key={viewing}
+        teacherId={viewing}
+        head={
+          <>
+            {ModeBar}
+            <div className="jview">
+              <button type="button" className="btn btn--sm" onClick={() => { setMode('access'); navigate('/journal?tab=access') }}>
+                {IC.back} {t('Ruxsatlar')}
+              </button>
+              <span className="jview__t">{IC.eye} <b>{name}</b> — {t("jurnali (faqat ko'rish)")}</span>
+            </div>
+          </>
+        }
+      />
+    )
+  }
+
+  if (admin && mode === 'access') {
+    return (
+      <div>
+        {ModeBar}
+        <EditGrantsPanel />
+      </div>
+    )
+  }
+
+  return <JournalBody head={ModeBar} />
 }

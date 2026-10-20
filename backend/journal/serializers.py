@@ -108,12 +108,18 @@ class GrantCreateSerializer(serializers.Serializer):
 
     teacher = serializers.CharField(max_length=40)
     journal_class = serializers.IntegerField(required=False, allow_null=True)
-    date_from = serializers.DateField()
+    # True: every past day (the teacher's row button); else the given range.
+    all_past = serializers.BooleanField(required=False, default=False)
+    date_from = serializers.DateField(required=False, allow_null=True)
     date_to = serializers.DateField(required=False, allow_null=True)
     hours = serializers.IntegerField(min_value=1, max_value=168, default=24)
     note = serializers.CharField(max_length=300, required=False, allow_blank=True, default='')
 
     def validate(self, attrs):
+        if attrs.get('all_past'):
+            return attrs
+        if not attrs.get('date_from'):
+            raise serializers.ValidationError({'date_from': 'Sanani tanlang.'})
         attrs['date_to'] = attrs.get('date_to') or attrs['date_from']
         if attrs['date_to'] < attrs['date_from']:
             raise serializers.ValidationError({'date_to': "Oxirgi sana boshlang'ich sanadan oldin bo'lmasin."})

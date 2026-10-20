@@ -1,22 +1,15 @@
 import { isAxiosError } from 'axios'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 
 import { useToast } from '@/components/Toast'
 import { fmtDate, fmtDateTime } from '@/features/portal/ui'
 import { IC } from '@/icons'
 
-import { useCreateGrant, useDecideGrant, useGrants, useGrantTeachers } from './api'
-import { localToday } from './lock'
-import type { EditGrant } from './types'
-
-const DURATIONS = [
-  { h: 1, label: '1 soat' },
-  { h: 3, label: '3 soat' },
-  { h: 24, label: '24 soat' },
-  { h: 72, label: '3 kun' },
-  { h: 168, label: '7 kun' },
-]
+import { useCloseTeacher, useCreateGrant, useDecideGrant, useGrants, useGrantTeachers } from './api'
+import { DURATIONS, isAllPast } from './lock'
+import type { EditGrant, GrantTeacher } from './types'
 
 const STATUS_LABEL: Record<string, string> = {
   pending: 'Kutilmoqda', approved: 'Ruxsat berilgan', rejected: 'Rad etilgan', revoked: 'Bekor qilingan',
@@ -24,7 +17,8 @@ const STATUS_LABEL: Record<string, string> = {
 
 const errText = (err: unknown) => (isAxiosError<{ detail?: string }>(err) ? err.response?.data?.detail : undefined)
 
-function dates(g: EditGrant) {
+function dates(g: { date_from: string; date_to: string }) {
+  if (isAllPast(g)) return 'barcha o\'tgan kunlar'
   return g.date_from === g.date_to ? fmtDate(g.date_from) : `${fmtDate(g.date_from)} – ${fmtDate(g.date_to)}`
 }
 
@@ -57,7 +51,7 @@ function PendingRow({ g }: { g: EditGrant }) {
       <span className="jgrant__ic">{IC.lock}</span>
       <span className="jgrant__txt">
         <b>{g.teacher_name}</b>
-        <span>{g.class_label} · {dates(g)}</span>
+        <span>{g.class_label} · {t(dates(g))}</span>
         {g.reason && <q className="jgrant__reason">{g.reason}</q>}
         <small>{t("So'ralgan")}: {fmtDateTime(g.created_at)}</small>
       </span>
@@ -74,132 +68,110 @@ function PendingRow({ g }: { g: EditGrant }) {
   )
 }
 
-function GrantForm() {
+/** One teacher: open/closed at a glance, one button to open every past
+ * day for a while (or close again), and a way into their journal to open
+ * single days from the lock on them. */
+function TeacherRow({ p }: { p: GrantTeacher }) {
   const { t } = useTranslation()
   const toast = useToast()
-  const teachers = useGrantTeachers(true)
+  const navigate = useNavigate()
   const create = useCreateGrant()
-  const [teacher, setTeacher] = useState('')
-  const [cls, setCls] = useState<number | ''>('')
-  const [from, setFrom] = useState(localToday)
-  const [to, setTo] = useState(localToday)
+  const close = useCloseTeacher()
   const [hours, setHours] = useState(24)
-  const [note, setNote] = useState('')
-  const classes = teachers.data?.find((x) => x.id === teacher)?.classes ?? []
+  const isOpen = p.open.length > 0
+  const until = p.open.reduce((m, g) => (g.expires_at > m ? g.expires_at : m), '')
 
-  const submit = async () => {
-    if (!teacher) return toast(t("O'qituvchini tanlang"), 'error')
+  const openAll = async () => {
     try {
-      await create.mutateAsync({ teacher, journal_class: cls || null, date_from: from, date_to: to < from ? from : to, hours, note })
-      toast(t('Ruxsat berildi'))
-      setNote('')
+      await create.mutateAsync({ teacher: p.id, all_past: true, hours })
+      toast(`${p.name}: ${t("o'tgan kunlar ochildi")}`)
+    } catch (err) {
+      toast(t(errText(err) ?? 'Xatolik yuz berdi'), 'error')
+    }
+  }
+  const closeAll = async () => {
+    try {
+      await close.mutateAsync(p.id)
+      toast(`${p.name}: ${t('jurnal yopildi')}`)
     } catch (err) {
       toast(t(errText(err) ?? 'Xatolik yuz berdi'), 'error')
     }
   }
 
   return (
-    <section className="panel">
-      <h3 className="panel__title">{IC.unlock} {t("Kunlarni ochib berish")}</h3>
-      <p className="prose prose--note">{t("O'qituvchi so'ramasdan ham tanlangan kunlarning baho va davomatini tahrirlashga ruxsat bering.")}</p>
-      <div className="jgrant__form">
-        <label className="field">
-          <span className="field__label">{t("O'qituvchi")}</span>
-          <select className="input" value={teacher} onChange={(e) => { setTeacher(e.target.value); setCls('') }}>
-            <option value="">{t('Tanlang…')}</option>
-            {(teachers.data ?? []).map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
-          </select>
-        </label>
-        <label className="field">
-          <span className="field__label">{t('Sinf')}</span>
-          <select className="input" value={cls} onChange={(e) => setCls(e.target.value ? Number(e.target.value) : '')} disabled={!teacher}>
-            <option value="">{t('Barcha sinflar')}</option>
-            {classes.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
-          </select>
-        </label>
-        <label className="field">
-          <span className="field__label">{t('Sanadan')}</span>
-          <input className="input" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-        </label>
-        <label className="field">
-          <span className="field__label">{t('Sanagacha')}</span>
-          <input className="input" type="date" value={to} min={from} onChange={(e) => setTo(e.target.value)} />
-        </label>
-        <label className="field">
-          <span className="field__label">{t('Ruxsat muddati')}</span>
-          <DurationSelect value={hours} onChange={setHours} />
-        </label>
-        <label className="field">
-          <span className="field__label">{t('Izoh')} <span className="field__opt">({t('ixtiyoriy')})</span></span>
-          <input className="input" value={note} maxLength={300} onChange={(e) => setNote(e.target.value)} />
-        </label>
-      </div>
-      <button type="button" className="btn btn--primary" onClick={submit} disabled={create.isPending}>{IC.unlock} {t('Ruxsat berish')}</button>
-    </section>
+    <li className="jteach">
+      <span className="jteach__av" aria-hidden="true">{(p.name || '?').slice(0, 1).toUpperCase()}</span>
+      <span className="jteach__txt">
+        <b>
+          {p.name}
+          {(p.role === 'admin' || p.role === 'boshliq') && <span className="jteach__role">{t('Administrator')}</span>}
+          {p.pending > 0 && <span className="chip__count" title={t("Kutilayotgan so'rovlar")}>{p.pending}</span>}
+        </b>
+        <small>{p.classes.length ? `${p.classes.length} ${t('ta sinf')}` : t("Jurnalida sinf yo'q")}</small>
+        {isOpen && (
+          <small className="jteach__open">
+            {p.open.map((g) => `${g.class_label} · ${t(dates(g))}`).join('; ')} — {fmtDateTime(until)} {t('gacha')}
+          </small>
+        )}
+      </span>
+      <span className={`jteach__state ${isOpen ? 'is-open' : ''}`}>{isOpen ? IC.unlock : IC.lock} {isOpen ? t('Ochiq') : t('Yopiq')}</span>
+      <span className="jgrant__acts">
+        {isOpen ? (
+          <button type="button" className="btn btn--sm" onClick={closeAll} disabled={close.isPending}>{IC.lock} {t('Yopish')}</button>
+        ) : (
+          <>
+            <DurationSelect value={hours} onChange={setHours} />
+            <button type="button" className="btn btn--sm btn--primary" onClick={openAll} disabled={create.isPending}
+              title={t("Barcha o'tgan kunlarning baho va davomatini tanlangan muddatga ochadi")}>
+              {IC.unlock} {t('Ruxsat berish')}
+            </button>
+          </>
+        )}
+        {p.classes.length > 0 && (
+          <button type="button" className="btn btn--sm btn--ghost" onClick={() => navigate(`/journal?teacher=${encodeURIComponent(p.id)}`)}>
+            {IC.eye} {t("Jurnalini ko'rish")}
+          </button>
+        )}
+      </span>
+    </li>
   )
 }
 
-/** Jurnal → Ruxsatlar (administrators): teachers' requests to reopen past
- * days, permissions given directly, the open ones, and the history. */
+/** Jurnal → Ruxsatlar (administrators). */
 export function EditGrantsPanel() {
   const { t } = useTranslation()
-  const toast = useToast()
   const pending = useGrants('pending')
-  const active = useGrants('active')
-  const decide = useDecideGrant()
+  const teachers = useGrantTeachers(true)
+  const [q, setQ] = useState('')
   const [showHistory, setShowHistory] = useState(false)
   const history = useGrants('history', showHistory)
-
-  const revoke = async (id: number) => {
-    try {
-      await decide.mutateAsync({ id, action: 'revoke' })
-      toast(t('Ruxsat bekor qilindi'))
-    } catch (err) {
-      toast(t(errText(err) ?? 'Xatolik yuz berdi'), 'error')
-    }
-  }
+  const rows = (teachers.data ?? []).filter((p) => !q.trim() || p.name.toLowerCase().includes(q.trim().toLowerCase()))
 
   return (
     <div className="jgrants">
       <p className="jlock__why">
-        {IC.lock} {t("O'qituvchilar baho va davomatni faqat dars kunining o'zida kiritadi. Keyingi kunlarda o'zgartirish faqat shu yerda berilgan ruxsat bilan mumkin.")}
+        {IC.lock}
+        <span>{t("Baho va davomat faqat dars kunining o'zida kiritiladi — hamma uchun, administratorlar ham. O'tgan kunni o'zgartirish uchun shu yerda o'qituvchiga ruxsat bering yoki uning jurnalini ochib, kerakli kun yonidagi qulfni bosing.")}</span>
       </p>
 
-      <section className="panel">
-        <h3 className="panel__title">{t("Kutilayotgan so'rovlar")} {!!pending.data?.length && <span className="badge">{pending.data.length}</span>}</h3>
-        {pending.data?.length ? (
+      {!!pending.data?.length && (
+        <section className="panel">
+          <h3 className="panel__title">{t("Kutilayotgan so'rovlar")} <span className="badge">{pending.data.length}</span></h3>
           <ul className="jgrant__list">{pending.data.map((g) => <PendingRow key={g.id} g={g} />)}</ul>
-        ) : (
-          <p className="prose prose--note">{pending.isLoading ? t('Yuklanmoqda…') : t("Hozircha so'rov yo'q.")}</p>
-        )}
-      </section>
+        </section>
+      )}
 
       <section className="panel">
-        <h3 className="panel__title">{t('Faol ruxsatlar')} {!!active.data?.length && <span className="badge">{active.data.length}</span>}</h3>
-        {active.data?.length ? (
-          <ul className="jgrant__list">
-            {active.data.map((g) => (
-              <li key={g.id} className="jgrant">
-                <span className="jgrant__ic jgrant__ic--on">{IC.unlock}</span>
-                <span className="jgrant__txt">
-                  <b>{g.teacher_name}</b>
-                  <span>{g.class_label} · {dates(g)}</span>
-                  <small>{fmtDateTime(g.expires_at)} {t('gacha')} · {g.decided_by_name}</small>
-                </span>
-                <span className="jgrant__acts">
-                  <button type="button" className="btn btn--sm btn--ghost" onClick={() => revoke(g.id)} disabled={decide.isPending}>
-                    {t('Bekor qilish')}
-                  </button>
-                </span>
-              </li>
-            ))}
-          </ul>
+        <div className="thead">
+          <h3 className="panel__title">{t("O'qituvchilar")} <span className="badge">{teachers.data?.length ?? 0}</span></h3>
+          <input className="input jteach__q" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Qidirish…')} />
+        </div>
+        {teachers.isLoading ? (
+          <p className="prose prose--note">{t('Yuklanmoqda…')}</p>
         ) : (
-          <p className="prose prose--note">{t("Faol ruxsat yo'q — o'tgan kunlar yopiq.")}</p>
+          <ul className="jgrant__list">{rows.map((p) => <TeacherRow key={p.id} p={p} />)}</ul>
         )}
       </section>
-
-      <GrantForm />
 
       <section className="panel">
         <button type="button" className="inbox__annhead" onClick={() => setShowHistory((v) => !v)} aria-expanded={showHistory}>
@@ -212,7 +184,7 @@ export function EditGrantsPanel() {
                 <li key={g.id} className="jgrant">
                   <span className="jgrant__txt">
                     <b>{g.teacher_name}</b>
-                    <span>{g.class_label} · {dates(g)}</span>
+                    <span>{g.class_label} · {t(dates(g))}</span>
                     {g.reason && <q className="jgrant__reason">{g.reason}</q>}
                     <small>
                       {t(g.status === 'approved' ? 'Muddati tugagan' : STATUS_LABEL[g.status])}

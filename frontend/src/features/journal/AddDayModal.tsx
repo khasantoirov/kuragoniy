@@ -8,9 +8,9 @@ import { IC } from '@/icons'
 import { record } from '@/lib/history'
 import { useUIStore } from '@/store/uiStore'
 
-import { useBulkMarks, useDropDay, useRequestGrant } from './api'
+import { useBulkMarks, useCreateGrant, useDropDay, useRequestGrant } from './api'
 import { quarterLabel } from './labels'
-import { canEditDay, isPending, localToday } from './lock'
+import { canEditDay, DURATIONS, isPending, localToday } from './lock'
 import type { GridLock } from './types'
 
 export function AddDayModal({ classId, chorak, lock, onClose }: { classId: number; chorak: number; lock?: GridLock; onClose: () => void }) {
@@ -22,6 +22,8 @@ export function AddDayModal({ classId, chorak, lock, onClose }: { classId: numbe
   const bulkMarks = useBulkMarks(classId)
   const dropDay = useDropDay(classId)
   const request = useRequestGrant()
+  const createGrant = useCreateGrant()
+  const [hours, setHours] = useState(1)
   const toast = useToast()
   // A teacher adds the lesson day itself; an earlier day needs permission.
   const locked = !!date && !canEditDay(lock, date)
@@ -42,8 +44,11 @@ export function AddDayModal({ classId, chorak, lock, onClose }: { classId: numbe
 
   const submit = async () => {
     if (!date) return toast(t('Sanani tanlang'), 'error')
-    if (locked) return ask()
+    if (locked && !lock?.can_grant) return ask()
     try {
+      if (locked && lock) {
+        await createGrant.mutateAsync({ teacher: lock.teacher, journal_class: classId, date_from: date, date_to: date, hours })
+      }
       await bulkMarks.mutateAsync({ date, chorak, topic, marks: [], attendance: [] })
       record(
         t('Dars kuni'),
@@ -64,8 +69,9 @@ export function AddDayModal({ classId, chorak, lock, onClose }: { classId: numbe
       footer={
         <>
           <button className="btn" onClick={onClose}>{t('Bekor qilish')}</button>
-          <button className="btn btn--primary" onClick={submit} disabled={bulkMarks.isPending || request.isPending || future || waiting}>
-            {locked ? t("Ruxsat so'rash") : t("Qo'shish")}
+          <button className="btn btn--primary" onClick={submit}
+            disabled={bulkMarks.isPending || request.isPending || createGrant.isPending || future || (waiting && !lock?.can_grant)}>
+            {!locked ? t("Qo'shish") : lock?.can_grant ? t('Kunni ochib qo\'shish') : t("Ruxsat so'rash")}
           </button>
         </>
       }
@@ -80,11 +86,20 @@ export function AddDayModal({ classId, chorak, lock, onClose }: { classId: numbe
             {IC.lock}{' '}
             {future
               ? t('Kelgusi kunlar uchun baho va davomat kiritilmaydi — dars kuni kelganda qo\'shing.')
-              : waiting
+              : lock?.can_grant
+                ? t("Bu kun o'tib ketgan. Qo'shish uchun uni o'zingizga ochasiz — ochiq turish muddatini tanlang.")
+                : waiting
                 ? t("Bu kun uchun so'rov yuborilgan — administrator javobini kuting.")
                 : t("Bu kun o'tib ketgan: baho va davomat faqat dars kunining o'zida kiritiladi. Qo'shish uchun administratordan ruxsat so'rang.")}
           </p>
-          {!future && !waiting && (
+          {!future && lock?.can_grant && (
+            <div className="chips">
+              {DURATIONS.map((d) => (
+                <button key={d.h} type="button" className={`chip ${hours === d.h ? 'is-on' : ''}`} onClick={() => setHours(d.h)}>{t(d.label)}</button>
+              ))}
+            </div>
+          )}
+          {!future && !waiting && !lock?.can_grant && (
             <label className="field">
               <span className="field__label">{t('Sabab')}</span>
               <textarea className="input" rows={3} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)}

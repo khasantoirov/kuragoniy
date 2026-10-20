@@ -378,3 +378,36 @@
   .jgrant__acts { width: 100%; justify-content: flex-start; }
   .jgrant__form { grid-template-columns: 1fr; }
 }
+button.jt__open { cursor: pointer; }
+button.jt__open:hover { color: #fff; }
+.jt td.jt__c.is-ro .at { cursor: default; }
+.jt td.jt__c.is-ro .mk:disabled { opacity: .85; background: transparent; border-color: transparent; color: var(--ink); }
+.mk--fin:disabled { opacity: .85; background: transparent; border-color: transparent; color: var(--ink); cursor: default; }
+
+/* Ruxsatlar → O'qituvchilar */
+.jteach { display: flex; gap: 12px; align-items: center; padding: 12px 2px; border-bottom: 1px solid var(--rule-2); }
+.jteach:last-child { border-bottom: 0; }
+.jteach__av {
+  flex: none; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--rule-2); color: var(--ink-2); font-weight: 700;
+}
+.jteach__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 13.5px; color: var(--ink); }
+.jteach__txt b { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.jteach__txt small { color: var(--ink-2); font-size: 12px; }
+.jteach__open { color: #0f8a6b !important; }
+.jteach__role { padding: 1px 7px; border-radius: 999px; background: var(--rule-2); font-size: 11px; font-weight: 600; color: var(--ink-2); }
+.jteach__state {
+  flex: none; display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; background: var(--rule-2); color: var(--ink-2);
+}
+.jteach__state svg { width: 13px; height: 13px; }
+.jteach__state.is-open { background: rgba(20,163,127,.14); color: #0f8a6b; }
+.jteach__q { max-width: 240px; height: 36px; }
+.jview { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.jview__t { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); }
+.jview__t svg { width: 16px; height: 16px; color: var(--ink-2); }
+@media (max-width: 760px) {
+  .jteach { flex-wrap: wrap; }
+  .jteach .jgrant__acts { width: 100%; justify-content: flex-start; }
+  .jteach__q { max-width: 100%; }
+}

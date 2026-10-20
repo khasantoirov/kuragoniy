@@ -159,7 +159,7 @@ def test_teacher_edits_today_but_not_yesterday(as_user, teacher, journal_class):
     assert r.status_code == 403 and r.data['code'] == 'journal_locked'
     assert _mark(c, journal_class, _day(1)).status_code == 403
     grid = c.get(f'/api/journal/classes/{journal_class.id}/grid/').data
-    assert grid['lock']['today'] == _day() and grid['lock']['free'] is False
+    assert grid['lock']['today'] == _day() and grid['lock']['owner'] is True and grid['lock']['can_grant'] is False
 
 
 def test_past_day_cannot_be_dropped(as_user, teacher, journal_class):
@@ -168,12 +168,56 @@ def test_past_day_cannot_be_dropped(as_user, teacher, journal_class):
     assert r.status_code == 403 and ClassDay.objects.filter(journal_class=journal_class).exists()
 
 
-def test_admin_is_never_locked(as_user, admin):
+def test_admin_own_journal_is_locked_until_they_open_it(as_user, admin):
     from journal.models import JournalClass, Student
 
     jc = JournalClass.objects.create(teacher=admin, name='9-B')
     Student.objects.create(journal_class=jc, full_name='Ali', order=0)
-    assert _mark(as_user(admin), jc, _day(-10)).status_code == 200
+    c = as_user(admin)
+    assert _mark(c, jc, _day()).status_code == 200
+    assert _mark(c, jc, _day(-10)).status_code == 403
+    r = c.post('/api/journal/grants/', {'teacher': admin.id, 'journal_class': jc.id, 'date_from': _day(-10),
+                                        'hours': 1}, format='json')
+    assert r.status_code == 201
+    assert _mark(c, jc, _day(-10)).status_code == 200
+    # Opening their own days doesn't notify themselves.
+    assert not Notification.objects.filter(user=admin, kind=Kind.JURNAL).exists()
+
+
+def test_admin_sees_teacher_journal_read_only(as_user, admin, teacher, journal_class):
+    c = as_user(admin)
+    grid = c.get(f'/api/journal/classes/{journal_class.id}/grid/', {'teacher': teacher.id}).data
+    assert grid['lock']['owner'] is False and grid['lock']['can_grant'] is True
+    assert grid['lock']['teacher'] == teacher.id
+    assert len(c.get('/api/journal/classes/', {'teacher': teacher.id}).data['results']) == 1
+    # Writes never reach another teacher's journal, today included.
+    r = c.post(f'/api/journal/classes/{journal_class.id}/bulk-marks/?teacher={teacher.id}',
+               {'date': _day(), 'chorak': 1, 'marks': []}, format='json')
+    assert r.status_code == 404
+
+
+def test_teacher_row_opens_all_past_days_and_answers_requests(teacher, admin, make_user, journal_class):
+    teacher_c, admin_c = APIClient(), APIClient()
+    teacher_c.force_authenticate(teacher)
+    admin_c.force_authenticate(admin)
+    make_user('noclass@example.com', approved=True)
+    rows = {r['name']: r for r in admin_c.get('/api/journal/grants/teachers/').data}
+    assert {'teacher', 'admin', 'noclass'} <= set(rows)
+    assert rows['noclass']['classes'] == [] and rows['teacher']['classes'][0]['id'] == journal_class.id
+
+    gid = teacher_c.post('/api/journal/grants/', {'journal_class': journal_class.id, 'date': _day(-2),
+                                                  'reason': 'x'}, format='json').data['id']
+    assert {r['name']: r for r in admin_c.get('/api/journal/grants/teachers/').data}['teacher']['pending'] == 1
+    with patch('notifications.service.notify_user'):
+        r = admin_c.post('/api/journal/grants/', {'teacher': teacher.id, 'all_past': True, 'hours': 3}, format='json')
+    assert r.status_code == 201 and r.data['date_to'] == _day(-1)
+    assert JournalEditGrant.objects.get(pk=gid).status == 'approved'
+    assert _mark(teacher_c, journal_class, _day(-30)).status_code == 200
+    rows = {r['name']: r for r in admin_c.get('/api/journal/grants/teachers/').data}
+    assert rows['teacher']['open'] and rows['teacher']['pending'] == 0
+
+    assert admin_c.post('/api/journal/grants/close-teacher/', {'teacher': teacher.id}, format='json').data['closed'] == 2
+    assert _mark(teacher_c, journal_class, _day(-30)).status_code == 403
 
 
 def test_request_approve_then_edit_then_expire(api_client, teacher, admin, journal_class):
@@ -233,8 +277,8 @@ def test_reject_and_revoke_and_direct_grant(teacher, admin, journal_class):
     assert admin_c.post(f"/api/journal/grants/{r.data['id']}/revoke/").data['status'] == 'revoked'
     assert _mark(teacher_c, journal_class, _day(-4)).status_code == 403
 
-    teachers = admin_c.get('/api/journal/grants/teachers/').data
-    assert teachers[0]['classes'][0]['id'] == journal_class.id
+    teachers = {r['name']: r for r in admin_c.get('/api/journal/grants/teachers/').data}
+    assert teachers['teacher']['classes'][0]['id'] == journal_class.id
     assert teacher_c.get('/api/journal/grants/teachers/').status_code == 403
     # A teacher sees only their own grants.
     assert {g['teacher'] for g in teacher_c.get('/api/journal/grants/').data} == {teacher.id}

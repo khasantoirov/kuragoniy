@@ -11,10 +11,11 @@ import { record } from '@/lib/history'
 import { tablePdf } from '@/lib/pdf'
 
 import { AddDayModal } from './AddDayModal'
-import { useBulkMarks, useDeleteClass, useDropDay, useGrid, useSetFinal } from './api'
+import { useBulkMarks, useDecideGrant, useDeleteClass, useDropDay, useGrid, useSetFinal } from './api'
 import { ATT, attOf, fmtD, isAbsent, nextAtt } from './attendance'
 import { ClassModal } from './ClassModal'
 import { EditRequestModal } from './EditRequestModal'
+import { GrantDayModal } from './GrantDayModal'
 import { EditStudentsModal } from './EditStudentsModal'
 import { EditTopicModal } from './EditTopicModal'
 import { canEditDay, grantFor, isPending } from './lock'
@@ -24,9 +25,12 @@ import type { AttendanceStatus, JournalClass } from './types'
 /** The server's reason (e.g. "this day is closed") when it gives one. */
 const errDetail = (err: unknown) => (isAxiosError<{ detail?: string }>(err) ? err.response?.data?.detail : undefined)
 
-export function ClassGrid({ cls, chorak }: { cls: JournalClass; chorak: number }) {
+/** One class's journal for a quarter. With `teacherId` an administrator is
+ * looking at that teacher's journal: everything is read-only, and the lock
+ * on a closed day opens it for the teacher. */
+export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chorak: number; teacherId?: string }) {
   const { t } = useTranslation()
-  const { data: grid, isLoading } = useGrid(cls.id)
+  const { data: grid, isLoading } = useGrid(cls.id, teacherId)
   const bulkMarks = useBulkMarks(cls.id)
   const dropDay = useDropDay(cls.id)
   const setFinal = useSetFinal(cls.id)
@@ -39,16 +43,22 @@ export function ClassGrid({ cls, chorak }: { cls: JournalClass; chorak: number }
   const [editingClass, setEditingClass] = useState(false)
   const [editingStudents, setEditingStudents] = useState(false)
   const [asking, setAsking] = useState<string | null>(null)
+  const [granting, setGranting] = useState<string | null>(null)
+  const decide = useDecideGrant()
 
   if (isLoading || !grid) return <Skeleton lines={4} />
 
   const lock = grid.lock
+  const owner = !lock || lock.owner
 
   const students = grid.students
   const days = grid.days.filter((d) => d.chorak === chorak).sort((a, b) => a.date.localeCompare(b.date))
   const stats = computeStats(grid, days)
   const finals = grid.finals[String(chorak)] ?? {}
 
+  if (!students.length && !owner) {
+    return <p className="prose prose--note">{cls.name} — {t("o'quvchi yo'q")}</p>
+  }
   if (!students.length) {
     return (
       <div className="empty">
@@ -148,12 +158,30 @@ export function ClassGrid({ cls, chorak }: { cls: JournalClass; chorak: number }
     }
   }
 
-  /** Clicking a closed day: ask for permission, unless already asked. */
+  /** Clicking a closed day: an administrator opens it (for the teacher,
+   * or for themselves in their own journal); a teacher asks for it. */
   const onLocked = (date: string) => {
-    if (isPending(lock, date)) toast(t("So'rov yuborilgan — administrator javobini kuting."))
+    if (!lock) return
+    if (lock.can_grant) setGranting(date)
+    else if (!lock.owner) return
+    else if (isPending(lock, date)) toast(t("So'rov yuborilgan — administrator javobini kuting."))
     else setAsking(date)
   }
-  const lockedShown = !!lock && !lock.free && days.some((d) => !canEditDay(lock, d.date))
+  const onRevoke = async (grantId: number) => {
+    if (!(await confirm({ title: t('Ruxsatni bekor qilish'), text: t("Bu kun yana yopiladi."), danger: true }))) return
+    try {
+      await decide.mutateAsync({ id: grantId, action: 'revoke' })
+      toast(t('Ruxsat bekor qilindi'))
+    } catch (err) {
+      toast(t(errDetail(err) ?? 'Xatolik yuz berdi'), 'error')
+    }
+  }
+  const lockedShown = !!lock && days.some((d) => d.date !== lock.today && !grantFor(lock, d.date))
+  const lockNote = !lock ? '' : !lock.owner
+    ? t("Bu jurnal faqat ko'rish uchun. Yopilgan kun yonidagi qulfni bossangiz, o'sha kunni o'qituvchiga tahrirlash uchun ochib berasiz.")
+    : lock.can_grant
+      ? t("O'tgan kunlar yopilgan: baho va davomat faqat dars kunining o'zida kiritiladi. Kerak bo'lsa, sana yonidagi qulfni bosib kunni o'zingizga ochishingiz mumkin.")
+      : t("O'tgan kunlar yopilgan: baho va davomat faqat dars kunining o'zida kiritiladi. O'zgartirish kerak bo'lsa, sana yonidagi qulfni bosib administratordan ruxsat so'rang.")
 
   const exportPdf = () => {
     const head = ['№', t("To'liq ism"), ...days.map((d) => fmtD(d.date)), t("O'rtacha"), t('Chorak')]
@@ -176,11 +204,11 @@ export function ClassGrid({ cls, chorak }: { cls: JournalClass; chorak: number }
           <div className="jsum__b"><span>{t('Darslar soni')}</span><b>{days.length}</b></div>
         </div>
         <div className="jhead__acts">
-          <button className="btn btn--sm btn--primary" onClick={() => setAddingDay(true)}>+ {t('Dars kuni')}</button>
-          <button className="btn btn--sm" onClick={() => setEditingStudents(true)}>{t("O'quvchilar ro'yxati")}</button>
+          {owner && <button className="btn btn--sm btn--primary" onClick={() => setAddingDay(true)}>+ {t('Dars kuni')}</button>}
+          {owner && <button className="btn btn--sm" onClick={() => setEditingStudents(true)}>{t("O'quvchilar ro'yxati")}</button>}
           <button className="btn btn--sm" onClick={exportPdf}>{IC.download} {t('Yuklab olish')}</button>
-          <button className="btn btn--sm" onClick={() => setEditingClass(true)}>{t('Sinfni tahrirlash')}</button>
-          <button className="btn btn--sm btn--ghost" onClick={onRemoveClass}>{t("Sinfni o'chirish")}</button>
+          {owner && <button className="btn btn--sm" onClick={() => setEditingClass(true)}>{t('Sinfni tahrirlash')}</button>}
+          {owner && <button className="btn btn--sm btn--ghost" onClick={onRemoveClass}>{t("Sinfni o'chirish")}</button>}
         </div>
       </div>
 
@@ -193,11 +221,11 @@ export function ClassGrid({ cls, chorak }: { cls: JournalClass; chorak: number }
         ))}
       </p>
 
-      {lockedShown && (
+      {(lockedShown || !owner) && lock && (
         <p className="jlock__why">
           {IC.lock}
           <span>
-            {t("O'tgan kunlar yopilgan: baho va davomat faqat dars kunining o'zida kiritiladi. O'zgartirish kerak bo'lsa, sana yonidagi qulfni bosib administratordan ruxsat so'rang.")}
+            {lockNote}
             {lock.pending.length > 0 && <b> {lock.pending.length} {t("ta so'rov ko'rib chiqilmoqda.")}</b>}
           </span>
         </p>
@@ -211,25 +239,31 @@ export function ClassGrid({ cls, chorak }: { cls: JournalClass; chorak: number }
               <th className="jt__nm">{t("To'liq ism")}</th>
               {days.map((d) => {
                 const open = canEditDay(lock, d.date)
-                const grant = lock && !lock.free && d.date !== lock.today ? grantFor(lock, d.date) : undefined
-                const onHead = () => (open ? setEditingTopic(d.date) : onLocked(d.date))
+                // Closed for the journal's teacher: not today and not opened.
+                const closed = !!lock && d.date !== lock.today && !grantFor(lock, d.date)
+                const grant = lock && d.date !== lock.today ? grantFor(lock, d.date) : undefined
+                const lockTitle = lock?.can_grant
+                  ? t('Yopilgan — bosib ochib bering')
+                  : isPending(lock, d.date) ? t("So'rov yuborilgan") : t("Yopilgan — ruxsat so'rash")
+                const onHead = () => (open ? setEditingTopic(d.date) : closed ? onLocked(d.date) : undefined)
                 return (
-                  <th key={d.id} className={`jt__d ${open ? '' : 'is-locked'}`}>
-                    <span className="jt__dt" onClick={onHead} title={open ? d.topic || t('Mavzu kiritish') : t("Yopilgan — ruxsat so'rash")}>
+                  <th key={d.id} className={`jt__d ${closed ? 'is-locked' : ''}`}>
+                    <span className="jt__dt" onClick={onHead} title={open ? d.topic || t('Mavzu kiritish') : closed ? lockTitle : d.topic}>
                       {fmtD(d.date)}
                     </span>
                     {open ? (
                       <button className="jt__dx" onClick={() => onDropDay(d.date)} title={t("Kunni o'chirish")}>{IC.close}</button>
-                    ) : (
-                      <button
-                        className={`jt__lk ${isPending(lock, d.date) ? 'is-pending' : ''}`}
-                        onClick={() => onLocked(d.date)}
-                        title={isPending(lock, d.date) ? t("So'rov yuborilgan") : t("Yopilgan — ruxsat so'rash")}
-                      >
+                    ) : closed && (lock?.owner || lock?.can_grant) ? (
+                      <button className={`jt__lk ${isPending(lock, d.date) ? 'is-pending' : ''}`} onClick={() => onLocked(d.date)} title={lockTitle}>
                         {IC.lock}
                       </button>
-                    )}
-                    {grant && <span className="jt__open" title={`${t('Ruxsat berilgan')}: ${fmtDateTime(grant.expires_at)} ${t('gacha')}`}>{IC.unlock}</span>}
+                    ) : null}
+                    {grant && (lock?.can_grant ? (
+                      <button className="jt__open" onClick={() => onRevoke(grant.id)}
+                        title={`${t('Ruxsat berilgan')}: ${fmtDateTime(grant.expires_at)} ${t('gacha')} — ${t('bosib bekor qiling')}`}>{IC.unlock}</button>
+                    ) : (
+                      <span className="jt__open" title={`${t('Ruxsat berilgan')}: ${fmtDateTime(grant.expires_at)} ${t('gacha')}`}>{IC.unlock}</span>
+                    ))}
                     {d.topic && <span className="jt__topic" onClick={onHead} title={d.topic}>{d.topic}</span>}
                   </th>
                 )
@@ -247,8 +281,9 @@ export function ClassGrid({ cls, chorak }: { cls: JournalClass; chorak: number }
                   const a = attOf(d.attendance[s.id])
                   const absent = isAbsent(a.k)
                   const open = canEditDay(lock, d.date)
+                  const closed = !!lock && d.date !== lock.today && !grantFor(lock, d.date)
                   return (
-                    <td key={d.id} className={`jt__c ${open ? '' : 'is-locked'}`}>
+                    <td key={d.id} className={`jt__c ${closed ? 'is-locked' : ''} ${open ? '' : 'is-ro'}`}>
                       <div className="jt__c-in">
                         <button className={`at ${a.cls}`} title={t(a.label)} disabled={!open} onClick={() => onAttendanceClick(s.id, d.date, d.topic, d.attendance[s.id])}>
                           {a.ic}
@@ -272,6 +307,7 @@ export function ClassGrid({ cls, chorak }: { cls: JournalClass; chorak: number }
                     inputMode="numeric"
                     maxLength={1}
                     defaultValue={finals[s.id] ?? ''}
+                    disabled={!owner}
                     onBlur={(e) => onFinalChange(s.id, e.target.value)}
                   />
                 </td>
@@ -283,6 +319,10 @@ export function ClassGrid({ cls, chorak }: { cls: JournalClass; chorak: number }
 
       {addingDay && <AddDayModal classId={cls.id} chorak={chorak} lock={lock} onClose={() => setAddingDay(false)} />}
       {asking && <EditRequestModal classId={cls.id} date={asking} onClose={() => setAsking(null)} />}
+      {granting && lock && (
+        <GrantDayModal lock={lock} classId={cls.id} classLabel={cls.school ? `${cls.school} | ${cls.name}` : cls.name}
+          date={granting} onClose={() => setGranting(null)} />
+      )}
       {editingTopic && (
         <EditTopicModal
           classId={cls.id}

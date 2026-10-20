@@ -26,14 +26,18 @@ export interface GridDay {
   attendance: Record<string, AttendanceStatus>
 }
 
-/** Which days the current user may still change (backend journal/locks.py):
- * the lesson day itself, days an administrator opened, or any day for an
- * administrator (`free`). */
+/** Which days of this journal are open (backend journal/locks.py): the
+ * lesson day itself and days an administrator opened — for everyone,
+ * administrators included. `owner`: the viewer is this journal's teacher
+ * (only they write to it); `can_grant`: the viewer may open days. */
 export interface GridLock {
   today: string
-  free: boolean
+  owner: boolean
+  can_grant: boolean
+  teacher: string
+  teacher_name: string
   grants: { id: number; date_from: string; date_to: string; expires_at: string }[]
-  pending: { id: number; date_from: string; date_to: string }[]
+  pending: { id: number; date_from: string; date_to: string; reason: string }[]
 }
 
 export interface Grid {
@@ -66,7 +70,10 @@ export interface EditGrant {
 export interface GrantTeacher {
   id: string
   name: string
+  role: string
   classes: { id: number; label: string }[]
+  open: { id: number; class_label: string; date_from: string; date_to: string; expires_at: string }[]
+  pending: number
 }
 
 export const ATTENDANCE_LABELS: Record<AttendanceStatus, string> = {

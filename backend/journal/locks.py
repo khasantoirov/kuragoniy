@@ -1,10 +1,14 @@
-"""Which journal days a user may still change.
+"""Which journal days may still be changed, and by whom.
 
-A teacher marks attendance and grades on the lesson day itself; from the
-next day on that day is closed. Changing it then needs an administrator's
-permission (JournalEditGrant) — asked for from the journal, or given
-directly from Jurnal → Ruxsatlar. Administrators are never locked out.
-"Today" is the school's local date (TIME_ZONE = Asia/Tashkent)."""
+Attendance and marks go in on the lesson day itself. From the next day
+on that day is closed for everyone — administrators included, in their
+own classes — until an administrator opens it (JournalEditGrant): from
+Jurnal → Ruxsatlar, from the lock on the day in the teacher's journal,
+or by approving the teacher's request. Only a journal's own teacher
+writes to it; an administrator viewing someone else's journal sees it
+read-only. "Today" is the school's local date (TIME_ZONE = Asia/Tashkent)."""
+
+from datetime import timedelta
 
 from django.db.models import Q
 from django.utils import timezone
@@ -15,6 +19,10 @@ LOCKED_DETAIL = (
     "Bu kunning baho va davomati yopilgan: ular faqat dars kunining o'zida kiritiladi. "
     "O'zgartirish uchun administratordan ruxsat so'rang."
 )
+NOT_OWNER_DETAIL = "Bu jurnalni faqat uning o'qituvchisi to'ldiradi."
+# "Ruxsat berish" on a teacher's row opens every past day of this school
+# year (well, the last 400 days) — the simple "let them fix things" switch.
+ALL_PAST_DAYS = timedelta(days=400)
 
 
 def today():
@@ -30,23 +38,36 @@ def active_grants(user, journal_class=None):
     return qs
 
 
+def is_owner(user, journal_class) -> bool:
+    return journal_class.teacher_id == user.pk
+
+
 def can_edit_day(user, journal_class, day) -> bool:
-    if user.is_admin or day == today():
+    if not is_owner(user, journal_class):
+        return False
+    if day == today():
         return True
     return active_grants(user, journal_class).filter(date_from__lte=day, date_to__gte=day).exists()
 
 
-def lock_info(user, journal_class) -> dict:
-    """What the grid needs to grey out closed days and show open ones."""
+def lock_info(viewer, journal_class) -> dict:
+    """What the grid needs: the journal owner's open days and requests,
+    whether the viewer writes here, and whether they may open days."""
+    teacher = journal_class.teacher
     pending = JournalEditGrant.objects.filter(
-        teacher=user, status=JournalEditGrant.Status.PENDING,
+        teacher=teacher, status=JournalEditGrant.Status.PENDING,
     ).filter(Q(journal_class=journal_class) | Q(journal_class__isnull=True))
     return {
         'today': today().isoformat(),
-        'free': bool(user.is_admin),
+        'owner': is_owner(viewer, journal_class),
+        'can_grant': bool(viewer.is_admin),
+        'teacher': teacher.pk,
+        'teacher_name': teacher.name,
         'grants': [
             {'id': g.id, 'date_from': g.date_from, 'date_to': g.date_to, 'expires_at': g.expires_at}
-            for g in active_grants(user, journal_class)
+            for g in active_grants(teacher, journal_class)
         ],
-        'pending': [{'id': g.id, 'date_from': g.date_from, 'date_to': g.date_to} for g in pending],
+        'pending': [
+            {'id': g.id, 'date_from': g.date_from, 'date_to': g.date_to, 'reason': g.reason} for g in pending
+        ],
     }

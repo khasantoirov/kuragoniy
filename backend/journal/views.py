@@ -3,13 +3,13 @@ from datetime import timedelta
 from django.db import transaction
 from django.utils import timezone
 from django.utils.dateparse import parse_date
-from rest_framework import status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from common.permissions import IsApproved
 
-from .locks import LOCKED_DETAIL, can_edit_day, lock_info, today
+from .locks import ALL_PAST_DAYS, LOCKED_DETAIL, NOT_OWNER_DETAIL, can_edit_day, is_owner, lock_info, today
 from .models import AttendanceEntry, ClassDay, FinalGrade, GradeEntry, JournalClass, JournalEditGrant, Student
 from .serializers import (
     BulkDaySerializer,
@@ -25,7 +25,9 @@ from .serializers import (
 )
 
 
-def _locked(day):
+def _locked(user, journal_class, day):
+    if not is_owner(user, journal_class):
+        return Response({'detail': NOT_OWNER_DETAIL, 'code': 'not_owner'}, status=status.HTTP_403_FORBIDDEN)
     return Response({'detail': LOCKED_DETAIL, 'code': 'journal_locked', 'date': day},
                     status=status.HTTP_403_FORBIDDEN)
 
@@ -41,7 +43,9 @@ class JournalClassViewSet(viewsets.ModelViewSet):
         user = self.request.user
         teacher_id = self.request.query_params.get('teacher')
         qs = JournalClass.objects.prefetch_related('students')
-        if teacher_id and user.is_admin:
+        # Administrators may look at any teacher's journal, never write to
+        # it — writes always resolve to the requester's own classes.
+        if teacher_id and user.is_admin and self.request.method in permissions.SAFE_METHODS:
             return qs.filter(teacher_id=teacher_id)
         return qs.filter(teacher=user)
 
@@ -90,7 +94,7 @@ class JournalClassViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         if not can_edit_day(request.user, journal_class, data['date']):
-            return _locked(data['date'])
+            return _locked(request.user, journal_class, data['date'])
 
         with transaction.atomic():
             day, _ = ClassDay.objects.update_or_create(
@@ -126,7 +130,7 @@ class JournalClassViewSet(viewsets.ModelViewSet):
         if date is None:
             return Response({'detail': "Sana noto'g'ri."}, status=status.HTTP_400_BAD_REQUEST)
         if not can_edit_day(request.user, journal_class, date):
-            return _locked(date)
+            return _locked(request.user, journal_class, date)
         ClassDay.objects.filter(journal_class=journal_class, date=date).delete()
         return Response(self.grid(request, pk=pk).data)
 
@@ -272,7 +276,7 @@ class EditGrantViewSet(viewsets.GenericViewSet):
         s.is_valid(raise_exception=True)
         data = s.validated_data
         teacher = User.objects.filter(pk=data['teacher'], is_active=True).first()
-        if teacher is None or teacher.is_student:
+        if teacher is None or teacher.is_student or teacher.is_observer:
             return Response({'detail': "O'qituvchi topilmadi."}, status=status.HTTP_404_NOT_FOUND)
         journal_class = None
         if data.get('journal_class'):
@@ -280,12 +284,28 @@ class EditGrantViewSet(viewsets.GenericViewSet):
             if journal_class is None:
                 return Response({'detail': 'Sinf topilmadi.'}, status=status.HTTP_404_NOT_FOUND)
         now = timezone.now()
+        if data.get('all_past'):
+            date_from, date_to = today() - ALL_PAST_DAYS, today() - timedelta(days=1)
+        else:
+            date_from, date_to = data['date_from'], data['date_to']
         grant = JournalEditGrant.objects.create(
-            teacher=teacher, journal_class=journal_class, date_from=data['date_from'], date_to=data['date_to'],
+            teacher=teacher, journal_class=journal_class, date_from=date_from, date_to=date_to,
             status=JournalEditGrant.Status.APPROVED, decided_by=request.user, decided_at=now,
             expires_at=now + timedelta(hours=data['hours']), note=data.get('note', ''),
         )
-        self._tell_teacher(grant, 'approved')
+        # The teacher's own requests for days this opens are answered too.
+        answered = JournalEditGrant.objects.filter(
+            teacher=teacher, status=JournalEditGrant.Status.PENDING, date_from__gte=date_from, date_to__lte=date_to,
+        )
+        if journal_class is not None:
+            answered = answered.filter(journal_class=journal_class)
+        for req in answered:
+            req.status = JournalEditGrant.Status.APPROVED
+            req.decided_by, req.decided_at, req.expires_at = request.user, now, grant.expires_at
+            req.save(update_fields=['status', 'decided_by', 'decided_at', 'expires_at'])
+            self._settle_inbox(req)
+        if teacher.pk != request.user.pk:
+            self._tell_teacher(grant, 'approved')
         return Response(EditGrantSerializer(grant).data, status=status.HTTP_201_CREATED)
 
     def _tell_teacher(self, grant, what):
@@ -361,11 +381,38 @@ class EditGrantViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=['get'])
     def teachers(self, request):
-        """Teachers and their classes, for the "open days" form."""
+        """Everyone who teaches (administrators included — their own
+        journals are locked too), with their classes, the days open to
+        them right now and their waiting requests."""
+        from accounts.models import User
+
         if (denied := self._admin_only(request)):
             return denied
-        out = {}
-        for c in JournalClass.objects.select_related('teacher').filter(teacher__is_active=True).order_by('name'):
-            row = out.setdefault(c.teacher_id, {'id': c.teacher_id, 'name': c.teacher.name, 'classes': []})
-            row['classes'].append({'id': c.id, 'label': class_label(c)})
+        people = [
+            u for u in User.objects.filter(is_active=True).exclude(role__in=[User.Role.STUDENT, User.Role.KUZATUVCHI])
+            if u.is_approved_effective
+        ]
+        out = {u.pk: {'id': u.pk, 'name': u.name or u.login_name, 'role': u.role, 'classes': [], 'open': [], 'pending': 0}
+               for u in people}
+        for c in JournalClass.objects.filter(teacher_id__in=out).order_by('name'):
+            out[c.teacher_id]['classes'].append({'id': c.id, 'label': class_label(c)})
+        for g in JournalEditGrant.objects.select_related('journal_class').filter(
+                teacher_id__in=out, status=JournalEditGrant.Status.APPROVED, expires_at__gt=timezone.now()):
+            out[g.teacher_id]['open'].append({
+                'id': g.id, 'class_label': class_label(g.journal_class), 'date_from': g.date_from,
+                'date_to': g.date_to, 'expires_at': g.expires_at,
+            })
+        for g in JournalEditGrant.objects.filter(teacher_id__in=out, status=JournalEditGrant.Status.PENDING):
+            out[g.teacher_id]['pending'] += 1
         return Response(sorted(out.values(), key=lambda r: r['name'].lower()))
+
+    @action(detail=False, methods=['post'], url_path='close-teacher')
+    def close_teacher(self, request):
+        """"Yopish" on a teacher's row: every open permission ends now."""
+        if (denied := self._admin_only(request)):
+            return denied
+        n = JournalEditGrant.objects.filter(
+            teacher_id=request.data.get('teacher'), status=JournalEditGrant.Status.APPROVED,
+            expires_at__gt=timezone.now(),
+        ).update(status=JournalEditGrant.Status.REVOKED)
+        return Response({'closed': n})

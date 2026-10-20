@@ -5,10 +5,12 @@ import type { Paginated } from '@/lib/api/types'
 
 import type { AttendanceStatus, EditGrant, Grid, GrantTeacher, JournalClass, Student } from './types'
 
-export function useClasses() {
+/** Own classes, or (administrators) another teacher's, to look at. */
+export function useClasses(teacherId?: string) {
   return useQuery({
-    queryKey: ['journal', 'classes'],
-    queryFn: async () => (await api.get<Paginated<JournalClass>>('/journal/classes/')).data.results,
+    queryKey: teacherId ? ['journal', 'classes', 'of', teacherId] : ['journal', 'classes'],
+    queryFn: async () =>
+      (await api.get<Paginated<JournalClass>>('/journal/classes/', { params: teacherId ? { teacher: teacherId } : {} })).data.results,
   })
 }
 
@@ -75,10 +77,11 @@ export function useRemoveStudent(classId: number) {
   })
 }
 
-export function useGrid(classId: number) {
+export function useGrid(classId: number, teacherId?: string) {
   return useQuery({
     queryKey: ['journal', 'grid', classId],
-    queryFn: async () => (await api.get<Grid>(`/journal/classes/${classId}/grid/`)).data,
+    queryFn: async () =>
+      (await api.get<Grid>(`/journal/classes/${classId}/grid/`, { params: teacherId ? { teacher: teacherId } : {} })).data,
     enabled: !!classId,
   })
 }
@@ -161,6 +164,7 @@ function useGrantMutation<T>(fn: (data: T) => Promise<unknown>) {
     mutationFn: fn,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['journal', 'grants'] })
+      queryClient.invalidateQueries({ queryKey: ['journal', 'grant-teachers'] })
       queryClient.invalidateQueries({ queryKey: ['journal', 'grid'] })
     },
   })
@@ -172,11 +176,17 @@ export function useRequestGrant() {
     (await api.post<EditGrant>('/journal/grants/', data)).data)
 }
 
-/** Administrator: open days directly. */
+/** Administrator: open days directly — one day from the journal's lock,
+ * or every past day (`all_past`) from the teacher's row. */
 export function useCreateGrant() {
   return useGrantMutation(async (data: {
-    teacher: string; journal_class: number | null; date_from: string; date_to: string; hours: number; note: string
+    teacher: string; journal_class?: number | null; date_from?: string; date_to?: string; all_past?: boolean; hours: number; note?: string
   }) => (await api.post<EditGrant>('/journal/grants/', data)).data)
+}
+
+/** Administrator: end every open permission of one teacher now. */
+export function useCloseTeacher() {
+  return useGrantMutation(async (teacher: string) => (await api.post('/journal/grants/close-teacher/', { teacher })).data)
 }
 
 export function useDecideGrant() {
