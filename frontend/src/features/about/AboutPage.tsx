@@ -1,9 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 
 import { IC } from '@/icons'
-import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
-import { useUIStore } from '@/store/uiStore'
 
 const GRADE_TRACKS: { grades: string; name: string; desc: string }[] = [
   { grades: '1-2-sinf', name: 'WeDo 2.0', desc: "Lego konstruktorlaridan turli modellar yasash." },
@@ -11,14 +8,6 @@ const GRADE_TRACKS: { grades: string; name: string; desc: string }[] = [
   { grades: '5-6-sinf', name: 'Muhandislik 2', desc: 'Lazerda kesilgan detallardan modellar yasash.' },
   { grades: '7-sinf', name: 'Elektronika', desc: 'Elektronika va Arduino asosida loyihalar.' },
   { grades: '8-9-sinf', name: 'Amaliy loyihalar', desc: "Turli xil narsalarni o'quvchilar o'zlari yaratadi." },
-]
-
-const FEATURES: { to: string; ic: keyof typeof IC; label: string; desc: string; adminOnly?: boolean }[] = [
-  { to: '/lessons', ic: 'file', label: 'Darslar', desc: '1–9-sinflar uchun tayyor darslar va o\'quv materiallari.' },
-  { to: '/journal', ic: 'clipboard', label: 'Jurnal', desc: "Baho, davomat va sinf o'zlashtirish diagrammalari — barchasi bir joyda." },
-  { to: '/timetable', ic: 'calendar', label: 'Jadval', desc: 'Haftalik dars jadvalini tuzing, ko\'ring va boshqaring.' },
-  { to: '/library', ic: 'book', label: 'Kutubxona', desc: "Kitob, qo'llanma va video materiallar to'plami." },
-  { to: '/admin', ic: 'settings', label: 'Boshqaruv', desc: "Statistika, o'zlashtirish va davomat ko'rsatkichlari — admin uchun boshqaruv imkoniyatlari bilan.", adminOnly: true },
 ]
 
 const SOCIAL_LINKS: { ic: keyof typeof IC; label: string; handle: string; url: string }[] = [
@@ -29,10 +18,6 @@ const SOCIAL_LINKS: { ic: keyof typeof IC; label: string; handle: string; url: s
 
 export function AboutPage() {
   const { t } = useTranslation()
-  const { user } = useAuth()
-  const { viewMode } = useUIStore()
-  const admin = isAdminInView(user, viewMode)
-  const visibleFeatures = FEATURES.filter((f) => !f.adminOnly || admin)
 
   return (
     <div>
@@ -83,20 +68,6 @@ export function AboutPage() {
               <span className="abtrack__name">{g.name}</span>
               <span className="abtrack__desc">{t(g.desc)}</span>
             </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="abfeat">
-        <h3 className="panel__title">{t("Bo'limlar va imkoniyatlar")}</h3>
-        <div className="abfeat__grid">
-          {visibleFeatures.map((f) => (
-            <Link key={f.to} to={f.to} className="abfeat__card">
-              <span className="abfeat__ic">{IC[f.ic]}</span>
-              <span className="abfeat__title">{t(f.label)}</span>
-              <span className="abfeat__desc">{t(f.desc)}</span>
-              <span className="abfeat__go">{t('Ochish')} →</span>
-            </Link>
           ))}
         </div>
       </div>
