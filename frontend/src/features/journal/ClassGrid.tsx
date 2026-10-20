@@ -1,6 +1,7 @@
 import { isAxiosError } from 'axios'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 
 import { useConfirm } from '@/components/ConfirmProvider'
 import { Skeleton } from '@/components/Skeleton'
@@ -12,22 +13,25 @@ import { tablePdf } from '@/lib/pdf'
 
 import { AddDayModal } from './AddDayModal'
 import { useBulkMarks, useDecideGrant, useDeleteClass, useDropDay, useGrid, useSetFinal } from './api'
-import { ATT, attOf, fmtD, isAbsent, nextAtt } from './attendance'
+import { ATT, attOf, fmtD } from './attendance'
 import { ClassModal } from './ClassModal'
 import { EditRequestModal } from './EditRequestModal'
+import { GradeCell, GradeChip } from './GradeCell'
+import { GRADES } from './grades'
 import { GrantDayModal } from './GrantDayModal'
 import { EditStudentsModal } from './EditStudentsModal'
-import { EditTopicModal } from './EditTopicModal'
-import { canEditDay, grantFor, isPending } from './lock'
+import { canEditDay, grantFor, isPending, localToday } from './lock'
 import { computeStats } from './stats'
-import type { AttendanceStatus, JournalClass } from './types'
+import type { JournalClass } from './types'
 
 /** The server's reason (e.g. "this day is closed") when it gives one. */
 const errDetail = (err: unknown) => (isAxiosError<{ detail?: string }>(err) ? err.response?.data?.detail : undefined)
 
-/** One class's journal for a quarter. With `teacherId` an administrator is
- * looking at that teacher's journal: everything is read-only, and the lock
- * on a closed day opens it for the teacher. */
+/** One class's journal for a quarter — the overview. Attendance and marks
+ * are entered on a lesson's own page (DayPage), opened from a date or any
+ * cell; here only the quarter grade is edited. With `teacherId` an
+ * administrator is looking at that teacher's journal: everything is
+ * read-only, and the lock on a closed day opens it for the teacher. */
 export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chorak: number; teacherId?: string }) {
   const { t } = useTranslation()
   const { data: grid, isLoading } = useGrid(cls.id, teacherId)
@@ -37,9 +41,9 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
   const deleteClass = useDeleteClass()
   const toast = useToast()
   const confirm = useConfirm()
+  const navigate = useNavigate()
 
   const [addingDay, setAddingDay] = useState(false)
-  const [editingTopic, setEditingTopic] = useState<string | null>(null)
   const [editingClass, setEditingClass] = useState(false)
   const [editingStudents, setEditingStudents] = useState(false)
   const [asking, setAsking] = useState<string | null>(null)
@@ -80,48 +84,10 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
     toast(t("Sinf o'chirildi"))
   }
 
-  const onMarkChange = async (studentId: number, dayDate: string, dayTopic: string, value: string) => {
-    const v = value.replace(/[^1-5]/g, '').slice(0, 1)
-    const after = v ? Number(v) : null
-    const day = days.find((d) => d.date === dayDate)
-    const before = day?.marks[studentId] ?? null
-    const write = (mark: number | null) =>
-      bulkMarks.mutateAsync({ date: dayDate, chorak, topic: dayTopic, marks: [{ student_id: studentId, mark }], attendance: [] })
-    try {
-      await write(after)
-      if (before !== after) {
-        record(t('Baho'), async () => { await write(before) }, async () => { await write(after) })
-      }
-    } catch (err) {
-      toast(t(errDetail(err) ?? 'Saqlashda xatolik'), 'error')
-    }
-  }
+  const openDay = (date: string) =>
+    navigate(`/journal/${cls.id}/day/${date}?q=${chorak}${teacherId ? `&teacher=${encodeURIComponent(teacherId)}` : ''}`)
 
-  const onAttendanceClick = async (studentId: number, dayDate: string, dayTopic: string, current: string | undefined) => {
-    const next = nextAtt(current)
-    const day = days.find((d) => d.date === dayDate)
-    const markBefore = day?.marks[studentId] ?? null
-    const write = (status: string | undefined, mark: number | null) =>
-      bulkMarks.mutateAsync({
-        date: dayDate, chorak, topic: dayTopic,
-        marks: isAbsent(status || '') ? [{ student_id: studentId, mark: null }] : [{ student_id: studentId, mark }],
-        attendance: [{ student_id: studentId, status: status ? (status as AttendanceStatus) : null }],
-      })
-    try {
-      await write(next, isAbsent(next || '') ? null : markBefore)
-      record(
-        t('Davomat'),
-        async () => { await write(current, markBefore) },
-        async () => { await write(next, isAbsent(next || '') ? null : markBefore) },
-      )
-    } catch (err) {
-      toast(t(errDetail(err) ?? 'Saqlashda xatolik'), 'error')
-    }
-  }
-
-  const onFinalChange = async (studentId: number, value: string) => {
-    const v = value.replace(/[^1-5]/g, '').slice(0, 1)
-    const after = v ? Number(v) : null
+  const onFinalChange = async (studentId: number, after: number | null) => {
     const before = finals[studentId] ?? null
     const write = (mark: number | null) => setFinal.mutateAsync({ student_id: studentId, chorak, mark })
     try {
@@ -188,7 +154,7 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
     const rows = students.map((s, i) => [
       i + 1, s.full_name,
       ...days.map((d) => d.marks[s.id] ?? (d.attendance[s.id] ? attOf(d.attendance[s.id]).ic : '')),
-      stats.perStudent[i].avg ? stats.perStudent[i].avg.toFixed(2) : '',
+      stats.perStudent[i].avg != null ? stats.perStudent[i].avg.toFixed(2) : '',
       finals[s.id] ?? '',
     ])
     tablePdf(`${t('Jurnal')} — ${cls.name}`, head, rows, { orientation: 'landscape' })
@@ -204,7 +170,8 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
           <div className="jsum__b"><span>{t('Darslar soni')}</span><b>{days.length}</b></div>
         </div>
         <div className="jhead__acts">
-          {owner && <button className="btn btn--sm btn--primary" onClick={() => setAddingDay(true)}>+ {t('Dars kuni')}</button>}
+          {owner && <button className="btn btn--sm btn--primary" onClick={() => openDay(lock?.today ?? localToday())}>{IC.calendar} {t('Bugungi dars')}</button>}
+          {owner && <button className="btn btn--sm" onClick={() => setAddingDay(true)}>+ {t('Dars kuni')}</button>}
           {owner && <button className="btn btn--sm" onClick={() => setEditingStudents(true)}>{t("O'quvchilar ro'yxati")}</button>}
           <button className="btn btn--sm" onClick={exportPdf}>{IC.download} {t('Yuklab olish')}</button>
           {owner && <button className="btn btn--sm" onClick={() => setEditingClass(true)}>{t('Sinfni tahrirlash')}</button>}
@@ -212,12 +179,13 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
         </div>
       </div>
 
-      <p className="prose prose--note">
-        {t('Avval belgini bosib davomatni belgilang, so\'ng darsda bo\'lgan o\'quvchiga baho qo\'ying (davomat "Sababli"/"Sababsiz" bo\'lsa, baho maydoni bloklanadi):')}{' '}
-        {ATT.map((a) => (
-          <span key={a.k}>
-            <span className={`at ${a.cls}`}>{a.ic}</span> {t(a.label)}{' '}
-          </span>
+      <p className="prose prose--note">{t("Sana yoki katakni bosing — dars sahifasi ochiladi: davomat va baho o'sha yerda kiritiladi.")}</p>
+      <p className="jlegend">
+        {GRADES.filter((g) => g.v !== 0).map((g) => (
+          <span key={g.v}><span className={`gchip gchip--${g.v}`}>{g.v === 1 ? '1/0' : g.v}</span> {t(g.label)}</span>
+        ))}
+        {ATT.filter((a) => a.k).map((a) => (
+          <span key={a.k}><span className={`at ${a.cls}`}>{a.ic}</span> {t(a.label)}</span>
         ))}
       </p>
 
@@ -245,10 +213,10 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
                 const lockTitle = lock?.can_grant
                   ? t('Yopilgan — bosib ochib bering')
                   : isPending(lock, d.date) ? t("So'rov yuborilgan") : t("Yopilgan — ruxsat so'rash")
-                const onHead = () => (open ? setEditingTopic(d.date) : closed ? onLocked(d.date) : undefined)
+                const onHead = () => openDay(d.date)
                 return (
                   <th key={d.id} className={`jt__d ${closed ? 'is-locked' : ''}`}>
-                    <span className="jt__dt" onClick={onHead} title={open ? d.topic || t('Mavzu kiritish') : closed ? lockTitle : d.topic}>
+                    <span className="jt__dt" onClick={onHead} title={d.topic || t('Dars sahifasini ochish')}>
                       {fmtD(d.date)}
                     </span>
                     {open ? (
@@ -278,38 +246,21 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
                 <td className="jt__no">{i + 1}</td>
                 <td className="jt__nm">{s.full_name}</td>
                 {days.map((d) => {
-                  const a = attOf(d.attendance[s.id])
-                  const absent = isAbsent(a.k)
-                  const open = canEditDay(lock, d.date)
+                  const st = d.attendance[s.id]
+                  const a = st ? attOf(st) : null
                   const closed = !!lock && d.date !== lock.today && !grantFor(lock, d.date)
                   return (
-                    <td key={d.id} className={`jt__c ${closed ? 'is-locked' : ''} ${open ? '' : 'is-ro'}`}>
+                    <td key={d.id} className={`jt__c is-link ${closed ? 'is-locked' : ''}`} onClick={() => openDay(d.date)}>
                       <div className="jt__c-in">
-                        <button className={`at ${a.cls}`} title={t(a.label)} disabled={!open} onClick={() => onAttendanceClick(s.id, d.date, d.topic, d.attendance[s.id])}>
-                          {a.ic}
-                        </button>
-                        <input
-                          className="mk"
-                          inputMode="numeric"
-                          maxLength={1}
-                          defaultValue={absent ? '' : (d.marks[s.id] ?? '')}
-                          disabled={absent || !open}
-                          onBlur={(e) => onMarkChange(s.id, d.date, d.topic, e.target.value)}
-                        />
+                        {a && <span className={`at ${a.cls}`} title={t(a.label)}>{a.ic}</span>}
+                        <GradeChip v={d.marks[s.id]} />
                       </div>
                     </td>
                   )
                 })}
-                <td className="jt__avg">{stats.perStudent[i].avg ? stats.perStudent[i].avg.toFixed(2) : '—'}</td>
+                <td className="jt__avg">{stats.perStudent[i].avg != null ? stats.perStudent[i].avg.toFixed(2) : '—'}</td>
                 <td className="jt__fin">
-                  <input
-                    className="mk mk--fin"
-                    inputMode="numeric"
-                    maxLength={1}
-                    defaultValue={finals[s.id] ?? ''}
-                    disabled={!owner}
-                    onBlur={(e) => onFinalChange(s.id, e.target.value)}
-                  />
+                  <GradeCell value={finals[s.id]} disabled={!owner} onChange={(v) => onFinalChange(s.id, v)} />
                 </td>
               </tr>
             ))}
@@ -317,18 +268,11 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
         </table>
       </div>
 
-      {addingDay && <AddDayModal classId={cls.id} chorak={chorak} lock={lock} onClose={() => setAddingDay(false)} />}
+      {addingDay && <AddDayModal classId={cls.id} chorak={chorak} lock={lock} onClose={() => setAddingDay(false)} onCreated={openDay} />}
       {asking && <EditRequestModal classId={cls.id} date={asking} onClose={() => setAsking(null)} />}
       {granting && lock && (
         <GrantDayModal lock={lock} classId={cls.id} classLabel={cls.school ? `${cls.school} | ${cls.name}` : cls.name}
           date={granting} onClose={() => setGranting(null)} />
-      )}
-      {editingTopic && (
-        <EditTopicModal
-          classId={cls.id}
-          day={days.find((d) => d.date === editingTopic)!}
-          onClose={() => setEditingTopic(null)}
-        />
       )}
       {editingClass && <ClassModal cls={cls} onClose={() => setEditingClass(false)} />}
       {editingStudents && <EditStudentsModal cls={cls} onClose={() => setEditingStudents(false)} />}

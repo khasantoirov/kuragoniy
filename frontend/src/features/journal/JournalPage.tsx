@@ -40,7 +40,9 @@ function JournalBody({ teacherId, head }: { teacherId?: string; head?: React.Rea
   const lang = useUIStore((s) => s.lang)
   const [chorak, changeChorak] = useChorak()
   const { data: classes, isLoading } = useClasses(teacherId)
-  const [openId, setOpenId] = useState<number | null>(null)
+  // ?class=<id> — coming back from a lesson page lands on that class.
+  const [params] = useSearchParams()
+  const [openId, setOpenId] = useState<number | null>(() => Number(params.get('class')) || null)
   const [creatingClass, setCreatingClass] = useState(false)
 
   useEffect(() => {

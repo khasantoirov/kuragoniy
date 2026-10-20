@@ -65,7 +65,8 @@ def class_raw(classes, chorak=None) -> dict[int, dict]:
     att = (AttendanceEntry.objects.filter(Q(day__journal_class_id__in=ids, student__active=True) & _day_filter(chorak, 'day__'))
            .values('day__journal_class', 'status').annotate(n=Count('id')))
     for r in att:
-        key = {'s': 'abs_s', 'n': 'abs_n', 'k': 'late'}.get(r['status'])
+        # 'x' (kirmadi: at school, skipped the lesson) is an unexcused absence.
+        key = {'s': 'abs_s', 'n': 'abs_n', 'x': 'abs_n', 'k': 'late'}.get(r['status'])
         if key:
             raw[r['day__journal_class']][key] += r['n']
 
@@ -207,7 +208,7 @@ def trend(classes, chorak=None, period='month') -> list[dict]:
         years[k] = ay
     absences: dict = defaultdict(int)
     for r in (AttendanceEntry.objects.filter(
-            Q(day__journal_class_id__in=ids, student__active=True, status__in=['s', 'n']) & _day_filter(chorak, 'day__'))
+            Q(day__journal_class_id__in=ids, student__active=True, status__in=['s', 'n', 'x']) & _day_filter(chorak, 'day__'))
               .values('day__date', 'day__chorak').annotate(n=Count('id'))):
         absences[_bucket(r['day__date'], r['day__chorak'], period)[0]] += r['n']
     many_years = len(set(years.values())) > 1
@@ -262,7 +263,7 @@ def attention(classes, chorak=None, limit=100) -> list[dict]:
     }
     absn = {
         r['student']: r['n'] for r in AttendanceEntry.objects.filter(
-            Q(day__journal_class_id__in=ids, student__active=True, status='n') & _day_filter(chorak, 'day__'))
+            Q(day__journal_class_id__in=ids, student__active=True, status__in=['n', 'x']) & _day_filter(chorak, 'day__'))
         .values('student').annotate(n=Count('id'))
     }
     flagged = {s for s, r in marks.items() if r['avg'] < ATTENTION_AVG} | {s for s, n in absn.items() if n >= ATTENTION_ABSENCES}

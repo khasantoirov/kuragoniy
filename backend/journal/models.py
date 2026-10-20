@@ -42,6 +42,8 @@ class ClassDay(models.Model):
     date = models.DateField()
     chorak = models.PositiveSmallIntegerField()
     topic = models.CharField(max_length=500, blank=True)
+    # Lesson of the day ("4-soat"), as the teacher picked it on the day page.
+    period = models.PositiveSmallIntegerField(null=True, blank=True)
 
     class Meta:
         unique_together = ('journal_class', 'date')
@@ -54,7 +56,8 @@ class ClassDay(models.Model):
 class GradeEntry(models.Model):
     student = models.ForeignKey(Student, related_name='grades', on_delete=models.CASCADE)
     day = models.ForeignKey(ClassDay, related_name='grades', on_delete=models.CASCADE)
-    mark = models.PositiveSmallIntegerField(choices=[(i, i) for i in range(1, 6)])
+    # 5 a'lo, 4 yaxshi, 3 qoniqarli, 2 qoniqarsiz, 1 and 0 yomon.
+    mark = models.PositiveSmallIntegerField(choices=[(i, i) for i in range(0, 6)])
 
     class Meta:
         unique_together = ('student', 'day')
@@ -62,9 +65,11 @@ class GradeEntry(models.Model):
 
 class AttendanceEntry(models.Model):
     class Status(models.TextChoices):
-        SABABLI = 's', 'Sababli'
-        SABABSIZ = 'n', 'Sababsiz'
+        SABABLI = 's', 'Sababli'          # older records; the day page no longer offers it
+        SABABSIZ = 'n', 'Kelmadi'
         KECH = 'k', 'Kech'
+        # At school but skipped this lesson — counted as an unexcused absence.
+        KIRMADI = 'x', 'Kirmadi'
 
     student = models.ForeignKey(Student, related_name='attendance', on_delete=models.CASCADE)
     day = models.ForeignKey(ClassDay, related_name='attendance', on_delete=models.CASCADE)
@@ -77,7 +82,8 @@ class AttendanceEntry(models.Model):
 class FinalGrade(models.Model):
     student = models.ForeignKey(Student, related_name='finals', on_delete=models.CASCADE)
     chorak = models.PositiveSmallIntegerField()
-    mark = models.PositiveSmallIntegerField(choices=[(i, i) for i in range(1, 6)])
+    # 5 a'lo, 4 yaxshi, 3 qoniqarli, 2 qoniqarsiz, 1 and 0 yomon.
+    mark = models.PositiveSmallIntegerField(choices=[(i, i) for i in range(0, 6)])
 
     class Meta:
         unique_together = ('student', 'chorak')

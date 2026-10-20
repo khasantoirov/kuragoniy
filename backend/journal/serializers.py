@@ -37,7 +37,7 @@ class JournalClassSerializer(serializers.ModelSerializer):
 class ClassDaySerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassDay
-        fields = ['id', 'date', 'chorak', 'topic']
+        fields = ['id', 'date', 'chorak', 'topic', 'period']
 
 
 class FinalGradeSerializer(serializers.ModelSerializer):
@@ -48,7 +48,7 @@ class FinalGradeSerializer(serializers.ModelSerializer):
 
 class BulkMarkSerializer(serializers.Serializer):
     student_id = serializers.IntegerField()
-    mark = serializers.IntegerField(min_value=1, max_value=5, required=False, allow_null=True)
+    mark = serializers.IntegerField(min_value=0, max_value=5, required=False, allow_null=True)
 
 
 class BulkAttendanceSerializer(serializers.Serializer):
@@ -64,6 +64,7 @@ class BulkDaySerializer(serializers.Serializer):
     date = serializers.DateField()
     chorak = serializers.IntegerField(min_value=1, max_value=4)
     topic = serializers.CharField(required=False, allow_blank=True, default='')
+    period = serializers.IntegerField(min_value=1, max_value=12, required=False, allow_null=True)
     marks = BulkMarkSerializer(many=True, required=False, default=list)
     attendance = BulkAttendanceSerializer(many=True, required=False, default=list)
 

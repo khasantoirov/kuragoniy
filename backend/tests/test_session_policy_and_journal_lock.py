@@ -296,3 +296,33 @@ def test_cannot_request_today_or_future_or_foreign_class(teacher, make_user, jou
     c2.force_authenticate(other)
     assert c2.post('/api/journal/grants/', {'journal_class': journal_class.id, 'date': _day(-1), 'reason': 'x'},
                    format='json').status_code == 404
+
+
+def test_zero_is_a_real_mark(as_user, teacher, journal_class):
+    c = as_user(teacher)
+    assert _mark(c, journal_class, _day(), 0).status_code == 200
+    assert GradeEntry.objects.get(day__date=_day()).mark == 0
+    assert _mark(c, journal_class, _day(), 6).status_code == 400
+    student = journal_class.students.first()
+    url = f'/api/journal/classes/{journal_class.id}/set-final/'
+    c.post(url, {'student_id': student.id, 'chorak': 1, 'mark': 0}, format='json')
+    assert student.finals.get(chorak=1).mark == 0
+    assert c.post(url, {'student_id': student.id, 'chorak': 1, 'mark': 7}, format='json').status_code == 400
+    c.post(url, {'student_id': student.id, 'chorak': 1, 'mark': None}, format='json')
+    assert not student.finals.exists()
+
+
+def test_day_page_period_and_kirmadi(as_user, teacher, journal_class):
+    c = as_user(teacher)
+    kids = list(journal_class.students.all())
+    r = c.post(f'/api/journal/classes/{journal_class.id}/bulk-marks/', {
+        'date': _day(), 'chorak': 1, 'topic': 'Tezlik', 'period': 4,
+        'attendance': [{'student_id': kids[0].id, 'status': 'x'}, {'student_id': kids[1].id, 'status': 'n'}],
+        'marks': [{'student_id': kids[2].id, 'mark': 5}],
+    }, format='json')
+    assert r.status_code == 200
+    day = next(d for d in r.data['days'] if d['date'] == _day())
+    assert day['period'] == 4 and day['attendance'][kids[0].id] == 'x'
+    # A later save without `period` keeps it.
+    c.post(f'/api/journal/classes/{journal_class.id}/bulk-marks/', {'date': _day(), 'chorak': 1, 'topic': 'Tezlik'}, format='json')
+    assert ClassDay.objects.get(journal_class=journal_class, date=_day()).period == 4

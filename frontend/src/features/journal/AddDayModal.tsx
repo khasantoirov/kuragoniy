@@ -13,7 +13,9 @@ import { quarterLabel } from './labels'
 import { canEditDay, DURATIONS, isPending, localToday } from './lock'
 import type { GridLock } from './types'
 
-export function AddDayModal({ classId, chorak, lock, onClose }: { classId: number; chorak: number; lock?: GridLock; onClose: () => void }) {
+export function AddDayModal({ classId, chorak, lock, onClose, onCreated }: {
+  classId: number; chorak: number; lock?: GridLock; onClose: () => void; onCreated?: (date: string) => void
+}) {
   const { t } = useTranslation()
   const { lang } = useUIStore()
   const [date, setDate] = useState(() => lock?.today ?? localToday())
@@ -57,6 +59,7 @@ export function AddDayModal({ classId, chorak, lock, onClose }: { classId: numbe
       )
       toast(t("Dars kuni qo'shildi"))
       onClose()
+      onCreated?.(date)
     } catch {
       toast(t('Xatolik yuz berdi'), 'error')
     }

@@ -90,6 +90,7 @@ interface BulkMarksInput {
   date: string
   chorak: number
   topic: string
+  period?: number | null
   marks: { student_id: number; mark: number | null }[]
   attendance: { student_id: number; status: AttendanceStatus | null }[]
 }

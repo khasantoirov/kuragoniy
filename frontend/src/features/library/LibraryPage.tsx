@@ -1,7 +1,6 @@
 import { isAxiosError } from 'axios'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router-dom'
 
 import { useConfirm } from '@/components/ConfirmProvider'
 import { EmptyState } from '@/components/EmptyState'
@@ -14,7 +13,7 @@ import { record } from '@/lib/history'
 import { useUIStore, type Lang } from '@/store/uiStore'
 
 import { useDeleteLibraryItem, useLibraryItems, useRemoveLibraryFile, useSaveLibraryItem, useUploadLibraryFile } from './api'
-import { pdfSource } from './reader/source'
+import { Bookcase } from './Bookcase'
 import { KIND_ICONS, KIND_LABELS, KINDS, type LibraryItem, type LibraryKind, UPLOADABLE_KINDS } from './types'
 
 const LIBRARY_FILE_ACCEPT = '.pdf,.doc,.docx,.epub,.jpg,.jpeg,.png,.webp'
@@ -190,117 +189,6 @@ function LibraryEditor({ item, onClose }: { item: LibraryItem | null; onClose: (
   )
 }
 
-function downloadFilename(item: LibraryItem): string {
-  const ext = item.file?.split(/[?#]/)[0].split('.').pop()
-  return ext ? `${item.title}.${ext}` : item.title
-}
-
-// Purely decorative — a fixed, rotating set of cover gradients so cards
-// read as a "shelf" at a glance, the same idea as Drive/Notion's per-item
-// colors. Not a data encoding (no chart, no category meaning), so the
-// dataviz palette rules don't apply — the only real constraint is that
-// white cover text stays readable, which is a contrast check, not a
-// colorblind-separation one.
-const COVER_GRADIENTS = [
-  'linear-gradient(135deg, #4338CA 0%, #1E1B4B 100%)',
-  'linear-gradient(135deg, #E11D48 0%, #7F1D1D 100%)',
-  'linear-gradient(135deg, #DB2777 0%, #831843 100%)',
-  'linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)',
-  'linear-gradient(135deg, #EA580C 0%, #7C2D12 100%)',
-  'linear-gradient(135deg, #9333EA 0%, #581C87 100%)',
-]
-
-function formatSize(bytes?: number | null): string {
-  if (!bytes) return ''
-  const kb = bytes / 1024
-  if (kb < 1024) return `${kb.toFixed(1)} KB`
-  return `${(kb / 1024).toFixed(1)} MB`
-}
-
-function fileExt(name?: string | null): string {
-  return (name ?? '').toUpperCase().split('.').pop() ?? ''
-}
-
-function LibraryCard({ item, admin, onEdit, onDelete }: { item: LibraryItem; admin: boolean; onEdit: () => void; onDelete: () => void }) {
-  const { t } = useTranslation()
-  const { lang } = useUIStore()
-  const ext = fileExt(item.file_name)
-  const size = formatSize(item.file_size)
-  const year = new Date(item.updated_at).getFullYear()
-  const gradient = COVER_GRADIENTS[item.id % COVER_GRADIENTS.length]
-  const gradeText = item.grade ? libraryGradeLabel(item.grade, lang) : t(KIND_LABELS[item.kind])
-  const openHref = item.file || item.url
-  const readable = !!pdfSource(item)
-  const navigate = useNavigate()
-  const read = () => navigate(`/library/${item.id}/read`)
-
-  return (
-    <article className="bkcard">
-      <div
-        className={`bkcard__cover ${readable ? 'bkcard__cover--read' : ''}`}
-        style={{ background: gradient }}
-        {...(readable ? { role: 'button', tabIndex: 0, onClick: read, onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter') read() }, title: t('Varaqlash') } : {})}
-      >
-        <div className="bkcard__top">
-          <span className="bkcard__badge">{gradeText}</span>
-          {ext && (
-            <span className="bkcard__badge bkcard__badge--type">
-              <span className="bkcard__dot" aria-hidden="true" />
-              {ext}
-            </span>
-          )}
-        </div>
-        <div className="bkcard__mid">
-          {item.grade ? <span className="bkcard__num">{item.grade}</span> : null}
-          <span className="bkcard__subject">{item.title}</span>
-        </div>
-        <div className="bkcard__bottom">
-          <span className="bkcard__year">{IC.book} {year}</span>
-          {size && <span className="bkcard__size">{size}</span>}
-        </div>
-      </div>
-
-      <div className="bkcard__body">
-        <div className="bkcard__chips">
-          <span className="bkcard__chip">{gradeText}</span>
-          {size && <span>· {size}</span>}
-        </div>
-        <p className="bkcard__title">{item.title}</p>
-        <div className="bkcard__divider" />
-        <div className="bkcard__acts">
-          {readable ? (
-            <>
-              <Link className="btn btn--primary bkcard__dl" to={`/library/${item.id}/read`}>
-                {IC.book} {t('Varaqlash')}
-              </Link>
-              {item.file && (
-                <a className="icon-btn" title={t('Yuklab olish')} href={item.file} download={downloadFilename(item)}>{IC.download}</a>
-              )}
-            </>
-          ) : item.file ? (
-            <a className="btn btn--primary bkcard__dl" href={item.file} download={downloadFilename(item)}>
-              {IC.download} {t('Yuklab olish')}
-            </a>
-          ) : (
-            <a className="btn btn--primary bkcard__dl" href={item.url} target="_blank" rel="noopener noreferrer">
-              {IC.external} {t('Ochish')}
-            </a>
-          )}
-          <a className="icon-btn" title={t("Ko'rish")} href={openHref} target="_blank" rel="noopener noreferrer">
-            {IC.eye}
-          </a>
-          {admin && (
-            <>
-              <button className="icon-btn" title={t('Tahrirlash')} onClick={onEdit}>{IC.edit}</button>
-              <button className="icon-btn icon-btn--danger" title={t("O'chirish")} onClick={onDelete}>{IC.trash}</button>
-            </>
-          )}
-        </div>
-      </div>
-    </article>
-  )
-}
-
 export function LibraryPage() {
   const { t } = useTranslation()
   const { user } = useAuth()
@@ -362,11 +250,7 @@ export function LibraryPage() {
       </div>
 
       {rows.length ? (
-        <div className="lbgrid">
-          {rows.map((item) => (
-            <LibraryCard key={item.id} item={item} admin={admin} onEdit={() => setEditing(item)} onDelete={() => onDelete(item)} />
-          ))}
-        </div>
+        <Bookcase items={rows} admin={admin} onEdit={setEditing} onDelete={onDelete} />
       ) : (
         <p className="prose">{t('Hech narsa topilmadi')}.</p>
       )}

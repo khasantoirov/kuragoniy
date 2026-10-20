@@ -335,6 +335,6 @@ class DirectoryView(APIView):
                 'school_linked': bool(c.partner_school_id),
                 'login': account.user.username if account else None,
                 'avg_mark': round(m['avg'], 2) if m else None, 'marks': m['n'] if m else 0,
-                'abs_s': a.get('s', 0), 'abs_n': a.get('n', 0), 'late': a.get('k', 0),
+                'abs_s': a.get('s', 0), 'abs_n': a.get('n', 0) + a.get('x', 0), 'late': a.get('k', 0),
             })
         return paginator.get_paginated_response(rows)

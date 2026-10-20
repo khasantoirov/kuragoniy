@@ -15,13 +15,14 @@ export interface JournalClass {
   students: Student[]
 }
 
-export type AttendanceStatus = 's' | 'n' | 'k'
+export type AttendanceStatus = 's' | 'n' | 'k' | 'x'
 
 export interface GridDay {
   id: number
   date: string
   chorak: number
   topic: string
+  period?: number | null
   marks: Record<string, number>
   attendance: Record<string, AttendanceStatus>
 }
@@ -78,6 +79,7 @@ export interface GrantTeacher {
 
 export const ATTENDANCE_LABELS: Record<AttendanceStatus, string> = {
   s: 'Sababli',
-  n: 'Sababsiz',
+  n: 'Kelmadi',
   k: 'Kech',
+  x: 'Kirmadi',
 }

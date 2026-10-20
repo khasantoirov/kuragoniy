@@ -97,10 +97,13 @@ class JournalClassViewSet(viewsets.ModelViewSet):
             return _locked(request.user, journal_class, data['date'])
 
         with transaction.atomic():
+            defaults = {'chorak': data['chorak'], 'topic': data.get('topic', '')}
+            if 'period' in data:
+                defaults['period'] = data['period']
             day, _ = ClassDay.objects.update_or_create(
                 journal_class=journal_class,
                 date=data['date'],
-                defaults={'chorak': data['chorak'], 'topic': data.get('topic', '')},
+                defaults=defaults,
             )
 
             for entry in data.get('marks', []):
@@ -141,10 +144,17 @@ class JournalClassViewSet(viewsets.ModelViewSet):
         chorak = request.data.get('chorak')
         mark = request.data.get('mark')
         student = journal_class.students.get(id=student_id)
-        if mark:
-            FinalGrade.objects.update_or_create(student=student, chorak=chorak, defaults={'mark': mark})
-        else:
+        # 0 is a real mark ("yomon"), so only an empty value clears it.
+        if mark in (None, ''):
             FinalGrade.objects.filter(student=student, chorak=chorak).delete()
+        else:
+            try:
+                mark = int(mark)
+            except (TypeError, ValueError):
+                mark = -1
+            if not 0 <= mark <= 5:
+                return Response({'detail': "Baho 0 dan 5 gacha bo'ladi."}, status=status.HTTP_400_BAD_REQUEST)
+            FinalGrade.objects.update_or_create(student=student, chorak=chorak, defaults={'mark': mark})
         return Response(self.grid(request, pk=pk).data)
 
 
