@@ -382,6 +382,23 @@ const ru: Record<string, string> = {
   "Bu jurnalni faqat uning o'qituvchisi to'ldiradi.": "Этот журнал заполняет только его учитель.",
   // Pastki navigatsiya (Menyu)
   "Telefonda ekran pastida turadi. Eng ko'pi 4 ta bo'lim; tartibni o'qlar bilan o'zgartirasiz. Oxirida doim «Menyu» turadi — u yon tomondan barcha bo'limlarni ochadi.": "На телефоне внизу экрана. Не больше 4 разделов; порядок меняется стрелками. В конце всегда «Меню» — оно открывает сбоку все разделы.",
+  // Statistika grafiklari va ko'rsatkichlar
+  "Haftalik": "Понедельно",
+  "Oylik": "Помесячно",
+  "Choraklik": "По четвертям",
+  "Yillik": "По годам",
+  "Ustunli": "Столбцы",
+  "Chiziqli": "Линия",
+  "Doiraviy": "Круговая",
+  "Baholar taqsimoti": "Распределение оценок",
+  "Davomat tarkibi": "Состав посещаемости",
+  "dars qatnovi": "посещений урока",
+  "Qatnashgan": "Присутствовал",
+  "Kechikkan": "Опоздал",
+  "o'rtacha baho": "средняя оценка",
+  "davomat, %": "посещаемость, %",
+  "O'zlashtirish — o'rtacha bahosi 3,5 va undan yuqori («4»–«5») o'quvchilar ulushi. Davomat — (sababli + sababsiz) qoldirilgan darslardan tashqari qatnashuv; kechikish alohida sanaladi. Sifat — baho va davomatning umumlashmasi: o'zlashtirish va davomat foizlarining o'rtachasi.": "Успеваемость — доля учеников со средним баллом 3,5 и выше («4»–«5»). Посещаемость — присутствие без пропусков (по уважительной и неуважительной причине); опоздания считаются отдельно. Качество — оценки и посещаемость вместе: среднее успеваемости и посещаемости.",
+  "O'rtacha bahosi 3,5 va undan yuqori («4»–«5») o'quvchilar ulushi": "Доля учеников со средним баллом 3,5 и выше («4»–«5»)",
 }
 
 const en: Record<string, string> = {
@@ -753,6 +770,23 @@ const en: Record<string, string> = {
   "Bu jurnalni faqat uning o'qituvchisi to'ldiradi.": "Only its teacher fills in this journal.",
   // Pastki navigatsiya (Menyu)
   "Telefonda ekran pastida turadi. Eng ko'pi 4 ta bo'lim; tartibni o'qlar bilan o'zgartirasiz. Oxirida doim «Menyu» turadi — u yon tomondan barcha bo'limlarni ochadi.": "Sits at the bottom of the screen on a phone. Up to 4 sections; reorder them with the arrows. \"Menu\" always comes last and slides in every section from the side.",
+  // Statistika grafiklari va ko'rsatkichlar
+  "Haftalik": "Weekly",
+  "Oylik": "Monthly",
+  "Choraklik": "By quarter",
+  "Yillik": "Yearly",
+  "Ustunli": "Columns",
+  "Chiziqli": "Line",
+  "Doiraviy": "Pie",
+  "Baholar taqsimoti": "Marks breakdown",
+  "Davomat tarkibi": "Attendance breakdown",
+  "dars qatnovi": "lesson attendances",
+  "Qatnashgan": "Present",
+  "Kechikkan": "Late",
+  "o'rtacha baho": "average mark",
+  "davomat, %": "attendance, %",
+  "O'zlashtirish — o'rtacha bahosi 3,5 va undan yuqori («4»–«5») o'quvchilar ulushi. Davomat — (sababli + sababsiz) qoldirilgan darslardan tashqari qatnashuv; kechikish alohida sanaladi. Sifat — baho va davomatning umumlashmasi: o'zlashtirish va davomat foizlarining o'rtachasi.": "Mastery — share of pupils averaging 3.5 or more («4»–«5»). Attendance — presence apart from excused and unexcused absences; lateness is counted separately. Quality — marks and attendance together: the mean of mastery and attendance.",
+  "O'rtacha bahosi 3,5 va undan yuqori («4»–«5») o'quvchilar ulushi": "Share of pupils averaging 3.5 or more («4»–«5»)",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

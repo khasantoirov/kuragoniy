@@ -3,13 +3,14 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { Skeleton } from '@/components/Skeleton'
-import { ColumnChart } from '@/features/portal/ColumnChart'
 import { downloadCsv } from '@/features/portal/csv'
 import { PageHead, Segmented, StatTile, StatusPill } from '@/features/portal/ui'
 import { IC } from '@/icons'
 
 import { CHORAK_OPTIONS, useMyClassesStats } from './api'
 import { METRIC_CSV_HEAD, METRIC_HELP, MetricCells, MetricHeads, metricCsv, MetricPill } from './shared'
+import { TrendPanels } from './TrendPanels'
+import { useTrendView } from './trendView'
 
 /** A teacher's own classes — the same figures administration sees for a
  * school (o'zlashtirish, sifat, davomat, trend, pupils needing
@@ -17,7 +18,8 @@ import { METRIC_CSV_HEAD, METRIC_HELP, MetricCells, MetricHeads, metricCsv, Metr
 export function MyClassesPage() {
   const { t } = useTranslation()
   const [chorak, setChorak] = useState('all')
-  const { data, isLoading } = useMyClassesStats(chorak)
+  const view = useTrendView()
+  const { data, isLoading } = useMyClassesStats(chorak, view.period)
   const totals = data?.totals
   const manySchools = (data?.schools.length ?? 0) > 1
 
@@ -42,20 +44,7 @@ export function MyClassesPage() {
         </div>
       )}
 
-      {data && data.trend.length > 0 && (
-        <div className="cols2">
-          <section className="panel">
-            <h3 className="panel__title">{t("Oylik o'rtacha baho")}</h3>
-            <ColumnChart ariaLabel={t("Oylik o'rtacha baho")} max={5} format={(v) => v.toFixed(1)}
-              data={data.trend.filter((p) => p.avg_mark != null).map((p) => ({ label: p.month.slice(5) + '.' + p.month.slice(2, 4), value: p.avg_mark ?? 0, note: `${p.marks} ${t('ta baho')}` }))} />
-          </section>
-          <section className="panel">
-            <h3 className="panel__title">{t('Oylik davomat, %')}</h3>
-            <ColumnChart ariaLabel={t('Oylik davomat, %')} max={100} format={(v) => `${Math.round(v)}`}
-              data={data.trend.filter((p) => p.attendance != null).map((p) => ({ label: p.month.slice(5) + '.' + p.month.slice(2, 4), value: p.attendance ?? 0 }))} />
-          </section>
-        </div>
-      )}
+      {data && <TrendPanels trend={data.trend} composition={data.composition} view={view} />}
 
       {manySchools && data && (
         <section className="panel">

@@ -5,7 +5,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Modal } from '@/components/Modal'
 import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
-import { ColumnChart } from '@/features/portal/ColumnChart'
 import { downloadCsv } from '@/features/portal/csv'
 import { errText, PageHead, Segmented, StatTile } from '@/features/portal/ui'
 import { IC } from '@/icons'
@@ -14,6 +13,8 @@ import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
 
 import { CHORAK_OPTIONS, useSchools, useSchoolsMutation, useSchoolsOverview, useUnlinked, type UnlinkedName } from './api'
 import { METRIC_CSV_HEAD, METRIC_HELP, MetricCells, MetricHeads, metricCsv, SchoolFormModal } from './shared'
+import { TrendPanels } from './TrendPanels'
+import { useTrendView } from './trendView'
 
 /** Map free-text spellings (from journals/timetables) onto partner schools. */
 function LinkModal({ rows, onClose }: { rows: UnlinkedName[]; onClose: () => void }) {
@@ -71,7 +72,8 @@ export function SchoolsPage() {
   const admin = isAdmin(user)
   const navigate = useNavigate()
   const [chorak, setChorak] = useState('all')
-  const { data, isLoading } = useSchoolsOverview(chorak)
+  const view = useTrendView()
+  const { data, isLoading } = useSchoolsOverview(chorak, view.period)
   const unlinked = useUnlinked()
   const [creating, setCreating] = useState(false)
   const [linking, setLinking] = useState(false)
@@ -114,20 +116,7 @@ export function SchoolsPage() {
         </div>
       )}
 
-      {data && data.trend.length > 0 && (
-        <div className="cols2">
-          <section className="panel">
-            <h3 className="panel__title">{t("Oylik o'rtacha baho")}</h3>
-            <ColumnChart ariaLabel={t("Oylik o'rtacha baho")} max={5} format={(v) => v.toFixed(1)}
-              data={data.trend.filter((p) => p.avg_mark != null).map((p) => ({ label: p.month.slice(5) + '.' + p.month.slice(2, 4), value: p.avg_mark ?? 0, note: `${p.marks} ${t('ta baho')}` }))} />
-          </section>
-          <section className="panel">
-            <h3 className="panel__title">{t('Oylik davomat, %')}</h3>
-            <ColumnChart ariaLabel={t('Oylik davomat, %')} max={100} format={(v) => `${Math.round(v)}`}
-              data={data.trend.filter((p) => p.attendance != null).map((p) => ({ label: p.month.slice(5) + '.' + p.month.slice(2, 4), value: p.attendance ?? 0 }))} />
-          </section>
-        </div>
-      )}
+      {data && <TrendPanels trend={data.trend} composition={data.composition} view={view} />}
 
       <section className="panel">
         <div className="thead">

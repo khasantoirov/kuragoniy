@@ -321,6 +321,41 @@ a.hwcard__title:hover { color: var(--pick); }
 .cchart__tip { position: absolute; top: 0; transform: translateX(-50%); display: grid; gap: 1px; padding: 6px 10px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--rule); box-shadow: var(--shadow); font-size: 12px; color: var(--ink-2); pointer-events: none; white-space: nowrap; z-index: 2; }
 .cchart__tip strong { color: var(--ink); font-size: 13px; }
 
+/* Line twin of the column chart (features/portal/LineChart.tsx). */
+.cchart__line { fill: none; stroke: var(--pick); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.cchart__dot { fill: var(--pick); stroke: var(--surface); stroke-width: 2; transition: r .12s; }
+.cchart__cross { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 3 3; }
+.cchart g:focus .cchart__dot { r: 5; }
+
+/* Statistics charts: grouping and chart type in one row above the panels. */
+.trendbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 12px; }
+.trendbar__sp { flex: 1; }
+
+/* Composition donut (features/portal/DonutChart.tsx). Marks use one hue,
+   «5» darkest → «1» lightest; dark mode gets its own steps (light = more). */
+:root { --seq-5: #3A43C4; --seq-4: #5A63E3; --seq-3: #8A91EE; --seq-2: #B7BBF5; --seq-1: #DDDFFA; }
+[data-theme="dark"] { --seq-5: #C9CCFF; --seq-4: #9EA4FF; --seq-3: #767DEB; --seq-2: #555CC9; --seq-1: #3B4196; }
+.donut { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.donut__svg { width: 180px; height: 180px; flex: none; }
+.donut__slice { stroke: var(--surface); stroke-width: 2; transition: opacity .12s; }
+.donut__slice.is-dim { opacity: .35; }
+.donut__total { fill: var(--ink); font: 700 22px/1 var(--f-display); }
+.donut__cap { fill: var(--ink-3); font-size: 11.5px; font-family: var(--f-body); }
+.donut__legend { list-style: none; margin: 0; padding: 0; flex: 1 1 180px; display: grid; gap: 6px; min-width: 0; }
+.donut__legend li {
+  display: grid; grid-template-columns: 12px minmax(0, 1fr) auto 44px; align-items: center; gap: 8px;
+  padding: 4px 6px; border-radius: 8px; font-size: 13px; color: var(--ink-2); cursor: default;
+}
+.donut__legend li.is-on { background: var(--rule-2); color: var(--ink); }
+.donut__sw { width: 12px; height: 12px; border-radius: 3px; }
+.donut__lb { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.donut__n { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 600; }
+.donut__p { text-align: right; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) {
+  .donut { justify-content: center; row-gap: 4px; }
+  .donut__legend { flex-basis: 100%; }
+}
+
 /* ── O'yinlar ──────────────────────────────────────────────── */
 .gansw { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .gans { position: relative; display: flex; align-items: center; gap: 12px; min-height: 72px; padding: 14px 16px; border: 0; border-radius: calc(var(--r) * 1.5); color: #fff; font: 600 17px/1.3 var(--f-body); text-align: left; cursor: pointer; overflow: hidden; }

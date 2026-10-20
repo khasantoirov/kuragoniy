@@ -66,10 +66,20 @@ export interface ClassRow extends Metrics {
 }
 
 export interface TrendPoint {
-  month: string
+  /** Sortable bucket id (week start, YYYY-MM, year-chorak, year). */
+  key: string
+  /** Axis label: "07.09", "09.26", "1-chorak", "2026–27". */
+  label: string
+  month?: string
   avg_mark: number | null
   marks: number
   attendance: number | null
+}
+
+/** What the pie charts show for the selected period. */
+export interface Composition {
+  marks: Record<'5' | '4' | '3' | '2' | '1', number>
+  attendance: { present: number; late: number; excused: number; unexcused: number }
 }
 
 export interface AttentionRow {
@@ -89,6 +99,7 @@ export interface Overview {
   totals: Metrics & { schools: number; teachers: number; classes: number }
   schools: GroupRow[]
   trend: TrendPoint[]
+  composition?: Composition
 }
 
 export interface SchoolStats {
@@ -97,6 +108,7 @@ export interface SchoolStats {
   teachers: GroupRow[]
   classes: ClassRow[]
   trend: TrendPoint[]
+  composition?: Composition
   attention: AttentionRow[]
 }
 
@@ -105,6 +117,7 @@ export interface MyClassesStats {
   schools: GroupRow[]
   classes: ClassRow[]
   trend: TrendPoint[]
+  composition?: Composition
   attention: AttentionRow[]
 }
 
@@ -151,25 +164,28 @@ export function useSchool(id: string | undefined) {
   })
 }
 
-export function useSchoolsOverview(chorak: string) {
+export function useSchoolsOverview(chorak: string, period = 'month') {
   return useQuery({
-    queryKey: ['schools', 'overview', chorak],
-    queryFn: async () => (await api.get<Overview>('/schools/stats/overview/', { params: chorakParam(chorak) })).data,
+    queryKey: ['schools', 'overview', chorak, period],
+    queryFn: async () => (await api.get<Overview>('/schools/stats/overview/', { params: { ...chorakParam(chorak), period } })).data,
+    placeholderData: (prev) => prev,
   })
 }
 
-export function useSchoolStats(id: string | undefined, chorak: string) {
+export function useSchoolStats(id: string | undefined, chorak: string, period = 'month') {
   return useQuery({
-    queryKey: ['schools', 'stats', id, chorak],
+    queryKey: ['schools', 'stats', id, chorak, period],
     enabled: !!id,
-    queryFn: async () => (await api.get<SchoolStats>(`/schools/stats/school/${id}/`, { params: chorakParam(chorak) })).data,
+    queryFn: async () => (await api.get<SchoolStats>(`/schools/stats/school/${id}/`, { params: { ...chorakParam(chorak), period } })).data,
+    placeholderData: (prev) => prev,
   })
 }
 
-export function useMyClassesStats(chorak: string) {
+export function useMyClassesStats(chorak: string, period = 'month') {
   return useQuery({
-    queryKey: ['schools', 'mine', chorak],
-    queryFn: async () => (await api.get<MyClassesStats>('/schools/stats/mine/', { params: chorakParam(chorak) })).data,
+    queryKey: ['schools', 'mine', chorak, period],
+    queryFn: async () => (await api.get<MyClassesStats>('/schools/stats/mine/', { params: { ...chorakParam(chorak), period } })).data,
+    placeholderData: (prev) => prev,
   })
 }
 

@@ -165,3 +165,23 @@ def test_stats_refresh_right_after_linking(as_user, admin, teacher):
     client.post("/api/schools/link/", {"variants": ["Iftixor"], "school": school.id}, format="json")
     after = client.get("/api/schools/stats/overview/").data
     assert next(r for r in after["schools"] if r["id"] == school.id)["classes"] == 1
+
+
+def test_trend_periods_and_composition(as_user, admin, teacher):
+    school = School.objects.create(name="Sodiq")
+    _class_with_data(teacher, school)
+    c = as_user(admin)
+    week = c.get("/api/schools/stats/overview/", {"period": "week"}).data["trend"]
+    assert [p["label"] for p in week] == ["07.09", "05.10"]
+    month = c.get("/api/schools/stats/overview/").data
+    assert [p["label"] for p in month["trend"]] == ["09.26", "10.26"]
+    quarter = c.get("/api/schools/stats/overview/", {"period": "quarter"}).data["trend"]
+    assert len(quarter) == 1 and quarter[0]["label"] == "1-chorak"
+    assert quarter[0]["avg_mark"] == 3.5 and quarter[0]["attendance"] == 62.5
+    year = c.get("/api/schools/stats/overview/", {"period": "year"}).data["trend"]
+    assert [p["label"] for p in year] == ["2026–27"]
+    comp = month["composition"]
+    assert comp["marks"] == {"5": 1, "4": 3, "3": 0, "2": 2, "1": 0}
+    assert comp["attendance"] == {"present": 4, "late": 1, "excused": 1, "unexcused": 2}
+    mine = as_user(teacher).get("/api/schools/stats/mine/", {"period": "quarter"}).data
+    assert mine["trend"][0]["label"] == "1-chorak" and "composition" in mine

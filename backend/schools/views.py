@@ -32,6 +32,12 @@ def _chorak(request):
     return int(raw) if raw in ('1', '2', '3', '4') else None
 
 
+def _period(request):
+    """Trend grouping: week / month (default) / quarter / year."""
+    raw = request.query_params.get('period')
+    return raw if raw in stats.PERIODS else 'month'
+
+
 class SchoolViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.request.method in SAFE_METHODS:
@@ -182,7 +188,8 @@ class StatsOverviewView(APIView):
                 'teachers': len({c.teacher_id for c in classes}),
                 'classes': len(classes),
             })
-            return {'totals': totals, 'schools': schools, 'trend': stats.monthly_trend(classes, chorak)}
+            return {'totals': totals, 'schools': schools, 'trend': stats.trend(classes, chorak, _period(request)),
+                'composition': stats.composition(classes, chorak)}
 
         return Response(_cached(request, 'overview', compute))
 
@@ -203,7 +210,8 @@ class StatsSchoolView(APIView):
                 'totals': stats.derive(stats.pool(stats.class_raw(classes, chorak).values())),
                 'teachers': stats.grouped(classes, chorak, key=lambda c: c.teacher_id, label=lambda c: c.teacher.name),
                 'classes': stats.class_rows(classes, chorak),
-                'trend': stats.monthly_trend(classes, chorak),
+                'trend': stats.trend(classes, chorak, _period(request)),
+                'composition': stats.composition(classes, chorak),
                 'attention': stats.attention(classes, chorak, limit=50),
             }
 
@@ -250,7 +258,8 @@ class StatsMineView(APIView):
                 'schools': stats.grouped(classes, chorak, key=lambda c: c.partner_school_id or 'none',
                                          label=lambda c: c.partner_school.name if c.partner_school_id else (c.school or '')),
                 'classes': stats.class_rows(classes, chorak),
-                'trend': stats.monthly_trend(classes, chorak),
+                'trend': stats.trend(classes, chorak, _period(request)),
+                'composition': stats.composition(classes, chorak),
                 'attention': stats.attention(classes, chorak, limit=50),
             }
 

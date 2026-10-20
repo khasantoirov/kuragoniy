@@ -16,9 +16,9 @@ an average of class averages.
 """
 
 from collections import defaultdict
+from datetime import timedelta
 
 from django.db.models import Avg, Count, Q, Sum
-from django.db.models.functions import TruncMonth
 
 from journal.models import AttendanceEntry, ClassDay, GradeEntry, JournalClass, Student
 from learning.models import Attempt, StudentProfile
@@ -143,35 +143,110 @@ def grouped(classes, chorak, key, label) -> list[dict]:
     return [{'id': k, 'name': names[k], 'classes': class_count[k], **derive(pool(rows))} for k, rows in buckets.items()]
 
 
-def monthly_trend(classes, chorak=None) -> list[dict]:
+PERIODS = ('week', 'month', 'quarter', 'year')
+
+
+def _academic_year(d):
+    """The school year a date belongs to, by its starting calendar year
+    (September–August)."""
+    return d.year if d.month >= 9 else d.year - 1
+
+
+def _bucket(d, chorak, period):
+    """(sort key, academic year) of the bucket a lesson day falls into."""
+    if period == 'week':
+        start = d - timedelta(days=d.weekday())
+        return start.isoformat(), _academic_year(d)
+    if period == 'quarter':
+        ay = _academic_year(d)
+        return f'{ay}-{chorak}', ay
+    if period == 'year':
+        ay = _academic_year(d)
+        return str(ay), ay
+    return f'{d:%Y-%m}', _academic_year(d)
+
+
+def _label(key, period, many_years):
+    if period == 'week':
+        y, m, dd = key.split('-')
+        return f'{dd}.{m}'
+    if period == 'quarter':
+        ay, ch = key.split('-')
+        ay = int(ay)
+        return f'{ch}-chorak {ay % 100:02d}/{(ay + 1) % 100:02d}' if many_years else f'{ch}-chorak'
+    if period == 'year':
+        ay = int(key)
+        return f'{ay}–{(ay + 1) % 100:02d}'
+    y, m = key.split('-')
+    return f'{m}.{y[2:]}'
+
+
+def trend(classes, chorak=None, period='month') -> list[dict]:
+    """Average mark and attendance per week, month, school quarter
+    (chorak) or school year. Lesson-day sums are fetched once and bucketed
+    here, so every grouping uses the same definitions as the tables."""
+    period = period if period in PERIODS else 'month'
     ids = [c.id for c in classes]
     if not ids:
         return []
-    marks = {
-        r['m']: r for r in GradeEntry.objects.filter(Q(day__journal_class_id__in=ids, student__active=True) & _day_filter(chorak, 'day__'))
-        .annotate(m=TruncMonth('day__date')).values('m').annotate(avg=Avg('mark'), n=Count('id'))
-    }
+    marks: dict = defaultdict(lambda: [0, 0])
+    years: dict = {}
+    for r in (GradeEntry.objects.filter(Q(day__journal_class_id__in=ids, student__active=True) & _day_filter(chorak, 'day__'))
+              .values('day__date', 'day__chorak').annotate(s=Sum('mark'), n=Count('id'))):
+        k, ay = _bucket(r['day__date'], r['day__chorak'], period)
+        marks[k][0] += r['s']
+        marks[k][1] += r['n']
+        years[k] = ay
     roster = dict(Student.objects.filter(journal_class_id__in=ids, active=True).values('journal_class')
                   .annotate(n=Count('id')).values_list('journal_class', 'n'))
     student_days: dict = defaultdict(int)
-    for r in (ClassDay.objects.filter(Q(journal_class_id__in=ids) & _day_filter(chorak)).annotate(m=TruncMonth('date'))
-              .values('m', 'journal_class').annotate(n=Count('id'))):
-        student_days[r['m']] += r['n'] * roster.get(r['journal_class'], 0)
-    absences = {
-        r['m']: r['n'] for r in AttendanceEntry.objects.filter(
+    for r in (ClassDay.objects.filter(Q(journal_class_id__in=ids) & _day_filter(chorak))
+              .values('date', 'chorak', 'journal_class').annotate(n=Count('id'))):
+        k, ay = _bucket(r['date'], r['chorak'], period)
+        student_days[k] += r['n'] * roster.get(r['journal_class'], 0)
+        years[k] = ay
+    absences: dict = defaultdict(int)
+    for r in (AttendanceEntry.objects.filter(
             Q(day__journal_class_id__in=ids, student__active=True, status__in=['s', 'n']) & _day_filter(chorak, 'day__'))
-        .annotate(m=TruncMonth('day__date')).values('m').annotate(n=Count('id'))
-    }
-    months = sorted(set(marks) | set(student_days))
-    return [
-        {
-            'month': m.isoformat()[:7] if m else None,
-            'avg_mark': round(marks[m]['avg'], 2) if m in marks else None,
-            'marks': marks[m]['n'] if m in marks else 0,
-            'attendance': round(100 - 100 * absences.get(m, 0) / student_days[m], 1) if student_days.get(m) else None,
+              .values('day__date', 'day__chorak').annotate(n=Count('id'))):
+        absences[_bucket(r['day__date'], r['day__chorak'], period)[0]] += r['n']
+    many_years = len(set(years.values())) > 1
+    out = []
+    for k in sorted(set(marks) | set(student_days)):
+        s_, n = marks.get(k, (0, 0))
+        row = {
+            'key': k,
+            'label': _label(k, period, many_years),
+            'avg_mark': round(s_ / n, 2) if n else None,
+            'marks': n,
+            'attendance': round(100 - 100 * absences.get(k, 0) / student_days[k], 1) if student_days.get(k) else None,
         }
-        for m in months
-    ]
+        if period == 'month':
+            row['month'] = k
+        out.append(row)
+    return out
+
+
+def monthly_trend(classes, chorak=None) -> list[dict]:
+    return trend(classes, chorak, 'month')
+
+
+def composition(classes, chorak=None) -> dict:
+    """What the pie charts show: how many of each mark, and how the
+    expected lesson attendances split into on time / late / excused /
+    unexcused."""
+    ids = [c.id for c in classes]
+    marks = {str(m): 0 for m in (5, 4, 3, 2, 1)}
+    att = {'present': 0, 'late': 0, 'excused': 0, 'unexcused': 0}
+    if not ids:
+        return {'marks': marks, 'attendance': att}
+    for r in (GradeEntry.objects.filter(Q(day__journal_class_id__in=ids, student__active=True) & _day_filter(chorak, 'day__'))
+              .values('mark').annotate(n=Count('id'))):
+        marks[str(r['mark'])] = r['n']
+    raw = pool(class_raw(classes, chorak).values())
+    att['late'], att['excused'], att['unexcused'] = raw['late'], raw['abs_s'], raw['abs_n']
+    att['present'] = max(0, raw['student_days'] - raw['abs_s'] - raw['abs_n'] - raw['late'])
+    return {'marks': marks, 'attendance': att}
 
 
 def attention(classes, chorak=None, limit=100) -> list[dict]:
