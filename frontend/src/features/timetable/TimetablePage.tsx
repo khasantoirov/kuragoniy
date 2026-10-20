@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { useConfirm } from '@/components/ConfirmProvider'
 import { EmptyState } from '@/components/EmptyState'
 import { ExportMenu, type ExportFormat } from '@/components/ExportMenu'
-import { usePinchZoom, ZoomBox } from '@/components/PinchZoom'
 import { ScaleToFit } from '@/components/ScaleToFit'
 import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
@@ -106,7 +105,6 @@ function MineView({ modeBar }: { modeBar: React.ReactNode }) {
   const confirm = useConfirm()
   const { user } = useAuth()
   const [editing, setEditing] = useState<{ slot: TimetableSlot; existing: boolean } | null>(null)
-  const pz = usePinchZoom()
 
   const byKey = useMemo(() => {
     const m = new Map<string, TimetableSlot>()
@@ -229,7 +227,6 @@ function MineView({ modeBar }: { modeBar: React.ReactNode }) {
 
       <div className="table-wrap">
         <ScaleToFit naturalWidth={LABEL_COL + DAYS.length * DATA_COL_MIN}>
-          <ZoomBox zoom={pz.zoom} touchHandlers={pz.touchHandlers}>
           <table className="tt" ref={tableRef} style={{ minWidth: LABEL_COL + DAYS.length * DATA_COL_MIN }}>
             <colgroup>
               <col style={{ width: LABEL_COL }} />
@@ -285,7 +282,6 @@ function MineView({ modeBar }: { modeBar: React.ReactNode }) {
               })}
             </tbody>
           </table>
-          </ZoomBox>
         </ScaleToFit>
       </div>
 
@@ -310,7 +306,6 @@ function AllView({ modeBar, admin }: { modeBar: React.ReactNode; admin: boolean 
   const toast = useToast()
   const tableRef = useRef<HTMLTableElement>(null)
   const [editing, setEditing] = useState<{ teacherId: string; slot: TimetableSlot; existing: boolean } | null>(null)
-  const pz = usePinchZoom()
 
   if (isLoading) return <Skeleton lines={6} />
 
@@ -406,10 +401,10 @@ function AllView({ modeBar, admin }: { modeBar: React.ReactNode; admin: boolean 
 
       <div className="table-wrap">
         <ScaleToFit naturalWidth={2 * LABEL_COL + teachers.length * DATA_COL_MIN}>
-          <ZoomBox zoom={pz.zoom} touchHandlers={pz.touchHandlers}>
           <table className="tt tt--wide" ref={tableRef} style={{ minWidth: 2 * LABEL_COL + teachers.length * DATA_COL_MIN }}>
             <colgroup>
-              <col style={{ width: LABEL_COL }} />
+              {/* Day column width lives in CSS (.tt__cday): narrower inside the phone zoom viewer. */}
+              <col className="tt__cday" />
               <col style={{ width: LABEL_COL }} />
               {teachers.map((tc) => (
                 <col key={tc.id} />
@@ -469,7 +464,6 @@ function AllView({ modeBar, admin }: { modeBar: React.ReactNode; admin: boolean 
               })}
             </tbody>
           </table>
-          </ZoomBox>
         </ScaleToFit>
       </div>
 

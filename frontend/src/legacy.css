@@ -943,22 +943,38 @@ tr.is-absent .table__name { color: var(--mark); text-decoration: line-through; o
    why keeping it would silently break the sticky header row. */
 .table-wrap:has(.tt) { overflow: visible; }
 
-/* ── Jadvalni pinch bilan kattalashtirish ─────────────
-   At 1x (the default — see components/PinchZoom.tsx) .pinchzoom__box
-   stays a plain non-scrolling wrapper, identical to not being there:
-   the table's own ScaleToFit fit-to-width and the page-level sticky
-   header (top: var(--topbar-h)) behave exactly as without this
-   component. Only past 1x, once the table is genuinely wider/taller
-   than the box, does it become the scrolling ancestor — and only then
-   does the sticky header need to re-anchor to *this* box's top edge
-   instead of the page's, which .pinchzoom__box--scroll below does. */
-.pinchzoom__box--scroll {
-  overflow: auto; max-height: 72vh; border: 1px solid var(--rule); border-radius: var(--r);
-  -webkit-overflow-scrolling: touch;
+/* ── Jadvalni telefonda kattalashtirish ───────────────────
+   components/ScaleToFit.tsx → ZoomViewer. Jadval o'z scroll qutisida:
+   pinch yoki −/+ bilan kattalashtiriladi, oddiy surish bilan siljiydi.
+   Sarlavha qatori shu quti tepasiga, kun/soat ustunlari chap chetiga
+   yopishib turadi, shuning uchun kattalashtirilganda ham kim/qachon
+   ekanligi ko'rinib turadi. Tugmalar quti pastida, ekrandan chiqib
+   ketsa pastki navigatsiya ustida qotadi. */
+.zoomview { position: relative; }
+.zoomview__box {
+  overflow: auto; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch;
+  border-radius: calc(var(--r) - 1px);
 }
-.pinchzoom__box--scroll .table-wrap { border: none; border-radius: 0; }
-.pinchzoom__box--scroll .tt--wide .tt__h,
-.pinchzoom__box--scroll .tt--wide .tt__corner { top: 0; }
+.zoomview__stage { width: max-content; transform-origin: 0 0; }
+.zoomview .tt .tt__h, .zoomview .tt .tt__corner { position: sticky; top: 0; z-index: 4; }
+.zoomview .tt .tt__corner { z-index: 6; }
+.zoomview__ctl {
+  position: sticky; bottom: 12px; z-index: 8;
+  display: flex; gap: 2px; width: max-content; margin: -54px 10px 10px auto; padding: 3px;
+  border: 1px solid var(--rule); border-radius: 12px; background: var(--surface);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, .18);
+}
+.zoomview__ctl button {
+  width: 40px; height: 40px; display: grid; place-items: center; padding: 0;
+  border: 0; border-radius: 9px; background: transparent; color: var(--ink);
+  font: 600 22px/1 var(--f-body, inherit); cursor: pointer;
+}
+.zoomview__ctl button:disabled { opacity: .35; cursor: default; }
+.zoomview__ctl button:not(:disabled):active { background: var(--rule-2); }
+.zoomview__ctl svg { width: 18px; height: 18px; }
+@media (max-width: 760px) {
+  .zoomview__ctl { bottom: 96px; }
+}
 .table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .table th {
   text-align: left; padding: 11px 12px;
@@ -2336,6 +2352,13 @@ button.bottomnav__item { border: 0; background: none; font: inherit; cursor: poi
   white-space: nowrap;
 }
 .tt--wide .tt__soat { left: 62px; }
+/* Kun ustuni (TimetablePage LABEL_COL bilan bir xil). Telefondagi
+   kattalashtirish oynasida u va soat ustuni chapga yopishib turadi —
+   ekranning katta qismini olmasligi uchun kun ustuni torroq. */
+.tt__cday { width: 62px; }
+.zoomview .tt__cday { width: 36px; }
+.zoomview .tt--wide .tt__soat { left: 36px; }
+.zoomview .tt__dayv span { font-size: 17px; }
 
 @media (max-width: 760px) {
   .tt__soat { font-size: 11px !important; }

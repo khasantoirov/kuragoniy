@@ -40,6 +40,9 @@ export async function tableJpg(title: string, el: HTMLElement) {
       // happens to be showing.
       const scaledAncestor = cloned.closest<HTMLElement>('.scale-to-fit__inner')
       if (scaledAncestor) scaledAncestor.style.zoom = '1'
+      // The phone zoom viewer's scroll box would clip the capture.
+      const viewer = cloned.closest<HTMLElement>('.zoomview__box')
+      if (viewer) Object.assign(viewer.style, { overflow: 'visible', maxHeight: 'none', height: 'auto' })
     },
   })
   triggerDownload(canvas.toDataURL('image/jpeg', 0.92), `${title}.jpg`)

@@ -455,6 +455,10 @@ const ru: Record<string, string> = {
   "javon": "шкаф",
   "davomi": "продолжение",
   "Sinfsiz": "Без класса",
+  // Jadvalni kattalashtirish
+  "Kichraytirish": "Уменьшить",
+  "Ekranga moslash": "По ширине экрана",
+  "Masshtab": "Масштаб",
 }
 
 const en: Record<string, string> = {
@@ -899,6 +903,10 @@ const en: Record<string, string> = {
   "javon": "bookcase",
   "davomi": "continued",
   "Sinfsiz": "No grade",
+  // Jadvalni kattalashtirish
+  "Kichraytirish": "Zoom out",
+  "Ekranga moslash": "Fit to screen",
+  "Masshtab": "Zoom",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)
