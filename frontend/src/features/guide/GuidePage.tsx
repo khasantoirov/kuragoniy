@@ -120,11 +120,9 @@ export function GuidePage() {
           <dt>{t("O'rtacha baho")}</dt>
           <dd>{t("Davrdagi barcha baholarning o'rtachasi. Jurnalda sinfning o'z shkalasida, statistika sahifalarida 5 ballik asosda ko'rsatiladi.")}</dd>
           <dt>{t("O'zlashtirish")}</dt>
-          <dd>{t("O'rtacha bahosi 3,5 va undan yuqori («4»–«5», ya'ni yaxshi va a'lo) o'quvchilar ulushi.")}</dd>
+          <dd>{t("O'quvchilar olgan baholarning o'rtachasi, eng yuqori bahoga nisbatan foizda: 5 ballikda o'rtacha 4,2 bo'lsa — 84%. 10 va 100 ballik sinflarda har bir baho o'z shkalasining eng yuqori bahosiga nisbatan olinadi.")}</dd>
           <dt>{t('Davomat')}</dt>
           <dd>{t("Qoldirilgan (sababli va sababsiz) darslardan tashqari qatnashuv; kechikish alohida sanaladi.")}</dd>
-          <dt>{t('Sifat')}</dt>
-          <dd>{t("Baho va davomatning umumlashmasi: o'zlashtirish va davomat foizlarining o'rtachasi.")}</dd>
         </dl>
       </Section>
 

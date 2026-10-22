@@ -39,7 +39,6 @@ export interface Metrics {
   marks: number
   avg_mark: number | null
   uzlashtirish: number | null
-  sifat: number | null
   attendance: number | null
   abs_s: number
   abs_n: number

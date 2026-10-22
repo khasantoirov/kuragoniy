@@ -1,5 +1,6 @@
 import os
 
+from django.db import transaction
 from rest_framework import serializers
 
 from common.uploads import delete_file_field
@@ -94,12 +95,17 @@ class LessonSerializer(serializers.ModelSerializer):
         except (OSError, ValueError):
             return None
 
+    # One transaction for the lesson and its experiments: an edit lands
+    # whole or not at all, and the on-commit lessons backup
+    # (lessons/signals.py) only runs once the experiments are written too.
+    @transaction.atomic
     def create(self, validated_data):
         experiments_data = validated_data.pop('experiments', [])
         lesson = Lesson.objects.create(**validated_data)
         self._sync_experiments(lesson, experiments_data)
         return lesson
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         experiments_data = validated_data.pop('experiments', None)
         for attr, value in validated_data.items():

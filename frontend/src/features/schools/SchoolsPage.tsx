@@ -86,7 +86,7 @@ export function SchoolsPage() {
   return (
     <div>
       <PageHead title={t('Hamkor maktablar')}
-        sub={t("Maktablar, ularga biriktirilgan o'qituvchilar va sinflar — o'zlashtirish, sifat va davomat bo'yicha.")}
+        sub={t("Maktablar, ularga biriktirilgan o'qituvchilar va sinflar — o'zlashtirish va davomat bo'yicha.")}
         actions={<>
           <Link className="btn" to="/manage/database">{IC.users} {t("Ma'lumotlar bazasi")}</Link>
           {admin && <button className="btn btn--primary" onClick={() => setCreating(true)}>+ {t('Maktab')}</button>}
@@ -109,7 +109,7 @@ export function SchoolsPage() {
           <StatTile label={t("O'qituvchilar")} value={totals.teachers} hint={`${totals.classes} ${t('ta sinf')}`} />
           <StatTile label={t("O'quvchilar")} value={totals.students} hint={`${totals.accounts} ${t('tasi platformada')}`} />
           <StatTile label={t("O'rtacha baho")} value={totals.avg_mark?.toFixed(2) ?? '—'} hint={`${totals.marks} ${t('ta baho')}`} />
-          <StatTile label={t("O'zlashtirish")} value={totals.uzlashtirish != null ? `${totals.uzlashtirish}%` : '—'} hint={totals.sifat != null ? `${t('sifat')} ${totals.sifat}%` : undefined} />
+          <StatTile label={t("O'zlashtirish")} value={totals.uzlashtirish != null ? `${totals.uzlashtirish}%` : '—'} />
           <StatTile label={t('Davomat')} value={totals.attendance != null ? `${totals.attendance}%` : '—'}
             hint={`${t('sababsiz')} ${totals.abs_n} · ${t('kech')} ${totals.late}`}
             tone={totals.attendance == null ? undefined : totals.attendance >= 95 ? 'ok' : totals.attendance >= 85 ? 'warn' : 'bad'} />

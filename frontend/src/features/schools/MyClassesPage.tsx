@@ -13,7 +13,7 @@ import { TrendPanels } from './TrendPanels'
 import { useTrendView } from './trendView'
 
 /** A teacher's own classes — the same figures administration sees for a
- * school (o'zlashtirish, sifat, davomat, trend, pupils needing
+ * school (o'zlashtirish, davomat, trend, pupils needing
  * attention), limited to the classes this teacher teaches. */
 export function MyClassesPage() {
   const { t } = useTranslation()
@@ -29,7 +29,7 @@ export function MyClassesPage() {
 
   return (
     <div>
-      <PageHead title={t('Sinflarim statistikasi')} sub={t("O'zingiz dars beradigan sinflar: o'zlashtirish, sifat, davomat va natijalar.")}
+      <PageHead title={t('Sinflarim statistikasi')} sub={t("O'zingiz dars beradigan sinflar: o'zlashtirish, davomat va natijalar.")}
         actions={<Segmented value={chorak} onChange={setChorak} options={CHORAK_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))} />} />
 
       {isLoading || !totals ? <Skeleton lines={3} /> : (
@@ -37,7 +37,7 @@ export function MyClassesPage() {
           <StatTile label={t('Sinflar')} value={data.classes.length} hint={manySchools ? `${data.schools.length} ${t('ta maktabda')}` : data.schools[0]?.name} />
           <StatTile label={t("O'quvchilar")} value={totals.students} hint={`${totals.accounts} ${t('tasi platformada')}`} />
           <StatTile label={t("O'rtacha baho")} value={totals.avg_mark?.toFixed(2) ?? '—'} hint={`${totals.marks} ${t('ta baho')} · ${totals.days} ${t('dars')}`} />
-          <StatTile label={t("O'zlashtirish")} value={totals.uzlashtirish != null ? `${totals.uzlashtirish}%` : '—'} hint={totals.sifat != null ? `${t('sifat')} ${totals.sifat}%` : undefined} />
+          <StatTile label={t("O'zlashtirish")} value={totals.uzlashtirish != null ? `${totals.uzlashtirish}%` : '—'} />
           <StatTile label={t('Davomat')} value={totals.attendance != null ? `${totals.attendance}%` : '—'}
             hint={`${t('sababsiz')} ${totals.abs_n} · ${t('kech')} ${totals.late}`} />
           <StatTile label={t("Platformadagi o'rtacha")} value={totals.platform_avg != null ? `${Math.round(totals.platform_avg)}%` : '—'} hint={t('test va masalalar')} />

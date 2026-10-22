@@ -101,7 +101,6 @@ export function SchoolDetailPage() {
           <StatTile label={t("O'quvchilar")} value={totals.students} hint={`${totals.accounts} ${t('tasi platformada')}`} />
           <StatTile label={t("O'rtacha baho")} value={totals.avg_mark?.toFixed(2) ?? '—'} hint={`${totals.marks} ${t('ta baho')} · ${totals.days} ${t('dars')}`} />
           <StatTile label={t("O'zlashtirish")} value={totals.uzlashtirish != null ? `${totals.uzlashtirish}%` : '—'} />
-          <StatTile label={t('Sifat')} value={totals.sifat != null ? `${totals.sifat}%` : '—'} />
           <StatTile label={t('Davomat')} value={totals.attendance != null ? `${totals.attendance}%` : '—'}
             hint={`${t('sababli')} ${totals.abs_s} · ${t('sababsiz')} ${totals.abs_n} · ${t('kech')} ${totals.late}`} />
           <StatTile label={t("Platformadagi o'rtacha")} value={totals.platform_avg != null ? `${Math.round(totals.platform_avg)}%` : '—'} hint={t('test va masalalar')} />

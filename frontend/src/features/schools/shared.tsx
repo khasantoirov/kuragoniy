@@ -29,17 +29,15 @@ export function MetricPill({ value, good, fair, suffix = '%', digits = 0 }: {
 }
 
 export const METRIC_HELP =
-  "O'zlashtirish — o'rtacha bahosi 3,5 va undan yuqori («4»–«5») o'quvchilar ulushi. " +
-  "Davomat — (sababli + sababsiz) qoldirilgan darslardan tashqari qatnashuv; kechikish alohida sanaladi. " +
-  "Sifat — baho va davomatning umumlashmasi: o'zlashtirish va davomat foizlarining o'rtachasi."
+  "O'zlashtirish — o'quvchilar olgan baholarning o'rtachasi, eng yuqori bahoga nisbatan foizda (5 ballikda o'rtacha 4,2 — 84%). " +
+  "Davomat — (sababli + sababsiz) qoldirilgan darslardan tashqari qatnashuv; kechikish alohida sanaladi."
 
-/** The four journal metric cells shared by every table on these pages. */
+/** The three journal metric cells shared by every table on these pages. */
 export function MetricCells({ m }: { m: Metrics }) {
   return (
     <>
       <td><MetricPill value={m.avg_mark} good={4} fair={3} suffix="" digits={2} /></td>
-      <td><MetricPill value={m.uzlashtirish} good={60} fair={40} /></td>
-      <td><MetricPill value={m.sifat} good={75} fair={55} /></td>
+      <td><MetricPill value={m.uzlashtirish} good={80} fair={60} /></td>
       <td><MetricPill value={m.attendance} good={95} fair={85} /></td>
     </>
   )
@@ -51,17 +49,16 @@ export function MetricHeads() {
     <>
       <th title={t(METRIC_HELP)}>{t("O'rtacha baho")}</th>
       <th title={t(METRIC_HELP)}>{t("O'zlashtirish")}</th>
-      <th title={t(METRIC_HELP)}>{t('Sifat')}</th>
       <th title={t(METRIC_HELP)}>{t('Davomat')}</th>
     </>
   )
 }
 
 export function metricCsv(m: Metrics) {
-  return [m.avg_mark ?? '', m.uzlashtirish ?? '', m.sifat ?? '', m.attendance ?? '', m.abs_s, m.abs_n, m.late]
+  return [m.avg_mark ?? '', m.uzlashtirish ?? '', m.attendance ?? '', m.abs_s, m.abs_n, m.late]
 }
 
-export const METRIC_CSV_HEAD = ["O'rtacha baho", "O'zlashtirish %", 'Sifat %', 'Davomat %', 'Sababli', 'Sababsiz', 'Kech']
+export const METRIC_CSV_HEAD = ["O'rtacha baho", "O'zlashtirish %", 'Davomat %', 'Sababli', 'Sababsiz', 'Kech']
 
 const EMPTY: Partial<School> = {
   name: '', district: '', address: '', director: '', phone: '', contract_start: null, contract_end: null,

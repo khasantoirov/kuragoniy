@@ -114,7 +114,7 @@ def test_statistics_pool_scales_by_colour_band(as_user, admin, teacher):
     GradeEntry.objects.create(student=kids[1], day=day, mark=60)
     (row,) = as_user(admin).get('/api/schools/stats/classes/').data
     assert row['avg_mark'] == 4.0
-    assert row['uzlashtirish'] == 50.0
+    assert row['uzlashtirish'] == 75.0
 
 
 def test_quarter_grades_are_written_only_through_set_final(as_user, teacher, journal_class):

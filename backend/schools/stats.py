@@ -4,13 +4,12 @@ Definitions (shown to users as written here):
   Marks are taken by their colour band on a 0-5 footing (GradeEntry.level,
   journal/scales.py), so classes graded 0-5, 0-10 and 0-100 pool together.
   O'rtacha baho  — mean of all marks in the period.
-  O'zlashtirish  — share of graded students whose average mark is >= 3.5
-                   (rounds to "4" or "5").
+  O'zlashtirish  — the mean mark as a percent of the top mark: every mark
+                   taken as mark / scale x 100 (4 of 5 = 80%, 78 of 100 =
+                   78%) and averaged over all marks.
   Davomat        — 1 - (sababli + sababsiz absences) / (students x lesson
                    days). Late ("kech") is counted separately, not as an
                    absence.
-  Sifat          — marks and attendance together: the mean of
-                   O'zlashtirish and Davomat.
 
 Everything is computed with a handful of grouped queries and pooled from
 raw sums, so a school's figure is the true figure over all its pupils, not
@@ -20,18 +19,16 @@ an average of class averages.
 from collections import defaultdict
 from datetime import timedelta
 
-from django.db.models import Avg, Count, Q, Sum
+from django.db.models import Avg, Count, ExpressionWrapper, F, FloatField, Q, Sum
 
 from journal.models import AttendanceEntry, ClassDay, GradeEntry, JournalClass, Student
 from learning.models import Attempt, StudentProfile
 
-PASS_AVG = 2.5
-QUALITY_AVG = 3.5
 ATTENTION_AVG = 2.5
 ATTENTION_ABSENCES = 3
 
 RAW_KEYS = (
-    'students', 'days', 'marks_n', 'marks_sum', 'graded', 'passing', 'quality',
+    'students', 'days', 'marks_n', 'marks_sum', 'marks_pct_sum',
     'abs_s', 'abs_n', 'late', 'student_days', 'accounts', 'attempts_n', 'attempts_pct_sum',
 )
 
@@ -53,16 +50,14 @@ def class_raw(classes, chorak=None) -> dict[int, dict]:
               .values('journal_class').annotate(n=Count('id'))):
         raw[r['journal_class']]['days'] = r['n']
 
+    percent = ExpressionWrapper(F('mark') * 100.0 / F('day__journal_class__scale'), output_field=FloatField())
     marks = (GradeEntry.objects.filter(Q(day__journal_class_id__in=ids, student__active=True) & _day_filter(chorak, 'day__'))
-             .values('student', 'day__journal_class').annotate(n=Count('id'), s=Sum('level')))
+             .values('day__journal_class').annotate(n=Count('id'), s=Sum('level'), p=Sum(percent)))
     for r in marks:
         row = raw[r['day__journal_class']]
-        avg = r['s'] / r['n']
         row['marks_n'] += r['n']
         row['marks_sum'] += r['s']
-        row['graded'] += 1
-        row['passing'] += avg >= PASS_AVG
-        row['quality'] += avg >= QUALITY_AVG
+        row['marks_pct_sum'] += r['p'] or 0
 
     att = (AttendanceEntry.objects.filter(Q(day__journal_class_id__in=ids, student__active=True) & _day_filter(chorak, 'day__'))
            .values('day__journal_class', 'status').annotate(n=Count('id')))
@@ -95,21 +90,15 @@ def pool(rows) -> dict:
 
 def derive(raw: dict) -> dict:
     """Human-facing metrics from pooled raw sums (None = no data yet)."""
-    def pct(a, b):
-        return round(100 * a / b, 1) if b else None
-
     absences = raw['abs_s'] + raw['abs_n']
-    mastery = pct(raw['quality'], raw['graded'])
+    mastery = round(raw['marks_pct_sum'] / raw['marks_n'] + 1e-9, 1) if raw['marks_n'] else None
     attendance = round(100 - 100 * absences / raw['student_days'], 1) if raw['student_days'] else None
-    quality = (round((mastery + attendance) / 2 + 1e-9, 1)
-               if mastery is not None and attendance is not None else None)
     return {
         'students': raw['students'],
         'days': raw['days'],
         'marks': raw['marks_n'],
         'avg_mark': round(raw['marks_sum'] / raw['marks_n'], 2) if raw['marks_n'] else None,
         'uzlashtirish': mastery,
-        'sifat': quality,
         'attendance': attendance,
         'abs_s': raw['abs_s'],
         'abs_n': raw['abs_n'],

@@ -515,6 +515,13 @@ const ru: Record<string, string> = {
   "Bu kun yopilgan": "Этот день закрыт",
   "Narx qanday hisoblanadi": "Как считается цена",
   "Shkala o'zgartirildi": "Шкала изменена",
+  // O'zlashtirish (yangi ta'rif)
+  "O'zlashtirish — o'quvchilar olgan baholarning o'rtachasi, eng yuqori bahoga nisbatan foizda (5 ballikda o'rtacha 4,2 — 84%). Davomat — (sababli + sababsiz) qoldirilgan darslardan tashqari qatnashuv; kechikish alohida sanaladi.": "Успеваемость — средний балл учеников в процентах от высшей оценки (средний 4,2 по 5-балльной — 84%). Посещаемость — без пропусков (по уважительной и без причины); опоздания считаются отдельно.",
+  "O'quvchilar olgan baholarning o'rtachasi, eng yuqori bahoga nisbatan foizda: 5 ballikda o'rtacha 4,2 bo'lsa — 84%. 10 va 100 ballik sinflarda har bir baho o'z shkalasining eng yuqori bahosiga nisbatan olinadi.": "Средний балл учеников в процентах от высшей оценки: средний 4,2 по 5-балльной — 84%. В 10- и 100-балльных классах каждая оценка берётся относительно высшей оценки своей шкалы.",
+  "O'zingiz dars beradigan sinflar: o'zlashtirish, davomat va natijalar.": "Классы, где вы преподаёте: успеваемость, посещаемость и результаты.",
+  "Maktablar, ularga biriktirilgan o'qituvchilar va sinflar — o'zlashtirish va davomat bo'yicha.": "Школы, их учителя и классы — по успеваемости и посещаемости.",
+  "O'zlashtirish va davomat": "Успеваемость и посещаемость",
+  "O'zlashtirish va davomat maktablar kesimida": "Успеваемость и посещаемость по школам",
 }
 
 const en: Record<string, string> = {
@@ -1019,6 +1026,13 @@ const en: Record<string, string> = {
   "Bu kun yopilgan": "This day is closed",
   "Narx qanday hisoblanadi": "How the price is counted",
   "Shkala o'zgartirildi": "Scale changed",
+  // O'zlashtirish (yangi ta'rif)
+  "O'zlashtirish — o'quvchilar olgan baholarning o'rtachasi, eng yuqori bahoga nisbatan foizda (5 ballikda o'rtacha 4,2 — 84%). Davomat — (sababli + sababsiz) qoldirilgan darslardan tashqari qatnashuv; kechikish alohida sanaladi.": "Mastery — the pupils' mean mark as a percent of the top mark (a 4.2 average on 5 points is 84%). Attendance — apart from missed lessons (excused or not); lateness is counted separately.",
+  "O'quvchilar olgan baholarning o'rtachasi, eng yuqori bahoga nisbatan foizda: 5 ballikda o'rtacha 4,2 bo'lsa — 84%. 10 va 100 ballik sinflarda har bir baho o'z shkalasining eng yuqori bahosiga nisbatan olinadi.": "The pupils' mean mark as a percent of the top mark: a 4.2 average on 5 points is 84%. On 10- and 100-point classes each mark is taken against its own scale's top mark.",
+  "O'zingiz dars beradigan sinflar: o'zlashtirish, davomat va natijalar.": "The classes you teach: mastery, attendance and results.",
+  "Maktablar, ularga biriktirilgan o'qituvchilar va sinflar — o'zlashtirish va davomat bo'yicha.": "Schools, their teachers and classes — by mastery and attendance.",
+  "O'zlashtirish va davomat": "Mastery and attendance",
+  "O'zlashtirish va davomat maktablar kesimida": "Mastery and attendance by school",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)
