@@ -2,19 +2,61 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 
-import { GRADES, gradeLabel } from './grades'
+import { levelOf, LEVELS, markLabel, marksOf, bandText, type Scale } from './scales'
 
-/** A mark as its colour with the digit inside. */
-export function GradeChip({ v }: { v: number | null | undefined }) {
+/** A mark as its colour band with the number inside. */
+export function GradeChip({ v, scale }: { v: number | null | undefined; scale: Scale }) {
   const { t } = useTranslation()
   if (v == null) return null
-  return <span className={`gchip gchip--${v}`} title={t(gradeLabel(v))}>{v}</span>
+  return <span className={`gchip gchip--${levelOf(v, scale)} ${scale === 100 ? 'gchip--wide' : ''}`} title={t(markLabel(v, scale))}>{v}</span>
+}
+
+/** Typing a 0-100 mark: the colour band follows the number. */
+function NumberPick({ value, scale, onPick }: { value: number | null | undefined; scale: Scale; onPick: (v: number | null) => void }) {
+  const { t } = useTranslation()
+  const [text, setText] = useState(value != null ? String(value) : '')
+  const n = text.trim() === '' ? null : Number(text)
+  const ok = n === null || (Number.isInteger(n) && n >= 0 && n <= scale)
+  return (
+    <form
+      className="gpop__num"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (ok) onPick(n)
+      }}
+    >
+      <input
+        className="input"
+        type="number"
+        inputMode="numeric"
+        min={0}
+        max={scale}
+        autoFocus
+        value={text}
+        aria-label={t('Baho')}
+        onChange={(e) => setText(e.target.value)}
+      />
+      <span className={`gchip ${n !== null && ok ? `gchip--${levelOf(n, scale)}` : 'gchip--none'} gpop__lvl`}>
+        {n !== null && ok ? t(markLabel(n, scale)) : ok ? '—' : `0–${scale}`}
+      </span>
+      <button type="submit" className="btn btn--sm btn--primary" disabled={!ok}>OK</button>
+      <span className="gpop__bands">
+        {LEVELS.map((l) => (
+          <button key={l.l} type="button" className={`gchip gchip--${l.l} gpop__band`} title={t(l.label)} onClick={() => setText(bandText(l.l, scale).split('–').pop()!)}>
+            {bandText(l.l, scale)}
+          </button>
+        ))}
+      </span>
+    </form>
+  )
 }
 
 /** An editable mark (the quarter grade in the grid): click for the colour
- * buttons, or type 0–5 / Backspace while it has focus. */
-export function GradeCell({ value, disabled, onChange }: {
+ * buttons (0-5, 0-10) or a number box (0-100); on 0-5 typing a digit works
+ * while it has focus. */
+export function GradeCell({ value, scale, disabled, onChange }: {
   value: number | null | undefined
+  scale: Scale
   disabled?: boolean
   onChange: (v: number | null) => void
 }) {
@@ -29,7 +71,8 @@ export function GradeCell({ value, disabled, onChange }: {
     // body has CSS zoom: rects come back zoomed, fixed offsets get zoomed again.
     const zoom = parseFloat(getComputedStyle(document.body).zoom || '1') || 1
     const r = el.getBoundingClientRect()
-    setAt({ top: r.bottom / zoom + 4, left: Math.max(8, Math.min(r.left / zoom - 80, window.innerWidth / zoom - 236)) })
+    const w = scale === 5 ? 236 : 300
+    setAt({ top: r.bottom / zoom + 4, left: Math.max(8, Math.min(r.left / zoom - 80, window.innerWidth / zoom - w - 8)) })
   }
   const pick = (v: number | null) => {
     setAt(null)
@@ -58,24 +101,29 @@ export function GradeCell({ value, disabled, onChange }: {
       <button
         ref={btn}
         type="button"
-        className={`gcell ${value != null ? `gchip gchip--${value}` : ''}`}
+        className={`gcell ${value != null ? `gchip gchip--${levelOf(value, scale)}` : ''}`}
         disabled={disabled}
-        title={value != null ? t(gradeLabel(value)) : t('Baho qo\'yish')}
+        title={value != null ? t(markLabel(value, scale)) : t('Baho qo\'yish')}
         onClick={() => (at ? setAt(null) : open())}
         onKeyDown={(e) => {
-          if (/^[0-5]$/.test(e.key)) { e.preventDefault(); pick(Number(e.key)) }
+          if (scale === 5 && /^[0-5]$/.test(e.key)) { e.preventDefault(); pick(Number(e.key)) }
           else if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); pick(null) }
         }}
       >
         {value ?? ''}
       </button>
       {at && createPortal(
-        <div ref={pop} className="gpop" style={{ top: at.top, left: at.left }} role="listbox">
-          {GRADES.map((g) => (
-            <button key={g.v} type="button" className={`gchip gchip--${g.v} gpop__b ${value === g.v ? 'is-on' : ''}`} onClick={() => pick(g.v)}>
-              <b>{g.v}</b><span>{t(g.label)}</span>
-            </button>
-          ))}
+        <div ref={pop} className={`gpop gpop--s${scale}`} style={{ top: at.top, left: at.left }} role="listbox">
+          {scale === 100 ? (
+            <NumberPick value={value} scale={scale} onPick={pick} />
+          ) : (
+            marksOf(scale).map((v) => (
+              <button key={v} type="button" className={`gchip gchip--${levelOf(v, scale)} gpop__b ${value === v ? 'is-on' : ''}`}
+                title={t(markLabel(v, scale))} onClick={() => pick(v)}>
+                <b>{v}</b>{scale === 5 && <span>{t(markLabel(v, scale))}</span>}
+              </button>
+            ))
+          )}
           <button type="button" className="gpop__clear" onClick={() => pick(null)}>✕ {t("O'chirish")}</button>
         </div>,
         document.body,

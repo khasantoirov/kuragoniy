@@ -11,6 +11,7 @@ from common.permissions import IsApproved
 
 from .locks import ALL_PAST_DAYS, LOCKED_DETAIL, NOT_OWNER_DETAIL, can_edit_day, is_owner, lock_info, today
 from .models import AttendanceEntry, ClassDay, FinalGrade, GradeEntry, JournalClass, JournalEditGrant, Student
+from .scales import convert, level
 from .serializers import (
     BulkDaySerializer,
     ClassDaySerializer,
@@ -52,6 +53,20 @@ class JournalClassViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(teacher=self.request.user)
 
+    def perform_update(self, serializer):
+        """Changing a class's scale carries every mark already given over
+        to the new scale, keeping each one in its colour band."""
+        old = serializer.instance.scale
+        with transaction.atomic():
+            cls = serializer.save()
+            if cls.scale != old:
+                for model, filt in ((GradeEntry, {'day__journal_class': cls}), (FinalGrade, {'student__journal_class': cls})):
+                    rows = list(model.objects.filter(**filt))
+                    for r in rows:
+                        r.mark = convert(r.mark, old, cls.scale)
+                        r.level = level(r.mark, cls.scale)
+                    model.objects.bulk_update(rows, ['mark', 'level'])
+
     @action(detail=True, methods=['get'])
     def grid(self, request, pk=None):
         """Denormalized day x student grid, shaped for direct table
@@ -74,6 +89,7 @@ class JournalClassViewSet(viewsets.ModelViewSet):
             finals_by_chorak.setdefault(f.chorak, {})[f.student_id] = f.mark
 
         return Response({
+            'scale': journal_class.scale,
             'students': StudentSerializer(students, many=True).data,
             'days': [
                 {
@@ -95,6 +111,9 @@ class JournalClassViewSet(viewsets.ModelViewSet):
         data = serializer.validated_data
         if not can_edit_day(request.user, journal_class, data['date']):
             return _locked(request.user, journal_class, data['date'])
+        scale = journal_class.scale
+        if any(e.get('mark') is not None and e['mark'] > scale for e in data.get('marks', [])):
+            return Response({'detail': f"Baho 0 dan {scale} gacha bo'ladi."}, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
             defaults = {'chorak': data['chorak'], 'topic': data.get('topic', '')}
@@ -112,7 +131,7 @@ class JournalClassViewSet(viewsets.ModelViewSet):
                 else:
                     GradeEntry.objects.update_or_create(
                         day=day, student_id=entry['student_id'],
-                        defaults={'mark': entry['mark']},
+                        defaults={'mark': entry['mark'], 'level': level(entry['mark'], scale)},
                     )
 
             for entry in data.get('attendance', []):
@@ -152,9 +171,11 @@ class JournalClassViewSet(viewsets.ModelViewSet):
                 mark = int(mark)
             except (TypeError, ValueError):
                 mark = -1
-            if not 0 <= mark <= 5:
-                return Response({'detail': "Baho 0 dan 5 gacha bo'ladi."}, status=status.HTTP_400_BAD_REQUEST)
-            FinalGrade.objects.update_or_create(student=student, chorak=chorak, defaults={'mark': mark})
+            scale = journal_class.scale
+            if not 0 <= mark <= scale:
+                return Response({'detail': f"Baho 0 dan {scale} gacha bo'ladi."}, status=status.HTTP_400_BAD_REQUEST)
+            FinalGrade.objects.update_or_create(student=student, chorak=chorak,
+                                                defaults={'mark': mark, 'level': level(mark, scale)})
         return Response(self.grid(request, pk=pk).data)
 
 
@@ -181,7 +202,10 @@ class StudentViewSet(viewsets.ModelViewSet):
         instance.save(update_fields=['active'])
 
 
-class FinalGradeViewSet(viewsets.ModelViewSet):
+class FinalGradeViewSet(viewsets.ReadOnlyModelViewSet):
+    """Read-only: quarter grades are written through the class's
+    set-final action, which checks the class's scale and sets the level."""
+
     serializer_class = FinalGradeSerializer
     permission_classes = [IsApproved]
 

@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from .scales import level as level_of
+
 
 class JournalClass(models.Model):
     teacher = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='classes', on_delete=models.CASCADE)
@@ -12,6 +14,9 @@ class JournalClass(models.Model):
         'schools.School', related_name='classes', null=True, blank=True, on_delete=models.SET_NULL,
     )
     name = models.CharField(max_length=100)  # e.g. "8-A"
+    # The school's grading scale for this class: marks go 0..scale
+    # (journal/scales.py maps them to colour bands).
+    scale = models.PositiveSmallIntegerField(choices=[(5, '0-5'), (10, '0-10'), (100, '0-100')], default=5)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -56,11 +61,18 @@ class ClassDay(models.Model):
 class GradeEntry(models.Model):
     student = models.ForeignKey(Student, related_name='grades', on_delete=models.CASCADE)
     day = models.ForeignKey(ClassDay, related_name='grades', on_delete=models.CASCADE)
-    # 5 a'lo, 4 yaxshi, 3 qoniqarli, 2 qoniqarsiz, 1 and 0 yomon.
-    mark = models.PositiveSmallIntegerField(choices=[(i, i) for i in range(0, 6)])
+    # On the class's scale (0..journal_class.scale). `level` is its colour
+    # band on a common 0-5 footing — 5 a'lo, 4 yaxshi, 3 qoniqarli,
+    # 2 qoniqarsiz, 1/0 yomon — kept with it for colours and statistics.
+    mark = models.PositiveSmallIntegerField()
+    level = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         unique_together = ('student', 'day')
+
+    def save(self, *args, **kwargs):
+        self.level = level_of(self.mark, self.day.journal_class.scale)
+        super().save(*args, **kwargs)
 
 
 class AttendanceEntry(models.Model):
@@ -82,11 +94,16 @@ class AttendanceEntry(models.Model):
 class FinalGrade(models.Model):
     student = models.ForeignKey(Student, related_name='finals', on_delete=models.CASCADE)
     chorak = models.PositiveSmallIntegerField()
-    # 5 a'lo, 4 yaxshi, 3 qoniqarli, 2 qoniqarsiz, 1 and 0 yomon.
-    mark = models.PositiveSmallIntegerField(choices=[(i, i) for i in range(0, 6)])
+    # Same as GradeEntry: on the class's scale, with its colour band.
+    mark = models.PositiveSmallIntegerField()
+    level = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         unique_together = ('student', 'chorak')
+
+    def save(self, *args, **kwargs):
+        self.level = level_of(self.mark, self.student.journal_class.scale)
+        super().save(*args, **kwargs)
 
 
 class JournalEditGrant(models.Model):

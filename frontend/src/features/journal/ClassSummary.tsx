@@ -11,6 +11,7 @@ import { ClassModal } from './ClassModal'
 import { EditStudentsModal } from './EditStudentsModal'
 import { quarterLabel } from './labels'
 import { MasteryPanel } from './MasteryPanel'
+import { asScale, fmtAvg } from './scales'
 import { computeStats } from './stats'
 import type { JournalClass } from './types'
 
@@ -52,22 +53,18 @@ export function ClassSummary({ cls, teacherId }: { cls: JournalClass; teacherId?
     toast(t("Sinf o'chirildi"))
   }
 
+  const scale = asScale(grid.scale ?? cls.scale)
   const rows = [1, 2, 3, 4].map((q) => {
     const days = grid.days.filter((d) => d.chorak === q)
-    const s = computeStats(grid, days)
+    const s = computeStats(grid, days, scale)
     return { q, days: days.length, avg: s.classAvg, pct: s.pct }
   })
-  const tot = computeStats(grid, grid.days)
+  const tot = computeStats(grid, grid.days, scale)
 
   return (
     <div>
       <div className="jhead">
-        <div className="jsum">
-          <div className="jsum__b"><span>{t("Sinf o'rtachasi")}</span><b>{tot.classAvg ? tot.classAvg.toFixed(2) : '—'}</b></div>
-          <div className="jsum__b"><span>{t("O'zlashtirish")}</span><b>{tot.pct !== null ? tot.pct + '%' : '—'}</b></div>
-          <div className="jsum__b"><span>{t("O'quvchi")}</span><b>{grid.students.length}</b></div>
-          <div className="jsum__b"><span>{t('Darslar soni')}</span><b>{grid.days.length}</b></div>
-        </div>
+        <span />
         {owner && (
           <div className="jhead__acts">
             <button className="btn btn--sm btn--ghost" onClick={onRemoveClass}>{t("Sinfni o'chirish")}</button>
@@ -93,8 +90,8 @@ export function ClassSummary({ cls, teacherId }: { cls: JournalClass; teacherId?
             </tr>
             <tr>
               <td>{t("O'rtacha")}</td>
-              {rows.map((r) => (<td key={r.q} className="table__q">{r.avg ? r.avg.toFixed(2) : '—'}</td>))}
-              <td className="table__q"><b>{tot.classAvg ? tot.classAvg.toFixed(2) : '—'}</b></td>
+              {rows.map((r) => (<td key={r.q} className="table__q">{r.avg != null ? fmtAvg(r.avg, scale) : '—'}</td>))}
+              <td className="table__q"><b>{tot.classAvg != null ? fmtAvg(tot.classAvg, scale) : '—'}</b></td>
             </tr>
             <tr>
               <td>{t("O'zlashtirish")}</td>

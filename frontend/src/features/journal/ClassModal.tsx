@@ -3,12 +3,14 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Modal } from '@/components/Modal'
+import { useConfirm } from '@/components/ConfirmProvider'
 import { useToast } from '@/components/Toast'
 import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
 import { record } from '@/lib/history'
 
 import { useCreateClass, useUpdateClass } from './api'
+import { asScale, bandText, LEVELS, SCALES, type Scale } from './scales'
 import type { JournalClass } from './types'
 
 export function ClassModal({ cls, onClose, onCreated }: { cls: JournalClass | null; onClose: () => void; onCreated?: (id: number) => void }) {
@@ -16,6 +18,16 @@ export function ClassModal({ cls, onClose, onCreated }: { cls: JournalClass | nu
   const [school, setSchool] = useState(cls?.school ?? '')
   const [partner, setPartner] = useState<number | 'other' | ''>(cls?.partner_school ?? (cls ? 'other' : ''))
   const [name, setName] = useState(cls?.name ?? '')
+  // The school's grading scale; a new class starts on the one used last.
+  const [scale, setScale] = useState<Scale>(() => {
+    if (cls) return asScale(cls.scale)
+    try {
+      return asScale(Number(localStorage.getItem('af-journal-scale')))
+    } catch {
+      return 5
+    }
+  })
+  const confirm = useConfirm()
   // Partner-school registry (administration maintains it) — picking from
   // it keeps per-school statistics correct instead of one school showing up
   // under five different spellings.
@@ -34,11 +46,20 @@ export function ClassModal({ cls, onClose, onCreated }: { cls: JournalClass | nu
     if (!schoolName) return toast(t('Maktabni tanlang yoki nomini kiriting'), 'error')
     if (!name.trim()) return toast(t('Sinf nomini kiriting'), 'error')
     const partnerId = chosen ? chosen.id : null
+    if (cls && scale !== asScale(cls.scale) && !(await confirm({
+      title: t('Baholash shkalasi'),
+      text: t("Mavjud baholar yangi shkalaga o'tkaziladi — har birining rang toifasi saqlanadi."),
+    }))) return
     try {
+      try {
+        localStorage.setItem('af-journal-scale', String(scale))
+      } catch {
+        // a remembered default is only a convenience
+      }
       if (cls) {
         const before = { school: cls.school, name: cls.name, partner_school: cls.partner_school ?? null }
         const after = { school: schoolName, name, partner_school: partnerId }
-        await update.mutateAsync(after)
+        await update.mutateAsync(scale !== asScale(cls.scale) ? { ...after, scale } : after)
         if (before.school !== after.school || before.name !== after.name) {
           record(
             t('Sinf tahrirlandi'),
@@ -48,7 +69,7 @@ export function ClassModal({ cls, onClose, onCreated }: { cls: JournalClass | nu
         }
         toast(t('Sinf saqlandi'))
       } else {
-        const created = await create.mutateAsync({ school: schoolName, name, partner_school: partnerId })
+        const created = await create.mutateAsync({ school: schoolName, name, partner_school: partnerId, scale })
         toast(t("Sinf qo'shildi"))
         onCreated?.(created.id)
       }
@@ -89,6 +110,22 @@ export function ClassModal({ cls, onClose, onCreated }: { cls: JournalClass | nu
         <span className="field__label">{t('Sinf nomi')}</span>
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Masalan: 7-A')} />
       </label>
+      <div className="field">
+        <span className="field__label">{t('Baholash shkalasi')}</span>
+        <div className="scalepick" role="radiogroup" aria-label={t('Baholash shkalasi')}>
+          {SCALES.map((o) => (
+            <button key={o.v} type="button" role="radio" aria-checked={scale === o.v} className={`scalepick__o ${scale === o.v ? 'is-on' : ''}`} onClick={() => setScale(o.v)}>
+              <b>{o.range}</b>
+              <span>{t(o.label)}</span>
+            </button>
+          ))}
+        </div>
+        <div className="scalepick__bands">
+          {LEVELS.map((l) => (
+            <span key={l.l} className="scalepick__band"><span className={`gchip gchip--${l.l} gchip--wide`}>{bandText(l.l, scale)}</span> {t(l.label)}</span>
+          ))}
+        </div>
+      </div>
     </Modal>
   )
 }

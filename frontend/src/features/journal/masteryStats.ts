@@ -1,5 +1,6 @@
 import type { Lang } from '@/store/uiStore'
 
+import { asScale } from './scales'
 import { computeStats } from './stats'
 import { quarterLabel } from './labels'
 import type { Grid, GridDay } from './types'
@@ -100,19 +101,21 @@ export function bandOfAvg(avg: number): 'good' | 'mid' | 'bad' {
   return 'bad'
 }
 
-export function computeMastery(grid: Pick<Grid, 'students'>, buckets: Bucket[], lang: Lang): BucketStats[] {
+export function computeMastery(grid: Pick<Grid, 'students' | 'scale'>, buckets: Bucket[], lang: Lang): BucketStats[] {
+  // Bands go by colour level (0-5), so they mean the same on a 0-10 or 0-100 class.
+  const scale = asScale(grid.scale)
   return buckets.map((b) => {
-    const s = computeStats(grid, b.days)
+    const s = computeStats(grid, b.days, scale)
     let good = 0
     let mid = 0
     let bad = 0
     let ungraded = 0
     for (const p of s.perStudent) {
-      if (p.avg === null) {
+      if (p.lvl === null) {
         ungraded++
         continue
       }
-      const band = bandOfAvg(p.avg)
+      const band = bandOfAvg(p.lvl)
       if (band === 'good') good++
       else if (band === 'mid') mid++
       else bad++

@@ -33,6 +33,7 @@ const InboxPage = lazy(() => import('@/features/notifications/InboxPage').then((
 const DayPage = lazy(() => import('@/features/journal/DayPage').then((m) => ({ default: m.DayPage })))
 const BookReaderPage = lazy(() => import('@/features/library/reader/BookReaderPage').then((m) => ({ default: m.BookReaderPage })))
 
+const GuidePage = lazy(() => import('@/features/guide/GuidePage').then((m) => ({ default: m.GuidePage })))
 const page = (el: React.ReactNode) => <Suspense fallback={<Skeleton lines={5} />}>{el}</Suspense>
 
 export const router = createBrowserRouter([
@@ -71,6 +72,7 @@ export const router = createBrowserRouter([
         ),
       },
       { path: '/about', element: <AboutPage /> },
+      { path: '/guide', element: page(<GuidePage />) },
       // Eski xatcho'plar va havolalar uzilib qolmasin — profil endi
       // Sozlamalar ichida.
       { path: '/profile', element: <Navigate to="/settings/profile" replace /> },

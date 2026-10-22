@@ -108,7 +108,7 @@ def student_averages(class_ids, chorak):
     qs = GradeEntry.objects.filter(student__journal_class_id__in=class_ids, student__active=True)
     if chorak:
         qs = qs.filter(day__chorak=chorak)
-    rows = qs.values('student__journal_class_id', 'student_id').annotate(avg_mark=Avg('mark'))
+    rows = qs.values('student__journal_class_id', 'student_id').annotate(avg_mark=Avg('level'))
     return [(r['student__journal_class_id'], r['student_id'], r['avg_mark']) for r in rows]
 
 
@@ -237,7 +237,7 @@ def mastery_trend(class_ids, chorak, period, total_students, date_range_ids=None
     qs = GradeEntry.objects.filter(student__journal_class_id__in=class_ids, student__active=True)
     if period != 'quarter' and chorak:
         qs = qs.filter(day__chorak=chorak)
-    rows = list(qs.values_list('student_id', 'mark', 'day__date', 'day__chorak'))
+    rows = list(qs.values_list('student_id', 'level', 'day__date', 'day__chorak'))
 
     per_bucket = defaultdict(lambda: defaultdict(list))  # key -> student_id -> [marks]
     meta_by_key = {}

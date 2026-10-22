@@ -133,16 +133,6 @@ export function ProfilePage() {
         </div>
       </section>
 
-      <div className="infobox">
-        <span className="infobox__ic">{IC.eye}</span>
-        <div>
-          <p className="infobox__t">{t("Faollik ko'rinishi haqida")}</p>
-          <p className="infobox__s">
-            {t("Platformadagi faolligingiz (hozir onlayn yoki oxirgi marta qachon kirgansiz) ma'muriyatga ko'rinadi. Ish vaqtingiz yoki ekrandagi harakatlaringiz yozib olinmaydi.")}
-          </p>
-        </div>
-      </div>
-
       <nav className="ptabs" aria-label={t('Profil bo\'limlari')}>
         {TABS.map((x) => (
           <button key={x.key} type="button" className={`ptab ${tab === x.key ? 'is-on' : ''}`}

@@ -11,6 +11,8 @@ export interface JournalClass {
   partner_school?: number | null
   partner_school_name?: string
   name: string
+  /** Grading scale: marks go 0..scale (5, 10 or 100). */
+  scale: number
   created_at: string
   students: Student[]
 }
@@ -42,6 +44,7 @@ export interface GridLock {
 }
 
 export interface Grid {
+  scale?: number
   students: Student[]
   days: GridDay[]
   finals: Record<string, Record<string, number>>

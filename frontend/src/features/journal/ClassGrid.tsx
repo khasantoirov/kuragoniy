@@ -1,7 +1,7 @@
 import { isAxiosError } from 'axios'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { useConfirm } from '@/components/ConfirmProvider'
 import { Skeleton } from '@/components/Skeleton'
@@ -12,15 +12,15 @@ import { record } from '@/lib/history'
 import { tablePdf } from '@/lib/pdf'
 
 import { AddDayModal } from './AddDayModal'
-import { useBulkMarks, useDecideGrant, useDeleteClass, useDropDay, useGrid, useSetFinal } from './api'
-import { ATT, attOf, fmtD } from './attendance'
+import { useBulkMarks, useDecideGrant, useDeleteClass, useDropDay, useGrid, useSetFinal, useUpdateClass } from './api'
+import { attOf, fmtD } from './attendance'
 import { ClassModal } from './ClassModal'
 import { EditRequestModal } from './EditRequestModal'
 import { GradeCell, GradeChip } from './GradeCell'
-import { GRADES } from './grades'
 import { GrantDayModal } from './GrantDayModal'
 import { EditStudentsModal } from './EditStudentsModal'
 import { canEditDay, grantFor, isPending, localToday } from './lock'
+import { asScale, fmtAvg, SCALES, type Scale } from './scales'
 import { computeStats } from './stats'
 import type { JournalClass } from './types'
 
@@ -38,6 +38,7 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
   const bulkMarks = useBulkMarks(cls.id)
   const dropDay = useDropDay(cls.id)
   const setFinal = useSetFinal(cls.id)
+  const updateClass = useUpdateClass(cls.id)
   const deleteClass = useDeleteClass()
   const toast = useToast()
   const confirm = useConfirm()
@@ -57,7 +58,25 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
 
   const students = grid.students
   const days = grid.days.filter((d) => d.chorak === chorak).sort((a, b) => a.date.localeCompare(b.date))
-  const stats = computeStats(grid, days)
+  const scale = asScale(grid.scale ?? cls.scale)
+  const hasMarks = grid.days.some((d) => Object.keys(d.marks).length > 0)
+    || Object.values(grid.finals ?? {}).some((q) => Object.keys(q).length > 0)
+  // Straight from the header: existing marks are carried over to the new
+  // scale (backend keeps each in its colour band), so ask first if any.
+  const changeScale = async (next: Scale) => {
+    if (next === scale) return
+    if (hasMarks && !(await confirm({
+      title: t('Baholash shkalasi'),
+      text: t("Mavjud baholar yangi shkalaga o'tkaziladi — har birining rang toifasi saqlanadi."),
+    }))) return
+    try {
+      await updateClass.mutateAsync({ school: cls.school, name: cls.name, scale: next })
+      toast(t("Shkala o'zgartirildi"))
+    } catch (err) {
+      toast(t(errDetail(err) ?? 'Xatolik yuz berdi'), 'error')
+    }
+  }
+  const stats = computeStats(grid, days, scale)
   const finals = grid.finals[String(chorak)] ?? {}
 
   if (!students.length && !owner) {
@@ -142,19 +161,12 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
       toast(t(errDetail(err) ?? 'Xatolik yuz berdi'), 'error')
     }
   }
-  const lockedShown = !!lock && days.some((d) => d.date !== lock.today && !grantFor(lock, d.date))
-  const lockNote = !lock ? '' : !lock.owner
-    ? t("Bu jurnal faqat ko'rish uchun. Yopilgan kun yonidagi qulfni bossangiz, o'sha kunni o'qituvchiga tahrirlash uchun ochib berasiz.")
-    : lock.can_grant
-      ? t("O'tgan kunlar yopilgan: baho va davomat faqat dars kunining o'zida kiritiladi. Kerak bo'lsa, sana yonidagi qulfni bosib kunni o'zingizga ochishingiz mumkin.")
-      : t("O'tgan kunlar yopilgan: baho va davomat faqat dars kunining o'zida kiritiladi. O'zgartirish kerak bo'lsa, sana yonidagi qulfni bosib administratordan ruxsat so'rang.")
-
   const exportPdf = () => {
     const head = ['№', t("To'liq ism"), ...days.map((d) => fmtD(d.date)), t("O'rtacha"), t('Chorak')]
     const rows = students.map((s, i) => [
       i + 1, s.full_name,
       ...days.map((d) => d.marks[s.id] ?? (d.attendance[s.id] ? attOf(d.attendance[s.id]).ic : '')),
-      stats.perStudent[i].avg != null ? stats.perStudent[i].avg.toFixed(2) : '',
+      stats.perStudent[i].avg != null ? fmtAvg(stats.perStudent[i].avg, scale) : '',
       finals[s.id] ?? '',
     ])
     tablePdf(`${t('Jurnal')} — ${cls.name}`, head, rows, { orientation: 'landscape' })
@@ -163,11 +175,17 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
   return (
     <div>
       <div className="jhead">
-        <div className="jsum">
-          <div className="jsum__b"><span>{t("Sinf o'rtachasi")}</span><b>{stats.classAvg ? stats.classAvg.toFixed(2) : '—'}</b></div>
-          <div className="jsum__b"><span>{t("O'zlashtirish")}</span><b>{stats.pct !== null ? stats.pct + '%' : '—'}</b></div>
-          <div className="jsum__b"><span>{t("O'quvchi")}</span><b>{students.length}</b></div>
-          <div className="jsum__b"><span>{t('Darslar soni')}</span><b>{days.length}</b></div>
+        <div className="jhead__info">
+          {owner ? (
+            <select className="jscale" value={scale} title={t('Baholash shkalasi')} aria-label={t('Baholash shkalasi')}
+              disabled={updateClass.isPending} onChange={(e) => void changeScale(asScale(Number(e.target.value)))}>
+              {SCALES.map((o) => <option key={o.v} value={o.v}>{t(o.label)}</option>)}
+            </select>
+          ) : (
+            <span className="jscale" title={t('Baholash shkalasi')}>{t(SCALES.find((x) => x.v === scale)!.label)}</span>
+          )}
+          {lock && lock.pending.length > 0 && <span className="jpending">{IC.lock} {lock.pending.length} {t("ta so'rov ko'rib chiqilmoqda")}</span>}
+          <Link className="jhelp" to="/guide#jurnal" title={t("Yo'riqnoma")} aria-label={t("Yo'riqnoma")}>?</Link>
         </div>
         <div className="jhead__acts">
           {owner && <button className="btn btn--sm btn--primary" onClick={() => openDay(lock?.today ?? localToday())}>{IC.calendar} {t('Bugungi dars')}</button>}
@@ -178,26 +196,6 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
           {owner && <button className="btn btn--sm btn--ghost" onClick={onRemoveClass}>{t("Sinfni o'chirish")}</button>}
         </div>
       </div>
-
-      <p className="prose prose--note">{t("Sana yoki katakni bosing — dars sahifasi ochiladi: davomat va baho o'sha yerda kiritiladi.")}</p>
-      <p className="jlegend">
-        {GRADES.filter((g) => g.v !== 0).map((g) => (
-          <span key={g.v}><span className={`gchip gchip--${g.v}`}>{g.v === 1 ? '1/0' : g.v}</span> {t(g.label)}</span>
-        ))}
-        {ATT.filter((a) => a.k).map((a) => (
-          <span key={a.k}><span className={`at ${a.cls}`}>{a.ic}</span> {t(a.label)}</span>
-        ))}
-      </p>
-
-      {(lockedShown || !owner) && lock && (
-        <p className="jlock__why">
-          {IC.lock}
-          <span>
-            {lockNote}
-            {lock.pending.length > 0 && <b> {lock.pending.length} {t("ta so'rov ko'rib chiqilmoqda.")}</b>}
-          </span>
-        </p>
-      )}
 
       <div className="table-wrap">
         <table className="jt">
@@ -253,14 +251,14 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
                     <td key={d.id} className={`jt__c is-link ${closed ? 'is-locked' : ''}`} onClick={() => openDay(d.date)}>
                       <div className="jt__c-in">
                         {a && <span className={`at ${a.cls}`} title={t(a.label)}>{a.ic}</span>}
-                        <GradeChip v={d.marks[s.id]} />
+                        <GradeChip v={d.marks[s.id]} scale={scale} />
                       </div>
                     </td>
                   )
                 })}
-                <td className="jt__avg">{stats.perStudent[i].avg != null ? stats.perStudent[i].avg.toFixed(2) : '—'}</td>
+                <td className="jt__avg">{stats.perStudent[i].avg != null ? fmtAvg(stats.perStudent[i].avg, scale) : '—'}</td>
                 <td className="jt__fin">
-                  <GradeCell value={finals[s.id]} disabled={!owner} onChange={(v) => onFinalChange(s.id, v)} />
+                  <GradeCell value={finals[s.id]} scale={scale} disabled={!owner} onChange={(v) => onFinalChange(s.id, v)} />
                 </td>
               </tr>
             ))}

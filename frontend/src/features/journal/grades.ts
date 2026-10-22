@@ -1,17 +1,3 @@
-/** Marks are given by colour, the digit kept beside it:
- * 5 a'lo (green), 4 yaxshi (yellow), 3 qoniqarli (red), 2 qoniqarsiz
- * (purple), 1 and 0 yomon (black). Colours live in CSS as .gchip--N. */
-export const GRADES: { v: number; label: string }[] = [
-  { v: 5, label: "A'lo" },
-  { v: 4, label: 'Yaxshi' },
-  { v: 3, label: 'Qoniqarli' },
-  { v: 2, label: 'Qoniqarsiz' },
-  { v: 1, label: 'Yomon' },
-  { v: 0, label: 'Yomon' },
-]
-
-export const gradeLabel = (v: number | null | undefined) => GRADES.find((g) => g.v === v)?.label ?? ''
-
 /** What the day page offers for attendance. "Kelmadi" is an unexcused
  * absence; "Kirmadi" — at school, but skipped this lesson. Older records
  * may still hold 's' (sababli), shown as "Kelmadi". */

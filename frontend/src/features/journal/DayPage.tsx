@@ -11,7 +11,8 @@ import { IC } from '@/icons'
 import { useBulkMarks, useClasses, useGrid } from './api'
 import { isAbsent } from './attendance'
 import { EditRequestModal } from './EditRequestModal'
-import { DAY_ATT, dayTitle, GRADES } from './grades'
+import { DAY_ATT, dayTitle } from './grades'
+import { asScale, levelOf, markLabel, marksOf } from './scales'
 import { GrantDayModal } from './GrantDayModal'
 import { canEditDay, isPending, localToday } from './lock'
 import type { AttendanceStatus, Grid, JournalClass } from './types'
@@ -53,6 +54,7 @@ function DayEditor({ grid, cls, classId, date, teacherId, quarter }: {
   const day = grid.days.find((d) => d.date === date)
   const students = grid.students
   const editable = canEditDay(lock, date)
+  const scale = asScale(grid.scale ?? cls?.scale)
   const chorak = day?.chorak ?? (quarter || Number(localStorage.getItem('afmd.chorak')) || 1)
 
   const origAtt = (sid: number) => (day?.attendance[sid] ?? '') as AttendanceStatus | ''
@@ -140,9 +142,8 @@ function DayEditor({ grid, cls, classId, date, teacherId, quarter }: {
         <p className="jlock__why">
           {IC.lock}
           <span>
-            {!lock.owner ? t("Bu jurnal faqat ko'rish uchun.")
-              : future ? t('Kelgusi kunlar uchun baho va davomat kiritilmaydi.')
-                : t("Bu kun yopilgan: baho va davomat faqat dars kunining o'zida kiritiladi.")}
+            {!lock.owner ? t("Faqat ko'rish") : future ? t('Kelgusi kun') : t('Bu kun yopilgan')}
+            {' '}<Link to="/guide#yopilgan-kunlar" className="jhelp" aria-label={t("Yo'riqnoma")}>?</Link>
             {!future && (lock.can_grant || lock.owner) && (
               <>
                 {' '}
@@ -195,11 +196,6 @@ function DayEditor({ grid, cls, classId, date, teacherId, quarter }: {
         </>
       ) : (
         <>
-          <div className="dpage__bar dlegend">
-            {GRADES.filter((g) => g.v !== 0).map((g) => (
-              <span key={g.v}><span className={`gchip gchip--${g.v}`}>{g.v === 1 ? '1/0' : g.v}</span> {t(g.label)}</span>
-            ))}
-          </div>
           <ul className="drows">
             {students.map((s, i) => {
               const absent = isAbsent(att[s.id])
@@ -210,15 +206,31 @@ function DayEditor({ grid, cls, classId, date, teacherId, quarter }: {
                   {absent ? (
                     <span className="drow__away">{t(att[s.id] === 'x' ? 'Kirmadi' : 'Kelmadi')}</span>
                   ) : (
-                    <span className="dgrades" role="radiogroup" aria-label={s.full_name}>
-                      {GRADES.map((g) => (
-                        <button key={g.v} type="button" role="radio" aria-checked={marks[s.id] === g.v} disabled={!editable} title={t(g.label)}
-                          className={`dgrade gchip--${g.v} ${marks[s.id] === g.v ? 'is-on' : ''}`}
-                          onClick={() => setMarks((m) => ({ ...m, [s.id]: m[s.id] === g.v ? null : g.v }))}>
-                          <b>{g.v}</b><span>{t(g.label)}</span>
-                        </button>
-                      ))}
-                    </span>
+                    scale === 100 ? (
+                      <span className="dnum">
+                        <input className="input dnum__in" type="number" inputMode="numeric" min={0} max={100} disabled={!editable}
+                          value={marks[s.id] ?? ''} aria-label={s.full_name} placeholder="0–100"
+                          onChange={(e) => {
+                            const raw = e.target.value.trim()
+                            const v = raw === '' ? null : Math.round(Number(raw))
+                            if (v !== null && (Number.isNaN(v) || v < 0 || v > 100)) return
+                            setMarks((m) => ({ ...m, [s.id]: v }))
+                          }} />
+                        {marks[s.id] != null && (
+                          <span className={`gchip gchip--${levelOf(marks[s.id]!, scale)} dnum__lvl`}>{t(markLabel(marks[s.id]!, scale))}</span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className={`dgrades dgrades--s${scale}`} role="radiogroup" aria-label={s.full_name}>
+                        {marksOf(scale).map((v) => (
+                          <button key={v} type="button" role="radio" aria-checked={marks[s.id] === v} disabled={!editable} title={t(markLabel(v, scale))}
+                            className={`dgrade gchip--${levelOf(v, scale)} ${marks[s.id] === v ? 'is-on' : ''}`}
+                            onClick={() => setMarks((m) => ({ ...m, [s.id]: m[s.id] === v ? null : v }))}>
+                            <b>{v}</b>{scale === 5 && <span>{t(markLabel(v, scale))}</span>}
+                          </button>
+                        ))}
+                      </span>
+                    )
                   )}
                 </li>
               )

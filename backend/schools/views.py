@@ -318,7 +318,7 @@ class DirectoryView(APIView):
         page = paginator.paginate_queryset(qs, request, view=self)
         ids = [s.id for s in page]
         marks = {r['student']: r for r in GradeEntry.objects.filter(student_id__in=ids).values('student')
-                 .annotate(avg=Avg('mark'), n=Count('id'))}
+                 .annotate(avg=Avg('level'), n=Count('id'))}
         att: dict = {}
         for r in AttendanceEntry.objects.filter(student_id__in=ids).values('student', 'status').annotate(n=Count('id')):
             att.setdefault(r['student'], {})[r['status']] = r['n']

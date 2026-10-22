@@ -15,7 +15,7 @@ class JournalClassSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = JournalClass
-        fields = ['id', 'school', 'partner_school', 'partner_school_name', 'name', 'created_at', 'students']
+        fields = ['id', 'school', 'partner_school', 'partner_school_name', 'name', 'scale', 'created_at', 'students']
         read_only_fields = ['created_at']
 
     def validate(self, attrs):
@@ -43,12 +43,13 @@ class ClassDaySerializer(serializers.ModelSerializer):
 class FinalGradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = FinalGrade
-        fields = ['id', 'student', 'chorak', 'mark']
+        fields = ['id', 'student', 'chorak', 'mark', 'level']
 
 
 class BulkMarkSerializer(serializers.Serializer):
     student_id = serializers.IntegerField()
-    mark = serializers.IntegerField(min_value=0, max_value=5, required=False, allow_null=True)
+    # Checked against the class's own scale in the view.
+    mark = serializers.IntegerField(min_value=0, max_value=100, required=False, allow_null=True)
 
 
 class BulkAttendanceSerializer(serializers.Serializer):

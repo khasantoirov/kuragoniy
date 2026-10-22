@@ -25,7 +25,7 @@ export function useClass(id: number) {
 export function useCreateClass() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (data: { school: string; name: string; partner_school?: number | null }) =>
+    mutationFn: async (data: { school: string; name: string; partner_school?: number | null; scale?: number }) =>
       (await api.post<JournalClass>('/journal/classes/', data)).data,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['journal', 'classes'] }),
   })
@@ -117,9 +117,10 @@ export function useDropDay(classId: number) {
 export function useUpdateClass(classId: number) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (data: { school: string; name: string; partner_school?: number | null }) =>
+    mutationFn: async (data: { school: string; name: string; partner_school?: number | null; scale?: number }) =>
       (await api.patch<JournalClass>(`/journal/classes/${classId}/`, data)).data,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['journal', 'classes'] }),
+    // a new scale converts every mark, so the grids refetch too
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['journal'] }),
   })
 }
 

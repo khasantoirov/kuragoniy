@@ -1,6 +1,8 @@
 """Journal-based statistics per class, teacher and partner school.
 
 Definitions (shown to users as written here):
+  Marks are taken by their colour band on a 0-5 footing (GradeEntry.level,
+  journal/scales.py), so classes graded 0-5, 0-10 and 0-100 pool together.
   O'rtacha baho  — mean of all marks in the period.
   O'zlashtirish  — share of graded students whose average mark is >= 3.5
                    (rounds to "4" or "5").
@@ -52,7 +54,7 @@ def class_raw(classes, chorak=None) -> dict[int, dict]:
         raw[r['journal_class']]['days'] = r['n']
 
     marks = (GradeEntry.objects.filter(Q(day__journal_class_id__in=ids, student__active=True) & _day_filter(chorak, 'day__'))
-             .values('student', 'day__journal_class').annotate(n=Count('id'), s=Sum('mark')))
+             .values('student', 'day__journal_class').annotate(n=Count('id'), s=Sum('level')))
     for r in marks:
         row = raw[r['day__journal_class']]
         avg = r['s'] / r['n']
@@ -193,7 +195,7 @@ def trend(classes, chorak=None, period='month') -> list[dict]:
     marks: dict = defaultdict(lambda: [0, 0])
     years: dict = {}
     for r in (GradeEntry.objects.filter(Q(day__journal_class_id__in=ids, student__active=True) & _day_filter(chorak, 'day__'))
-              .values('day__date', 'day__chorak').annotate(s=Sum('mark'), n=Count('id'))):
+              .values('day__date', 'day__chorak').annotate(s=Sum('level'), n=Count('id'))):
         k, ay = _bucket(r['day__date'], r['day__chorak'], period)
         marks[k][0] += r['s']
         marks[k][1] += r['n']
@@ -242,8 +244,8 @@ def composition(classes, chorak=None) -> dict:
     if not ids:
         return {'marks': marks, 'attendance': att}
     for r in (GradeEntry.objects.filter(Q(day__journal_class_id__in=ids, student__active=True) & _day_filter(chorak, 'day__'))
-              .values('mark').annotate(n=Count('id'))):
-        marks[str(r['mark'])] = r['n']
+              .values('level').annotate(n=Count('id'))):
+        marks[str(r['level'])] = r['n']
     raw = pool(class_raw(classes, chorak).values())
     att['late'], att['excused'], att['unexcused'] = raw['late'], raw['abs_s'], raw['abs_n']
     att['present'] = max(0, raw['student_days'] - raw['abs_s'] - raw['abs_n'] - raw['late'])
@@ -259,7 +261,7 @@ def attention(classes, chorak=None, limit=100) -> list[dict]:
     by_class = {c.id: c for c in classes}
     marks = {
         r['student']: r for r in GradeEntry.objects.filter(Q(day__journal_class_id__in=ids, student__active=True) & _day_filter(chorak, 'day__'))
-        .values('student').annotate(avg=Avg('mark'), n=Count('id'))
+        .values('student').annotate(avg=Avg('level'), n=Count('id'))
     }
     absn = {
         r['student']: r['n'] for r in AttendanceEntry.objects.filter(
