@@ -15,7 +15,7 @@ import { IC, themeIconMoon, themeIconSun } from '@/icons'
 import { useAuth } from '@/lib/auth/AuthContext'
 import { setupEnterKeyNav } from '@/lib/enterKeyNav'
 import { redoLast, undoLast } from '@/lib/history'
-import { useScrollRestoration } from '@/lib/scroll'
+import { usePageScrolled, useScrollRestoration } from '@/lib/scroll'
 import { useUIStore } from '@/store/uiStore'
 
 import { BottomNav } from './BottomNav'
@@ -33,6 +33,8 @@ export function AppShell() {
 
   const [acctOpen, setAcctOpen] = useState(false)
   const topbarRef = useRef<HTMLElement>(null)
+  const gradesRef = useRef<HTMLDivElement>(null)
+  const scrolled = usePageScrolled(4)
 
   // New page opens at the top; Back/Forward return to where you were.
   useScrollRestoration()
@@ -116,6 +118,18 @@ export function AppShell() {
 
   const onLessons = location.pathname.startsWith('/lessons')
 
+  // --grades-h: the Darslar toolbar sticks right below these sticky grade
+  // chips, whatever height they wrap to.
+  useEffect(() => {
+    const el = gradesRef.current
+    if (!el) return
+    const set = () => document.documentElement.style.setProperty('--grades-h', `${el.offsetHeight}px`)
+    set()
+    const ro = new ResizeObserver(set)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [onLessons, skin])
+
   const visibleNavItems = useVisibleNavItems()
   usePrefsSync(!!user)
 
@@ -166,7 +180,7 @@ export function AppShell() {
         <div className="appmain">
           <div className="shell">
             {onLessons && (
-              <div className="grades">
+              <div ref={gradesRef} className={`grades grades--lessons ${scrolled ? 'is-stuck' : ''}`}>
                 {GRADES.map((g) => (
                   <button
                     key={g}
@@ -252,7 +266,7 @@ export function AppShell() {
       <div className="appmain">
         <div className="shell">
           {onLessons && (
-            <div className="grades">
+            <div ref={gradesRef} className={`grades grades--lessons ${scrolled ? 'is-stuck' : ''}`}>
               {GRADES.map((g) => (
                 <button
                   key={g}

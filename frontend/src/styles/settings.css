@@ -566,3 +566,65 @@ button.jt__open:hover { color: #fff; }
   .dgrade { flex: 1; justify-content: center; padding: 0; }
   .dgrade span { display: none; }
 }
+
+/* ══ Jurnal sarlavhasi: sinf tanlagich + chorak (features/journal) ═══
+   Har bir sinfga alohida tugma o'rniga bitta tanlagich — sinflar ko'p
+   bo'lsa ham sarlavha bitta qator bo'lib qoladi. */
+.jbar.jbar--compact { flex-wrap: nowrap; justify-content: space-between; gap: 10px; }
+.cpick { position: relative; display: flex; align-items: stretch; min-width: 0; flex: 0 1 auto; }
+.cpick__step {
+  flex: none; width: 34px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink-2);
+  font-size: 20px; line-height: 1; cursor: pointer;
+}
+.cpick__step:first-child { border-radius: 12px 0 0 12px; border-right: 0; }
+.cpick__step:last-of-type { border-radius: 0 12px 12px 0; border-left: 0; }
+.cpick__step:disabled { opacity: .4; cursor: default; }
+.cpick__step:not(:disabled):hover { color: var(--ink); background: var(--rule-2); }
+.cpick__btn {
+  display: flex; align-items: center; gap: 10px; min-width: 0; max-width: 420px; padding: 6px 12px;
+  border: 1px solid var(--rule); background: var(--surface); color: var(--ink); cursor: pointer; text-align: left;
+}
+.cpick__btn:hover { background: var(--rule-2); }
+.cpick__btn[aria-expanded="true"] { border-color: var(--pick, var(--ok)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pick, var(--ok)) 18%, transparent); }
+.cpick__txt { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.cpick__txt small { font-size: 11px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cpick__txt b { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cpick__n { margin-left: auto; font: 600 11px/1 var(--f-mono); color: var(--ink-3); }
+.cpick__cx { font-size: 10px; color: var(--ink-3); }
+.cpick__pop {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 60; width: max(100%, 320px); max-width: min(560px, 92vw);
+  max-height: 60vh; overflow: auto; padding: 10px; display: grid; gap: 10px;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; box-shadow: 0 16px 36px rgba(15, 23, 42, .18);
+}
+.cpick__school { display: block; margin-bottom: 6px; font: 600 11px/1.3 var(--f-mono); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); }
+.cpick__list { display: flex; flex-wrap: wrap; gap: 6px; }
+.cpick__item {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px;
+  border: 1px solid var(--rule); background: var(--surface); color: var(--ink); font: 600 13px/1 var(--f-body); cursor: pointer;
+}
+.cpick__item:hover { background: var(--rule-2); }
+.cpick__item.is-on { background: var(--pick, var(--solid)); border-color: transparent; color: #fff; }
+.cpick__cnt { font: 500 10.5px/1 var(--f-mono); opacity: .7; }
+.cpick__add {
+  justify-self: start; padding: 7px 12px; border-radius: 999px; border: 1px dashed var(--rule);
+  background: transparent; color: var(--ink-2); font: 600 13px/1 var(--f-body); cursor: pointer;
+}
+.cpick__add:hover { color: var(--ink); border-color: var(--ink-3); }
+.qseg { display: inline-flex; flex: none; padding: 3px; gap: 2px; border: 1px solid var(--rule); border-radius: 12px; background: var(--surface); }
+.qseg__b {
+  padding: 7px 12px; border: 0; border-radius: 9px; background: transparent; color: var(--ink-2);
+  font: 600 12.5px/1 var(--f-body); cursor: pointer; white-space: nowrap;
+}
+.qseg__b:hover { color: var(--ink); background: var(--rule-2); }
+.qseg__b.is-on { background: var(--pick, var(--solid)); color: #fff; }
+.qseg__short { display: none; }
+@media (max-width: 760px) {
+  .jbar.jbar--compact { flex-wrap: wrap; gap: 8px; }
+  .cpick { flex: 1 1 100%; }
+  .cpick__btn { flex: 1 1 auto; max-width: none; }
+  .cpick__pop { width: 100%; max-width: none; }
+  .qseg { flex: 1 1 100%; }
+  .qseg__b { flex: 1 1 0; padding: 8px 4px; }
+  .qseg__long { display: none; }
+  .qseg__short { display: inline; }
+}

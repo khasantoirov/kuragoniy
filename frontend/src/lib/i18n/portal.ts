@@ -468,6 +468,9 @@ const ru: Record<string, string> = {
   "Kitob yuzidagi rasm — JPG, PNG yoki WEBP. Javonda material shu muqova bilan turadi.": "Изображение на лицевой стороне — JPG, PNG или WEBP. На полке материал стоит с этой обложкой.",
   "PDF'dan muqova olib bo'lmadi": "Не удалось получить обложку из PDF",
   "Rasmni o'qib bo'lmadi": "Не удалось прочитать изображение",
+  // Jurnal: sinf tanlagich
+  "Oldingi sinf": "Предыдущий класс",
+  "Keyingi sinf": "Следующий класс",
 }
 
 const en: Record<string, string> = {
@@ -925,6 +928,9 @@ const en: Record<string, string> = {
   "Kitob yuzidagi rasm — JPG, PNG yoki WEBP. Javonda material shu muqova bilan turadi.": "The front picture — JPG, PNG or WEBP. The item stands on the shelf with this cover.",
   "PDF'dan muqova olib bo'lmadi": "Couldn't take a cover from the PDF",
   "Rasmni o'qib bo'lmadi": "Couldn't read the image",
+  // Jurnal: sinf tanlagich
+  "Oldingi sinf": "Previous class",
+  "Keyingi sinf": "Next class",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

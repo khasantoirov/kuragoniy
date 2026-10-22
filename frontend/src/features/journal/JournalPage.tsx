@@ -10,6 +10,7 @@ import { useUIStore } from '@/store/uiStore'
 
 import { useClasses, useGrants, useGrantTeachers } from './api'
 import { ClassGrid } from './ClassGrid'
+import { ClassPicker } from './ClassPicker'
 import { ClassModal } from './ClassModal'
 import { ClassSummary } from './ClassSummary'
 import { EditGrantsPanel } from './EditGrantsPanel'
@@ -17,9 +18,6 @@ import { quarterLabel } from './labels'
 
 type Chorak = 1 | 2 | 3 | 4 | 'u'
 
-function clsLabel(c: { school: string; name: string }) {
-  return c.school ? `${c.school} | ${c.name}` : c.name
-}
 
 function useChorak() {
   const [chorak, setChorak] = useState<Chorak>(() => {
@@ -76,21 +74,25 @@ function JournalBody({ teacherId, head }: { teacherId?: string; head?: React.Rea
   return (
     <div>
       {head}
-      <div className="jbar">
-        <div className="chips">
-          {classes.map((c) => (
-            <button key={c.id} className={`chip ${c.id === cls.id ? 'is-on' : ''}`} onClick={() => setOpenId(c.id)}>
-              {clsLabel(c)}
+      <div className="jbar jbar--compact">
+        <ClassPicker classes={classes} value={cls.id} onChange={setOpenId} onAdd={teacherId ? undefined : () => setCreatingClass(true)} />
+        <div className="qseg" role="group" aria-label={t('Chorak')}>
+          {[1, 2, 3, 4].map((q) => (
+            <button
+              key={q}
+              type="button"
+              className={`qseg__b ${chorak === q ? 'is-on' : ''}`}
+              aria-pressed={chorak === q}
+              aria-label={quarterLabel(q, lang)}
+              onClick={() => changeChorak(q as Chorak)}
+            >
+              <span className="qseg__long">{quarterLabel(q, lang)}</span>
+              <span className="qseg__short">{q}</span>
             </button>
           ))}
-          {!teacherId && <button className="chip chip--add" onClick={() => setCreatingClass(true)}>+ {t('Sinf')}</button>}
-        </div>
-        <div className="jbar__sp" />
-        <div className="chips chips--nowrap">
-          {[1, 2, 3, 4].map((q) => (
-            <button key={q} className={`chip ${chorak === q ? 'is-on' : ''}`} onClick={() => changeChorak(q as Chorak)}>{quarterLabel(q, lang)}</button>
-          ))}
-          <button className={`chip ${chorak === 'u' ? 'is-on' : ''}`} onClick={() => changeChorak('u')}>{t('Umumiy')}</button>
+          <button type="button" className={`qseg__b ${chorak === 'u' ? 'is-on' : ''}`} aria-pressed={chorak === 'u'} onClick={() => changeChorak('u')}>
+            {t('Umumiy')}
+          </button>
         </div>
       </div>
 

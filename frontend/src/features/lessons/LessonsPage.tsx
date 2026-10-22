@@ -26,6 +26,7 @@ import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
 import { IC } from '@/icons'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
+import { usePageScrolled } from '@/lib/scroll'
 import { type Lang, useUIStore } from '@/store/uiStore'
 
 import { useLessons, useQuarterLocks, useReorderLesson } from './api'
@@ -49,6 +50,7 @@ export function LessonsPage() {
   const { data, isLoading } = useLessons({ grade })
   const { data: locks, isLoading: locksLoading } = useQuarterLocks()
   const reorder = useReorderLesson()
+  const scrolled = usePageScrolled(4)
 
   const [query, setQuery] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
@@ -125,7 +127,7 @@ export function LessonsPage() {
 
   return (
     <div>
-      <div className="toolbar">
+      <div className={`toolbar toolbar--lessons ${scrolled ? 'is-stuck' : ''}`}>
         <div className="search">
           <span className="search__ic" aria-hidden="true">{IC.search}</span>
           <input
@@ -143,7 +145,7 @@ export function LessonsPage() {
         </div>
         <div className="chips chips--cat">
           <div className="viewpick">
-            <button className="btn btn--sm viewpick__btn" onClick={() => setViewMenuOpen((v) => !v)}>
+            <button className="btn btn--sm viewpick__btn" onClick={() => setViewMenuOpen((v) => !v)} aria-label={t("Ko'rinish")}>
               {viewMode === 'list' ? IC.list : IC.grid}
               <span>{t("Ko'rinish")}</span>
               <span className="viewpick__cx" aria-hidden="true">▾</span>
