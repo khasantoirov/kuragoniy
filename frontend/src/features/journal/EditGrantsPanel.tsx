@@ -129,7 +129,7 @@ function TeacherRow({ p }: { p: GrantTeacher }) {
         )}
         {p.classes.length > 0 && (
           <button type="button" className="btn btn--sm btn--ghost" onClick={() => navigate(`/journal?teacher=${encodeURIComponent(p.id)}`)}>
-            {IC.eye} {t("Jurnalini ko'rish")}
+            {IC.eye} {t('Jurnalini ochish')}
           </button>
         )}
       </span>

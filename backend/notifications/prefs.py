@@ -32,7 +32,7 @@ DESCRIPTIONS = {
     Kind.XAVFSIZLIK: "Yangi qurilmadan kirish, parol va ikki bosqichli tasdiqlash o'zgarishlari, hisob bloklanishi",
     Kind.DOKON: "Buyurtmangiz holati o'zgarganda",
     Kind.JAMOA: "Jamoaga yangi xodim qo'shilganda",
-    Kind.JURNAL: "O'tgan kun jurnalini tahrirlash uchun ruxsat so'ralganda, berilganda yoki rad etilganda",
+    Kind.JURNAL: "O'tgan kun jurnalini tahrirlash uchun ruxsat so'ralganda, berilganda yoki rad etilganda; nazorat ishi natijalari kiritilganda",
     Kind.TIZIM: 'Hisobingiz tasdiqlanganda va boshqa tizim xabarlari',
 }
 

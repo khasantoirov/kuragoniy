@@ -5,16 +5,28 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from common.permissions import IsApproved
 
 from .locks import ALL_PAST_DAYS, LOCKED_DETAIL, NOT_OWNER_DETAIL, can_edit_day, is_owner, lock_info, today
-from .models import AttendanceEntry, ClassDay, FinalGrade, GradeEntry, JournalClass, JournalEditGrant, Student
+from .models import (
+    AttendanceEntry,
+    ClassDay,
+    ControlMark,
+    ControlWork,
+    FinalGrade,
+    GradeEntry,
+    JournalClass,
+    JournalEditGrant,
+    Student,
+)
 from .scales import convert, level
 from .serializers import (
     BulkDaySerializer,
     ClassDaySerializer,
+    ControlWorkSerializer,
     EditGrantSerializer,
     FinalGradeSerializer,
     GrantCreateSerializer,
@@ -100,6 +112,9 @@ class JournalClassViewSet(viewsets.ModelViewSet):
                 for d in days
             ],
             'finals': finals_by_chorak,
+            'controls': ControlWorkSerializer(
+                journal_class.control_works.select_related('created_by').prefetch_related('marks'), many=True,
+            ).data,
             'lock': lock_info(request.user, journal_class),
         })
 
@@ -211,6 +226,53 @@ class FinalGradeViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return FinalGrade.objects.filter(student__journal_class__teacher=self.request.user)
+
+
+class ControlWorkViewSet(viewsets.ModelViewSet):
+    """Nazorat ishi (ControlWork): administrators give and grade them, out
+    of 100, in any teacher's class; the class's teacher sees them in the
+    journal (grid 'controls', or here with ?journal_class=<id>) and gets a
+    'jurnal' notification once results are in."""
+
+    serializer_class = ControlWorkSerializer
+    permission_classes = [IsApproved]
+    pagination_class = None
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = ControlWork.objects.select_related('journal_class__teacher', 'created_by').prefetch_related('marks')
+        if not user.is_admin:
+            qs = qs.filter(journal_class__teacher=user)
+        class_id = self.request.query_params.get('journal_class')
+        if class_id:
+            qs = qs.filter(journal_class_id=class_id)
+        return qs
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        if request.method not in permissions.SAFE_METHODS and not request.user.is_admin:
+            raise PermissionDenied("Nazorat ishini faqat ma'muriyat baholaydi.")
+
+    def perform_create(self, serializer):
+        self._tell_teacher(serializer.save(created_by=self.request.user), had_marks=False)
+
+    def perform_update(self, serializer):
+        had_marks = ControlMark.objects.filter(work=serializer.instance).exists()
+        self._tell_teacher(serializer.save(), had_marks)
+
+    def _tell_teacher(self, work, had_marks):
+        """Once, when the first results go in — not on every correction."""
+        from notifications.models import Kind
+        from notifications.service import notify
+
+        teacher = work.journal_class.teacher
+        # (work.marks is the prefetched, pre-save list here — ask the table)
+        if had_marks or teacher.pk == self.request.user.pk or not ControlMark.objects.filter(work=work).exists():
+            return
+        title = 'Nazorat ishi natijalari kiritildi'
+        body = f'{class_label(work.journal_class)} · {work.date:%d.%m.%Y}' + (f' · {work.title}' if work.title else '')
+        notify(teacher, Kind.JURNAL, title, body, f'/journal?class={work.journal_class_id}',
+               telegram_text=f'📝 {title}\n{body}')
 
 
 def _dates(grant) -> str:

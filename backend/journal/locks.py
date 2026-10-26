@@ -61,6 +61,8 @@ def lock_info(viewer, journal_class) -> dict:
         'today': today().isoformat(),
         'owner': is_owner(viewer, journal_class),
         'can_grant': bool(viewer.is_admin),
+        # Nazorat ishi: administrators grade it in any journal.
+        'can_control': bool(viewer.is_admin),
         'teacher': teacher.pk,
         'teacher_name': teacher.name,
         'grants': [

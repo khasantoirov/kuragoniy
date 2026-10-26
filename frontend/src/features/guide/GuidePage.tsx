@@ -17,12 +17,14 @@ const SECTIONS: { id: string; title: string }[] = [
   { id: 'baholash', title: 'Baholash shkalalari va ranglar' },
   { id: 'davomat', title: 'Davomat belgilari' },
   { id: 'yopilgan-kunlar', title: "Yopilgan kunlar va ruxsat so'rash" },
+  { id: 'nazorat-ishi', title: "Nazorat ishi (ma'muriyat baholaydi)" },
   { id: 'statistika', title: "Statistika ko'rsatkichlari" },
   { id: 'faollik', title: "Faollik ko'rinishi" },
 ]
 
-function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
+function Section({ id, children }: { id: string; children: ReactNode }) {
   const { t } = useTranslation()
+  const title = SECTIONS.find((s) => s.id === id)?.title ?? ''
   return (
     <section id={id} className="guide__sec">
       <h2 className="guide__h">{t(title)}</h2>
@@ -59,7 +61,7 @@ export function GuidePage() {
         {SECTIONS.map((s) => <a key={s.id} href={`#${s.id}`} className="chip">{t(s.title)}</a>)}
       </nav>
 
-      <Section id="jurnal" title={SECTIONS[0].title}>
+      <Section id="jurnal">
         <ul>
           <li>{t("Jurnal jadvalida sana yoki istalgan katakni bosing — o'sha darsning sahifasi ochiladi. Davomat va baholar shu sahifada kiritiladi va «Saqlash» tugmasi bilan birga saqlanadi.")}</li>
           <li>{t("«Bugungi dars» tugmasi bugungi dars sahifasini to'g'ridan-to'g'ri ochadi; boshqa kun uchun «+ Dars kuni» dan foydalaning.")}</li>
@@ -68,7 +70,7 @@ export function GuidePage() {
         </ul>
       </Section>
 
-      <Section id="baholash" title={SECTIONS[1].title}>
+      <Section id="baholash">
         <p>{t("Har bir sinf o'z maktabining tizimida baholanadi: 5, 10 yoki 100 ballik. Shkala sinfni qo'shish yoki tahrirlashda tanlanadi. Har bir baho avtomatik ravishda rang toifasiga moslanadi:")}</p>
         <div className="guide__tablewrap">
           <table className="guide__table">
@@ -92,7 +94,7 @@ export function GuidePage() {
         <p>{t("Statistika sahifalari turli shkaladagi sinflarni solishtirish uchun baholarni rang toifasi bo'yicha 5 ballik asosga keltiradi.")}</p>
       </Section>
 
-      <Section id="davomat" title={SECTIONS[2].title}>
+      <Section id="davomat">
         <ul className="guide__att">
           {ATT.filter((a) => a.k).map((a) => (
             <li key={a.k}><span className={`at ${a.cls}`}>{a.ic}</span> <b>{t(a.label)}</b> — {t(
@@ -106,16 +108,25 @@ export function GuidePage() {
         <p>{t("Belgisi yo'q katak — o'quvchi darsda bo'lgan.")}</p>
       </Section>
 
-      <Section id="yopilgan-kunlar" title={SECTIONS[3].title}>
+      <Section id="yopilgan-kunlar">
         <ul>
           <li>{t("Baho va davomat faqat dars kunining o'zida kiritiladi; o'tgan kunlar yopiladi. Kelgusi kunlarga ham kiritilmaydi.")}</li>
           <li>{t("O'tgan kunni o'zgartirish kerak bo'lsa, jadvaldagi sana yonidagi qulfni bosing va administratordan ruxsat so'rang. Javob bildirishnomada keladi.")}</li>
           <li>{t("Administrator qulfni bosib kunni o'zi yoki o'qituvchi uchun ochadi. Barcha so'rovlar va berilgan ruxsatlar «Jurnal → Ruxsatlar» bo'limida.")}</li>
-          <li>{t("Administrator boshqa o'qituvchining jurnalini faqat ko'radi — o'zgartira olmaydi.")}</li>
+          <li>{t("Administrator boshqa o'qituvchining baho va davomatini o'zgartira olmaydi — u faqat nazorat ishini baholaydi.")}</li>
         </ul>
       </Section>
 
-      <Section id="statistika" title={SECTIONS[4].title}>
+      <Section id="nazorat-ishi">
+        <ul>
+          <li>{t("Nazorat ishini ma'muriyat kiritadi va baholaydi: Jurnal → «O'qituvchilar jurnali» → o'qituvchi → sinf → «+ Nazorat ishi». Jadvaldagi ustun sarlavhasini bosib tahrirlanadi yoki o'chiriladi.")}</li>
+          <li>{t("Ball har doim 100 ballik tizimda qo'yiladi — sinfning o'z shkalasidan qat'i nazar — va avtomatik rang toifasiga moslanadi.")}</li>
+          <li>{t("O'qituvchi natijani jurnalida alohida ustunda ko'radi, lekin o'zgartira olmaydi. Natijalar birinchi marta kiritilganda unga bildirishnoma keladi.")}</li>
+          <li>{t("Nazorat ishi ballari darslardagi o'rtacha baho va o'zlashtirishga qo'shilmaydi; «Umumiy» bo'limida har chorakning o'rtacha bali alohida qatorda ko'rsatiladi.")}</li>
+        </ul>
+      </Section>
+
+      <Section id="statistika">
         <dl className="guide__dl">
           <dt>{t("O'rtacha baho")}</dt>
           <dd>{t("Davrdagi barcha baholarning o'rtachasi. Jurnalda sinfning o'z shkalasida, statistika sahifalarida 5 ballik asosda ko'rsatiladi.")}</dd>
@@ -126,7 +137,7 @@ export function GuidePage() {
         </dl>
       </Section>
 
-      <Section id="faollik" title={SECTIONS[5].title}>
+      <Section id="faollik">
         <p>{t("Platformadagi faolligingiz (hozir onlayn yoki oxirgi marta qachon kirgansiz) ma'muriyatga ko'rinadi. Ish vaqtingiz yoki ekrandagi harakatlaringiz yozib olinmaydi.")}</p>
       </Section>
     </div>

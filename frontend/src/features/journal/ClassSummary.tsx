@@ -12,7 +12,7 @@ import { EditStudentsModal } from './EditStudentsModal'
 import { quarterLabel } from './labels'
 import { MasteryPanel } from './MasteryPanel'
 import { asScale, fmtAvg } from './scales'
-import { computeStats } from './stats'
+import { computeStats, controlAvg } from './stats'
 import type { JournalClass } from './types'
 
 export function ClassSummary({ cls, teacherId }: { cls: JournalClass; teacherId?: string }) {
@@ -60,6 +60,7 @@ export function ClassSummary({ cls, teacherId }: { cls: JournalClass; teacherId?
     return { q, days: days.length, avg: s.classAvg, pct: s.pct }
   })
   const tot = computeStats(grid, grid.days, scale)
+  const controls = grid.controls ?? []
 
   return (
     <div>
@@ -98,6 +99,15 @@ export function ClassSummary({ cls, teacherId }: { cls: JournalClass; teacherId?
               {rows.map((r) => (<td key={r.q} className="table__q">{r.pct !== null ? r.pct + '%' : '—'}</td>))}
               <td className="table__q"><b>{tot.pct !== null ? tot.pct + '%' : '—'}</b></td>
             </tr>
+            {controls.length > 0 && (
+              <tr>
+                <td>{t('Nazorat ishi')} <span className="field__opt">({t("o'rtacha ball")})</span></td>
+                {rows.map((r) => (
+                  <td key={r.q} className="table__q">{controlAvg(grid.students, controls.filter((w) => w.chorak === r.q)) ?? '—'}</td>
+                ))}
+                <td className="table__q"><b>{controlAvg(grid.students, controls) ?? '—'}</b></td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

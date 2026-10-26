@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import AttendanceEntry, ClassDay, FinalGrade, GradeEntry, JournalClass, Student
+from .models import AttendanceEntry, ClassDay, ControlMark, ControlWork, FinalGrade, GradeEntry, JournalClass, Student
 
 
 class StudentInline(admin.TabularInline):
@@ -19,3 +19,5 @@ admin.site.register(ClassDay)
 admin.site.register(GradeEntry)
 admin.site.register(AttendanceEntry)
 admin.site.register(FinalGrade)
+admin.site.register(ControlWork)
+admin.site.register(ControlMark)

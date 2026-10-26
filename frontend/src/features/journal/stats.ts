@@ -1,5 +1,5 @@
 import { levelOf, type Scale } from './scales'
-import type { Grid } from './types'
+import type { ControlWork, Grid } from './types'
 
 /** Per-pupil averages on the class's own scale, plus O'zlashtirish: the
  * mean of all marks as a percent of the top mark (4.2 of 5 = 84%) — the
@@ -26,4 +26,21 @@ export function computeStats(grid: Pick<Grid, 'students'>, days: Grid['days'], s
   }
   const pct = n ? Math.round(sum / n) : null
   return { perStudent, classAvg, pct }
+}
+
+/** Nazorat ishi: the roster's mean result (out of 100) over some control
+ * works — kept apart from the lesson marks above. */
+export function controlAvg(students: { id: number }[], works: ControlWork[]) {
+  let sum = 0
+  let n = 0
+  for (const w of works) {
+    for (const st of students) {
+      const v = w.marks[st.id]
+      if (typeof v === 'number') {
+        sum += v
+        n++
+      }
+    }
+  }
+  return n ? Math.round(sum / n) : null
 }

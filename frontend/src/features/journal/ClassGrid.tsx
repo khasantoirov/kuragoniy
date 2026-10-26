@@ -15,14 +15,15 @@ import { AddDayModal } from './AddDayModal'
 import { useBulkMarks, useDecideGrant, useDeleteClass, useDropDay, useGrid, useSetFinal, useUpdateClass } from './api'
 import { attOf, fmtD } from './attendance'
 import { ClassModal } from './ClassModal'
+import { ControlWorkModal } from './ControlWorkModal'
 import { EditRequestModal } from './EditRequestModal'
 import { GradeCell, GradeChip } from './GradeCell'
 import { GrantDayModal } from './GrantDayModal'
 import { EditStudentsModal } from './EditStudentsModal'
 import { canEditDay, grantFor, isPending, localToday } from './lock'
 import { asScale, fmtAvg, SCALES, type Scale } from './scales'
-import { computeStats } from './stats'
-import type { JournalClass } from './types'
+import { computeStats, controlAvg } from './stats'
+import type { ControlWork, JournalClass } from './types'
 
 /** The server's reason (e.g. "this day is closed") when it gives one. */
 const errDetail = (err: unknown) => (isAxiosError<{ detail?: string }>(err) ? err.response?.data?.detail : undefined)
@@ -31,7 +32,8 @@ const errDetail = (err: unknown) => (isAxiosError<{ detail?: string }>(err) ? er
  * are entered on a lesson's own page (DayPage), opened from a date or any
  * cell; here only the quarter grade is edited. With `teacherId` an
  * administrator is looking at that teacher's journal: everything is
- * read-only, and the lock on a closed day opens it for the teacher. */
+ * read-only, and the lock on a closed day opens it for the teacher.
+ * Nazorat ishi columns (0-100) are graded by administrators only. */
 export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chorak: number; teacherId?: string }) {
   const { t } = useTranslation()
   const { data: grid, isLoading } = useGrid(cls.id, teacherId)
@@ -49,6 +51,7 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
   const [editingStudents, setEditingStudents] = useState(false)
   const [asking, setAsking] = useState<string | null>(null)
   const [granting, setGranting] = useState<string | null>(null)
+  const [control, setControl] = useState<ControlWork | 'new' | null>(null)
   const decide = useDecideGrant()
 
   if (isLoading || !grid) return <Skeleton lines={4} />
@@ -78,6 +81,8 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
   }
   const stats = computeStats(grid, days, scale)
   const finals = grid.finals[String(chorak)] ?? {}
+  const controls = (grid.controls ?? []).filter((w) => w.chorak === chorak)
+  const canControl = !!lock?.can_control
 
   if (!students.length && !owner) {
     return <p className="prose prose--note">{cls.name} — {t("o'quvchi yo'q")}</p>
@@ -162,10 +167,12 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
     }
   }
   const exportPdf = () => {
-    const head = ['№', t("To'liq ism"), ...days.map((d) => fmtD(d.date)), t("O'rtacha"), t('Chorak')]
+    const head = ['№', t("To'liq ism"), ...days.map((d) => fmtD(d.date)),
+      ...controls.map((w) => `${t('Nazorat ishi')} ${fmtD(w.date)}`), t("O'rtacha"), t('Chorak')]
     const rows = students.map((s, i) => [
       i + 1, s.full_name,
       ...days.map((d) => d.marks[s.id] ?? (d.attendance[s.id] ? attOf(d.attendance[s.id]).ic : '')),
+      ...controls.map((w) => w.marks[s.id] ?? ''),
       stats.perStudent[i].avg != null ? fmtAvg(stats.perStudent[i].avg, scale) : '',
       finals[s.id] ?? '',
     ])
@@ -188,6 +195,11 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
           <Link className="jhelp" to="/guide#jurnal" title={t("Yo'riqnoma")} aria-label={t("Yo'riqnoma")}>?</Link>
         </div>
         <div className="jhead__acts">
+          {canControl && (
+            <button className={`btn btn--sm ${owner ? '' : 'btn--primary'}`} onClick={() => setControl('new')}>
+              {IC.clipboard} + {t('Nazorat ishi')}
+            </button>
+          )}
           {owner && <button className="btn btn--sm btn--primary" onClick={() => openDay(lock?.today ?? localToday())}>{IC.calendar} {t('Bugungi dars')}</button>}
           {owner && <button className="btn btn--sm" onClick={() => setAddingDay(true)}>+ {t('Dars kuni')}</button>}
           {owner && <button className="btn btn--sm" onClick={() => setEditingStudents(true)}>{t("O'quvchilar ro'yxati")}</button>}
@@ -234,6 +246,18 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
                   </th>
                 )
               })}
+              {controls.map((w) => {
+                const avg = controlAvg(students, [w])
+                return (
+                  <th key={`ctl${w.id}`} className={`jt__d jt__ctl ${canControl ? 'is-link' : ''}`}
+                    onClick={canControl ? () => setControl(w) : undefined}
+                    title={[t('Nazorat ishi'), t('100 ballik'), w.by_name, avg !== null ? `${t("O'rtacha ball")}: ${avg}` : ''].filter(Boolean).join(' · ')}>
+                    <span className="jt__ctag">{t('Nazorat ishi')}</span>
+                    <span className={canControl ? 'jt__dt' : undefined}>{fmtD(w.date)}</span>
+                    {w.title && <span className="jt__topic">{w.title}</span>}
+                  </th>
+                )
+              })}
               <th className="jt__avg">{t("O'rtacha")}</th>
               <th className="jt__fin">{t('Chorak')}</th>
             </tr>
@@ -256,6 +280,11 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
                     </td>
                   )
                 })}
+                {controls.map((w) => (
+                  <td key={`ctl${w.id}`} className={`jt__c jt__ctl ${canControl ? 'is-link' : ''}`} onClick={canControl ? () => setControl(w) : undefined}>
+                    <GradeChip v={w.marks[s.id]} scale={100} />
+                  </td>
+                ))}
                 <td className="jt__avg">{stats.perStudent[i].avg != null ? fmtAvg(stats.perStudent[i].avg, scale) : '—'}</td>
                 <td className="jt__fin">
                   <GradeCell value={finals[s.id]} scale={scale} disabled={!owner} onChange={(v) => onFinalChange(s.id, v)} />
@@ -271,6 +300,10 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
       {granting && lock && (
         <GrantDayModal lock={lock} classId={cls.id} classLabel={cls.school ? `${cls.school} | ${cls.name}` : cls.name}
           date={granting} onClose={() => setGranting(null)} />
+      )}
+      {control && (
+        <ControlWorkModal classId={cls.id} chorak={chorak} students={students}
+          work={control === 'new' ? null : control} onClose={() => setControl(null)} />
       )}
       {editingClass && <ClassModal cls={cls} onClose={() => setEditingClass(false)} />}
       {editingStudents && <EditStudentsModal cls={cls} onClose={() => setEditingStudents(false)} />}

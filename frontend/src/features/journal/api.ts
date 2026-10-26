@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
 
-import type { AttendanceStatus, EditGrant, Grid, GrantTeacher, JournalClass, Student } from './types'
+import type { AttendanceStatus, ControlWork, EditGrant, Grid, GrantTeacher, JournalClass, Student } from './types'
 
 /** Own classes, or (administrators) another teacher's, to look at. */
 export function useClasses(teacherId?: string) {
@@ -138,6 +138,34 @@ export function useSetFinal(classId: number) {
     mutationFn: async (data: { student_id: number; chorak: number; mark: number | null }) =>
       (await api.post<Grid>(`/journal/classes/${classId}/set-final/`, data)).data,
     onSuccess: (data) => queryClient.setQueryData(['journal', 'grid', classId], data),
+  })
+}
+
+// ── Nazorat ishi (administrators grade, out of 100) ────────────────────
+
+interface ControlInput {
+  date: string
+  chorak: number
+  title: string
+  marks: { student_id: number; mark: number | null }[]
+}
+
+export function useSaveControl(classId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (data: ControlInput & ({ id: number } | { journal_class: number })) =>
+      'id' in data
+        ? (await api.patch<ControlWork>(`/journal/controls/${data.id}/`, data)).data
+        : (await api.post<ControlWork>('/journal/controls/', data)).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['journal', 'grid', classId] }),
+  })
+}
+
+export function useDeleteControl(classId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: number) => api.delete(`/journal/controls/${id}/`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['journal', 'grid', classId] }),
   })
 }
 

@@ -37,10 +37,24 @@ export interface GridLock {
   today: string
   owner: boolean
   can_grant: boolean
+  /** The viewer grades nazorat ishi here (administrators). */
+  can_control?: boolean
   teacher: string
   teacher_name: string
   grants: { id: number; date_from: string; date_to: string; expires_at: string }[]
   pending: { id: number; date_from: string; date_to: string; reason: string }[]
+}
+
+/** Nazorat ishi: a control test the administration grades, always out
+ * of 100. Read-only for the class's teacher. */
+export interface ControlWork {
+  id: number
+  journal_class: number
+  date: string
+  chorak: number
+  title: string
+  marks: Record<string, number>
+  by_name: string
 }
 
 export interface Grid {
@@ -48,6 +62,7 @@ export interface Grid {
   students: Student[]
   days: GridDay[]
   finals: Record<string, Record<string, number>>
+  controls?: ControlWork[]
   lock?: GridLock
 }
 

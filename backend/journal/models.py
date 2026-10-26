@@ -141,3 +141,40 @@ class JournalEditGrant(models.Model):
 
     def __str__(self):
         return f'{self.teacher} {self.date_from}–{self.date_to} ({self.status})'
+
+
+class ControlWork(models.Model):
+    """Nazorat ishi — a control test the administration gives a class and
+    grades itself, always out of 100 whatever the class's own scale. It
+    shows in the teacher's journal as its own column, read-only for them,
+    and stays out of their lesson averages and O'zlashtirish."""
+
+    journal_class = models.ForeignKey(JournalClass, related_name='control_works', on_delete=models.CASCADE)
+    date = models.DateField()
+    chorak = models.PositiveSmallIntegerField()
+    title = models.CharField(max_length=200, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name='+', null=True, blank=True, on_delete=models.SET_NULL,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['date', 'id']
+
+    def __str__(self):
+        return f'{self.journal_class} {self.date} {self.title or "Nazorat ishi"}'
+
+
+class ControlMark(models.Model):
+    work = models.ForeignKey(ControlWork, related_name='marks', on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, related_name='control_marks', on_delete=models.CASCADE)
+    # 0-100, with its colour band on the 100-point scale.
+    mark = models.PositiveSmallIntegerField()
+    level = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('work', 'student')
+
+    def save(self, *args, **kwargs):
+        self.level = level_of(self.mark, 100)
+        super().save(*args, **kwargs)

@@ -681,3 +681,44 @@ select.jscale:focus-visible { outline: 2px solid var(--pick, var(--ok)); outline
 .scalepick__o.is-on { border-color: var(--pick, var(--ok)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pick, var(--ok)) 20%, transparent); }
 .scalepick__bands { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 10px; font-size: 12.5px; color: var(--ink-2); }
 .scalepick__band { display: inline-flex; align-items: center; gap: 5px; }
+
+/* ══ Nazorat ishi (journal ControlWork, 0-100, graded by ma'muriyat) ══ */
+.jt thead th.jt__ctl { background: color-mix(in srgb, var(--solid) 76%, #2F5FA8); }
+.jt td.jt__ctl { background: color-mix(in srgb, var(--surface) 93%, #2F5FA8); }
+.jt th.jt__ctl.is-link { cursor: pointer; }
+.jt th.jt__ctl.is-link:hover .jt__dt { text-decoration: underline; }
+.jt td.jt__ctl.is-link { cursor: pointer; }
+.jt td.jt__ctl.is-link:hover { background: color-mix(in srgb, var(--surface) 84%, #2F5FA8); }
+.jt__ctag {
+  display: block; margin-bottom: 3px; font: 600 8.5px/1 var(--f-mono, inherit);
+  letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.78);
+}
+.ctl__meta { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+.ctl__title { grid-column: 1 / -1; }
+.ctl__list { list-style: none; margin: 4px 0 0; padding: 0; border: 1px solid var(--rule); border-radius: 10px; }
+.ctl__row { display: grid; grid-template-columns: 26px minmax(0, 1fr) 84px 100px; gap: 8px; align-items: center; padding: 6px 10px; border-bottom: 1px solid var(--rule-2); }
+.ctl__row:last-child { border-bottom: 0; }
+.ctl__no { color: var(--ink-3); font: 500 12px/1 var(--f-mono, inherit); text-align: right; }
+.ctl__nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctl__in { height: 34px; padding: 0 4px; text-align: center; font: 700 15px/1 var(--f-mono, inherit); }
+.ctl__in.is-bad { border-color: var(--mark); }
+/* the colour band as an underline — all a phone has room for */
+.ctl__in[class*="gchip--"] { box-shadow: inset 0 -3px 0 var(--gc); }
+.ctl__lvl { width: 100%; height: 28px; font-size: 11.5px; }
+.ctl__sum { margin: 10px 2px 0; font-size: 13px; color: var(--ink-2); }
+.ctl__del { margin-right: auto; color: var(--mark); }
+.jpick__q { max-width: 360px; margin-bottom: 12px; }
+.jpick__list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.jpick__b {
+  width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px; text-align: left; cursor: pointer;
+  border: 1px solid var(--rule); border-radius: 12px; background: var(--surface); color: var(--ink); font: inherit;
+}
+.jpick__b:hover { border-color: var(--ink-3); }
+.jpick__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.jpick__txt small { color: var(--ink-3); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jpick__go { color: var(--ink-3); font-size: 20px; line-height: 1; }
+@media (max-width: 640px) {
+  .ctl__row { grid-template-columns: 20px minmax(0, 1fr) 72px; gap: 8px; padding: 6px 8px; }
+  .ctl__lvl { display: none; }
+  .jpick__q { max-width: none; }
+}

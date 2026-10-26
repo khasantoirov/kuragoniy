@@ -1,6 +1,17 @@
+from django.db import transaction
 from rest_framework import serializers
 
-from .models import AttendanceEntry, ClassDay, FinalGrade, GradeEntry, JournalClass, JournalEditGrant, Student
+from .models import (
+    AttendanceEntry,
+    ClassDay,
+    ControlMark,
+    ControlWork,
+    FinalGrade,
+    GradeEntry,
+    JournalClass,
+    JournalEditGrant,
+    Student,
+)
 
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -68,6 +79,63 @@ class BulkDaySerializer(serializers.Serializer):
     period = serializers.IntegerField(min_value=1, max_value=12, required=False, allow_null=True)
     marks = BulkMarkSerializer(many=True, required=False, default=list)
     attendance = BulkAttendanceSerializer(many=True, required=False, default=list)
+
+
+class ControlMarkInSerializer(serializers.Serializer):
+    student_id = serializers.IntegerField()
+    mark = serializers.IntegerField(min_value=0, max_value=100, required=False, allow_null=True)
+
+
+class ControlWorkSerializer(serializers.ModelSerializer):
+    """Nazorat ishi. In: journal_class, date, chorak, title and `marks` as
+    [{student_id, mark}] (an empty mark clears it); out: `marks` as
+    {student_id: mark}, the same shape as a lesson day in the grid."""
+
+    marks = ControlMarkInSerializer(many=True, write_only=True, required=False)
+    by_name = serializers.CharField(source='created_by.name', read_only=True, default='')
+
+    class Meta:
+        model = ControlWork
+        fields = ['id', 'journal_class', 'date', 'chorak', 'title', 'marks', 'by_name', 'created_at']
+        read_only_fields = ['created_at']
+        extra_kwargs = {'chorak': {'min_value': 1, 'max_value': 4}}
+
+    def validate(self, attrs):
+        if self.instance is not None:
+            attrs.pop('journal_class', None)  # stays in its class
+        journal_class = self.instance.journal_class if self.instance else attrs['journal_class']
+        roster = set(journal_class.students.values_list('id', flat=True))
+        if any(m['student_id'] not in roster for m in attrs.get('marks', [])):
+            raise serializers.ValidationError({'marks': "O'quvchi bu sinfda emas."})
+        return attrs
+
+    def to_representation(self, obj):
+        data = super().to_representation(obj)
+        data['marks'] = {m.student_id: m.mark for m in obj.marks.all()}
+        return data
+
+    @transaction.atomic
+    def create(self, validated_data):
+        marks = validated_data.pop('marks', [])
+        work = super().create(validated_data)
+        self._set_marks(work, marks)
+        return work
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        marks = validated_data.pop('marks', None)
+        work = super().update(instance, validated_data)
+        if marks is not None:
+            self._set_marks(work, marks)
+        return work
+
+    @staticmethod
+    def _set_marks(work, marks):
+        for m in marks:
+            if m.get('mark') is None:
+                ControlMark.objects.filter(work=work, student_id=m['student_id']).delete()
+            else:
+                ControlMark.objects.update_or_create(work=work, student_id=m['student_id'], defaults={'mark': m['mark']})
 
 
 def class_label(journal_class) -> str:

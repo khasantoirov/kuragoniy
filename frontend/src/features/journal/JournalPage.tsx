@@ -32,7 +32,8 @@ function useChorak() {
 }
 
 /** Class chips + quarter chips + the grid. With `teacherId` it shows that
- * teacher's journal to an administrator, read-only (locks open days). */
+ * teacher's journal to an administrator: marks and attendance read-only
+ * (locks open days), nazorat ishi graded by the administrator. */
 function JournalBody({ teacherId, head }: { teacherId?: string; head?: React.ReactNode }) {
   const { t } = useTranslation()
   const lang = useUIStore((s) => s.lang)
@@ -105,6 +106,45 @@ function JournalBody({ teacherId, head }: { teacherId?: string; head?: React.Rea
   )
 }
 
+/** Administrators: every teacher with classes, to open their journal. */
+function TeacherList() {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const { data, isLoading } = useGrantTeachers(true)
+  const [q, setQ] = useState('')
+  if (isLoading) return <Skeleton lines={4} />
+  const needle = q.trim().toLowerCase()
+  const list = (data ?? []).filter((p) => p.classes.length > 0 && (!needle || p.name.toLowerCase().includes(needle)
+    || p.classes.some((c) => c.label.toLowerCase().includes(needle))))
+  return (
+    <div className="jpick">
+      <input className="input jpick__q" type="search" value={q} onChange={(e) => setQ(e.target.value)}
+        placeholder={t("O'qituvchi yoki sinf")} aria-label={t('Qidirish')} />
+      {list.length ? (
+        <ul className="jpick__list">
+          {list.map((p) => (
+            <li key={p.id}>
+              <button type="button" className="jpick__b" onClick={() => navigate(`/journal?teacher=${encodeURIComponent(p.id)}`)}>
+                <span className="jteach__av" aria-hidden="true">{(p.name || '?').slice(0, 1).toUpperCase()}</span>
+                <span className="jpick__txt">
+                  <b>{p.name}</b>
+                  <small>{p.classes.map((c) => c.label).join(' · ')}</small>
+                </span>
+                <span className="jpick__go" aria-hidden="true">›</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <EmptyState title={t('Topilmadi')} hint={t("Sinf qo'shgan o'qituvchi topilmadi.")} />
+      )}
+    </div>
+  )
+}
+
+type AdminMode = 'mine' | 'teachers' | 'access'
+const modeOf = (tab: string | null): AdminMode => (tab === 'access' ? 'access' : tab === 'teachers' ? 'teachers' : 'mine')
+
 export function JournalPage() {
   const { t } = useTranslation()
   const viewMode = useUIStore((s) => s.viewMode)
@@ -113,25 +153,29 @@ export function JournalPage() {
   const admin = isAdminInView(user, viewMode)
   const [params, setParams] = useSearchParams()
   // ?tab=access — where the "permission asked" notification points;
-  // ?teacher=<id> — an administrator looking at that teacher's journal.
+  // ?tab=teachers — the teachers' journals; ?teacher=<id> — an
+  // administrator in that teacher's journal (grading nazorat ishi).
   const viewing = admin ? params.get('teacher') : null
-  const [mode, setMode] = useState<'mine' | 'access'>(() => (params.get('tab') === 'access' ? 'access' : 'mine'))
+  const [adminMode, setAdminMode] = useState<AdminMode>(() => modeOf(params.get('tab')))
   const pendingGrants = useGrants('pending', admin)
   const teachers = useGrantTeachers(!!viewing)
 
-  const changeMode = (m: 'mine' | 'access') => {
-    setMode(m)
+  const changeMode = (m: AdminMode) => {
+    setAdminMode(m)
     if (params.has('tab') || params.has('teacher')) setParams({}, { replace: true })
   }
   const waiting = pendingGrants.data?.length ?? 0
 
-  // Administrators: their own journal, or permissions for past days.
+  // Administrators: their own journal, the teachers' journals, or permissions for past days.
   const ModeBar = admin ? (
     <div className="chips" style={{ marginBottom: 14 }}>
-      <button className={`chip ${mode === 'mine' && !viewing ? 'is-on' : ''}`} onClick={() => changeMode('mine')}>
+      <button className={`chip ${adminMode === 'mine' && !viewing ? 'is-on' : ''}`} onClick={() => changeMode('mine')}>
         {IC.user} {t('Mening jurnalim')}
       </button>
-      <button className={`chip ${mode === 'access' || viewing ? 'is-on' : ''}`} onClick={() => changeMode('access')}>
+      <button className={`chip ${adminMode === 'teachers' || viewing ? 'is-on' : ''}`} onClick={() => changeMode('teachers')}>
+        {IC.users} {t("O'qituvchilar jurnali")}
+      </button>
+      <button className={`chip ${adminMode === 'access' && !viewing ? 'is-on' : ''}`} onClick={() => changeMode('access')}>
         {IC.lock} {t('Ruxsatlar')} {waiting > 0 && <span className="chip__count">{waiting}</span>}
       </button>
     </div>
@@ -147,10 +191,10 @@ export function JournalPage() {
           <>
             {ModeBar}
             <div className="jview">
-              <button type="button" className="btn btn--sm" onClick={() => { setMode('access'); navigate('/journal?tab=access') }}>
-                {IC.back} {t('Ruxsatlar')}
+              <button type="button" className="btn btn--sm" onClick={() => { setAdminMode('teachers'); navigate('/journal?tab=teachers') }}>
+                {IC.back} {t("O'qituvchilar")}
               </button>
-              <span className="jview__t">{IC.eye} <b>{name}</b> — {t("jurnali (faqat ko'rish)")}</span>
+              <span className="jview__t">{IC.eye} <b>{name}</b> {t('jurnali')}</span>
             </div>
           </>
         }
@@ -158,7 +202,16 @@ export function JournalPage() {
     )
   }
 
-  if (admin && mode === 'access') {
+  if (admin && adminMode === 'teachers') {
+    return (
+      <div>
+        {ModeBar}
+        <TeacherList />
+      </div>
+    )
+  }
+
+  if (admin && adminMode === 'access') {
     return (
       <div>
         {ModeBar}
