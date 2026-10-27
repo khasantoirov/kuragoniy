@@ -1,5 +1,3 @@
-import re
-import unicodedata
 import uuid
 
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
@@ -9,18 +7,6 @@ from django.db import models
 
 def generate_uid():
     return uuid.uuid4().hex
-
-
-# ʻ ʼ ` ‘ ’ ´ — the many apostrophes of Uzbek Latin, typed any way
-_APOSTROPHES = str.maketrans({ch: "'" for ch in '\u02bb\u02bc`\u2018\u2019\u00b4'})
-
-
-def name_key(name: str) -> str:
-    """A full name as a login: case, apostrophe style, spacing and word
-    order don't matter — "Aliyev Vali", "vali  ALIYEV" and "Aliyev Valiʼ"
-    all give the same key."""
-    words = unicodedata.normalize('NFKC', name or '').lower().translate(_APOSTROPHES).split()
-    return ' '.join(sorted(words))[:150]
 
 
 class UserManager(BaseUserManager):
@@ -70,13 +56,6 @@ class UserManager(BaseUserManager):
         return (self.filter(username__iexact=login).first()
                 or self.filter(previous_username__iexact=login).first())
 
-    def find_by_name(self, login):
-        """Active accounts whose full name is `login` (see name_key) — a
-        list, since two people can share a name; the login view tells them
-        apart by the password."""
-        key = name_key(login)
-        return list(self.filter(name_key=key, is_active=True)) if key else []
-
     def create_user(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', False)
         extra_fields.setdefault('is_superuser', False)
@@ -122,8 +101,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     # nobody is locked out before their teacher hands them the new one.
     previous_username = models.CharField(max_length=40, null=True, blank=True, db_index=True)
     name = models.CharField(max_length=150)
-    # The name as a login (name_key), kept in step by save().
-    name_key = models.CharField(max_length=150, blank=True, db_index=True, editable=False)
     role = models.CharField(max_length=16, choices=Role.choices, default=Role.TEACHER)
 
     # Replaces the old hardcoded dev-email string comparison in
@@ -188,13 +165,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email or self.username or self.name
-
-    def save(self, *args, **kwargs):
-        self.name_key = name_key(self.name)
-        fields = kwargs.get('update_fields')
-        if fields is not None and 'name' in fields:
-            kwargs['update_fields'] = {*fields, 'name_key'}
-        super().save(*args, **kwargs)
 
     @property
     def login_name(self):

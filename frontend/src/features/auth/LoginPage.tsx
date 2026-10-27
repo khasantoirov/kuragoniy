@@ -69,7 +69,7 @@ export function LoginPage() {
       if (err.response.status === 429 && detail) return t(detail)
       if (err.response.status === 429) return t("Juda ko'p urinish. Biroz kutib qayta urining")
     }
-    return t("Ism-familiya, login yoki parol noto'g'ri")
+    return t("Login yoki parol noto'g'ri")
   }
 
   const onSubmit = async (e: FormEvent) => {
@@ -151,10 +151,10 @@ export function LoginPage() {
   return (
     <form className="form gx-form" onSubmit={onSubmit}>
       <h1 className="gx-form__title">{t('Tizimga kirish')}</h1>
-      <p className="gx-form__sub gx-form__sub--opt">{t('Ism-familiyangiz (yoki loginingiz) va parolingiz bilan kiring.')}</p>
+      <p className="gx-form__sub gx-form__sub--opt">{t('Login va parolingiz bilan kiring.')}</p>
 
       <label className="field">
-        <span className="field__label">{t('Ism-familiya yoki login')}</span>
+        <span className="field__label">{t('Login')}</span>
         <span className="ifield">
           <span className="ifield__ic">{IC.user}</span>
           <input
@@ -166,7 +166,7 @@ export function LoginPage() {
             autoCorrect="off"
             spellCheck={false}
             autoComplete="username"
-            placeholder={t('Masalan: Aliyev Vali')}
+            placeholder={t('Login')}
             value={loginName}
             onChange={(e) => setLoginName(e.target.value)}
           />

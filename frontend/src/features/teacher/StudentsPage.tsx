@@ -48,7 +48,7 @@ function CredentialsModal({ creds, className, onClose }: { creds: Credential[]; 
             <p><span>{t('Sayt')}:</span> {site}</p>
             <p><span>{t('Login')}:</span> <b className="mono">{c.username}</b></p>
             <p><span>{t('Parol')}:</span> <b className="mono">{c.password}</b></p>
-            <p className="slip__hint">{t("Login o'rniga ism-familiyangizni yozsangiz ham bo'ladi")}</p>
+            <p className="slip__hint">{t("«O'quvchi» oynasidan kiring")}</p>
           </div>
         ))}
       </div>

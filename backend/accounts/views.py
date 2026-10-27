@@ -178,32 +178,10 @@ class RegisterView(generics.CreateAPIView):
         return Response(MeSerializer(user).data, status=status.HTTP_201_CREATED)
 
 
-def _login_candidates(login):
-    """Whose account `login` names. An existing login first — email,
-    student login or its previous login — so nobody's sign-in changes;
-    otherwise the full name, in any case and word order (name_key). Two
-    people can share a name: the caller tells them apart by the password."""
-    user = User.objects.find_by_login(login)
-    return [user] if user else User.objects.find_by_name(login)
-
-
-def _account_for(login):
-    """The one account `login` names, for the password-reset steps —
-    a name shared by several accounts gives none (there's no password to
-    tell them apart there; those people use their login or email)."""
-    found = _login_candidates(login)
-    return found[0] if len(found) == 1 else None
-
-
-AMBIGUOUS_NAME_LOGIN = (
-    "Bu ism-familiya bilan bir nechta hisob bor. Loginingiz yoki emailingiz bilan kiring."
-)
-
-
 class LoginView(generics.GenericAPIView):
-    """One login endpoint for every portal: `login` is the full name, an
-    email (staff) or a login (student) — see _login_candidates. Older
-    cached clients still send `email`, which is accepted as the same field."""
+    """One login endpoint for every portal: `login` is an email (staff) or
+    a username (student). Older cached clients still send `email`, which
+    is accepted as the same field."""
 
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
@@ -215,26 +193,17 @@ class LoginView(generics.GenericAPIView):
         if not login or not password:
             return Response({'detail': GENERIC_LOGIN_ERROR}, status=status.HTTP_400_BAD_REQUEST)
 
-        targets = _login_candidates(login)
-        if len(targets) > 1:
-            # one name, several accounts: the password picks the account
-            matching = [u for u in targets if u.check_password(password)]
-            if len(matching) > 1:
-                log_event('login_ambiguous_name', request=request, detail=f'login: {login[:80]}')
-                return Response({'detail': AMBIGUOUS_NAME_LOGIN}, status=status.HTTP_400_BAD_REQUEST)
-            targets = matching or targets
-        candidate = targets[0] if len(targets) == 1 else None
+        candidate = User.objects.find_by_login(login)
         if candidate and _is_locked(candidate):
             log_event('login_while_locked', actor=candidate, request=request)
             return _locked_response(candidate)
 
-        # authenticate() by the account's own login, whatever was typed
-        user = authenticate(request, email=candidate.login_name, password=password) if candidate else None
+        user = authenticate(request, email=login, password=password)
         if user is None:
-            for target in targets:
-                _register_failed_login(target, request)
-            if candidate and _is_locked(candidate):
-                return _locked_response(candidate)
+            if candidate:
+                _register_failed_login(candidate, request)
+                if _is_locked(candidate):
+                    return _locked_response(candidate)
             log_event('login_failed', actor=candidate, request=request, detail=f'login: {login[:80]}')
             return Response({'detail': GENERIC_LOGIN_ERROR}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -549,7 +518,7 @@ class PasswordResetRequestView(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         login = str(request.data.get('login') or request.data.get('email') or '').strip()
-        user = _account_for(login)
+        user = User.objects.find_by_login(login)
         if not user or not user.is_active:
             return Response(GENERIC_RESET_RESPONSE)
 
@@ -611,7 +580,7 @@ class PasswordResetConfirmView(generics.GenericAPIView):
         new_password = str(request.data.get('new_password') or '')
         bad = Response({'detail': "Kod noto'g'ri yoki muddati o'tgan."}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = _account_for(login)
+        user = User.objects.find_by_login(login)
         if not user or not user.is_active or not code.isdigit():
             return bad
         now = timezone.now()
