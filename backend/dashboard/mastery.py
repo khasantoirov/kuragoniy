@@ -20,11 +20,15 @@ from django.db.models import Avg, Count
 from journal.models import AttendanceEntry, ClassDay, GradeEntry, JournalClass, Student
 from journal.schools import BLANK_SCHOOL_KEY, normalize_school, pick_label
 
-# masteryStats.ts's bandOfAvg thresholds — the single definition. Both
-# DashboardSummaryView (via class_metrics, below) and MasteryBreakdownView
-# read through bands_from_averages() so they can never drift apart.
-GOOD_THRESHOLD = 4.5
-MID_THRESHOLD = 3.5
+# A pupil's period average falls into the band of the mark it rounds to —
+# journal/scales.py's five bands on the common 0-5 level footing (4.5+
+# a'lo, 3.5+ yaxshi, 2.5+ qoniqarli, 1.5+ qoniqarsiz, below that yomon),
+# so classes on any scale compare; masteryStats.ts's bandOfAvg mirrors
+# it. Both DashboardSummaryView (via class_metrics, below) and
+# MasteryBreakdownView read through bands_from_averages() so they can
+# never drift apart.
+BANDS = ('alo', 'yaxshi', 'qoniqarli', 'qoniqarsiz', 'yomon')
+_BAND_MIN_AVG = ((4.5, 'alo'), (3.5, 'yaxshi'), (2.5, 'qoniqarli'), (1.5, 'qoniqarsiz'))
 
 # A row's mastery % is flagged "thin" (shaky, not hidden) when either too
 # few students carry a grade at all, or coverage of a non-trivial roster
@@ -35,24 +39,26 @@ MIN_GRADED_STUDENTS = 3
 THIN_COVERAGE_PCT = 50
 
 
+def band_of_avg(avg):
+    for lowest, key in _BAND_MIN_AVG:
+        if avg >= lowest:
+            return key
+    return 'yomon'
+
+
 def bands_from_averages(averages):
     """averages: one float per graded student (their own mark average,
     already computed by the caller). Pure — no query, no roster size —
     so it is unit-testable without django_db."""
-    good = mid = bad = 0
+    counts = dict.fromkeys(BANDS, 0)
     total = 0.0
     for avg in averages:
         total += avg
-        if avg >= GOOD_THRESHOLD:
-            good += 1
-        elif avg >= MID_THRESHOLD:
-            mid += 1
-        else:
-            bad += 1
-    n = good + mid + bad
+        counts[band_of_avg(avg)] += 1
+    n = sum(counts.values())
     class_avg = round(total / n, 2) if n else None
     class_pct = round(class_avg / 5 * 100) if class_avg is not None else None
-    return {'good': good, 'mid': mid, 'bad': bad, 'class_avg': class_avg, 'class_pct': class_pct}
+    return {**counts, 'class_avg': class_avg, 'class_pct': class_pct}
 
 
 def class_metrics(averages, total_students, lesson_days, absent, possible):
@@ -65,7 +71,7 @@ def class_metrics(averages, total_students, lesson_days, absent, possible):
     from classes they were never in and inflates the denominator by
     roughly the number of classes in the group."""
     bands = bands_from_averages(averages)
-    graded = bands['good'] + bands['mid'] + bands['bad']
+    graded = sum(bands[k] for k in BANDS)
     ungraded = total_students - graded
     coverage_pct = round(graded / total_students * 100) if total_students else None
     attendance_rate_pct = round((1 - absent / possible) * 100, 1) if possible else None
@@ -279,7 +285,7 @@ def mastery_trend(class_ids, chorak, period, total_students, date_range_ids=None
         student_marks = per_bucket.get(key, {})
         averages = [sum(marks) / len(marks) for marks in student_marks.values()]
         bands = bands_from_averages(averages)
-        graded = bands['good'] + bands['mid'] + bands['bad']
+        graded = sum(bands[k] for k in BANDS)
         points.append({
             'key': key,
             **meta_by_key[key],

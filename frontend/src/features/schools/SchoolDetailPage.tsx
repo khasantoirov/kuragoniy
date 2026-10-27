@@ -182,7 +182,7 @@ export function SchoolDetailPage() {
                     <td>{c.days}</td>
                     <MetricCells m={c} />
                     <td>{c.abs_n} / {c.late}</td>
-                    <td>{c.accounts}/{c.students}{c.platform_avg != null && <> · <MetricPill value={c.platform_avg} good={85} fair={60} /></>}</td>
+                    <td>{c.accounts}/{c.students}{c.platform_avg != null && <> · <MetricPill value={c.platform_avg} band="pct" /></>}</td>
                   </tr>
                 ))}
               </tbody>
@@ -204,7 +204,7 @@ export function SchoolDetailPage() {
                     <td>{r.name}</td>
                     <td>{r.class_name}</td>
                     <td>{r.teacher}</td>
-                    <td><MetricPill value={r.avg_mark} good={4} fair={2.5} suffix="" digits={2} /> <small className="muted">({r.marks})</small></td>
+                    <td><MetricPill value={r.avg_mark} band="mark" suffix="" digits={2} /> <small className="muted">({r.marks})</small></td>
                     <td>{r.unexcused >= 3 ? <StatusPill tone="bad">{r.unexcused}</StatusPill> : r.unexcused}</td>
                   </tr>
                 ))}

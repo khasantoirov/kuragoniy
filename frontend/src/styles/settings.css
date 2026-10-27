@@ -452,18 +452,24 @@ button.jt__open:hover { color: #fff; }
 /* ══ Rangli baholar (features/journal/grades.ts) ═══════════════════════
    5 a'lo yashil, 4 yaxshi sariq, 3 qoniqarli qizil, 2 qoniqarsiz binafsha,
    1 va 0 yomon qora — raqam rang ichida turadi. */
-:root { --g5: #16a34a; --g4: #eab308; --g3: #dc2626; --g2: #7c3aed; --g1: #111827; }
-[data-theme="dark"] { --g5: #22c55e; --g4: #facc15; --g3: #ef4444; --g2: #8b5cf6; --g1: #000; }
+/* Colour bands (features/journal/scales.ts), the same on every page:
+   5 a'lo green, 4 yaxshi lemon, 3 qoniqarli carrot orange, 2 qoniqarsiz
+   red, 1/0 yomon dark red. */
+:root { --g5: #16a34a; --g4: #facc15; --g3: #f98216; --g2: #d42020; --g1: #7f1d1d; }
+[data-theme="dark"] { --g5: #22c55e; --g4: #facc15; --g3: #f98216; --g2: #e0243c; --g1: #7f1d1d; }
 .gchip--5 { --gc: var(--g5); --gt: #fff; }
-.gchip--4 { --gc: var(--g4); --gt: #2a1f00; }
-.gchip--3 { --gc: var(--g3); --gt: #fff; }
+.gchip--4 { --gc: var(--g4); --gt: #3a2c00; }
+.gchip--3 { --gc: var(--g3); --gt: #2b1100; }
 .gchip--2 { --gc: var(--g2); --gt: #fff; }
 .gchip--1, .gchip--0 { --gc: var(--g1); --gt: #fff; }
+/* Scores outside the journal (PercentPill, MetricPill, a test's result) wear the same bands. */
+.pill[class*="gchip--"] { background: var(--gc); color: var(--gt); }
+.review__score[class*="gchip--"] { background: color-mix(in srgb, var(--gc) 16%, var(--surface)); box-shadow: inset 4px 0 0 var(--gc); }
 .gchip {
   display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 5px;
   border-radius: 6px; background: var(--gc); color: var(--gt); font: 700 13px/1 var(--f-mono, inherit);
 }
-[data-theme="dark"] .gchip--1, [data-theme="dark"] .gchip--0 { box-shadow: inset 0 0 0 1px rgba(255,255,255,.35); }
+[data-theme="dark"] .gchip--1, [data-theme="dark"] .gchip--0 { box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
 .jlegend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 12px; font-size: 12.5px; color: var(--ink-2); }
 .jlegend > span { display: inline-flex; align-items: center; gap: 6px; }
 .at--x { background: rgba(91,75,183,.14); border-color: rgba(91,75,183,.45); color: #5b4bb7; opacity: 1; }

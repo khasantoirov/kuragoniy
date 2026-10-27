@@ -1,9 +1,11 @@
 export type DashboardChorak = 1 | 2 | 3 | 4 | 'u'
 
 export interface MasteryBands {
-  good: number
-  mid: number
-  bad: number
+  alo: number
+  yaxshi: number
+  qoniqarli: number
+  qoniqarsiz: number
+  yomon: number
   ungraded: number
   class_avg: number | null
   class_pct: number | null

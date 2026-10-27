@@ -6,6 +6,8 @@ import { useToast } from '@/components/Toast'
 import { api } from '@/lib/api/client'
 import { useUpdateGuard } from '@/lib/updateGuard'
 
+import { pctLevel } from '@/features/journal/scales'
+
 import { errText, fmtDuration } from './ui'
 
 export type QKind = 'test' | 'multi' | 'number' | 'text'
@@ -253,10 +255,9 @@ function correctText(item: ReviewItem): string | null {
 export function AttemptReview({ result, onClose }: { result: AttemptResult; onClose?: () => void }) {
   const { t } = useTranslation()
   const correctCount = result.items.filter((i) => i.ok).length
-  const tone = result.percent >= 85 ? 'ok' : result.percent >= 60 ? 'mid' : 'bad'
   return (
     <div className="review">
-      <div className={`review__score review__score--${tone}`}>
+      <div className={`review__score gchip--${pctLevel(result.percent)}`}>
         <span className="review__pct">{Math.round(result.percent)}%</span>
         <span className="review__sub">
           {correctCount}/{result.items.length} {t("to'g'ri")} · {result.score}/{result.max_score} {t('ball')}

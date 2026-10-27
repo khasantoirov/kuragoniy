@@ -108,7 +108,7 @@ export function DirectoryPage() {
                       <td>{r.school_linked ? r.school : <span className="muted" title={t('Hamkor maktabga biriktirilmagan')}>«{r.school}»</span>}</td>
                       <td>{r.teacher}</td>
                       <td>{r.login ? <span className="mono">{r.login}</span> : <StatusPill tone="muted">{t("yo'q")}</StatusPill>}</td>
-                      <td><MetricPill value={r.avg_mark} good={4} fair={2.5} suffix="" digits={2} /> <small className="muted">({r.marks})</small></td>
+                      <td><MetricPill value={r.avg_mark} band="mark" suffix="" digits={2} /> <small className="muted">({r.marks})</small></td>
                       <td>{r.abs_s}</td>
                       <td>{r.abs_n >= 3 ? <StatusPill tone="bad">{r.abs_n}</StatusPill> : r.abs_n}</td>
                       <td>{r.late}</td>

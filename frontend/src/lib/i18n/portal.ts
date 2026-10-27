@@ -549,6 +549,14 @@ const ru: Record<string, string> = {
   "Nazorat ishi ballari darslardagi o'rtacha baho va o'zlashtirishga qo'shilmaydi; «Umumiy» bo'limida har chorakning o'rtacha bali alohida qatorda ko'rsatiladi.": "Баллы контрольных не входят в средний балл за уроки и в успеваемость; в разделе «Общее» средний балл за каждую четверть показан отдельной строкой.",
   "Administrator boshqa o'qituvchining baho va davomatini o'zgartira olmaydi — u faqat nazorat ishini baholaydi.": "Администратор не может менять оценки и посещаемость другого учителя — он только оценивает контрольные работы.",
   "O'tgan kun jurnalini tahrirlash uchun ruxsat so'ralganda, berilganda yoki rad etilganda; nazorat ishi natijalari kiritilganda": "Когда запрашивают, выдают или отклоняют разрешение на правку прошедшего дня журнала; когда внесены результаты контрольной работы",
+  // Baho ranglari (yagona tizim)
+  "Rang": "Цвет",
+  "Yashil": "Зелёный",
+  "Limon sariq": "Лимонно-жёлтый",
+  "Zarg'aldoq": "Оранжевый",
+  "Qizil": "Красный",
+  "To'q qizil": "Тёмно-красный",
+  "Shu ranglar butun platformada bir xil: jurnal baholari, nazorat ishi, test va uyga vazifa natijalari, o'zlashtirish foizi. Foizdagi natija 100 ballik ustun bo'yicha, o'rtacha baho esa yaxlitlangan bahosi bo'yicha bo'yaladi (masalan, o'rtacha 4,5 — a'lo, 4,4 — yaxshi).": "Эти цвета одинаковы на всей платформе: оценки в журнале, контрольные работы, результаты тестов и домашних заданий, процент успеваемости. Результат в процентах окрашивается по 100-балльной колонке, а средний балл — по оценке, до которой он округляется (например, средний 4,5 — отлично, 4,4 — хорошо).",
 }
 
 const en: Record<string, string> = {
@@ -1087,6 +1095,14 @@ const en: Record<string, string> = {
   "Nazorat ishi ballari darslardagi o'rtacha baho va o'zlashtirishga qo'shilmaydi; «Umumiy» bo'limida har chorakning o'rtacha bali alohida qatorda ko'rsatiladi.": "Control test scores are not part of the lesson average or mastery; the \"Overall\" view shows each quarter's average score on its own row.",
   "Administrator boshqa o'qituvchining baho va davomatini o'zgartira olmaydi — u faqat nazorat ishini baholaydi.": "An administrator cannot change another teacher's marks or attendance — they only grade control tests.",
   "O'tgan kun jurnalini tahrirlash uchun ruxsat so'ralganda, berilganda yoki rad etilganda; nazorat ishi natijalari kiritilganda": "When permission to edit a past journal day is requested, granted or refused; when control test results are entered",
+  // Baho ranglari (yagona tizim)
+  "Rang": "Colour",
+  "Yashil": "Green",
+  "Limon sariq": "Lemon yellow",
+  "Zarg'aldoq": "Orange",
+  "Qizil": "Red",
+  "To'q qizil": "Dark red",
+  "Shu ranglar butun platformada bir xil: jurnal baholari, nazorat ishi, test va uyga vazifa natijalari, o'zlashtirish foizi. Foizdagi natija 100 ballik ustun bo'yicha, o'rtacha baho esa yaxlitlangan bahosi bo'yicha bo'yaladi (masalan, o'rtacha 4,5 — a'lo, 4,4 — yaxshi).": "These colours are the same across the platform: journal marks, control tests, test and homework results, the mastery percent. A percent is coloured by the 100-point column, an average by the mark it rounds to (e.g. a 4.5 average is excellent, 4.4 good).",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

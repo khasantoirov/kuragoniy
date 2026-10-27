@@ -118,7 +118,7 @@ def test_totals_match_summary_mastery_for_same_scope(as_user, teacher, chorak):
 
     sm = summary["journal"]["mastery"]
     tm = mastery_resp["totals"]
-    for key in ("good", "mid", "bad", "ungraded", "class_avg", "class_pct"):
+    for key in ("alo", "yaxshi", "qoniqarli", "qoniqarsiz", "yomon", "ungraded", "class_avg", "class_pct"):
         assert tm[key] == sm[key], key
 
 
@@ -137,15 +137,14 @@ def test_school_row_equals_mastery_bands_for_its_own_classes(as_user, admin, tea
 
     resp = as_user(admin).get(URL)
     rows = {r["key"]: r for r in resp.data["breakdown"]["rows"]}
-    assert rows["25-maktab"]["good"] == 1
-    assert rows["25-maktab"]["bad"] == 1
-    assert rows["14-maktab"]["mid"] == 1
+    assert rows["25-maktab"]["alo"] == 1
+    assert rows["25-maktab"]["qoniqarsiz"] == 1
+    assert rows["14-maktab"]["yaxshi"] == 1
 
     # Roll-up identity: totals == sum of the school rows.
     totals = resp.data["totals"]
-    assert sum(r["good"] for r in rows.values()) == totals["good"]
-    assert sum(r["mid"] for r in rows.values()) == totals["mid"]
-    assert sum(r["bad"] for r in rows.values()) == totals["bad"]
+    for band in ("alo", "yaxshi", "qoniqarli", "qoniqarsiz", "yomon"):
+        assert sum(r[band] for r in rows.values()) == totals[band]
     assert sum(r["ungraded"] for r in rows.values()) == totals["ungraded"]
 
 
@@ -182,7 +181,7 @@ def test_class_level_totals_match_the_class_row_at_org_level(as_user, admin, tea
     # With only one school, org level auto-collapses to comparing classes.
     org_rows = {r["key"]: r for r in as_user(admin).get(URL).data["breakdown"]["rows"]}
     row = org_rows[str(jc.id)]
-    for key in ("good", "mid", "bad", "ungraded", "class_avg", "class_pct"):
+    for key in ("alo", "yaxshi", "qoniqarli", "qoniqarsiz", "yomon", "ungraded", "class_avg", "class_pct"):
         assert class_scope[key] == row[key]
 
 
@@ -326,7 +325,9 @@ def test_quarter_trend_covers_all_four_choraks_in_order(as_user, teacher):
 
     resp = as_user(teacher).get(URL, {"period": "quarter"}).data["trend"]
     assert [p["quarter"] for p in resp["points"]] == [1, 2, 3, 4]
-    assert [p["good"] + p["mid"] + p["bad"] for p in resp["points"]] == [1, 1, 1, 1]
+    bands = ("alo", "yaxshi", "qoniqarli", "qoniqarsiz", "yomon")
+    assert [sum(p[b] for b in bands) for p in resp["points"]] == [1, 1, 1, 1]
+    assert [next(b for b in bands if p[b]) for p in resp["points"]] == ["qoniqarsiz", "qoniqarli", "yaxshi", "alo"]
 
 
 def test_quarter_trend_ignores_the_chorak_filter_and_flags_it(as_user, teacher):

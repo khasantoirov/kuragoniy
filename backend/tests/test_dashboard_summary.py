@@ -112,25 +112,25 @@ def test_mastery_band_counts_against_known_fixture(as_user, teacher):
     jc = make_class(teacher)
     day = make_day(jc, "2026-09-01")
 
-    good = make_student(jc, "Good")  # avg exactly 4.5 -> good, not mid
-    GradeEntry.objects.create(student=good, day=day, mark=4)
+    alo = make_student(jc, "Alo")  # avg exactly 4.5 rounds to 5 -> a'lo, not yaxshi
+    GradeEntry.objects.create(student=alo, day=day, mark=4)
     day2 = make_day(jc, "2026-09-02")
-    GradeEntry.objects.create(student=good, day=day2, mark=5)
+    GradeEntry.objects.create(student=alo, day=day2, mark=5)
 
-    mid = make_student(jc, "Mid")  # avg exactly 3.5 -> mid, not bad
-    GradeEntry.objects.create(student=mid, day=day, mark=3)
-    GradeEntry.objects.create(student=mid, day=day2, mark=4)
+    yaxshi = make_student(jc, "Yaxshi")  # avg exactly 3.5 rounds to 4 -> yaxshi
+    GradeEntry.objects.create(student=yaxshi, day=day, mark=3)
+    GradeEntry.objects.create(student=yaxshi, day=day2, mark=4)
 
-    bad = make_student(jc, "Bad")  # avg 2.0 -> bad
-    GradeEntry.objects.create(student=bad, day=day, mark=2)
+    qoniqarsiz = make_student(jc, "Qoniqarsiz")  # avg 2.0 -> qoniqarsiz
+    GradeEntry.objects.create(student=qoniqarsiz, day=day, mark=2)
 
-    make_student(jc, "Ungraded")  # zero grades -> ungraded, not bad
+    make_student(jc, "Ungraded")  # zero grades -> ungraded, not a band
 
     resp = as_user(teacher).get(URL)
     mastery = resp.data["journal"]["mastery"]
-    assert mastery["good"] == 1
-    assert mastery["mid"] == 1
-    assert mastery["bad"] == 1
+    assert (mastery["alo"], mastery["yaxshi"], mastery["qoniqarli"], mastery["qoniqarsiz"], mastery["yomon"]) == (1, 1, 0, 1, 0)
+    # the old three groups, still sent for a stale cached bundle
+    assert (mastery["good"], mastery["mid"], mastery["bad"]) == (1, 1, 1)
     assert mastery["ungraded"] == 1
     assert mastery["class_avg"] == 3.33  # mean of 4.5, 3.5, 2.0 -> 3.333...
     assert mastery["class_pct"] == 67

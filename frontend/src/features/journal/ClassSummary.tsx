@@ -11,7 +11,10 @@ import { ClassModal } from './ClassModal'
 import { EditStudentsModal } from './EditStudentsModal'
 import { quarterLabel } from './labels'
 import { MasteryPanel } from './MasteryPanel'
-import { asScale, fmtAvg } from './scales'
+import { PercentPill } from '@/features/portal/ui'
+
+import { AvgChip, GradeChip } from './GradeCell'
+import { asScale } from './scales'
 import { computeStats, controlAvg } from './stats'
 import type { JournalClass } from './types'
 
@@ -91,21 +94,21 @@ export function ClassSummary({ cls, teacherId }: { cls: JournalClass; teacherId?
             </tr>
             <tr>
               <td>{t("O'rtacha")}</td>
-              {rows.map((r) => (<td key={r.q} className="table__q">{r.avg != null ? fmtAvg(r.avg, scale) : '—'}</td>))}
-              <td className="table__q"><b>{tot.classAvg != null ? fmtAvg(tot.classAvg, scale) : '—'}</b></td>
+              {rows.map((r) => (<td key={r.q} className="table__q"><AvgChip avg={r.avg} scale={scale} /></td>))}
+              <td className="table__q"><AvgChip avg={tot.classAvg} scale={scale} /></td>
             </tr>
             <tr>
               <td>{t("O'zlashtirish")}</td>
-              {rows.map((r) => (<td key={r.q} className="table__q">{r.pct !== null ? r.pct + '%' : '—'}</td>))}
-              <td className="table__q"><b>{tot.pct !== null ? tot.pct + '%' : '—'}</b></td>
+              {rows.map((r) => (<td key={r.q} className="table__q"><PercentPill value={r.pct} /></td>))}
+              <td className="table__q"><PercentPill value={tot.pct} /></td>
             </tr>
             {controls.length > 0 && (
               <tr>
                 <td>{t('Nazorat ishi')} <span className="field__opt">({t("o'rtacha ball")})</span></td>
                 {rows.map((r) => (
-                  <td key={r.q} className="table__q">{controlAvg(grid.students, controls.filter((w) => w.chorak === r.q)) ?? '—'}</td>
+                  <td key={r.q} className="table__q"><GradeChip v={controlAvg(grid.students, controls.filter((w) => w.chorak === r.q))} scale={100} empty="—" /></td>
                 ))}
-                <td className="table__q"><b>{controlAvg(grid.students, controls) ?? '—'}</b></td>
+                <td className="table__q"><GradeChip v={controlAvg(grid.students, controls)} scale={100} empty="—" /></td>
               </tr>
             )}
           </tbody>

@@ -6,7 +6,7 @@ import { RankBarChart, type RankDatum } from '@/components/charts/RankBarChart'
 import { StatCard } from '@/components/charts/StatCard'
 import { TrendLineChart, type TrendPoint } from '@/components/charts/TrendLineChart'
 import { Skeleton } from '@/components/Skeleton'
-import { bucketLabel } from '@/features/journal/masteryStats'
+import { BANDS, bucketLabel } from '@/features/journal/masteryStats'
 import { useUIStore } from '@/store/uiStore'
 
 import { useMasteryBreakdown } from './masteryApi'
@@ -157,20 +157,18 @@ export function MasteryBreakdown({ chorak }: { chorak: DashboardChorak }) {
           <div className="dash__card">
             <div className="mastery__snapshot">
               <DonutChart
-                ariaLabel={`${t('Yaxshi')} ${totals.good}, ${t("O'rtacha")} ${totals.mid}, ${t('Past')} ${totals.bad}`}
+                ariaLabel={BANDS.map((b) => `${t(b.label)} ${totals[b.key]}`).join(', ')}
                 centerValue={totals.class_pct !== null ? `${totals.class_pct}%` : '—'}
                 centerLabel={t("O'zlashtirish")}
                 segments={[
-                  { key: 'good', label: t('Yaxshi'), value: totals.good, color: 'var(--band-good)' },
-                  { key: 'mid', label: t("O'rtacha"), value: totals.mid, color: 'var(--band-mid)' },
-                  { key: 'bad', label: t('Past'), value: totals.bad, color: 'var(--band-bad)' },
+                  ...BANDS.map((b) => ({ key: b.key, label: t(b.label), value: totals[b.key], color: `var(--g${b.level})` })),
                   { key: 'ungraded', label: t('Baholanmagan'), value: totals.ungraded, color: 'var(--rule)' },
                 ]}
               />
               <div className="mastery__kpis">
-                <div className="mastery__kpi mastery__kpi--good"><span>{t('Yaxshi')}</span><b>{totals.good}</b></div>
-                <div className="mastery__kpi mastery__kpi--mid"><span>{t("O'rtacha")}</span><b>{totals.mid}</b></div>
-                <div className="mastery__kpi mastery__kpi--bad"><span>{t('Past')}</span><b>{totals.bad}</b></div>
+                {BANDS.map((b) => (
+                  <div key={b.key} className={`mastery__kpi gchip--${b.level}`}><span>{t(b.label)}</span><b>{totals[b.key]}</b></div>
+                ))}
                 <div className="mastery__kpi"><span>{t('Baholanmagan')}</span><b>{totals.ungraded}</b></div>
               </div>
             </div>

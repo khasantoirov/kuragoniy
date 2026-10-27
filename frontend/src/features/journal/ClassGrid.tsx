@@ -17,7 +17,7 @@ import { attOf, fmtD } from './attendance'
 import { ClassModal } from './ClassModal'
 import { ControlWorkModal } from './ControlWorkModal'
 import { EditRequestModal } from './EditRequestModal'
-import { GradeCell, GradeChip } from './GradeCell'
+import { AvgChip, GradeCell, GradeChip } from './GradeCell'
 import { GrantDayModal } from './GrantDayModal'
 import { EditStudentsModal } from './EditStudentsModal'
 import { canEditDay, grantFor, isPending, localToday } from './lock'
@@ -285,7 +285,7 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
                     <GradeChip v={w.marks[s.id]} scale={100} />
                   </td>
                 ))}
-                <td className="jt__avg">{stats.perStudent[i].avg != null ? fmtAvg(stats.perStudent[i].avg, scale) : '—'}</td>
+                <td className="jt__avg"><AvgChip avg={stats.perStudent[i].avg} scale={scale} /></td>
                 <td className="jt__fin">
                   <GradeCell value={finals[s.id]} scale={scale} disabled={!owner} onChange={(v) => onFinalChange(s.id, v)} />
                 </td>

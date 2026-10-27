@@ -13,9 +13,11 @@ export type MasteryForm = 'distribution' | 'comparison' | 'trend'
 export const BLANK_SCHOOL_KEY = '__none__'
 
 export interface MasteryMetrics {
-  good: number
-  mid: number
-  bad: number
+  alo: number
+  yaxshi: number
+  qoniqarli: number
+  qoniqarsiz: number
+  yomon: number
   ungraded: number
   class_avg: number | null
   class_pct: number | null
@@ -52,9 +54,11 @@ export interface MasteryTrendPoint {
   week?: number
   month?: number
   quarter?: number
-  good: number
-  mid: number
-  bad: number
+  alo: number
+  yaxshi: number
+  qoniqarli: number
+  qoniqarsiz: number
+  yomon: number
   class_avg: number | null
   class_pct: number | null
   graded_students: number

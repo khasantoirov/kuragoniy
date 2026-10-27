@@ -41,14 +41,17 @@ def _scope_class_ids(request):
 
 
 def _mastery_bands(class_ids, chorak):
-    """Kept for /summary/'s exact historical output shape (a stale cached
-    frontend bundle depends on these six keys). The real computation now
+    """Kept for /summary/'s historical output shape (a stale cached
+    frontend bundle depends on good/mid/bad, still sent beside the bands). The real computation now
     lives in mastery.class_metrics(), shared with MasteryBreakdownView so
     the two surfaces can never disagree."""
     averages = [avg for _cid, _sid, avg in mastery.student_averages(class_ids, chorak)]
     total_students = sum(mastery.active_student_counts(class_ids).values())
     m = mastery.class_metrics(averages, total_students, lesson_days=0, absent=0, possible=0)
-    return {k: m[k] for k in ('good', 'mid', 'bad', 'ungraded', 'class_avg', 'class_pct')}
+    out = {k: m[k] for k in (*mastery.BANDS, 'ungraded', 'class_avg', 'class_pct')}
+    # A stale cached bundle still reads the old three groups.
+    out.update(good=m['alo'], mid=m['yaxshi'], bad=m['qoniqarli'] + m['qoniqarsiz'] + m['yomon'])
+    return out
 
 
 def _attendance_rate_pct(class_ids, chorak):

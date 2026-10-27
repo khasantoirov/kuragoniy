@@ -1,6 +1,6 @@
 import type { Lang } from '@/store/uiStore'
 
-import { asScale } from './scales'
+import { asScale, avgLevel } from './scales'
 import { computeStats } from './stats'
 import { quarterLabel } from './labels'
 import type { Grid, GridDay } from './types'
@@ -18,12 +18,25 @@ export interface Bucket {
   days: GridDay[]
 }
 
-export interface BucketStats extends Bucket {
+/** The five grading bands a pupil's period average falls into — the band
+ * of the mark it rounds to (scales.ts), a'lo first. Keys match
+ * dashboard/mastery.py's BANDS; colours are the journal's .gchip--<level>. */
+export const BANDS = [
+  { key: 'alo', level: 5, label: "A'lo" },
+  { key: 'yaxshi', level: 4, label: 'Yaxshi' },
+  { key: 'qoniqarli', level: 3, label: 'Qoniqarli' },
+  { key: 'qoniqarsiz', level: 2, label: 'Qoniqarsiz' },
+  { key: 'yomon', level: 1, label: 'Yomon' },
+] as const
+
+export type BandKey = (typeof BANDS)[number]['key']
+export type BandCounts = Record<BandKey, number>
+
+export const gradedOf = (c: BandCounts) => BANDS.reduce((n, b) => n + c[b.key], 0)
+
+export interface BucketStats extends Bucket, BandCounts {
   label: string
   classPct: number | null
-  good: number
-  mid: number
-  bad: number
   ungraded: number
 }
 
@@ -91,14 +104,11 @@ export function bucketLabel(b: Pick<Bucket, 'period' | 'year' | 'week' | 'month'
   return String(b.year)
 }
 
-// Bands follow the nearest whole grade a student's period average rounds
-// to, not an arbitrary percentage cut: Yaxshi = rounds to 5, O'rtacha =
-// rounds to 4, Past = rounds to 3 or below (2.5/1.5 aren't reachable
-// bucket boundaries here since grades only go down to 1).
-export function bandOfAvg(avg: number): 'good' | 'mid' | 'bad' {
-  if (avg >= 4.5) return 'good'
-  if (avg >= 3.5) return 'mid'
-  return 'bad'
+// A pupil's band is the mark their period average rounds to (4.5 → a'lo,
+// 4.4 → yaxshi), not an arbitrary percentage cut.
+export function bandOfAvg(avg: number): BandKey {
+  const l = avgLevel(avg, 5)
+  return BANDS.find((b) => l >= b.level)?.key ?? 'yomon'
 }
 
 export function computeMastery(grid: Pick<Grid, 'students' | 'scale'>, buckets: Bucket[], lang: Lang): BucketStats[] {
@@ -106,20 +116,12 @@ export function computeMastery(grid: Pick<Grid, 'students' | 'scale'>, buckets: 
   const scale = asScale(grid.scale)
   return buckets.map((b) => {
     const s = computeStats(grid, b.days, scale)
-    let good = 0
-    let mid = 0
-    let bad = 0
+    const counts = Object.fromEntries(BANDS.map((x) => [x.key, 0])) as BandCounts
     let ungraded = 0
     for (const p of s.perStudent) {
-      if (p.lvl === null) {
-        ungraded++
-        continue
-      }
-      const band = bandOfAvg(p.lvl)
-      if (band === 'good') good++
-      else if (band === 'mid') mid++
-      else bad++
+      if (p.lvl === null) ungraded++
+      else counts[bandOfAvg(p.lvl)]++
     }
-    return { ...b, label: bucketLabel(b, lang), classPct: s.pct, good, mid, bad, ungraded }
+    return { ...b, label: bucketLabel(b, lang), classPct: s.pct, ...counts, ungraded }
   })
 }

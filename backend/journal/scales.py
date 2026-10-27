@@ -2,9 +2,17 @@
 
 A class is graded on one of three scales — whatever the school uses:
 0-5, 0-10 or 0-100. Every mark also gets a *level*, its colour band on a
-common 0-5 footing (5 a'lo, 4 yaxshi, 3 qoniqarli, 2 qoniqarsiz, 1/0 yomon),
-which is what the journal colours by and what the statistics average, so
-classes on different scales can be compared. The frontend mirrors this
+common 0-5 footing, the same on every page of the platform:
+
+  level  band        0-100    0-10   0-5   colour
+  5      a'lo        86-100   9-10   5     green
+  4      yaxshi      70-85    7-8    4     lemon yellow
+  3      qoniqarli   56-69    5-6    3     carrot orange
+  2      qoniqarsiz  31-55    3-4    2     red
+  1/0    yomon       0-30     0-2    0-1   dark red
+
+The level is what the journal colours by and what the statistics average,
+so classes on different scales can be compared. The frontend mirrors this
 table in features/journal/scales.ts.
 """
 
@@ -15,7 +23,7 @@ SCALES = (5, 10, 100)
 BAND_MIN = {
     5: {5: 5, 4: 4, 3: 3, 2: 2},
     10: {5: 9, 4: 7, 3: 5, 2: 3},
-    100: {5: 86, 4: 71, 3: 56, 2: 31},
+    100: {5: 86, 4: 70, 3: 56, 2: 31},
 }
 
 

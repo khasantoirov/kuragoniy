@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Modal } from '@/components/Modal'
 import { useToast } from '@/components/Toast'
+import { avgLevel, levelLabel, pctLevel } from '@/features/journal/scales'
 import { errText } from '@/features/portal/ui'
 import { api } from '@/lib/api/client'
 
@@ -15,16 +16,25 @@ function tone(value: number | null, good: number, fair: number): Tone {
   return value >= good ? 'ok' : value >= fair ? 'mid' : 'bad'
 }
 
-/** Value + word-free colour pill; the number itself always carries the
- * meaning, the colour only helps scanning a long table. */
-export function MetricPill({ value, good, fair, suffix = '%', digits = 0 }: {
+/** Value + colour pill; the number itself always carries the meaning, the
+ * colour only helps scanning a long table. Scores (`band`) wear the
+ * platform's grading colours (features/journal/scales.ts): 'pct' by the
+ * 100-point column, 'mark' as the 0-5 mark the average rounds to. Anything
+ * else (attendance) is toned by its own good/fair thresholds. */
+export function MetricPill({ value, good = 0, fair = 0, band, suffix = '%', digits = 0 }: {
   value: number | null
-  good: number
-  fair: number
+  good?: number
+  fair?: number
+  band?: 'pct' | 'mark'
   suffix?: string
   digits?: number
 }) {
+  const { t } = useTranslation()
   if (value == null) return <span className="pill pill--muted">—</span>
+  if (band) {
+    const l = band === 'pct' ? pctLevel(value) : avgLevel(value, 5)
+    return <span className={`pill gchip--${l}`} title={t(levelLabel(l))}>{value.toFixed(digits)}{suffix}</span>
+  }
   return <span className={`pill pill--${tone(value, good, fair)}`}>{value.toFixed(digits)}{suffix}</span>
 }
 
@@ -36,8 +46,8 @@ export const METRIC_HELP =
 export function MetricCells({ m }: { m: Metrics }) {
   return (
     <>
-      <td><MetricPill value={m.avg_mark} good={4} fair={3} suffix="" digits={2} /></td>
-      <td><MetricPill value={m.uzlashtirish} good={80} fair={60} /></td>
+      <td><MetricPill value={m.avg_mark} band="mark" suffix="" digits={2} /></td>
+      <td><MetricPill value={m.uzlashtirish} band="pct" /></td>
       <td><MetricPill value={m.attendance} good={95} fair={85} /></td>
     </>
   )

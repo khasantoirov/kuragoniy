@@ -18,11 +18,13 @@ pytestmark = pytest.mark.django_db
 def test_levels_per_scale():
     assert [level(m, 5) for m in (5, 4, 3, 2, 1, 0)] == [5, 4, 3, 2, 1, 0]
     assert [level(m, 10) for m in (10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)] == [5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 0]
-    assert [level(m, 100) for m in (100, 86, 85, 71, 70, 56, 55, 31, 30, 1, 0)] == [5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 0]
+    assert [level(m, 100) for m in (100, 86, 85, 70, 69, 56, 55, 31, 30, 1, 0)] == [5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 0]
 
 
 def test_bands():
     assert band(5, 100) == (86, 100)
+    assert band(4, 100) == (70, 85)
+    assert band(3, 100) == (56, 69)
     assert band(2, 10) == (3, 4)
     assert band(1, 100) == (1, 30)
     assert band(0, 10) == (0, 0)
@@ -31,7 +33,8 @@ def test_bands():
 
 def test_convert_keeps_the_colour_band():
     assert convert(87, 100, 5) == 5          # plain rounding would say 4
-    assert convert(70, 100, 5) == 3
+    assert convert(70, 100, 5) == 4
+    assert convert(69, 100, 5) == 3
     assert [convert(m, 5, 100) for m in (5, 4, 3, 2, 1, 0)] == [100, 80, 60, 40, 20, 0]
     assert [convert(m, 10, 5) for m in (10, 9, 7, 5, 3, 2, 0)] == [5, 5, 4, 3, 2, 1, 0]
     for old, new in ((5, 10), (10, 100), (100, 10), (100, 5), (10, 5)):

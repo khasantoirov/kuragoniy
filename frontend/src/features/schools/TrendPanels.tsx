@@ -21,9 +21,9 @@ const KINDS: { value: ChartKind; label: string }[] = [
   { value: 'pie', label: 'Doiraviy' },
 ]
 
-// «5» darkest … «1» lightest: one hue, ordered by value.
+// «5» … «1» in the platform's grading colours, as in the journal (scales.ts).
 const MARK_COLORS: Record<string, string> = {
-  '5': 'var(--seq-5)', '4': 'var(--seq-4)', '3': 'var(--seq-3)', '2': 'var(--seq-2)', '1': 'var(--seq-1)',
+  '5': 'var(--g5)', '4': 'var(--g4)', '3': 'var(--g3)', '2': 'var(--g2)', '1': 'var(--g1)',
 }
 
 /** Average mark and attendance over time — grouped by week, month, school

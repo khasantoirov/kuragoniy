@@ -1,5 +1,8 @@
 import { isAxiosError } from 'axios'
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
+
+import { levelLabel, pctLevel } from '@/features/journal/scales'
 
 /** Small shared building blocks for the student/teacher/administration
  * portal screens — kept here so every new page reads the same. */
@@ -35,11 +38,13 @@ export function Meter({ value, max = 100, label }: { value: number; max?: number
   )
 }
 
-/** Score pill with a word, not just a color (accessible). */
+/** A score in its colour band — the 100-point column of the platform's
+ * one grading table (features/journal/scales.ts) — its word in the tooltip. */
 export function PercentPill({ value }: { value: number | null | undefined }) {
+  const { t } = useTranslation()
   if (value == null) return <span className="pill pill--muted">—</span>
-  const tone = value >= 85 ? 'ok' : value >= 60 ? 'mid' : 'bad'
-  return <span className={`pill pill--${tone}`}>{Math.round(value)}%</span>
+  const l = pctLevel(value)
+  return <span className={`pill gchip--${l}`} title={t(levelLabel(l))}>{Math.round(value)}%</span>
 }
 
 export function StatusPill({ tone, children }: { tone: 'ok' | 'mid' | 'bad' | 'muted' | 'info'; children: ReactNode }) {

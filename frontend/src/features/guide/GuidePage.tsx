@@ -77,6 +77,7 @@ export function GuidePage() {
             <thead>
               <tr>
                 <th>{t('Rang toifasi')}</th>
+                <th>{t('Rang')}</th>
                 {SCALES.map((s) => <th key={s.v}>{t(s.label)}</th>)}
               </tr>
             </thead>
@@ -84,6 +85,7 @@ export function GuidePage() {
               {LEVELS.map((l) => (
                 <tr key={l.l}>
                   <td><span className={`gchip gchip--${l.l} guide__dot`} aria-hidden="true" /> {t(l.label)}</td>
+                  <td>{t(l.color)}</td>
                   {SCALES.map((s) => <td key={s.v} className="guide__num">{bandText(l.l, s.v)}</td>)}
                 </tr>
               ))}
@@ -91,6 +93,7 @@ export function GuidePage() {
           </table>
         </div>
         <p>{t("Shkala o'zgartirilsa, mavjud baholar yangi shkalaga o'tkaziladi va har birining rangi saqlanadi (masalan, 100 ballikdagi 87 — a'lo — 5 ballikda 5 bo'ladi).")}</p>
+        <p>{t("Shu ranglar butun platformada bir xil: jurnal baholari, nazorat ishi, test va uyga vazifa natijalari, o'zlashtirish foizi. Foizdagi natija 100 ballik ustun bo'yicha, o'rtacha baho esa yaxlitlangan bahosi bo'yicha bo'yaladi (masalan, o'rtacha 4,5 — a'lo, 4,4 — yaxshi).")}</p>
         <p>{t("Statistika sahifalari turli shkaladagi sinflarni solishtirish uchun baholarni rang toifasi bo'yicha 5 ballik asosga keltiradi.")}</p>
       </Section>
 

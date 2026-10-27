@@ -2,13 +2,21 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 
-import { levelOf, LEVELS, markLabel, marksOf, bandText, type Scale } from './scales'
+import { avgLevel, bandText, fmtAvg, levelLabel, levelOf, LEVELS, markLabel, marksOf, type Scale } from './scales'
 
 /** A mark as its colour band with the number inside. */
-export function GradeChip({ v, scale }: { v: number | null | undefined; scale: Scale }) {
+export function GradeChip({ v, scale, empty }: { v: number | null | undefined; scale: Scale; empty?: string }) {
   const { t } = useTranslation()
-  if (v == null) return null
+  if (v == null) return empty ? <>{empty}</> : null
   return <span className={`gchip gchip--${levelOf(v, scale)} ${scale === 100 ? 'gchip--wide' : ''}`} title={t(markLabel(v, scale))}>{v}</span>
+}
+
+/** An average on the class's scale, coloured as the mark it rounds to. */
+export function AvgChip({ avg, scale }: { avg: number | null | undefined; scale: Scale }) {
+  const { t } = useTranslation()
+  if (avg == null) return <>—</>
+  const l = avgLevel(avg, scale)
+  return <span className={`gchip gchip--${l} gchip--wide`} title={t(levelLabel(l))}>{fmtAvg(avg, scale)}</span>
 }
 
 /** Typing a 0-100 mark: the colour band follows the number. */

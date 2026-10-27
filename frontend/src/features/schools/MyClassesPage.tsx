@@ -88,7 +88,7 @@ export function MyClassesPage() {
                     <td>{c.abs_n} / {c.late}</td>
                     <td>
                       <Link to="/students">{c.accounts}/{c.students}</Link>
-                      {c.platform_avg != null && <> · <MetricPill value={c.platform_avg} good={85} fair={60} /></>}
+                      {c.platform_avg != null && <> · <MetricPill value={c.platform_avg} band="pct" /></>}
                     </td>
                   </tr>
                 ))}
@@ -112,7 +112,7 @@ export function MyClassesPage() {
                   <tr key={r.student_id}>
                     <td>{r.name}</td>
                     <td>{r.class_name}</td>
-                    <td><MetricPill value={r.avg_mark} good={4} fair={2.5} suffix="" digits={2} /> <small className="muted">({r.marks})</small></td>
+                    <td><MetricPill value={r.avg_mark} band="mark" suffix="" digits={2} /> <small className="muted">({r.marks})</small></td>
                     <td>{r.unexcused >= 3 ? <StatusPill tone="bad">{r.unexcused}</StatusPill> : r.unexcused}</td>
                   </tr>
                 ))}

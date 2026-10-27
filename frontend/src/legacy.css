@@ -1935,6 +1935,9 @@ img.pf__av   { width: 72px; height: 72px; max-width: 72px; max-height: 72px; bor
 .mastery__seg--mid  { background: var(--band-mid); }
 .mastery__seg--bad  { background: var(--band-bad); }
 .mastery__seg--empty { background: var(--rule); }
+/* Five grading bands in the journal's colours (.gchip--<level> sets --gc). */
+.mastery__kpi[class*="gchip--"] { border-left-color: var(--gc); }
+.mastery__dot[class*="gchip--"], .mastery__seg[class*="gchip--"] { background: var(--gc); }
 .mastery__seg:first-child { border-radius: 4px 4px 0 0; }
 .mastery__collabel { margin-top: 8px; font: 500 10px/1.2 var(--f-mono); color: var(--ink-3); text-align: center; white-space: nowrap; }
 
