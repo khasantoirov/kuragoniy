@@ -35,22 +35,18 @@ const spanOf = (c: TimetableSlot, p: number) => Math.max(1, Math.min(c.span || 1
 const timeOf = (c: TimetableSlot) =>
   c.time_from || c.time_to ? `${c.time_from?.slice(0, 5) || ''}${c.time_to ? '–' + c.time_to.slice(0, 5) : ''}` : ''
 
+/** A lesson in its cell, split into four invisible quarters so each fact
+ * has a fixed place: time | school, then class | room. */
 function Cell({ c, sp = 1 }: { c: TimetableSlot; sp?: number }) {
   const { t } = useTranslation()
   return (
     <>
-      {timeOf(c) && <span className="tt__time">{timeOf(c)}</span>}
-      <span className="tt__school">
-        {c.band && IC.lock} {c.maktab || ''}
+      <span className="tt__q">
+        <span className="tt__q1 tt__time">{timeOf(c)}</span>
+        <span className="tt__q2 tt__school">{c.band && IC.lock} {c.maktab || ''}</span>
+        <span className="tt__q3 tt__school">{c.sinf || ''}</span>
+        <span className="tt__q4 tt__meta">{c.xona ? `${t('Xona')} ${c.xona}` : ''}</span>
       </span>
-      {/* Sinf — maktab bilan bir xil (.tt__school) shriftda; xona kichikroq
-          meta sifatida sinfning yonida, bir qatorda ko'rsatiladi. */}
-      {(c.sinf || c.xona) && (
-        <span className="tt__row">
-          {c.sinf && <span className="tt__school">{c.sinf}</span>}
-          {c.xona && <span className="tt__meta">{t('Xona')} {c.xona}</span>}
-        </span>
-      )}
       {sp > 1 && <span className="tt__span">{sp} {t('soat')}</span>}
     </>
   )
@@ -306,6 +302,7 @@ function AllView({ modeBar, admin }: { modeBar: React.ReactNode; admin: boolean 
   const toast = useToast()
   const tableRef = useRef<HTMLTableElement>(null)
   const [editing, setEditing] = useState<{ teacherId: string; slot: TimetableSlot; existing: boolean } | null>(null)
+  const [only, setOnly] = useState('')
 
   if (isLoading) return <Skeleton lines={6} />
 
@@ -318,7 +315,9 @@ function AllView({ modeBar, admin }: { modeBar: React.ReactNode; admin: boolean 
     )
   }
 
-  const { teachers, tables } = data
+  const { tables } = data
+  // one teacher picked, or everyone
+  const teachers = data.teachers.filter((tc) => !only || tc.id === only)
   const byKey = new Map<string, Map<string, TimetableSlot>>()
   teachers.forEach((tc) => {
     const m = new Map<string, TimetableSlot>()
@@ -390,6 +389,10 @@ function AllView({ modeBar, admin }: { modeBar: React.ReactNode; admin: boolean 
           </p>
         </div>
         <div className="ttbar__acts">
+          <select className="input ttbar__pick" value={only} onChange={(e) => setOnly(e.target.value)} aria-label={t("O'qituvchi")}>
+            <option value="">{t("Barcha o'qituvchilar")}</option>
+            {data.teachers.map((tc) => <option key={tc.id} value={tc.id}>{tc.name}</option>)}
+          </select>
           <ExportMenu
             formats={['jpg', 'pdf-portrait', 'pdf-landscape', 'xls', 'doc']}
             onExport={(f) =>
@@ -483,18 +486,14 @@ export function TimetablePage() {
   const { user } = useAuth()
   const viewMode = useUIStore((s) => s.viewMode)
   const admin = isAdminInView(user, viewMode)
-  const [mode, setMode] = useState<'mine' | 'all'>(() => (localStorage.getItem('afmd.ttmode') === 'mine' ? 'mine' : 'all'))
-
-  const changeMode = (m: 'mine' | 'all') => {
-    setMode(m)
-    localStorage.setItem('afmd.ttmode', m)
-  }
+  // Jadval always opens on one's own timetable; everyone's is a click away.
+  const [mode, setMode] = useState<'mine' | 'all'>('mine')
 
   // "Barcha o'qituvchilar" is visible to every approved user (read-only
   // for non-admins — AllView itself gates cell editing on `admin`), not
   // just admins; only the ability to *write* another teacher's slots
   // stays admin-only (see timetable/views.py's require_write_permission).
-  const modeBar = <ModeBar mode={mode} onChange={changeMode} />
+  const modeBar = <ModeBar mode={mode} onChange={setMode} />
 
   if (mode === 'all') return <AllView modeBar={modeBar} admin={admin} />
   return <MineView modeBar={modeBar} />
