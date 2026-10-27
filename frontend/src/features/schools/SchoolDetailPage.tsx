@@ -75,7 +75,7 @@ export function SchoolDetailPage() {
 
   return (
     <div>
-      <Link to="/manage/schools" className="backlink">← {t('Hamkor maktablar')}</Link>
+      <Link to="/statistics?bolim=maktablar" className="backlink">← {t('Hamkor maktablar')}</Link>
       <PageHead title={title} sub={isNone ? t("Maktab nomi hech qaysi hamkor maktabga mos kelmagan sinflar — «Hamkor maktablar» sahifasidagi «Moslashtirish» orqali biriktiring.") : school?.district}
         actions={<>
           <Segmented value={chorak} onChange={setChorak} options={CHORAK_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))} />
@@ -167,7 +167,7 @@ export function SchoolDetailPage() {
               <tbody>
                 {data.classes.map((c) => (
                   <tr key={c.class_id}>
-                    <td><Link to={`/manage/database?class=${c.class_id}`}><b>{c.name}</b></Link>{isNone && <><br /><small className="muted">«{c.school_text}»</small></>}</td>
+                    <td><Link to={`/statistics?bolim=baza&class=${c.class_id}`}><b>{c.name}</b></Link>{isNone && <><br /><small className="muted">«{c.school_text}»</small></>}</td>
                     <td>
                       {admin && staff.data ? (
                         <select className="input input--sm" value={c.teacher_id} aria-label={t("O'qituvchi")}

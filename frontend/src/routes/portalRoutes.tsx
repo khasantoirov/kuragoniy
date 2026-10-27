@@ -36,6 +36,7 @@ const OrdersPage = named(() => import('@/features/shop/OrdersPage'), 'OrdersPage
 const ShopAdminPage = named(() => import('@/features/shop/ShopAdminPage'), 'ShopAdminPage')
 const SchoolsPage = named(() => import('@/features/schools/SchoolsPage'), 'SchoolsPage')
 const SchoolDetailPage = named(() => import('@/features/schools/SchoolDetailPage'), 'SchoolDetailPage')
+const StatisticsPage = named(() => import('@/features/statistics/StatisticsPage'), 'StatisticsPage')
 const DirectoryPage = named(() => import('@/features/schools/DirectoryPage'), 'DirectoryPage')
 const MyClassesPage = named(() => import('@/features/schools/MyClassesPage'), 'MyClassesPage')
 
@@ -47,7 +48,7 @@ function Lazy({ children }: { children: ReactNode }) {
  * administration dashboard instead of the teacher home. */
 export function StaffHome() {
   const { user } = useAuth()
-  if (isObserver(user)) return <Navigate to="/manage" replace />
+  if (isObserver(user)) return <Navigate to="/statistics" replace />
   return <HomePage />
 }
 
@@ -80,11 +81,19 @@ function ReportsTabs() {
   return <PageTabs tabs={review.show ? [review, mine] : [mine]} />
 }
 
-/** Tahlil — the ratings, and Rag'batlantirish beside them. */
-function ManageTabs() {
+/** Statistika — the administration's analytics in one place: the overview
+ * (Umumiy, administrators), the ratings (Tahlil), schools, platform
+ * results, the pupils' database and Rag'batlantirish. */
+function StatsTabs() {
+  const { user } = useAuth()
+  const viewMode = useUIStore((s) => s.viewMode)
   return (
     <PageTabs tabs={[
+      { key: 'umumiy', label: 'Umumiy', element: <StatisticsPage />, show: isAdminInView(user, viewMode) },
       { key: 'tahlil', label: 'Tahlil', element: <ManageDashboard /> },
+      { key: 'maktablar', label: 'Hamkor maktablar', element: <SchoolsPage /> },
+      { key: 'natijalar', label: 'Natijalar', element: <TeacherResultsPage /> },
+      { key: 'baza', label: "Ma'lumotlar bazasi", element: <DirectoryPage /> },
       { key: 'awards', label: "Rag'batlantirish", element: <AwardsPage /> },
     ]} />
   )
@@ -111,19 +120,20 @@ export const staffPortalRoutes: RouteObject[] = [
   { path: '/assignments/:id', element: <Lazy><AssignmentResultsPage /></Lazy> },
   { path: '/reports', element: staff(<ReportsTabs />) },
   { path: '/readiness', element: teacher(<ReadinessPage />) },
-  { path: '/results', element: oversight(<TeacherResultsPage />) },
+  { path: '/results', element: <MovedTo to="/statistics" bolim="natijalar" /> },
   { path: '/class-stats', element: teacher(<MyClassesPage />) },
   { path: '/games', element: teacher(<GamesPage />) },
   { path: '/shop', element: oversight(<ShopTabs />) },
   { path: '/shop/orders', element: <MovedTo to="/shop" bolim="orders" /> },
-  { path: '/manage', element: oversight(<ManageTabs />) },
+  { path: '/statistics', element: oversight(<StatsTabs />) },
+  { path: '/manage', element: <MovedTo to="/statistics" bolim="tahlil" /> },
   { path: '/manage/reports', element: <MovedTo to="/reports" bolim="baholash" /> },
-  { path: '/manage/awards', element: <MovedTo to="/manage" bolim="awards" /> },
+  { path: '/manage/awards', element: <MovedTo to="/statistics" bolim="awards" /> },
   { path: '/manage/materials', element: oversight(<MaterialsPage />) },
   { path: '/manage/shop', element: <MovedTo to="/shop" bolim="sotuv" /> },
-  { path: '/manage/schools', element: oversight(<SchoolsPage />) },
+  { path: '/manage/schools', element: <MovedTo to="/statistics" bolim="maktablar" /> },
   { path: '/manage/schools/:id', element: oversight(<SchoolDetailPage />) },
-  { path: '/manage/database', element: oversight(<DirectoryPage />) },
+  { path: '/manage/database', element: <MovedTo to="/statistics" bolim="baza" /> },
   { path: '/manage/security', element: <MovedTo to="/admin" bolim="security" /> },
 ]
 

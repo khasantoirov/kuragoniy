@@ -17,7 +17,6 @@ export const NAV_ITEMS: (NavItem & { adminOnly?: boolean })[] = [
   { to: '/settings', label: 'Sozlamalar', icon: 'gear' },
   { to: '/guide', label: "Yo'riqnoma", icon: 'book', adminOnly: true },
   { to: '/about', label: 'Platforma haqida', icon: 'info' },
-  { to: '/statistics', label: 'Statistika', icon: 'chart', adminOnly: true },
   { to: '/admin', label: 'Boshqaruv', icon: 'settings', adminOnly: true },
   { to: '/equipment-sheet', label: 'Jihozlar jadvali', icon: 'grid', adminOnly: true },
 ]

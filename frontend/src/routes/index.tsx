@@ -14,7 +14,6 @@ import { LessonsPage } from '@/features/lessons/LessonsPage'
 import { EquipmentSheetPage } from '@/features/admin/EquipmentSheetPage'
 import { LibraryPage } from '@/features/library/LibraryPage'
 import { SettingsTabs } from '@/features/settings/SettingsTabs'
-import { StatisticsPage } from '@/features/statistics/StatisticsPage'
 import { TimetablePage } from '@/features/timetable/TimetablePage'
 import { AppShell } from '@/layouts/AppShell'
 import { AuthLayout } from '@/layouts/AuthLayout'
@@ -54,7 +53,6 @@ export const router = createBrowserRouter([
       { path: '/journal/:classId/day/:date', element: page(<DayPage />) },
       { path: '/timetable', element: <TimetablePage /> },
       { path: '/library', element: <LibraryPage /> },
-      { path: '/statistics', element: <StatisticsPage /> },
       { path: '/library/:id/read', element: page(<BookReaderPage />) },
       {
         path: '/admin',

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { Modal } from '@/components/Modal'
 import { Skeleton } from '@/components/Skeleton'
@@ -88,7 +88,6 @@ export function SchoolsPage() {
       <PageHead title={t('Hamkor maktablar')}
         sub={t("Maktablar, ularga biriktirilgan o'qituvchilar va sinflar — o'zlashtirish va davomat bo'yicha.")}
         actions={<>
-          <Link className="btn" to="/manage/database">{IC.users} {t("Ma'lumotlar bazasi")}</Link>
           {admin && <button className="btn btn--primary" onClick={() => setCreating(true)}>+ {t('Maktab')}</button>}
         </>} />
 

@@ -46,7 +46,7 @@ export function PageTabs({ tabs }: { tabs: PageTab[] }) {
 export function MovedTo({ to, bolim }: { to: string; bolim?: string }) {
   const { search } = useLocation()
   const params = new URLSearchParams(search)
-  if (bolim) params.set('bolim', bolim)
+  if (bolim && !params.has('bolim')) params.set('bolim', bolim)
   const qs = params.toString()
   return <Navigate to={`${to}${qs ? `?${qs}` : ''}`} replace />
 }

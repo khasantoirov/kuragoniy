@@ -232,7 +232,7 @@ export function homePathFor(user: User | null): string {
   if (user.must_change_password) return '/change-password'
   if (isStudent(user)) return user.approved ? '/s' : '/pending-approval'
   if (!isApproved(user)) return '/pending-approval'
-  if (isObserver(user)) return '/manage'
+  if (isObserver(user)) return '/statistics'
   return '/'
 }
 

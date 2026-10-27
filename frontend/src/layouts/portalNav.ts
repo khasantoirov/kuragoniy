@@ -22,10 +22,7 @@ const PORTAL_LINKS: PortalLink[] = [
   { to: '/readiness', label: 'Darsga tayyorgarlik', sub: "Darsdan oldin o'zingizni tekshiring", icon: 'target', audience: 'teacher' },
   { to: '/reports', label: 'Dars hisobotlari', sub: "O'tgan darsni ma'muriyatga topshirish", icon: 'file', audience: 'staff' },
   { to: '/games', label: "O'yinlar", sub: "Jonli viktorina va mini-o'yinlar", icon: 'dice', audience: 'teacher' },
-  { to: '/manage', label: 'Tahlil', sub: "Eng yaxshi o'quvchi va darslar reytingi", icon: 'calc', audience: 'oversight' },
-  { to: '/results', label: 'Natijalar', sub: "O'quvchilar natijalari tahlili", icon: 'star', audience: 'oversight' },
-  { to: '/manage/schools', label: 'Hamkor maktablar', sub: "O'zlashtirish va davomat maktablar kesimida", icon: 'home', audience: 'oversight' },
-  { to: '/manage/database', label: "Ma'lumotlar bazasi", sub: "Barcha maktablardagi o'quvchilar", icon: 'list', audience: 'oversight' },
+  { to: '/statistics', label: 'Statistika', sub: "Tahlil, maktablar, natijalar va o'quvchilar bazasi", icon: 'chart', audience: 'oversight' },
   { to: '/manage/materials', label: "O'quv materiallari", sub: "Nazariya, formula, video, savollar", icon: 'book', audience: 'oversight' },
   { to: '/shop', label: "Do'kon", sub: "Dars ishlanmalari va tajribalar", icon: 'cards', audience: 'oversight' },
 ]

@@ -20,8 +20,7 @@ const GROUPS: { title: string; paths: string[] }[] = [
   { title: 'Asosiy', paths: ['/'] },
   { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/library'] },
   { title: "Sinf va o'quvchilar", paths: ['/class-stats', '/students', '/assignments', '/readiness', '/reports', '/games'] },
-  { title: 'Tahlil', paths: ['/statistics', '/manage', '/results', '/manage/schools', '/manage/database'] },
-  { title: "Ma'muriyat", paths: ['/admin', '/guide'] },
+  { title: "Ma'muriyat", paths: ['/statistics', '/admin', '/guide'] },
   { title: 'Resurslar', paths: ['/manage/materials', '/equipment-sheet', '/shop'] },
 ]
 

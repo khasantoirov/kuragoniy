@@ -563,6 +563,8 @@ const ru: Record<string, string> = {
   // Birlashtirilgan sahifalar
   "Mening hisobotlarim": "Мои отчёты",
   "Foydalanuvchilar": "Пользователи",
+  // Statistika markazi
+  "Statistika": "Статистика",
 }
 
 const en: Record<string, string> = {
@@ -1115,6 +1117,8 @@ const en: Record<string, string> = {
   // Birlashtirilgan sahifalar
   "Mening hisobotlarim": "My reports",
   "Foydalanuvchilar": "Users",
+  // Statistika markazi
+  "Statistika": "Statistics",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

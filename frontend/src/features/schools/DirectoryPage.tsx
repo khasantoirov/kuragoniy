@@ -70,7 +70,7 @@ export function DirectoryPage() {
 
   return (
     <div>
-      <Link to="/manage/schools" className="backlink">← {t('Hamkor maktablar')}</Link>
+      <Link to="/statistics?bolim=maktablar" className="backlink">← {t('Hamkor maktablar')}</Link>
       <PageHead title={t("Umumiy ma'lumotlar bazasi")}
         sub={t("Barcha hamkor maktablardagi o'quvchilar: sinfi, o'qituvchisi, platforma logini, bahosi va davomati.")}
         actions={<button className="btn" disabled={exporting || !data?.count} onClick={exportAll}>{IC.download} {exporting ? t('Tayyorlanmoqda…') : 'CSV'}</button>} />
