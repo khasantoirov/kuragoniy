@@ -6,6 +6,7 @@ import { Link, useBlocker, useNavigate, useParams, useSearchParams } from 'react
 import { useConfirm } from '@/components/ConfirmProvider'
 import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
+import { GuideLink } from '@/features/guide/GuideLink'
 import { IC } from '@/icons'
 
 import { useBulkMarks, useClasses, useGrid } from './api'
@@ -143,7 +144,7 @@ function DayEditor({ grid, cls, classId, date, teacherId, quarter }: {
           {IC.lock}
           <span>
             {!lock.owner ? t("Faqat ko'rish") : future ? t('Kelgusi kun') : t('Bu kun yopilgan')}
-            {' '}<Link to="/guide#yopilgan-kunlar" className="jhelp" aria-label={t("Yo'riqnoma")}>?</Link>
+            {' '}<GuideLink section="yopilgan-kunlar" />
             {!future && (lock.can_grant || lock.owner) && (
               <>
                 {' '}

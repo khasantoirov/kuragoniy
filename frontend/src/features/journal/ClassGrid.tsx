@@ -1,12 +1,13 @@
 import { isAxiosError } from 'axios'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { useConfirm } from '@/components/ConfirmProvider'
 import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
 import { fmtDateTime } from '@/features/portal/ui'
+import { GuideLink } from '@/features/guide/GuideLink'
 import { IC } from '@/icons'
 import { record } from '@/lib/history'
 import { tablePdf } from '@/lib/pdf'
@@ -192,7 +193,7 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
             <span className="jscale" title={t('Baholash shkalasi')}>{t(SCALES.find((x) => x.v === scale)!.label)}</span>
           )}
           {lock && lock.pending.length > 0 && <span className="jpending">{IC.lock} {lock.pending.length} {t("ta so'rov ko'rib chiqilmoqda")}</span>}
-          <Link className="jhelp" to="/guide#jurnal" title={t("Yo'riqnoma")} aria-label={t("Yo'riqnoma")}>?</Link>
+          <GuideLink section="jurnal" />
         </div>
         <div className="jhead__acts">
           {canControl && (

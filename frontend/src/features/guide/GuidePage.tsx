@@ -10,7 +10,8 @@ import './guide.css'
 
 /* Yo'riqnoma — the explanations that used to sit on the pages themselves
    (hints, colour legends, "past days are closed" notes, info boxes), in
-   one place. Pages link here with a small "?" (/guide#<section>). */
+   one place, for the administration only (routes: RequireAdmin). Pages
+   link here with a small "?" (GuideLink, /guide#<section>). */
 
 const SECTIONS: { id: string; title: string }[] = [
   { id: 'jurnal', title: 'Jurnal: baho va davomat kiritish' },

@@ -72,7 +72,14 @@ export const router = createBrowserRouter([
         ),
       },
       { path: '/about', element: <AboutPage /> },
-      { path: '/guide', element: page(<GuidePage />) },
+      {
+        path: '/guide',
+        element: (
+          <RequireAdmin>
+            {page(<GuidePage />)}
+          </RequireAdmin>
+        ),
+      },
       // Eski xatcho'plar va havolalar uzilib qolmasin — profil endi
       // Sozlamalar ichida.
       { path: '/profile', element: <Navigate to="/settings/profile" replace /> },
