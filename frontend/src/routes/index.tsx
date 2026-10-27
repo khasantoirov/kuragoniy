@@ -4,7 +4,6 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { Skeleton } from '@/components/Skeleton'
 
 import { AboutPage } from '@/features/about/AboutPage'
-import { AdminPage } from '@/features/admin/AdminPage'
 import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { PendingApprovalPage } from '@/features/auth/PendingApprovalPage'
@@ -14,15 +13,14 @@ import { LessonDetail } from '@/features/lessons/LessonDetail'
 import { LessonsPage } from '@/features/lessons/LessonsPage'
 import { EquipmentSheetPage } from '@/features/admin/EquipmentSheetPage'
 import { LibraryPage } from '@/features/library/LibraryPage'
+import { SettingsTabs } from '@/features/settings/SettingsTabs'
 import { StatisticsPage } from '@/features/statistics/StatisticsPage'
 import { TimetablePage } from '@/features/timetable/TimetablePage'
 import { AppShell } from '@/layouts/AppShell'
 import { AuthLayout } from '@/layouts/AuthLayout'
 
-import { SettingsTabs } from '@/features/settings/SettingsTabs'
-
 import { RequireAdmin, RequireApproved, RequireAuth, RequireGuest, RequireNotApproved } from './guards'
-import { guestPortalRoutes, StaffHome, staffPortalRoutes, topLevelPortalRoutes } from './portalRoutes'
+import { AdminTabs, guestPortalRoutes, StaffHome, staffPortalRoutes, topLevelPortalRoutes } from './portalRoutes'
 
 // Sozlamalar and the inbox: their own chunks (QR codes, sound synth, charts
 // of sessions) — opened now and then, so kept out of the main bundle.
@@ -60,11 +58,7 @@ export const router = createBrowserRouter([
       { path: '/library/:id/read', element: page(<BookReaderPage />) },
       {
         path: '/admin',
-        element: (
-          <RequireAdmin>
-            <AdminPage />
-          </RequireAdmin>
-        ),
+        element: <RequireAdmin>{page(<AdminTabs />)}</RequireAdmin>,
       },
       {
         path: '/equipment-sheet',

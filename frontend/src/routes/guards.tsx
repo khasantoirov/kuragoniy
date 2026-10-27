@@ -78,6 +78,13 @@ export function RequireTeacher({ children }: { children: ReactNode }) {
   return children
 }
 
+/** Teachers and the administration, the read-only Kuzatuvchi included. */
+export function RequireStaff({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
+  if (!isTeacherLike(user) && !isObserver(user)) return <Navigate to={homePathFor(user)} replace />
+  return children
+}
+
 export function RequireGuest({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
   if (loading) return <FullScreenSpinner />

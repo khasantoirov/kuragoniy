@@ -23,7 +23,7 @@ function ProductModal({ p, onClose }: { p: Product; onClose: () => void }) {
   return (
     <Modal title={p.title} onClose={onClose}
       footer={p.purchased && p.delivery === 'digital' ? (
-        <Link className="btn btn--primary" to="/shop/orders?tab=purchases" onClick={onClose}>{t('Xaridlarimda ochish')}</Link>
+        <Link className="btn btn--primary" to="/shop?bolim=orders&tab=purchases" onClick={onClose}>{t('Xaridlarimda ochish')}</Link>
       ) : (
         <button className="btn btn--primary" disabled={inCart && p.delivery === 'digital'} onClick={() => { add(p.id); toast(t("Savatga qo'shildi")); onClose() }}>
           {inCart && p.delivery === 'digital' ? t('Savatda') : `${t("Savatga qo'shish")} · ${fmtMoney(p.price)}`}
@@ -63,7 +63,7 @@ function Cart({ products, onClose }: { products: Product[]; onClose: () => void 
       qc.invalidateQueries({ queryKey: ['shop'] })
       toast(res.data.status === 'paid' ? t('Tayyor! Xaridlaringizda.') : t('Buyurtma qabul qilindi — endi to\'lovni amalga oshiring.'))
       onClose()
-      navigate(`/shop/orders?open=${res.data.id}`)
+      navigate(`/shop?bolim=orders&open=${res.data.id}`)
     } catch (err) {
       toast(t(errText(err)), 'error')
     } finally {
@@ -120,7 +120,7 @@ export function ShopPage() {
     <div>
       <PageHead title={t("Do'kon")} sub={t("Tayyor dars ishlanmalari, tajriba qo'llanmalari va jihozlar to'plamlari.")}
         actions={<>
-          <Link className="btn" to="/shop/orders">{IC.list} {t('Buyurtmalarim')}</Link>
+          <Link className="btn" to="/shop?bolim=orders">{IC.list} {t('Buyurtmalarim')}</Link>
           {canBuy && <button className="btn btn--primary" onClick={() => setCartOpen(true)}>🛒 {t('Savat')} {cartCount > 0 && <span className="badge">{cartCount}</span>}</button>}
         </>} />
       <div className="filters">

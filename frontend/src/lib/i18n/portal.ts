@@ -560,6 +560,9 @@ const ru: Record<string, string> = {
   // Menyu (soddalashtirish)
   "Resurslar": "Ресурсы",
   "Jihozlar varag'i": "Лист оборудования",
+  // Birlashtirilgan sahifalar
+  "Mening hisobotlarim": "Мои отчёты",
+  "Foydalanuvchilar": "Пользователи",
 }
 
 const en: Record<string, string> = {
@@ -1109,6 +1112,9 @@ const en: Record<string, string> = {
   // Menyu (soddalashtirish)
   "Resurslar": "Resources",
   "Jihozlar varag'i": "Equipment sheet",
+  // Birlashtirilgan sahifalar
+  "Mening hisobotlarim": "My reports",
+  "Foydalanuvchilar": "Users",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)
