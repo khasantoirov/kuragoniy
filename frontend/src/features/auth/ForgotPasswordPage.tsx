@@ -106,13 +106,13 @@ export function ForgotPasswordPage() {
   return (
     <form className="form gx-form" onSubmit={request}>
       <h1 className="gx-form__title">{t('Parolni tiklash')}</h1>
-      <p className="gx-form__sub">{t('Loginingizni kiriting — tasdiqlash kodi Telegram orqali keladi.')}</p>
+      <p className="gx-form__sub">{t('Ism-familiyangiz yoki loginingizni kiriting — tasdiqlash kodi Telegram orqali keladi.')}</p>
       <label className="field">
-        <span className="field__label">{t('Login')}</span>
+        <span className="field__label">{t('Ism-familiya yoki login')}</span>
         <span className="ifield">
           <span className="ifield__ic">{IC.user}</span>
           <input className="input input--ic" required autoFocus autoCapitalize="none" autoCorrect="off" spellCheck={false}
-            autoComplete="username" placeholder={t('Login')} value={loginName} onChange={(e) => setLoginName(e.target.value)} />
+            autoComplete="username" placeholder={t('Masalan: Aliyev Vali')} value={loginName} onChange={(e) => setLoginName(e.target.value)} />
         </span>
       </label>
       <button className="btn btn--primary btn--block gx-form__go" type="submit" disabled={busy}>

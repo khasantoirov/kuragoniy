@@ -582,6 +582,13 @@ const ru: Record<string, string> = {
   "Tajriba jihozlari, narxlar va rasmli varaq": "Оборудование для опытов, цены и лист с картинками",
   "Darslar uchun rasmli jihozlar ro'yxati": "Список оборудования к урокам с картинками",
   "Tajribalar bilan dars rasmini yaratish": "Создание постера урока с опытами",
+  // Ism-familiya bilan kirish
+  "Ism-familiyangiz (yoki loginingiz) va parolingiz bilan kiring.": "Войдите с именем и фамилией (или логином) и паролем.",
+  "Ism-familiya yoki login": "Имя и фамилия или логин",
+  "Masalan: Aliyev Vali": "Например: Алиев Вали",
+  "Ism-familiya, login yoki parol noto'g'ri": "Неверные имя и фамилия, логин или пароль",
+  "Ism-familiyangiz yoki loginingizni kiriting — tasdiqlash kodi Telegram orqali keladi.": "Введите имя и фамилию или логин — код подтверждения придёт в Telegram.",
+  "Login o'rniga ism-familiyangizni yozsangiz ham bo'ladi": "Вместо логина можно ввести имя и фамилию",
 }
 
 const en: Record<string, string> = {
@@ -1153,6 +1160,13 @@ const en: Record<string, string> = {
   "Tajriba jihozlari, narxlar va rasmli varaq": "Experiment equipment, prices and the picture sheet",
   "Darslar uchun rasmli jihozlar ro'yxati": "A picture list of equipment for lessons",
   "Tajribalar bilan dars rasmini yaratish": "Making a lesson poster with its experiments",
+  // Ism-familiya bilan kirish
+  "Ism-familiyangiz (yoki loginingiz) va parolingiz bilan kiring.": "Sign in with your full name (or login) and password.",
+  "Ism-familiya yoki login": "Full name or login",
+  "Masalan: Aliyev Vali": "E.g. Aliyev Vali",
+  "Ism-familiya, login yoki parol noto'g'ri": "Wrong name, login or password",
+  "Ism-familiyangiz yoki loginingizni kiriting — tasdiqlash kodi Telegram orqali keladi.": "Enter your full name or login — the confirmation code arrives via Telegram.",
+  "Login o'rniga ism-familiyangizni yozsangiz ham bo'ladi": "You can type your full name instead of the login",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)
