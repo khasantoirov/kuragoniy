@@ -3,7 +3,7 @@ import { Navigate, type RouteObject } from 'react-router-dom'
 
 import { MovedTo, PageTabs } from '@/components/PageTabs'
 import { Skeleton } from '@/components/Skeleton'
-import { AdminPage } from '@/features/admin/AdminPage'
+import { AdminDataPanel, AdminPage } from '@/features/admin/AdminPage'
 import { ModulesPanel } from '@/features/admin/ModulesPanel'
 import { JournalPage } from '@/features/journal/JournalPage'
 import { LessonsPage } from '@/features/lessons/LessonsPage'
@@ -103,11 +103,13 @@ function StatsTabs() {
   )
 }
 
-/** Boshqaruv — users and roles, and the security log. */
+/** Boshqaruv — users and roles, the data tools (Ma'lumot), the security
+ * log and the modules. */
 export function AdminTabs() {
   return (
     <PageTabs tabs={[
       { key: 'users', label: 'Foydalanuvchilar', element: <AdminPage /> },
+      { key: 'malumot', label: "Ma'lumot", element: <AdminDataPanel /> },
       { key: 'security', label: 'Xavfsizlik jurnali', element: <SecurityLogPage /> },
       { key: 'modules', label: 'Modullar', element: <ModulesPanel /> },
     ]} />

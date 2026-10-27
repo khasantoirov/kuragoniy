@@ -261,34 +261,17 @@ function AnnounceModal({ onClose }: { onClose: () => void }) {
   )
 }
 
-export function AdminPage() {
+/** Boshqaruv → Ma'lumot: lessons in and out as JSON, translations, an
+ * announcement to everyone, and which quarters teachers may open. */
+export function AdminDataPanel() {
   const { t } = useTranslation()
-  const { user: me } = useAuth()
-  const { viewMode, lang } = useUIStore()
-  const admin = isAdminInView(me, viewMode)
+  const { lang } = useUIStore()
   const toast = useToast()
-  const confirm = useConfirm()
-  const queryClient = useQueryClient()
   const [announcing, setAnnouncing] = useState(false)
   const [importingLessons, setImportingLessons] = useState(false)
   const [importingTranslations, setImportingTranslations] = useState(false)
-  const [newPassword, setNewPassword] = useState<{ email: string; password: string; title?: string } | null>(null)
-  const [creatingStaff, setCreatingStaff] = useState(false)
   const { data: locks } = useQuarterLocks()
   const setLock = useSetQuarterLock()
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['admin', 'users'],
-    queryFn: async () => (await api.get<Paginated<User>>('/accounts/users/')).data.results,
-    enabled: admin,
-    refetchInterval: 60_000, // keeps the "onlayn" dots current
-  })
-
-  const act = useMutation({
-    mutationFn: async ({ id, action }: { id: string; action: string }) => api.post(`/accounts/users/${id}/${action}/`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }),
-    onError: () => toast(t("Amalni bajarib bo'lmadi"), 'error'),
-  })
 
   const exportLessons = async () => {
     try {
@@ -321,6 +304,72 @@ export function AdminPage() {
       toast(t('Eksport xatosi'), 'error')
     }
   }
+
+  return (
+    <>
+      <section className="panel">
+        <h3 className="panel__title">{t("Ma'lumot")}</h3>
+        <p className="prose" style={{ marginBottom: 12 }}>{t("Darslarni JSON fayldan ko'chirib olish.")}</p>
+        <div className="panel__acts">
+          <button className="btn" onClick={() => setImportingLessons(true)}>{IC.upload} {t('Darslarni import qilish')}</button>
+          <button className="btn" onClick={exportLessons}>{IC.download} {t('Darslarni eksport (JSON)')}</button>
+          <button className="btn" onClick={() => setImportingTranslations(true)}>{IC.upload} {t('Tarjimalarni import qilish')}</button>
+          <button className="btn" onClick={() => setAnnouncing(true)}>{IC.megaphone} {t("E'lon yuborish")}</button>
+        </div>
+
+        <p className="qtoggles__label">{t("Choraklarni o'qituvchilarga ochish")}</p>
+        <div className="qtoggles">
+          {([1, 2, 3, 4] as const).map((ch) => {
+            const isOpen = !!locks?.[String(ch) as '1' | '2' | '3' | '4']
+            return (
+              <div className="qtoggle-row" key={ch}>
+                <span className="qtoggle-row__name">{quarterLabel(ch, lang)}</span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isOpen}
+                  className={`qswitch ${isOpen ? 'is-on' : ''}`}
+                  onClick={() => setLock.mutate({ chorak: ch, is_open: !isOpen })}
+                  title={isOpen ? t("O'qituvchilar uchun yopish") : t("O'qituvchilar uchun ochish")}
+                >
+                  <span className="qswitch__dot" />
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      {announcing && <AnnounceModal onClose={() => setAnnouncing(false)} />}
+      {importingLessons && <ImportLessonsModal onClose={() => setImportingLessons(false)} />}
+      {importingTranslations && <ImportTranslationsModal onClose={() => setImportingTranslations(false)} />}
+    </>
+  )
+}
+
+export function AdminPage() {
+  const { t } = useTranslation()
+  const { user: me } = useAuth()
+  const { viewMode } = useUIStore()
+  const admin = isAdminInView(me, viewMode)
+  const toast = useToast()
+  const confirm = useConfirm()
+  const queryClient = useQueryClient()
+  const [newPassword, setNewPassword] = useState<{ email: string; password: string; title?: string } | null>(null)
+  const [creatingStaff, setCreatingStaff] = useState(false)
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin', 'users'],
+    queryFn: async () => (await api.get<Paginated<User>>('/accounts/users/')).data.results,
+    enabled: admin,
+    refetchInterval: 60_000, // keeps the "onlayn" dots current
+  })
+
+  const act = useMutation({
+    mutationFn: async ({ id, action }: { id: string; action: string }) => api.post(`/accounts/users/${id}/${action}/`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }),
+    onError: () => toast(t("Amalni bajarib bo'lmadi"), 'error'),
+  })
 
   if (admin && isLoading) return <Skeleton lines={5} />
 
@@ -373,39 +422,6 @@ export function AdminPage() {
     <div>
       {admin && (
         <>
-          <section className="panel">
-            <h3 className="panel__title">{t("Ma'lumot")}</h3>
-            <p className="prose" style={{ marginBottom: 12 }}>{t("Darslarni JSON fayldan ko'chirib olish.")}</p>
-            <div className="panel__acts">
-              <button className="btn" onClick={() => setImportingLessons(true)}>{IC.upload} {t('Darslarni import qilish')}</button>
-              <button className="btn" onClick={exportLessons}>{IC.download} {t('Darslarni eksport (JSON)')}</button>
-              <button className="btn" onClick={() => setImportingTranslations(true)}>{IC.upload} {t('Tarjimalarni import qilish')}</button>
-              <button className="btn" onClick={() => setAnnouncing(true)}>{IC.megaphone} {t("E'lon yuborish")}</button>
-            </div>
-
-            <p className="qtoggles__label">{t("Choraklarni o'qituvchilarga ochish")}</p>
-            <div className="qtoggles">
-              {([1, 2, 3, 4] as const).map((ch) => {
-                const isOpen = !!locks?.[String(ch) as '1' | '2' | '3' | '4']
-                return (
-                  <div className="qtoggle-row" key={ch}>
-                    <span className="qtoggle-row__name">{quarterLabel(ch, lang)}</span>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={isOpen}
-                      className={`qswitch ${isOpen ? 'is-on' : ''}`}
-                      onClick={() => setLock.mutate({ chorak: ch, is_open: !isOpen })}
-                      title={isOpen ? t("O'qituvchilar uchun yopish") : t("O'qituvchilar uchun ochish")}
-                    >
-                      <span className="qswitch__dot" />
-                    </button>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-
           {pending.length > 0 && (
             <section className="panel panel--attention">
               <h3 className="panel__title">{t('Tasdiq kutmoqda')} <span className="badge">{pending.length}</span></h3>
@@ -535,9 +551,6 @@ export function AdminPage() {
             </section>
           )}
 
-          {announcing && <AnnounceModal onClose={() => setAnnouncing(false)} />}
-          {importingLessons && <ImportLessonsModal onClose={() => setImportingLessons(false)} />}
-          {importingTranslations && <ImportTranslationsModal onClose={() => setImportingTranslations(false)} />}
           {creatingStaff && (
             <CreateStaffModal
               canObserver={!!me?.is_dev_superuser}
