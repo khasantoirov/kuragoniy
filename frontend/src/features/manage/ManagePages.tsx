@@ -186,6 +186,7 @@ export function AwardsPage() {
 }
 
 const ACTION_LABELS: Record<string, string> = {
+  modules_changed: "Modullar o'zgartirildi",
   login_ok: 'Kirish',
   login_failed: "Noto'g'ri parol",
   login_locked: 'Hisob bloklandi',

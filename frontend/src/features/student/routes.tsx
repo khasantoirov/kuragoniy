@@ -1,5 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
+import { RequireModule } from '@/routes/guards'
+
 import { StudentGames } from './StudentGames'
 import { StudentHome } from './StudentHome'
 import { StudentHomework, StudentHomeworkRun } from './StudentHomework'
@@ -18,9 +20,9 @@ export default function StudentApp() {
         <Route index element={<StudentHome />} />
         <Route path="lessons" element={<StudentLessons />} />
         <Route path="lessons/:id" element={<StudentLessonPage />} />
-        <Route path="homework" element={<StudentHomework />} />
-        <Route path="homework/:id" element={<StudentHomeworkRun />} />
-        <Route path="games" element={<StudentGames />} />
+        <Route path="homework" element={<RequireModule keys={['assignments']}><StudentHomework /></RequireModule>} />
+        <Route path="homework/:id" element={<RequireModule keys={['assignments']}><StudentHomeworkRun /></RequireModule>} />
+        <Route path="games" element={<RequireModule keys={['games']}><StudentGames /></RequireModule>} />
         <Route path="results" element={<StudentResults />} />
         <Route path="results/:id" element={<StudentResultDetail />} />
         <Route path="profile" element={<StudentProfile />} />

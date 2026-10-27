@@ -4,15 +4,17 @@ import { Navigate, type RouteObject } from 'react-router-dom'
 import { MovedTo, PageTabs } from '@/components/PageTabs'
 import { Skeleton } from '@/components/Skeleton'
 import { AdminPage } from '@/features/admin/AdminPage'
+import { ModulesPanel } from '@/features/admin/ModulesPanel'
 import { JournalPage } from '@/features/journal/JournalPage'
 import { LessonsPage } from '@/features/lessons/LessonsPage'
 import { ChangePasswordPage } from '@/features/auth/ChangePasswordPage'
 import { StudentRegisterPage } from '@/features/auth/StudentRegisterPage'
 import { HomePage } from '@/features/home/HomePage'
 import { isAdminInView, isObserver, isOversight, isTeacherLike, useAuth } from '@/lib/auth/AuthContext'
+import { useModules } from '@/lib/modules'
 import { useUIStore, type ViewMode } from '@/store/uiStore'
 
-import { RequireAuth, RequireOversight, RequirePasswordChange, RequireStaff, RequireStudent, RequireTeacher } from './guards'
+import { RequireAuth, RequireOversight, RequirePasswordChange, RequireModule, RequireStaff, RequireStudent, RequireTeacher } from './guards'
 
 // Every portal feature is its own lazy chunk: students never download the
 // staff pages (and vice versa), and the shop (administration only for
@@ -107,6 +109,7 @@ export function AdminTabs() {
     <PageTabs tabs={[
       { key: 'users', label: 'Foydalanuvchilar', element: <AdminPage /> },
       { key: 'security', label: 'Xavfsizlik jurnali', element: <SecurityLogPage /> },
+      { key: 'modules', label: 'Modullar', element: <ModulesPanel /> },
     ]} />
   )
 }
@@ -116,10 +119,11 @@ export function AdminTabs() {
 export function LessonsTabs() {
   const { user } = useAuth()
   const viewMode = useUIStore((s) => s.viewMode)
+  const { on } = useModules()
   return (
     <PageTabs tabs={[
       { key: 'darslar', label: 'Darslar', element: <LessonsPage /> },
-      { key: 'tayyorgarlik', label: 'Darsga tayyorgarlik', element: <ReadinessPage />, show: isTeacherLike(user) },
+      { key: 'tayyorgarlik', label: 'Darsga tayyorgarlik', element: <ReadinessPage />, show: isTeacherLike(user) && on('readiness') },
       { key: 'materiallar', label: "O'quv materiallari", element: <MaterialsPage />, show: oversees(user, viewMode) },
     ]} />
   )
@@ -139,10 +143,11 @@ export function JournalTabs() {
 
 /** Vazifalar — homework for a class, and the live games for the lesson. */
 function AssignmentsTabs() {
+  const { on } = useModules()
   return (
     <PageTabs tabs={[
-      { key: 'vazifalar', label: 'Vazifalar', element: <AssignmentsPage /> },
-      { key: 'oyinlar', label: "O'yinlar", element: <GamesPage /> },
+      { key: 'vazifalar', label: 'Vazifalar', element: <AssignmentsPage />, show: on('assignments') },
+      { key: 'oyinlar', label: "O'yinlar", element: <GamesPage />, show: on('games') },
     ]} />
   )
 }
@@ -154,14 +159,14 @@ const oversight = (el: ReactNode) => <RequireOversight><Lazy>{el}</Lazy></Requir
 /** Children of the staff AppShell route. */
 export const staffPortalRoutes: RouteObject[] = [
   { path: '/students', element: <MovedTo to="/journal" bolim="oquvchilar" /> },
-  { path: '/assignments', element: teacher(<AssignmentsTabs />) },
-  { path: '/assignments/:id', element: <Lazy><AssignmentResultsPage /></Lazy> },
-  { path: '/reports', element: staff(<ReportsTabs />) },
+  { path: '/assignments', element: teacher(<RequireModule keys={['assignments', 'games']}><AssignmentsTabs /></RequireModule>) },
+  { path: '/assignments/:id', element: <RequireModule keys={['assignments']}><Lazy><AssignmentResultsPage /></Lazy></RequireModule> },
+  { path: '/reports', element: staff(<RequireModule keys={['reports']}><ReportsTabs /></RequireModule>) },
   { path: '/readiness', element: <MovedTo to="/lessons" bolim="tayyorgarlik" /> },
   { path: '/results', element: <MovedTo to="/statistics" bolim="natijalar" /> },
   { path: '/class-stats', element: <MovedTo to="/journal" bolim="sinflarim" /> },
   { path: '/games', element: <MovedTo to="/assignments" bolim="oyinlar" /> },
-  { path: '/shop', element: oversight(<ShopTabs />) },
+  { path: '/shop', element: oversight(<RequireModule keys={['shop']}><ShopTabs /></RequireModule>) },
   { path: '/shop/orders', element: <MovedTo to="/shop" bolim="orders" /> },
   { path: '/statistics', element: oversight(<StatsTabs />) },
   { path: '/manage', element: <MovedTo to="/statistics" bolim="tahlil" /> },

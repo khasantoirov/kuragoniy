@@ -1,5 +1,6 @@
 import type { IC } from '@/icons'
 import { isAdminInView, isObserver, useAuth } from '@/lib/auth/AuthContext'
+import { routeOn, useModules } from '@/lib/modules'
 import { useUIStore } from '@/store/uiStore'
 
 import { OBSERVER_HIDDEN, portalNavItems } from './portalNav'
@@ -37,9 +38,10 @@ export const SETTINGS_PAGES: { to: string; label: string; icon: keyof typeof IC 
 export function useVisibleNavItems(): NavItem[] {
   const { user } = useAuth()
   const viewMode = useUIStore((s) => s.viewMode)
+  const { on } = useModules()
   return [
     ...NAV_ITEMS.filter((item) => (!item.adminOnly || isAdminInView(user, viewMode)) && !(isObserver(user) && OBSERVER_HIDDEN.has(item.to)))
       .map(({ to, label, icon }) => ({ to, label, icon })),
     ...portalNavItems(user, viewMode),
-  ]
+  ].filter((item) => routeOn(item.to, on))
 }

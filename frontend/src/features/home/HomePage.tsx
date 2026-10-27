@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/Skeleton'
 import { useTimetable } from '@/features/timetable/api'
 import { IC } from '@/icons'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
+import { routeOn, useModules } from '@/lib/modules'
 import { useUIStore } from '@/store/uiStore'
 
 const WEEK = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba']
@@ -46,7 +47,8 @@ export function HomePage() {
 
   const admin = isAdminInView(user, viewMode)
   // The daily sections only; everything else is in the side menu.
-  const links = LINKS.filter((l) => !l.adminOnly || admin)
+  const { on } = useModules()
+  const links = LINKS.filter((l) => (!l.adminOnly || admin) && routeOn(l.view, on))
   const fmtDate = `${t(WEEK[now.getDay()])}, ${now.getDate()}-${t(MONTHS[now.getMonth()])}`
 
   return (
@@ -58,7 +60,8 @@ export function HomePage() {
         <p className="home__date">{fmtDate}</p>
       </header>
 
-      <div className="home__grid">
+      <div className={`home__grid ${on('timetable') ? '' : 'home__grid--solo'}`}>
+        {on('timetable') && (
         <div className="panel home__today">
           <div className="home__phead">
             <h3 className="home__ptitle">{t('Bugungi darslar')}</h3>
@@ -98,6 +101,7 @@ export function HomePage() {
             </div>
           )}
         </div>
+        )}
 
         <div className="home__links">
           {links.map((l) => (

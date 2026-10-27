@@ -16,7 +16,7 @@ import { TimetablePage } from '@/features/timetable/TimetablePage'
 import { AppShell } from '@/layouts/AppShell'
 import { AuthLayout } from '@/layouts/AuthLayout'
 
-import { RequireAdmin, RequireApproved, RequireAuth, RequireGuest, RequireNotApproved } from './guards'
+import { RequireAdmin, RequireApproved, RequireAuth, RequireGuest, RequireModule, RequireNotApproved } from './guards'
 import { AdminTabs, guestPortalRoutes, JournalTabs, LessonsTabs, StaffHome, staffPortalRoutes, topLevelPortalRoutes } from './portalRoutes'
 
 // Sozlamalar and the inbox: their own chunks (QR codes, sound synth, charts
@@ -49,9 +49,9 @@ export const router = createBrowserRouter([
       { path: '/lessons/:id', element: <LessonDetail /> },
       { path: '/journal', element: page(<JournalTabs />) },
       { path: '/journal/:classId/day/:date', element: page(<DayPage />) },
-      { path: '/timetable', element: <TimetablePage /> },
-      { path: '/library', element: <LibraryPage /> },
-      { path: '/library/:id/read', element: page(<BookReaderPage />) },
+      { path: '/timetable', element: <RequireModule keys={['timetable']}><TimetablePage /></RequireModule> },
+      { path: '/library', element: <RequireModule keys={['library']}><LibraryPage /></RequireModule> },
+      { path: '/library/:id/read', element: <RequireModule keys={['library']}>{page(<BookReaderPage />)}</RequireModule> },
       {
         path: '/admin',
         element: <RequireAdmin>{page(<AdminTabs />)}</RequireAdmin>,
@@ -60,7 +60,9 @@ export const router = createBrowserRouter([
         path: '/equipment-sheet',
         element: (
           <RequireAdmin>
-            <EquipmentSheetPage />
+            <RequireModule keys={['equipment']}>
+              <EquipmentSheetPage />
+            </RequireModule>
           </RequireAdmin>
         ),
       },

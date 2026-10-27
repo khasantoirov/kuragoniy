@@ -11,6 +11,7 @@ import { NavRail, type RailItem } from '@/layouts/NavRail'
 import { BrandMark } from '@/layouts/edumin/BrandMark'
 import { SidebarToggle } from '@/layouts/edumin/Sidebar'
 import { useAuth } from '@/lib/auth/AuthContext'
+import { routeOn, useModules } from '@/lib/modules'
 import { usePageScrolled, useScrollRestoration } from '@/lib/scroll'
 import { useUIStore } from '@/store/uiStore'
 
@@ -62,8 +63,10 @@ export function StudentShell() {
   const scrolled = usePageScrolled(4)
   useScrollRestoration()
 
-  const active = [...ITEMS].reverse().find((it) => (it.end ? pathname === it.to : pathname.startsWith(it.to)))
-  const rail: RailItem[] = ITEMS.filter((it) => it.to !== '/s/results').map((it) => ({ to: it.to, icon: IC[it.icon], label: t(it.label) }))
+  const { on } = useModules()
+  const items = ITEMS.filter((it) => routeOn(it.to, on))
+  const active = [...items].reverse().find((it) => (it.end ? pathname === it.to : pathname.startsWith(it.to)))
+  const rail: RailItem[] = items.filter((it) => it.to !== '/s/results').map((it) => ({ to: it.to, icon: IC[it.icon], label: t(it.label) }))
 
   return (
     <>
@@ -92,7 +95,7 @@ export function StudentShell() {
         </div>
       </header>
 
-      <PortalSidebar home="/s" groups={[{ title: "O'quvchi oynasi", items: ITEMS }]} />
+      <PortalSidebar home="/s" groups={[{ title: "O'quvchi oynasi", items }]} />
 
       <div className="appmain">
         <div className="shell">

@@ -26,3 +26,17 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f'{self.created_at:%Y-%m-%d %H:%M} {self.action} {self.actor_label}'
+
+
+class PlatformSettings(models.Model):
+    """Singleton (pk=1) — platform-wide switches the administration sets.
+    `modules`: the optional sections (common/modules.py) as {key: bool}; a
+    missing key means on."""
+
+    modules = models.JSONField(default=dict, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @classmethod
+    def get(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj

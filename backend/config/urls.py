@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 from accounts import urls as accounts_urls
+from common.views import ModulesView
 
 urlpatterns = [
     path(settings.DJANGO_ADMIN_URL, admin.site.urls),
@@ -25,6 +26,7 @@ urlpatterns = [
     path('api/shop/', include('shop.urls')),
     path('api/notifications/', include('notifications.urls')),
     path('api/schools/', include('schools.urls')),
+    path('api/common/modules/', ModulesView.as_view(), name='platform-modules'),
 ]
 
 if settings.DEBUG:

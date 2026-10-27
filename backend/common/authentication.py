@@ -24,6 +24,7 @@ STUDENT_ALLOWED_PREFIXES = (
     '/api/auth/',
     '/api/accounts/me/',
     '/api/student/',
+    '/api/common/modules/',  # which sections the portal shows
     '/api/games/play/',
     '/api/games/mini/',
     '/api/push/',

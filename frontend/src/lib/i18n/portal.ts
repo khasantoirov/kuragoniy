@@ -565,6 +565,23 @@ const ru: Record<string, string> = {
   "Foydalanuvchilar": "Пользователи",
   // Statistika markazi
   "Statistika": "Статистика",
+  // Modullar
+  "Modullar": "Модули",
+  "O'chirilgan bo'lim hamma uchun menyudan, yorliqlardan va o'quvchi portalidan yashiriladi. Ma'lumotlari saqlanib qoladi va qayta yoqilganda joyida bo'ladi.": "Выключенный раздел скрывается для всех — из меню, вкладок и портала ученика. Данные сохраняются и вернутся при включении.",
+  "ta yozuv": "записей",
+  "hali ishlatilmagan": "ещё не использовался",
+  "Modullar o'zgartirildi": "Модули изменены",
+  "Virtual laboratoriya va simulyatsiyalar": "Виртуальная лаборатория и симуляции",
+  "Kitoblar, qo'llanmalar va videolar": "Книги, пособия и видео",
+  "Haftalik dars jadvali va bosh sahifadagi «Bugungi darslar»": "Недельное расписание и «Уроки сегодня» на главной",
+  "Uyga vazifa: o'qituvchi beradi, o'quvchi portalida bajariladi": "Домашние задания: даёт учитель, выполняются в портале ученика",
+  "Jonli viktorina va mini-o'yinlar, o'quvchi portalida ham": "Живая викторина и мини-игры, также в портале ученика",
+  "O'qituvchi topshiradi, ma'muriyat baholaydi": "Учитель сдаёт, администрация оценивает",
+  "O'qituvchining darsdan oldingi o'z-o'zini tekshirishi": "Самопроверка учителя перед уроком",
+  "Dars ishlanmalari va tajriba to'plamlari savdosi": "Продажа разработок уроков и наборов для опытов",
+  "Tajriba jihozlari, narxlar va rasmli varaq": "Оборудование для опытов, цены и лист с картинками",
+  "Darslar uchun rasmli jihozlar ro'yxati": "Список оборудования к урокам с картинками",
+  "Tajribalar bilan dars rasmini yaratish": "Создание постера урока с опытами",
 }
 
 const en: Record<string, string> = {
@@ -1119,6 +1136,23 @@ const en: Record<string, string> = {
   "Foydalanuvchilar": "Users",
   // Statistika markazi
   "Statistika": "Statistics",
+  // Modullar
+  "Modullar": "Modules",
+  "O'chirilgan bo'lim hamma uchun menyudan, yorliqlardan va o'quvchi portalidan yashiriladi. Ma'lumotlari saqlanib qoladi va qayta yoqilganda joyida bo'ladi.": "A switched-off section is hidden for everyone — from the menu, the tabs and the student portal. Its data stays and is back once switched on.",
+  "ta yozuv": "records",
+  "hali ishlatilmagan": "not used yet",
+  "Modullar o'zgartirildi": "Modules changed",
+  "Virtual laboratoriya va simulyatsiyalar": "Virtual lab and simulations",
+  "Kitoblar, qo'llanmalar va videolar": "Books, guides and videos",
+  "Haftalik dars jadvali va bosh sahifadagi «Bugungi darslar»": "The weekly timetable and \"Today's lessons\" on the home page",
+  "Uyga vazifa: o'qituvchi beradi, o'quvchi portalida bajariladi": "Homework: set by the teacher, done in the student portal",
+  "Jonli viktorina va mini-o'yinlar, o'quvchi portalida ham": "Live quiz and mini-games, in the student portal too",
+  "O'qituvchi topshiradi, ma'muriyat baholaydi": "Teachers hand in, the administration grades",
+  "O'qituvchining darsdan oldingi o'z-o'zini tekshirishi": "The teacher's self-check before a lesson",
+  "Dars ishlanmalari va tajriba to'plamlari savdosi": "Selling lesson plans and experiment kits",
+  "Tajriba jihozlari, narxlar va rasmli varaq": "Experiment equipment, prices and the picture sheet",
+  "Darslar uchun rasmli jihozlar ro'yxati": "A picture list of equipment for lessons",
+  "Tajribalar bilan dars rasmini yaratish": "Making a lesson poster with its experiments",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

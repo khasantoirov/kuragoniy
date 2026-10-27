@@ -11,6 +11,7 @@ import {
   isTeacherLike,
   useAuth,
 } from '@/lib/auth/AuthContext'
+import { useModules, type ModuleKey } from '@/lib/modules'
 import { useUIStore } from '@/store/uiStore'
 
 function FullScreenSpinner() {
@@ -82,6 +83,14 @@ export function RequireTeacher({ children }: { children: ReactNode }) {
 export function RequireStaff({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   if (!isTeacherLike(user) && !isObserver(user)) return <Navigate to={homePathFor(user)} replace />
+  return children
+}
+
+/** A section the administration switched off (Modullar) leads home. */
+export function RequireModule({ keys, children }: { keys: ModuleKey[]; children: ReactNode }) {
+  const { user } = useAuth()
+  const { on } = useModules()
+  if (!keys.some(on)) return <Navigate to={homePathFor(user)} replace />
   return children
 }
 
