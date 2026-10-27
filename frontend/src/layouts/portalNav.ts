@@ -49,9 +49,5 @@ export function portalNavItems(user: User | null, viewMode: ViewMode) {
   return PORTAL_LINKS.filter((l) => allowed(l.audience, user, viewMode)).map(({ to, label, icon }) => ({ to, label, icon }))
 }
 
-export function portalHomeLinks(user: User | null, viewMode: ViewMode) {
-  return PORTAL_LINKS.filter((l) => allowed(l.audience, user, viewMode)).map((l) => ({ view: l.to, ic: l.icon, title: l.label, sub: l.sub }))
-}
-
 /** Original staff pages the read-only Kuzatuvchi has no use for. */
 export const OBSERVER_HIDDEN = new Set(['/journal'])

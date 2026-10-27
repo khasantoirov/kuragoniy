@@ -728,3 +728,7 @@ select.jscale:focus-visible { outline: 2px solid var(--pick, var(--ok)); outline
   .ctl__lvl { display: none; }
   .jpick__q { max-width: none; }
 }
+
+/* Sozlamalar's pages as tabs (SettingsTabs) */
+.settabs { margin: 0 0 16px; }
+.settabs .seg__b { text-decoration: none; }

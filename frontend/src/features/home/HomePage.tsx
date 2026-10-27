@@ -5,7 +5,6 @@ import { Skeleton } from '@/components/Skeleton'
 import { useTimetable } from '@/features/timetable/api'
 import { IC } from '@/icons'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
-import { portalHomeLinks } from '@/layouts/portalNav'
 import { useUIStore } from '@/store/uiStore'
 
 const WEEK = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba']
@@ -27,9 +26,6 @@ const LINKS: { view: string; ic: keyof typeof IC; title: string; sub: string; ad
   { view: '/timetable', ic: 'calendar', title: 'Jadval', sub: 'Haftalik dars jadvali' },
   { view: '/library', ic: 'book', title: 'Kutubxona', sub: "Kitob, qo'llanma, video" },
   { view: '/statistics', ic: 'chart', title: 'Statistika', sub: "Ko'rsatkichlar va sinflar kesimi", adminOnly: true },
-  { view: '/about', ic: 'info', title: 'Platforma haqida', sub: "Bo'limlar va imkoniyatlar" },
-  { view: '/admin', ic: 'settings', title: 'Boshqaruv', sub: 'Foydalanuvchilar va tizim sozlamalari', adminOnly: true },
-  { view: '/equipment-sheet', ic: 'grid', title: 'Jihozlar jadvali', sub: "Darslar uchun jihozlar ro'yxatini tayyorlash", adminOnly: true },
 ]
 
 export function HomePage() {
@@ -49,7 +45,8 @@ export function HomePage() {
     : []
 
   const admin = isAdminInView(user, viewMode)
-  const links = [...LINKS.filter((l) => !l.adminOnly || admin), ...portalHomeLinks(user, viewMode)]
+  // The daily sections only; everything else is in the side menu.
+  const links = LINKS.filter((l) => !l.adminOnly || admin)
   const fmtDate = `${t(WEEK[now.getDay()])}, ${now.getDate()}-${t(MONTHS[now.getMonth()])}`
 
   return (

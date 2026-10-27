@@ -19,6 +19,8 @@ import { TimetablePage } from '@/features/timetable/TimetablePage'
 import { AppShell } from '@/layouts/AppShell'
 import { AuthLayout } from '@/layouts/AuthLayout'
 
+import { SettingsTabs } from '@/features/settings/SettingsTabs'
+
 import { RequireAdmin, RequireApproved, RequireAuth, RequireGuest, RequireNotApproved } from './guards'
 import { guestPortalRoutes, StaffHome, staffPortalRoutes, topLevelPortalRoutes } from './portalRoutes'
 
@@ -35,6 +37,7 @@ const BookReaderPage = lazy(() => import('@/features/library/reader/BookReaderPa
 
 const GuidePage = lazy(() => import('@/features/guide/GuidePage').then((m) => ({ default: m.GuidePage })))
 const page = (el: React.ReactNode) => <Suspense fallback={<Skeleton lines={5} />}>{el}</Suspense>
+const settings = (el: React.ReactNode) => page(<><SettingsTabs />{el}</>)
 
 export const router = createBrowserRouter([
   {
@@ -84,10 +87,10 @@ export const router = createBrowserRouter([
       // Sozlamalar ichida.
       { path: '/profile', element: <Navigate to="/settings/profile" replace /> },
       { path: '/settings', element: <Navigate to="/settings/profile" replace /> },
-      { path: '/settings/profile', element: page(<ProfilePage />) },
-      { path: '/settings/appearance', element: page(<AppearancePage />) },
-      { path: '/settings/notifications', element: page(<NotificationSettingsPage />) },
-      { path: '/settings/integrations', element: page(<IntegrationsPage />) },
+      { path: '/settings/profile', element: settings(<ProfilePage />) },
+      { path: '/settings/appearance', element: settings(<AppearancePage />) },
+      { path: '/settings/notifications', element: settings(<NotificationSettingsPage />) },
+      { path: '/settings/integrations', element: settings(<IntegrationsPage />) },
       { path: '/notifications', element: page(<InboxPage />) },
       ...staffPortalRoutes,
     ],

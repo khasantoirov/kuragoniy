@@ -84,7 +84,7 @@ export function ReviewReportsPage() {
 
   return (
     <div>
-      <PageHead title={t('Dars hisobotlari')} sub={t("O'qituvchilar topshirgan darslar — baholang, izoh qoldiring.")}
+      <PageHead title={t('Hisobotlarni baholash')} sub={t("O'qituvchilar topshirgan darslar — baholang, izoh qoldiring.")}
         actions={<>
           <select className="input input--sm" value={teacher} onChange={(e) => setTeacher(e.target.value)}>
             <option value="">{t("Barcha o'qituvchilar")}</option>

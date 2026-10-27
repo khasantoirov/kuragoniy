@@ -19,7 +19,7 @@ import { usePageScrolled, useScrollRestoration } from '@/lib/scroll'
 import { useUIStore } from '@/store/uiStore'
 
 import { BottomNav } from './BottomNav'
-import { useVisibleNavItems } from './navItems'
+import { TOPBAR_ONLY, useVisibleNavItems } from './navItems'
 import { EduminSidebar } from './edumin/EduminSidebar'
 import { EduminTopbar } from './edumin/EduminTopbar'
 
@@ -147,6 +147,7 @@ export function AppShell() {
           </p>
           <Link className="acct__item" to="/settings/profile" onClick={closeAll}>{IC.user} {t('Profil')}</Link>
           <Link className="acct__item" to="/settings/appearance" onClick={closeAll}>{IC.gear} {t('Sozlamalar')}</Link>
+          <Link className="acct__item" to="/about" onClick={closeAll}>{IC.info} {t('Platforma haqida')}</Link>
           <button className="acct__item acct__item--out" onClick={() => logout()}>
             {IC.logout} {t('Chiqish')}
           </button>
@@ -243,7 +244,7 @@ export function AppShell() {
         </Link>
 
         <nav className="sidebar__nav" aria-label={t('Asosiy navigatsiya')}>
-          {visibleNavItems.map((item) => (
+          {visibleNavItems.filter((item) => !TOPBAR_ONLY.has(item.to)).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 import { useNotifyLive } from '@/features/notifications/liveStore'
 import type { IC } from '@/icons'
-import { SETTINGS_PAGES } from '@/layouts/navItems'
+import { TOPBAR_ONLY } from '@/layouts/navItems'
 
 import { Sidebar } from './Sidebar'
 
@@ -20,8 +20,9 @@ const GROUPS: { title: string; paths: string[] }[] = [
   { title: 'Asosiy', paths: ['/'] },
   { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/library'] },
   { title: "Sinf va o'quvchilar", paths: ['/class-stats', '/students', '/assignments', '/readiness', '/reports', '/games'] },
-  { title: "Ma'muriyat", paths: ['/manage', '/results', '/manage/schools', '/manage/database', '/manage/reports', '/manage/awards', '/manage/materials', '/shop', '/manage/shop', '/manage/security', '/guide'] },
-  { title: 'Tizim', paths: ['/statistics', '/admin', '/notifications', '/settings', '/about', '/equipment-sheet'] },
+  { title: 'Tahlil', paths: ['/statistics', '/manage', '/results', '/manage/schools', '/manage/database'] },
+  { title: "Ma'muriyat", paths: ['/admin', '/manage/reports', '/manage/awards', '/manage/security', '/guide'] },
+  { title: 'Resurslar', paths: ['/manage/materials', '/equipment-sheet', '/shop', '/manage/shop'] },
 ]
 
 function groupItems(items: EduminNavItem[]) {
@@ -39,12 +40,11 @@ function groupItems(items: EduminNavItem[]) {
 export function EduminSidebar({ items, onNav }: { items: EduminNavItem[]; onNav: () => void }) {
   const { t } = useTranslation()
   const unread = useNotifyLive((s) => s.unread)
-  const groups = groupItems(items).map((g) => ({
+  const groups = groupItems(items.filter((item) => !TOPBAR_ONLY.has(item.to))).map((g) => ({
     title: g.title,
     items: g.items.map((item) => ({
       ...item,
       end: item.to === '/' || item.to === '/manage',
-      children: item.to === '/settings' ? SETTINGS_PAGES : undefined,
       badge: item.to === '/notifications' ? unread : undefined,
     })),
   }))
