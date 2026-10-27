@@ -8,9 +8,7 @@ import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { PendingApprovalPage } from '@/features/auth/PendingApprovalPage'
 import { RegisterPage } from '@/features/auth/RegisterPage'
-import { JournalPage } from '@/features/journal/JournalPage'
 import { LessonDetail } from '@/features/lessons/LessonDetail'
-import { LessonsPage } from '@/features/lessons/LessonsPage'
 import { EquipmentSheetPage } from '@/features/admin/EquipmentSheetPage'
 import { LibraryPage } from '@/features/library/LibraryPage'
 import { SettingsTabs } from '@/features/settings/SettingsTabs'
@@ -19,7 +17,7 @@ import { AppShell } from '@/layouts/AppShell'
 import { AuthLayout } from '@/layouts/AuthLayout'
 
 import { RequireAdmin, RequireApproved, RequireAuth, RequireGuest, RequireNotApproved } from './guards'
-import { AdminTabs, guestPortalRoutes, StaffHome, staffPortalRoutes, topLevelPortalRoutes } from './portalRoutes'
+import { AdminTabs, guestPortalRoutes, JournalTabs, LessonsTabs, StaffHome, staffPortalRoutes, topLevelPortalRoutes } from './portalRoutes'
 
 // Sozlamalar and the inbox: their own chunks (QR codes, sound synth, charts
 // of sessions) — opened now and then, so kept out of the main bundle.
@@ -47,9 +45,9 @@ export const router = createBrowserRouter([
     ),
     children: [
       { path: '/', element: <StaffHome /> },
-      { path: '/lessons', element: <LessonsPage /> },
+      { path: '/lessons', element: page(<LessonsTabs />) },
       { path: '/lessons/:id', element: <LessonDetail /> },
-      { path: '/journal', element: <JournalPage /> },
+      { path: '/journal', element: page(<JournalTabs />) },
       { path: '/journal/:classId/day/:date', element: page(<DayPage />) },
       { path: '/timetable', element: <TimetablePage /> },
       { path: '/library', element: <LibraryPage /> },

@@ -4,6 +4,8 @@ import { Navigate, type RouteObject } from 'react-router-dom'
 import { MovedTo, PageTabs } from '@/components/PageTabs'
 import { Skeleton } from '@/components/Skeleton'
 import { AdminPage } from '@/features/admin/AdminPage'
+import { JournalPage } from '@/features/journal/JournalPage'
+import { LessonsPage } from '@/features/lessons/LessonsPage'
 import { ChangePasswordPage } from '@/features/auth/ChangePasswordPage'
 import { StudentRegisterPage } from '@/features/auth/StudentRegisterPage'
 import { HomePage } from '@/features/home/HomePage'
@@ -109,27 +111,63 @@ export function AdminTabs() {
   )
 }
 
+/** Darslar — the lessons, the teacher's check before a lesson, and for the
+ * administration the pupils' materials. */
+export function LessonsTabs() {
+  const { user } = useAuth()
+  const viewMode = useUIStore((s) => s.viewMode)
+  return (
+    <PageTabs tabs={[
+      { key: 'darslar', label: 'Darslar', element: <LessonsPage /> },
+      { key: 'tayyorgarlik', label: 'Darsga tayyorgarlik', element: <ReadinessPage />, show: isTeacherLike(user) },
+      { key: 'materiallar', label: "O'quv materiallari", element: <MaterialsPage />, show: oversees(user, viewMode) },
+    ]} />
+  )
+}
+
+/** Jurnal — the journal, one's classes' statistics and the pupils' accounts. */
+export function JournalTabs() {
+  const { user } = useAuth()
+  return (
+    <PageTabs tabs={[
+      { key: 'jurnal', label: 'Jurnal', element: <JournalPage /> },
+      { key: 'sinflarim', label: 'Sinflarim', element: <MyClassesPage />, show: isTeacherLike(user) },
+      { key: 'oquvchilar', label: "O'quvchilar", element: <StudentsPage />, show: isTeacherLike(user) },
+    ]} />
+  )
+}
+
+/** Vazifalar — homework for a class, and the live games for the lesson. */
+function AssignmentsTabs() {
+  return (
+    <PageTabs tabs={[
+      { key: 'vazifalar', label: 'Vazifalar', element: <AssignmentsPage /> },
+      { key: 'oyinlar', label: "O'yinlar", element: <GamesPage /> },
+    ]} />
+  )
+}
+
 const teacher = (el: ReactNode) => <RequireTeacher><Lazy>{el}</Lazy></RequireTeacher>
 const staff = (el: ReactNode) => <RequireStaff><Lazy>{el}</Lazy></RequireStaff>
 const oversight = (el: ReactNode) => <RequireOversight><Lazy>{el}</Lazy></RequireOversight>
 
 /** Children of the staff AppShell route. */
 export const staffPortalRoutes: RouteObject[] = [
-  { path: '/students', element: teacher(<StudentsPage />) },
-  { path: '/assignments', element: teacher(<AssignmentsPage />) },
+  { path: '/students', element: <MovedTo to="/journal" bolim="oquvchilar" /> },
+  { path: '/assignments', element: teacher(<AssignmentsTabs />) },
   { path: '/assignments/:id', element: <Lazy><AssignmentResultsPage /></Lazy> },
   { path: '/reports', element: staff(<ReportsTabs />) },
-  { path: '/readiness', element: teacher(<ReadinessPage />) },
+  { path: '/readiness', element: <MovedTo to="/lessons" bolim="tayyorgarlik" /> },
   { path: '/results', element: <MovedTo to="/statistics" bolim="natijalar" /> },
-  { path: '/class-stats', element: teacher(<MyClassesPage />) },
-  { path: '/games', element: teacher(<GamesPage />) },
+  { path: '/class-stats', element: <MovedTo to="/journal" bolim="sinflarim" /> },
+  { path: '/games', element: <MovedTo to="/assignments" bolim="oyinlar" /> },
   { path: '/shop', element: oversight(<ShopTabs />) },
   { path: '/shop/orders', element: <MovedTo to="/shop" bolim="orders" /> },
   { path: '/statistics', element: oversight(<StatsTabs />) },
   { path: '/manage', element: <MovedTo to="/statistics" bolim="tahlil" /> },
   { path: '/manage/reports', element: <MovedTo to="/reports" bolim="baholash" /> },
   { path: '/manage/awards', element: <MovedTo to="/statistics" bolim="awards" /> },
-  { path: '/manage/materials', element: oversight(<MaterialsPage />) },
+  { path: '/manage/materials', element: <MovedTo to="/lessons" bolim="materiallar" /> },
   { path: '/manage/shop', element: <MovedTo to="/shop" bolim="sotuv" /> },
   { path: '/manage/schools', element: <MovedTo to="/statistics" bolim="maktablar" /> },
   { path: '/manage/schools/:id', element: oversight(<SchoolDetailPage />) },

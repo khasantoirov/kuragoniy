@@ -87,7 +87,7 @@ export function MyClassesPage() {
                     <MetricCells m={c} />
                     <td>{c.abs_n} / {c.late}</td>
                     <td>
-                      <Link to="/students">{c.accounts}/{c.students}</Link>
+                      <Link to="/journal?bolim=oquvchilar">{c.accounts}/{c.students}</Link>
                       {c.platform_avg != null && <> · <MetricPill value={c.platform_avg} band="pct" /></>}
                     </td>
                   </tr>

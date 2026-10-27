@@ -18,10 +18,8 @@ export interface EduminNavItem {
  *  yangi marshrut yo'qolib qolmasligi uchun oxirgi bo'limga tushadi. */
 const GROUPS: { title: string; paths: string[] }[] = [
   { title: 'Asosiy', paths: ['/'] },
-  { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/library'] },
-  { title: "Sinf va o'quvchilar", paths: ['/class-stats', '/students', '/assignments', '/readiness', '/reports', '/games'] },
-  { title: "Ma'muriyat", paths: ['/statistics', '/admin', '/guide'] },
-  { title: 'Resurslar', paths: ['/manage/materials', '/equipment-sheet', '/shop'] },
+  { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/assignments', '/reports', '/library'] },
+  { title: "Ma'muriyat", paths: ['/statistics', '/admin', '/equipment-sheet', '/shop', '/guide'] },
 ]
 
 function groupItems(items: EduminNavItem[]) {

@@ -16,14 +16,9 @@ interface PortalLink {
 /** Teacher-window and administration-window entries added on top of the
  * original staff navigation (AppShell NAV_ITEMS). */
 const PORTAL_LINKS: PortalLink[] = [
-  { to: '/class-stats', label: 'Sinflarim', sub: "O'zlashtirish va davomat", icon: 'calc', audience: 'teacher' },
-  { to: '/students', label: "O'quvchilar", sub: 'Login-parol, sinf kodi, parol tiklash', icon: 'users', audience: 'teacher' },
   { to: '/assignments', label: 'Vazifalar', sub: 'Darsni sinfga topshirish va natijalar', icon: 'list', audience: 'teacher' },
-  { to: '/readiness', label: 'Darsga tayyorgarlik', sub: "Darsdan oldin o'zingizni tekshiring", icon: 'target', audience: 'teacher' },
   { to: '/reports', label: 'Dars hisobotlari', sub: "O'tgan darsni ma'muriyatga topshirish", icon: 'file', audience: 'staff' },
-  { to: '/games', label: "O'yinlar", sub: "Jonli viktorina va mini-o'yinlar", icon: 'dice', audience: 'teacher' },
   { to: '/statistics', label: 'Statistika', sub: "Tahlil, maktablar, natijalar va o'quvchilar bazasi", icon: 'chart', audience: 'oversight' },
-  { to: '/manage/materials', label: "O'quv materiallari", sub: "Nazariya, formula, video, savollar", icon: 'book', audience: 'oversight' },
   { to: '/shop', label: "Do'kon", sub: "Dars ishlanmalari va tajribalar", icon: 'cards', audience: 'oversight' },
 ]
 

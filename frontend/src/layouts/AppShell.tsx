@@ -116,7 +116,8 @@ export function AppShell() {
   // listener rather than per-form wiring.
   useEffect(() => setupEnterKeyNav(), [])
 
-  const onLessons = location.pathname.startsWith('/lessons')
+  // (the grade chips belong to the Darslar tab, not its siblings)
+  const onLessons = location.pathname.startsWith('/lessons') && !new URLSearchParams(location.search).get('bolim')
 
   // --grades-h: the Darslar toolbar sticks right below these sticky grade
   // chips, whatever height they wrap to.
