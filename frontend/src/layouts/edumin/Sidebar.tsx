@@ -27,7 +27,6 @@ export interface SideGroup {
 
 const MOBILE = '(max-width: 760px)'
 const SCROLL_KEY = 'af-side-scroll'
-const GROUPS_KEY = 'af-side-groups'
 
 function readJson<T>(storage: () => Storage, key: string, fallback: T): T {
   try {
@@ -111,7 +110,7 @@ export function SidebarToggle() {
 
 /** Side menu shared by the staff and student windows: the brand stays put
  * while the menu scrolls on its own (thin scrollbar, edge fades), the
- * current page is always scrolled into view, sections fold, and on a
+ * current page is always scrolled into view, and on a
  * phone the whole thing becomes a slide-in drawer. */
 export function Sidebar({ home, groups, onNav, footer }: {
   home: string
@@ -125,8 +124,6 @@ export function Sidebar({ home, groups, onNav, footer }: {
   const setOpen = useSideDrawer((s) => s.setOpen)
   const navRef = useRef<HTMLElement>(null)
   const [edges, setEdges] = useState({ above: false, below: false })
-  const [folded, setFolded] = useState<Record<string, boolean>>(() => readJson(() => localStorage, GROUPS_KEY, {}))
-  const foldable = groups.length > 1
 
   const measure = useCallback(() => {
     const el = navRef.current
@@ -163,22 +160,6 @@ export function Sidebar({ home, groups, onNav, footer }: {
       clearTimeout(timer)
     }
   }, [measure])
-
-  // A folded section still opens by itself while it holds the current
-  // page — unless it was folded by hand on this very page.
-  const activeGroup = groups.find((g) => g.items.some((item) => isActive(item, pathname)))?.title
-  const [shutHere, setShutHere] = useState<string | null>(null)
-  const isShut = (title: string) => foldable && !!folded[title] && (title !== activeGroup || shutHere === pathname)
-
-  const toggleGroup = (title: string) => {
-    const shut = !isShut(title)
-    setFolded((prev) => {
-      const next = { ...prev, [title]: shut }
-      writeJson(() => localStorage, GROUPS_KEY, next)
-      return next
-    })
-    setShutHere(shut && title === activeGroup ? pathname : null)
-  }
 
   // Keep the current page's item visible — e.g. after following a link
   // from the dashboard to a page near the bottom of a long admin menu.
@@ -252,20 +233,11 @@ export function Sidebar({ home, groups, onNav, footer }: {
         <div className={`edside__body ${edges.above ? 'has-above' : ''} ${edges.below ? 'has-below' : ''}`}>
           <nav className="edside__nav" ref={navRef} tabIndex={-1} aria-label={t('Asosiy navigatsiya')}>
             <div className="edside__list">
-              {groups.map((g) => {
-                const shut = isShut(g.title)
-                return (
-                  <div className={`edside__sec ${shut ? 'is-shut' : ''}`} key={g.title}>
-                    {foldable ? (
-                      <button type="button" className="edside__gt" aria-expanded={!shut} onClick={() => toggleGroup(g.title)}>
-                        <span className="edside__gtt">{t(g.title)}</span>
-                        <span className="edside__chev">{IC.chevron}</span>
-                      </button>
-                    ) : (
-                      <p className="edside__gt"><span className="edside__gtt">{t(g.title)}</span></p>
-                    )}
+              {groups.map((g) => (
+                  <div className="edside__sec" key={g.title}>
+                    <p className="edside__gt"><span className="edside__gtt">{t(g.title)}</span></p>
                     <div className="edside__items">
-                      <div className="edside__itemsin" inert={shut}>
+                      <div className="edside__itemsin">
                         {g.items.map((item) => item.children?.length ? (
                           <NestedItem key={item.to} item={item} onNavigate={navigate} />
                         ) : (
@@ -284,8 +256,7 @@ export function Sidebar({ home, groups, onNav, footer }: {
                       </div>
                     </div>
                   </div>
-                )
-              })}
+              ))}
 
               <div className="edside__foot">
                 <p className="edside__copy"><strong>KO'RAGONIY EDU</strong> © {new Date().getFullYear()}</p>

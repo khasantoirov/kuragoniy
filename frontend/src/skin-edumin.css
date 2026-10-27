@@ -409,32 +409,23 @@
 [data-skin="r2"] .edside__sec + .edside__sec { margin-top: 6px; border-top: 1px solid var(--rule-2); }
 
 [data-skin="r2"] .edside__gt {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  width: 100%; margin: 10px 0 4px; padding: 7px 12px;
-  border: 0; border-radius: 8px; background: none;
-  font: 500 11px/1 var(--f-body); letter-spacing: .08em; text-transform: uppercase;
+  display: flex; align-items: center;
+  width: 100%; margin: 8px 0 2px; padding: 4px 12px;
+  font: 600 9.5px/1 var(--f-body); letter-spacing: .1em; text-transform: uppercase;
   color: var(--ink-3); text-align: left; white-space: nowrap;
-  transition: color .15s, opacity .18s ease;
+  transition: opacity .18s ease;
 }
-[data-skin="r2"] button.edside__gt { cursor: pointer; }
-[data-skin="r2"] button.edside__gt:hover { color: var(--ink); }
-[data-skin="r2"] button.edside__gt:focus-visible { outline: 2px solid var(--pick); outline-offset: -2px; }
 [data-skin="r2"] .edside__gtt { overflow: hidden; text-overflow: ellipsis; }
-[data-skin="r2"] .edside__chev { display: flex; flex: none; transform: rotate(90deg); transition: transform .24s ease; }
-[data-skin="r2"] .edside__chev .svic { width: 14px; height: 14px; }
-[data-skin="r2"] .edside__sec.is-shut .edside__chev { transform: none; }
 
-/* Yig'ish animatsiyasi: 1fr → 0fr qator. Ichki qutining manfiy chetlari
-   faol tugma soyasi kesilib qolmasligi uchun joy qoldiradi. */
+/* Ichki qutining manfiy chetlari faol tugma soyasi kesilib qolmasligi
+   uchun joy qoldiradi. */
 [data-skin="r2"] .edside__items { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .24s ease; }
-[data-skin="r2"] .edside__sec.is-shut .edside__items { grid-template-rows: 0fr; }
 [data-skin="r2"] .edside__itemsin {
   display: flex; flex-direction: column; gap: 3px;
   min-height: 0; overflow: hidden;
   margin: -6px -12px -12px; padding: 6px 12px 12px;
   transition: margin .24s ease, padding .24s ease;
 }
-[data-skin="r2"] .edside__sec.is-shut .edside__itemsin { margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
 
 [data-skin="r2"] .edside__item {
   display: flex; align-items: center; gap: 12px;
