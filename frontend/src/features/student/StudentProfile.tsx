@@ -82,8 +82,8 @@ export function StudentProfile() {
           {LANGS.map((l) => (
             <button key={l.k} className={`chip settings__opt ${l.k === lang ? 'is-on' : ''}`} onClick={() => setLang(l.k)}>{t(l.label)}</button>
           ))}
-          <button className={`chip settings__opt ${theme === 'light' ? 'is-on' : ''}`} onClick={() => setTheme('light')}>{themeIconSun()} {t('Kunduzgi')}</button>
-          <button className={`chip settings__opt ${theme === 'dark' ? 'is-on' : ''}`} onClick={() => setTheme('dark')}>{themeIconMoon()} {t('Tungi')}</button>
+          <button className={`chip settings__opt ${theme === 'light' ? 'is-on' : ''}`} onClick={() => setTheme('light')}>{themeIconMoon()} {t('Kunduzgi')}</button>
+          <button className={`chip settings__opt ${theme === 'dark' ? 'is-on' : ''}`} onClick={() => setTheme('dark')}>{themeIconSun()} {t('Tungi')}</button>
         </div>
       </section>
     </div>

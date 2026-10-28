@@ -8,7 +8,7 @@ import { MIN_SEARCH_LEN, useGlobalSearch, type SearchItem, type SearchKind } fro
 
 const KIND_ICON: Record<SearchKind, keyof typeof IC> = {
   lesson: 'file',
-  library: 'book',
+  library: 'library',
   student: 'users',
   staff: 'user',
 }

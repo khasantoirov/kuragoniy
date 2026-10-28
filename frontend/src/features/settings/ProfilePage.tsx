@@ -17,7 +17,7 @@ type Tab = 'general' | 'reports' | 'awards' | 'sessions' | 'security'
 
 const TABS: { key: Tab; label: string; icon: keyof typeof IC }[] = [
   { key: 'general', label: 'Umumiy', icon: 'home' },
-  { key: 'reports', label: 'Hisobotlar tarixi', icon: 'file' },
+  { key: 'reports', label: 'Hisobotlar tarixi', icon: 'report' },
   { key: 'awards', label: "Rag'batlar", icon: 'star' },
   { key: 'sessions', label: 'Aktiv seanslar', icon: 'monitor' },
   { key: 'security', label: 'Kirish va xavfsizlik', icon: 'shield' },

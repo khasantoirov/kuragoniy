@@ -22,10 +22,10 @@ function greetingKey(h: number) {
 }
 
 const LINKS: { view: string; ic: keyof typeof IC; title: string; sub: string; adminOnly?: boolean }[] = [
-  { view: '/lessons', ic: 'file', title: 'Darslar', sub: 'Mavzular va tajribalar' },
+  { view: '/lessons', ic: 'lessons', title: 'Darslar', sub: 'Mavzular va tajribalar' },
   { view: '/journal', ic: 'clipboard', title: 'Jurnal', sub: 'Baho, davomat, statistika' },
   { view: '/timetable', ic: 'calendar', title: 'Jadval', sub: 'Haftalik dars jadvali' },
-  { view: '/library', ic: 'book', title: 'Kutubxona', sub: "Kitob, qo'llanma, video" },
+  { view: '/library', ic: 'library', title: 'Kutubxona', sub: "Kitob, qo'llanma, video" },
   { view: '/statistics', ic: 'chart', title: 'Statistika', sub: "Ko'rsatkichlar va sinflar kesimi", adminOnly: true },
 ]
 
