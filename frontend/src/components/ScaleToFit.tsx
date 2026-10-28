@@ -1,8 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { emojiIcon } from '@/icons'
-
 /**
  * Shrinks content to fit a container narrower than its known natural width
  * (a phone screen too narrow for the timetable's columns) so it reads as
@@ -259,10 +257,12 @@ function ZoomViewer({ naturalWidth, children }: { naturalWidth: number; children
         </div>
       </div>
       <div className="zoomview__ctl" role="group" aria-label={t('Masshtab')}>
-        <button type="button" onClick={() => zoomCenter(1 / STEP)} disabled={edge.min} aria-label={t('Kichraytirish')} title={t('Kichraytirish')}>{emojiIcon('➖')}</button>
-        <button type="button" onClick={() => zoomCenter(STEP)} disabled={edge.max} aria-label={t('Kattalashtirish')} title={t('Kattalashtirish')}>{emojiIcon('➕')}</button>
+        <button type="button" onClick={() => zoomCenter(1 / STEP)} disabled={edge.min} aria-label={t('Kichraytirish')} title={t('Kichraytirish')}>−</button>
+        <button type="button" onClick={() => zoomCenter(STEP)} disabled={edge.max} aria-label={t('Kattalashtirish')} title={t('Kattalashtirish')}>+</button>
         <button type="button" onClick={toFit} disabled={edge.min} aria-label={t('Ekranga moslash')} title={t('Ekranga moslash')}>
-          {emojiIcon('🔄')}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M4 9V4h5" /><path d="M20 9V4h-5" /><path d="M4 15v5h5" /><path d="M20 15v5h-5" />
+          </svg>
         </button>
       </div>
     </div>

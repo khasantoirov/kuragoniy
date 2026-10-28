@@ -16,10 +16,10 @@ interface PortalLink {
 /** Teacher-window and administration-window entries added on top of the
  * original staff navigation (AppShell NAV_ITEMS). */
 const PORTAL_LINKS: PortalLink[] = [
-  { to: '/assignments', label: 'Vazifalar', sub: 'Darsni sinfga topshirish va natijalar', icon: 'tasks', audience: 'teacher' },
-  { to: '/reports', label: 'Dars hisobotlari', sub: "O'tgan darsni ma'muriyatga topshirish", icon: 'report', audience: 'staff' },
+  { to: '/assignments', label: 'Vazifalar', sub: 'Darsni sinfga topshirish va natijalar', icon: 'list', audience: 'teacher' },
+  { to: '/reports', label: 'Dars hisobotlari', sub: "O'tgan darsni ma'muriyatga topshirish", icon: 'file', audience: 'staff' },
   { to: '/statistics', label: 'Statistika', sub: "Tahlil, maktablar, natijalar va o'quvchilar bazasi", icon: 'chart', audience: 'oversight' },
-  { to: '/shop', label: "Do'kon", sub: "Dars ishlanmalari va tajribalar", icon: 'shop', audience: 'oversight' },
+  { to: '/shop', label: "Do'kon", sub: "Dars ishlanmalari va tajribalar", icon: 'cards', audience: 'oversight' },
 ]
 
 function allowed(audience: Audience, user: User | null, viewMode: ViewMode) {

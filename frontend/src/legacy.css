@@ -127,10 +127,6 @@ h1, h2, h3, h4 { font-family: var(--f-display); font-weight: 600; margin: 0; let
 /* Inline SVG ikonkalar — matn bilan bir qatorda, currentColor bilan */
 .svic { width: 1.05em; height: 1.05em; vertical-align: -.15em; flex: none; }
 .icon-btn .svic, .search__ic .svic, .search__clear .svic, .lbcard__go .svic { vertical-align: 0; }
-/* Emoji ikonkalar: rangli emoji shrifti, chiziqsiz (svg ichidagi matn) */
-.svic--emo { overflow: visible; }
-.svic--emo text { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; fill: currentColor; stroke: none; }
-.svic--theme { width: 18px; height: 18px; }
 
 /* ── Maydonlar ───────────────────────────────────────────── */
 .field { display: block; margin-bottom: 14px; }

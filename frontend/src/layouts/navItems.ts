@@ -10,16 +10,16 @@ export type NavItem = { to: string; label: string; icon: keyof typeof IC }
 /** The staff app's own pages (portal pages are added by portalNavItems). */
 export const NAV_ITEMS: (NavItem & { adminOnly?: boolean })[] = [
   { to: '/', label: 'Bosh sahifa', icon: 'home' },
-  { to: '/lessons', label: 'Darslar', icon: 'lessons' },
+  { to: '/lessons', label: 'Darslar', icon: 'file' },
   { to: '/journal', label: 'Jurnal', icon: 'clipboard' },
   { to: '/timetable', label: 'Jadval', icon: 'calendar' },
-  { to: '/library', label: 'Kutubxona', icon: 'library' },
+  { to: '/library', label: 'Kutubxona', icon: 'book' },
   { to: '/notifications', label: 'Bildirishnomalar', icon: 'bell' },
   { to: '/settings', label: 'Sozlamalar', icon: 'gear' },
-  { to: '/guide', label: "Yo'riqnoma", icon: 'guide', adminOnly: true },
+  { to: '/guide', label: "Yo'riqnoma", icon: 'book', adminOnly: true },
   { to: '/about', label: 'Platforma haqida', icon: 'info' },
   { to: '/admin', label: 'Boshqaruv', icon: 'settings', adminOnly: true },
-  { to: '/equipment-sheet', label: 'Jihozlar jadvali', icon: 'equipment', adminOnly: true },
+  { to: '/equipment-sheet', label: 'Jihozlar jadvali', icon: 'grid', adminOnly: true },
 ]
 
 /** Reached from the top bar — the bell, the account menu — and the menu

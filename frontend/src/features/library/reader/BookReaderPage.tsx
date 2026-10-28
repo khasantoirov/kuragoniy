@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNo
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import { emojiIcon, IC } from '@/icons'
+import { IC } from '@/icons'
 
 import { useLibraryItems } from '../api'
 import type { LibraryItem } from '../types'
@@ -18,18 +18,22 @@ const EMPTY: Stroke[] = []
 type Flip = { dir: 'next' | 'prev'; from: number; to: number }
 type Pen = { tool: Tool; color: string; size: number }
 
+const svg = (d: ReactNode) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{d}</svg>
+)
 const I = {
-  prev: emojiIcon('◀️'),
-  next: emojiIcon('▶️'),
-  pen: emojiIcon('🖊️'),
-  marker: emojiIcon('🖍️'),
-  eraser: emojiIcon('🧽'),
-  zoomIn: emojiIcon('➕'),
-  zoomOut: emojiIcon('➖'),
-  full: emojiIcon('🖥️'),
-  fullExit: emojiIcon('🔙'),
-  one: emojiIcon('📄'),
-  two: emojiIcon('📖'),
+  prev: svg(<path d="m15 18-6-6 6-6" />),
+  next: svg(<path d="m9 18 6-6-6-6" />),
+  pen: svg(<><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></>),
+  marker: svg(<><path d="m9 11-6 6v3h9l3-3" /><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" /></>),
+  eraser: svg(<><path d="m7 21-4.3-4.3a1 1 0 0 1 0-1.4l10-10a1 1 0 0 1 1.4 0l5.6 5.6a1 1 0 0 1 0 1.4L11 21" /><path d="M22 21H7" /><path d="m5 11 9 9" /></>),
+  zoomIn: svg(<><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3M11 8v6M8 11h6" /></>),
+  zoomOut: svg(<><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3M8 11h6" /></>),
+  full: svg(<path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3" />),
+  fullExit: svg(<path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3" />),
+  one: svg(<rect x="6" y="3" width="12" height="18" rx="2" />),
+  two: svg(<><rect x="2" y="4" width="9" height="16" rx="1.5" /><rect x="13" y="4" width="9" height="16" rx="1.5" /></>),
 }
 
 function readStore(key: string) {
