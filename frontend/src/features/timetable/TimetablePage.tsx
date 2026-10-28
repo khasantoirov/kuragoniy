@@ -35,18 +35,22 @@ const spanOf = (c: TimetableSlot, p: number) => Math.max(1, Math.min(c.span || 1
 const timeOf = (c: TimetableSlot) =>
   c.time_from || c.time_to ? `${c.time_from?.slice(0, 5) || ''}${c.time_to ? '–' + c.time_to.slice(0, 5) : ''}` : ''
 
-/** A lesson in its cell, split into four invisible quarters so each fact
- * has a fixed place: time | school, then class | room. */
 function Cell({ c, sp = 1 }: { c: TimetableSlot; sp?: number }) {
   const { t } = useTranslation()
   return (
     <>
-      <span className="tt__q">
-        <span className="tt__q1 tt__time">{timeOf(c)}</span>
-        <span className="tt__q2 tt__school">{c.band && IC.lock} {c.maktab || ''}</span>
-        <span className="tt__q3 tt__school">{c.sinf || ''}</span>
-        <span className="tt__q4 tt__meta">{c.xona ? `${t('Xona')} ${c.xona}` : ''}</span>
+      {timeOf(c) && <span className="tt__time">{timeOf(c)}</span>}
+      <span className="tt__school">
+        {c.band && IC.lock} {c.maktab || ''}
       </span>
+      {/* Sinf — maktab bilan bir xil (.tt__school) shriftda; xona kichikroq
+          meta sifatida sinfning yonida, bir qatorda ko'rsatiladi. */}
+      {(c.sinf || c.xona) && (
+        <span className="tt__row">
+          {c.sinf && <span className="tt__school">{c.sinf}</span>}
+          {c.xona && <span className="tt__meta">{t('Xona')} {c.xona}</span>}
+        </span>
+      )}
       {sp > 1 && <span className="tt__span">{sp} {t('soat')}</span>}
     </>
   )

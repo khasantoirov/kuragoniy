@@ -7,6 +7,47 @@ import { useUIStore } from '@/store/uiStore'
 
 import { DAYS, hourLabel, PERIODS, SOATLAR, type TimetableSlot } from './types'
 
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/
+
+/** A time typed as 24-hour soat:minut — the browser's own time picker shows
+ * AM/PM on many devices. Digits only, the colon goes in by itself ("0930",
+ * "930" and "9:30" all give 09:30). Hands back "HH:MM", or null when emptied. */
+function HhMmInput({ value, onChange }: { value: string | null; onChange: (v: string | null) => void }) {
+  const [text, setText] = useState(value?.slice(0, 5) ?? '')
+  const type = (raw: string) => {
+    const r = raw.replace(/[.,\s-]/g, ':')
+    let next: string
+    if (r.includes(':')) {
+      const [h, m = ''] = r.split(':')
+      next = `${h.replace(/\D/g, '').slice(-2).padStart(2, '0')}:${m.replace(/\D/g, '').slice(0, 2)}`
+    } else {
+      // an hour cannot start with 3–9, so such a digit is the hour itself: 930 → 09:30
+      const d = r.replace(/\D/g, '').replace(/^[3-9]/, '0$&').slice(0, 4)
+      next = d.length > 2 ? `${d.slice(0, 2)}:${d.slice(2)}` : d
+    }
+    setText(next)
+    if (!next) onChange(null)
+    else if (HHMM.test(next)) onChange(next)
+  }
+  // Leaving the box: an hour alone becomes HH:00; anything that is not a
+  // real time goes back to the last good one, so nothing wrong is saved.
+  const leave = () => {
+    if (/^\d{1,2}$/.test(text) && Number(text) < 24) {
+      const whole = `${text.padStart(2, '0')}:00`
+      setText(whole)
+      onChange(whole)
+    } else if (text && !HHMM.test(text)) {
+      setText(value?.slice(0, 5) ?? '')
+    }
+  }
+  // red only for a time that cannot be, not for one still being typed
+  const bad = (text.length === 5 && !HHMM.test(text)) || Number(text.slice(0, 2)) > 23
+  return (
+    <input className="input" inputMode="numeric" placeholder="00:00" maxLength={5} value={text}
+      aria-invalid={bad || undefined} onChange={(e) => type(e.target.value)} onBlur={leave} />
+  )
+}
+
 export function SlotEditor({
   slot,
   onSave,
@@ -43,11 +84,11 @@ export function SlotEditor({
       <div className="row row--2">
         <label className="field">
           <span className="field__label">{t('Boshlanish')}</span>
-          <input className="input" type="time" value={draft.time_from?.slice(0, 5) ?? ''} onChange={(e) => setDraft({ ...draft, time_from: e.target.value || null })} />
+          <HhMmInput value={draft.time_from} onChange={(v) => setDraft((d) => ({ ...d, time_from: v }))} />
         </label>
         <label className="field">
           <span className="field__label">{t('Tugash')}</span>
-          <input className="input" type="time" value={draft.time_to?.slice(0, 5) ?? ''} onChange={(e) => setDraft({ ...draft, time_to: e.target.value || null })} />
+          <HhMmInput value={draft.time_to} onChange={(v) => setDraft((d) => ({ ...d, time_to: v }))} />
         </label>
       </div>
       <label className="field">
