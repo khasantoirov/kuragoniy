@@ -13,12 +13,15 @@ import type { Paginated } from '@/lib/api/types'
 
 import { useDirectory, useSchools, type DirectoryRow } from './api'
 import { MetricPill } from './shared'
+import { useStatsHub } from './statsFilter'
 
 /** Umumiy ma'lumotlar bazasi — every pupil on every partner school's
  * rosters in one searchable table. */
 export function DirectoryPage() {
   const { t } = useTranslation()
   const toast = useToast()
+  // inside Statistika the filter panel above sets ?school= ?teacher= ?class=
+  const hub = useStatsHub()
   const [params, setParams] = useSearchParams()
   const [q, setQ] = useState(params.get('q') ?? '')
   const [debounced, setDebounced] = useState(q)
@@ -70,7 +73,7 @@ export function DirectoryPage() {
 
   return (
     <div>
-      <Link to="/statistics?bolim=maktablar" className="backlink">← {t('Hamkor maktablar')}</Link>
+      {!hub && <Link to="/statistics?bolim=maktablar" className="backlink">← {t('Hamkor maktablar')}</Link>}
       <PageHead title={t("Umumiy ma'lumotlar bazasi")}
         sub={t("Barcha hamkor maktablardagi o'quvchilar: sinfi, o'qituvchisi, platforma logini, bahosi va davomati.")}
         actions={<button className="btn" disabled={exporting || !data?.count} onClick={exportAll}>{IC.download} {exporting ? t('Tayyorlanmoqda…') : 'CSV'}</button>} />
@@ -78,16 +81,20 @@ export function DirectoryPage() {
       <div className="filters">
         <input className="input input--sm" style={{ minWidth: 220 }} placeholder={t("O'quvchi yoki sinf nomi…")} value={q}
           onChange={(e) => { setQ(e.target.value); setParam('page', '') }} />
-        <select className="input input--sm" value={school} onChange={(e) => setParam('school', e.target.value)}>
-          <option value="">{t('Barcha maktablar')}</option>
-          {schools?.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-          <option value="none">{t('Biriktirilmagan')}</option>
-        </select>
-        <select className="input input--sm" value={teacher} onChange={(e) => setParam('teacher', e.target.value)}>
-          <option value="">{t("Barcha o'qituvchilar")}</option>
-          {teachers?.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
-        </select>
-        {cls && <button className="chip is-on" onClick={() => setParam('class', '')}>{t('Bitta sinf')} ✕</button>}
+        {!hub && (
+          <>
+            <select className="input input--sm" value={school} onChange={(e) => setParam('school', e.target.value)}>
+              <option value="">{t('Barcha maktablar')}</option>
+              {schools?.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              <option value="none">{t('Biriktirilmagan')}</option>
+            </select>
+            <select className="input input--sm" value={teacher} onChange={(e) => setParam('teacher', e.target.value)}>
+              <option value="">{t("Barcha o'qituvchilar")}</option>
+              {teachers?.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+            </select>
+            {cls && <button className="chip is-on" onClick={() => setParam('class', '')}>{t('Bitta sinf')} ✕</button>}
+          </>
+        )}
         <span className="muted">{data ? `${data.count} ${t("ta o'quvchi")}` : ''}{isFetching && ' …'}</span>
       </div>
 

@@ -11,8 +11,10 @@ export interface PageTab {
 }
 
 /** Sibling pages under one menu item: tabs on top, the open one in
- * ?bolim=<key> — the pages keep their own ?tab= and other params. */
-export function PageTabs({ tabs }: { tabs: PageTab[] }) {
+ * ?bolim=<key> — the pages keep their own ?tab= and other params. `keep`:
+ * params that stay when the tab changes (a filter shared by the tabs);
+ * `toolbar`: shown between the tabs and the page. */
+export function PageTabs({ tabs, keep = [], toolbar }: { tabs: PageTab[]; keep?: string[]; toolbar?: ReactNode }) {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams()
   const shown = tabs.filter((x) => x.show !== false)
@@ -29,13 +31,22 @@ export function PageTabs({ tabs }: { tabs: PageTab[] }) {
               role="tab"
               aria-selected={x === current}
               className={`seg__b ${x === current ? 'is-on' : ''}`}
-              onClick={() => setParams(x === shown[0] ? {} : { bolim: x.key }, { replace: true })}
+              onClick={() => setParams((prev) => {
+                const next = new URLSearchParams()
+                for (const k of keep) {
+                  const v = prev.get(k)
+                  if (v) next.set(k, v)
+                }
+                if (x !== shown[0]) next.set('bolim', x.key)
+                return next
+              }, { replace: true })}
             >
               {t(x.label)}
             </button>
           ))}
         </div>
       )}
+      {toolbar}
       {current.element}
     </>
   )

@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/Skeleton'
 import { ColumnChart } from '@/features/portal/ColumnChart'
 import { downloadCsv } from '@/features/portal/csv'
 import { fmtDate, PageHead, PercentPill, Segmented, Stars, StatTile } from '@/features/portal/ui'
+import { useStatsHub } from '@/features/schools/statsFilter'
 import { IC } from '@/icons'
 
 import {
@@ -44,12 +45,16 @@ export function AnalyticsDashboard({ oversight, canAward, onAward, title, sub }:
 }) {
   const { t } = useTranslation()
   const [period, setPeriod] = useState('month')
-  const [teacher, setTeacher] = useState('')
+  const hub = useStatsHub()
+  const [ownTeacher, setTeacher] = useState('')
   const [grade, setGrade] = useState('')
-  const [classId, setClassId] = useState('')
+  const [ownClass, setClassId] = useState('')
+  // inside Statistika the one filter panel decides the teacher and class
+  const teacher = hub ? hub.filter.teacher : ownTeacher
+  const classId = hub ? hub.filter.cls : ownClass
   const teachers = useTeachersList(oversight)
   const classes = useTeacherClasses(oversight ? teacher || undefined : undefined)
-  const filters = { period, teacher: oversight ? teacher : '', grade, class: classId }
+  const filters = { period, teacher: oversight ? teacher : '', grade, class: classId, school: hub?.filter.school ?? '' }
 
   const overview = useAnalytics<Overview>('overview', filters)
   const students = useAnalytics<TopStudent[]>('top-students', filters)
@@ -64,16 +69,18 @@ export function AnalyticsDashboard({ oversight, canAward, onAward, title, sub }:
       <PageHead title={title} sub={sub} />
       <div className="filters">
         <Segmented value={period} onChange={setPeriod} options={PERIOD_OPTIONS.map((p) => ({ ...p, label: t(p.label) }))} />
-        {oversight && (
+        {oversight && !hub && (
           <select className="input input--sm" value={teacher} onChange={(e) => { setTeacher(e.target.value); setClassId('') }} aria-label={t("O'qituvchi")}>
             <option value="">{t("Barcha o'qituvchilar")}</option>
             {teachers.data?.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
           </select>
         )}
-        <select className="input input--sm" value={classId} onChange={(e) => setClassId(e.target.value)} aria-label={t('Sinf')}>
-          <option value="">{t('Barcha sinflar')}</option>
-          {classes.data?.map((c) => <option key={c.id} value={c.id}>{c.name}{oversight ? ` (${c.teacher_name})` : ''}</option>)}
-        </select>
+        {!hub && (
+          <select className="input input--sm" value={classId} onChange={(e) => setClassId(e.target.value)} aria-label={t('Sinf')}>
+            <option value="">{t('Barcha sinflar')}</option>
+            {classes.data?.map((c) => <option key={c.id} value={c.id}>{c.name}{oversight ? ` (${c.teacher_name})` : ''}</option>)}
+          </select>
+        )}
         <select className="input input--sm" value={grade} onChange={(e) => setGrade(e.target.value)} aria-label={t('Sinf darajasi')}>
           <option value="">{t('Barcha sinf darajalari')}</option>
           {[5, 6, 7, 8, 9, 10, 11].map((g) => <option key={g} value={g}>{g}-{t('sinf')}</option>)}

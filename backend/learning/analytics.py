@@ -50,12 +50,20 @@ def _weighted(parts: list[tuple[float | None, float]]) -> float:
     return sum(v * w for v, w in present) / total_w
 
 
-def scope_profiles(viewer, *, teacher_id=None, class_id=None, grade=None):
+def _school_filter(prefix, school_id):
+    """A partner school (Statistika's filter) — 'none': classes linked to none."""
+    if school_id == 'none':
+        return {f'{prefix}partner_school__isnull': True}
+    return {f'{prefix}partner_school_id': school_id} if school_id else {}
+
+
+def scope_profiles(viewer, *, teacher_id=None, class_id=None, grade=None, school_id=None):
     qs = StudentProfile.objects.filter(user__role=User.Role.STUDENT, user__is_active=True, user__approved=True)
     if not viewer.is_oversight:
         qs = qs.filter(journal_class__teacher=viewer)
     elif teacher_id:
         qs = qs.filter(journal_class__teacher_id=teacher_id)
+    qs = qs.filter(**_school_filter('journal_class__', school_id))
     if class_id:
         qs = qs.filter(journal_class_id=class_id)
     if grade:
@@ -63,8 +71,8 @@ def scope_profiles(viewer, *, teacher_id=None, class_id=None, grade=None):
     return qs
 
 
-def scope_classes(viewer, *, teacher_id=None):
-    qs = JournalClass.objects.all()
+def scope_classes(viewer, *, teacher_id=None, school_id=None):
+    qs = JournalClass.objects.filter(**_school_filter('', school_id))
     if not viewer.is_oversight:
         return qs.filter(teacher=viewer)
     if teacher_id:
@@ -112,6 +120,11 @@ def overview(viewer, since, **scope):
     elif scope.get('teacher_id'):
         reports = reports.filter(teacher_id=scope['teacher_id'])
         readiness = readiness.filter(user_id=scope['teacher_id'])
+    elif scope.get('school_id'):
+        # a school's teachers: everyone with a class there
+        teachers = scope_classes(viewer, school_id=scope['school_id']).values('teacher_id')
+        reports = reports.filter(teacher_id__in=teachers)
+        readiness = readiness.filter(user_id__in=teachers)
     if since:
         reports = reports.filter(date__gte=since.date())
         readiness = readiness.filter(submitted_at__gte=since)
@@ -272,8 +285,8 @@ def best_reports(viewer, since, limit=10):
     return list(qs.order_by('-rating', '-date')[:limit])
 
 
-def class_compare(viewer, since, teacher_id=None):
-    classes = list(scope_classes(viewer, teacher_id=teacher_id).select_related('teacher'))
+def class_compare(viewer, since, teacher_id=None, school_id=None):
+    classes = list(scope_classes(viewer, teacher_id=teacher_id, school_id=school_id).select_related('teacher'))
     ids = [c.id for c in classes]
     attempts = Attempt.objects.filter(
         user__student_profile__journal_class_id__in=ids, submitted_at__isnull=False,

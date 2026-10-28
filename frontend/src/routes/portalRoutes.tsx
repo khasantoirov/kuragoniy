@@ -28,20 +28,15 @@ const AssignmentsPage = named(() => import('@/features/teacher/AssignmentsPage')
 const AssignmentResultsPage = named(() => import('@/features/teacher/AssignmentsPage'), 'AssignmentResultsPage')
 const ReportsPage = named(() => import('@/features/teacher/ReportsPage'), 'ReportsPage')
 const ReadinessPage = named(() => import('@/features/teacher/ReadinessPage'), 'ReadinessPage')
-const TeacherResultsPage = named(() => import('@/features/teacher/TeacherResultsPage'), 'TeacherResultsPage')
 const GamesPage = named(() => import('@/features/teacher/GamesPage'), 'GamesPage')
-const ManageDashboard = named(() => import('@/features/manage/ManagePages'), 'ManageDashboard')
 const ReviewReportsPage = named(() => import('@/features/manage/ManagePages'), 'ReviewReportsPage')
-const AwardsPage = named(() => import('@/features/manage/ManagePages'), 'AwardsPage')
 const SecurityLogPage = named(() => import('@/features/manage/ManagePages'), 'SecurityLogPage')
 const MaterialsPage = named(() => import('@/features/manage/MaterialsPage'), 'MaterialsPage')
 const ShopPage = named(() => import('@/features/shop/ShopPage'), 'ShopPage')
 const OrdersPage = named(() => import('@/features/shop/OrdersPage'), 'OrdersPage')
 const ShopAdminPage = named(() => import('@/features/shop/ShopAdminPage'), 'ShopAdminPage')
-const SchoolsPage = named(() => import('@/features/schools/SchoolsPage'), 'SchoolsPage')
 const SchoolDetailPage = named(() => import('@/features/schools/SchoolDetailPage'), 'SchoolDetailPage')
-const StatisticsPage = named(() => import('@/features/statistics/StatisticsPage'), 'StatisticsPage')
-const DirectoryPage = named(() => import('@/features/schools/DirectoryPage'), 'DirectoryPage')
+const StatsHub = named(() => import('@/features/schools/StatsHub'), 'StatsHub')
 const MyClassesPage = named(() => import('@/features/schools/MyClassesPage'), 'MyClassesPage')
 
 function Lazy({ children }: { children: ReactNode }) {
@@ -83,24 +78,6 @@ function ReportsTabs() {
   const mine = { key: 'mine', label: 'Mening hisobotlarim', element: <ReportsPage />, show: isTeacherLike(user) }
   const review = { key: 'baholash', label: 'Baholash', element: <ReviewReportsPage />, show: oversees(user, viewMode) }
   return <PageTabs tabs={review.show ? [review, mine] : [mine]} />
-}
-
-/** Statistika — the administration's analytics in one place: the overview
- * (Umumiy, administrators), the ratings (Tahlil), schools, platform
- * results, the pupils' database and Rag'batlantirish. */
-function StatsTabs() {
-  const { user } = useAuth()
-  const viewMode = useUIStore((s) => s.viewMode)
-  return (
-    <PageTabs tabs={[
-      { key: 'umumiy', label: 'Umumiy', element: <StatisticsPage />, show: isAdminInView(user, viewMode) },
-      { key: 'tahlil', label: 'Tahlil', element: <ManageDashboard /> },
-      { key: 'maktablar', label: 'Hamkor maktablar', element: <SchoolsPage /> },
-      { key: 'natijalar', label: 'Natijalar', element: <TeacherResultsPage /> },
-      { key: 'baza', label: "Ma'lumotlar bazasi", element: <DirectoryPage /> },
-      { key: 'awards', label: "Rag'batlantirish", element: <AwardsPage /> },
-    ]} />
-  )
 }
 
 /** Boshqaruv — users and roles, the data tools (Ma'lumot), the security
@@ -170,7 +147,7 @@ export const staffPortalRoutes: RouteObject[] = [
   { path: '/games', element: <MovedTo to="/assignments" bolim="oyinlar" /> },
   { path: '/shop', element: oversight(<RequireModule keys={['shop']}><ShopTabs /></RequireModule>) },
   { path: '/shop/orders', element: <MovedTo to="/shop" bolim="orders" /> },
-  { path: '/statistics', element: oversight(<StatsTabs />) },
+  { path: '/statistics', element: oversight(<StatsHub />) },
   { path: '/manage', element: <MovedTo to="/statistics" bolim="tahlil" /> },
   { path: '/manage/reports', element: <MovedTo to="/reports" bolim="baholash" /> },
   { path: '/manage/awards', element: <MovedTo to="/statistics" bolim="awards" /> },

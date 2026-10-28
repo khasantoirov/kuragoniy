@@ -582,6 +582,11 @@ const ru: Record<string, string> = {
   "Tajriba jihozlari, narxlar va rasmli varaq": "Оборудование для опытов, цены и лист с картинками",
   "Darslar uchun rasmli jihozlar ro'yxati": "Список оборудования к урокам с картинками",
   "Tajribalar bilan dars rasmini yaratish": "Создание постера урока с опытами",
+  // Statistika filtri
+  "Tozalash": "Сбросить",
+  "O'rtacha bahoning eng yuqori bahoga nisbatan foizi": "Средний балл в процентах от высшей оценки",
+  "Barcha maktablar": "Все школы",
+  "Maktab": "Школа",
 }
 
 const en: Record<string, string> = {
@@ -1153,6 +1158,11 @@ const en: Record<string, string> = {
   "Tajriba jihozlari, narxlar va rasmli varaq": "Experiment equipment, prices and the picture sheet",
   "Darslar uchun rasmli jihozlar ro'yxati": "A picture list of equipment for lessons",
   "Tajribalar bilan dars rasmini yaratish": "Making a lesson poster with its experiments",
+  // Statistika filtri
+  "Tozalash": "Clear",
+  "O'rtacha bahoning eng yuqori bahoga nisbatan foizi": "The mean mark as a percent of the top mark",
+  "Barcha maktablar": "All schools",
+  "Maktab": "School",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

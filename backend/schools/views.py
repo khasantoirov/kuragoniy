@@ -161,30 +161,43 @@ def _cached(request, name, compute):
 
 
 class StatsOverviewView(APIView):
-    """All partner schools side by side + totals + monthly trend."""
+    """All partner schools side by side + totals + monthly trend —
+    optionally narrowed by Statistika's filter: ?school= (an id or 'none'),
+    ?teacher=, ?class=."""
 
     permission_classes = [IsOversight]
 
     def get(self, request):
         chorak = _chorak(request)
+        school_id = request.query_params.get('school') or None
+        teacher_id = request.query_params.get('teacher') or None
+        class_id = request.query_params.get('class') or None
+        narrowed = bool(school_id or teacher_id or class_id)
 
         def compute():
-            classes = stats.classes_for(request.user)
+            classes = stats.classes_for(request.user, school_id=school_id, teacher_id=teacher_id)
+            if class_id:
+                classes = [c for c in classes if str(c.id) == class_id]
             schools = stats.grouped(classes, chorak, key=lambda c: c.partner_school_id or 'none',
                                     label=lambda c: c.partner_school.name if c.partner_school_id else '')
             members = dict(SchoolTeacher.objects.values('school').annotate(n=Count('id')).values_list('school', 'n'))
             for row in schools:
-                row['teachers'] = members.get(row['id'], 0) if row['id'] != 'none' else len(
-                    {c.teacher_id for c in classes if not c.partner_school_id})
-            # Partner schools with no classes yet still belong in the list.
-            listed = {r['id'] for r in schools}
-            for s in School.objects.filter(is_active=True).exclude(pk__in=[i for i in listed if i != 'none']):
-                schools.append({'id': s.id, 'name': s.name, 'classes': 0, 'teachers': members.get(s.id, 0),
-                                **stats.derive(dict.fromkeys(stats.RAW_KEYS, 0))})
+                if narrowed or row['id'] == 'none':
+                    # the teachers of the classes in view, not the school's whole staff
+                    row['teachers'] = len({c.teacher_id for c in classes if (c.partner_school_id or 'none') == row['id']})
+                else:
+                    row['teachers'] = members.get(row['id'], 0)
+            if not narrowed:
+                # Partner schools with no classes yet still belong in the list.
+                listed = {r['id'] for r in schools}
+                for s in School.objects.filter(is_active=True).exclude(pk__in=[i for i in listed if i != 'none']):
+                    schools.append({'id': s.id, 'name': s.name, 'classes': 0, 'teachers': members.get(s.id, 0),
+                                    **stats.derive(dict.fromkeys(stats.RAW_KEYS, 0))})
             schools.sort(key=lambda r: (r['id'] == 'none', r['name'].lower()))
             totals = stats.derive(stats.pool(stats.class_raw(classes, chorak).values()))
             totals.update({
-                'schools': School.objects.filter(is_active=True).count(),
+                'schools': (len({c.partner_school_id for c in classes if c.partner_school_id}) if narrowed
+                            else School.objects.filter(is_active=True).count()),
                 'teachers': len({c.teacher_id for c in classes}),
                 'classes': len(classes),
             })

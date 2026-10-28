@@ -13,6 +13,7 @@ import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
 
 import { CHORAK_OPTIONS, useSchools, useSchoolsMutation, useSchoolsOverview, useUnlinked, type UnlinkedName } from './api'
 import { METRIC_CSV_HEAD, METRIC_HELP, MetricCells, MetricHeads, metricCsv, SchoolFormModal } from './shared'
+import { useStatsHub } from './statsFilter'
 import { TrendPanels } from './TrendPanels'
 import { useTrendView } from './trendView'
 
@@ -71,9 +72,13 @@ export function SchoolsPage() {
   const { user } = useAuth()
   const admin = isAdmin(user)
   const navigate = useNavigate()
-  const [chorak, setChorak] = useState('all')
+  const hub = useStatsHub()
+  const [ownChorak, setChorak] = useState('all')
+  // inside Statistika the one filter panel decides
+  const chorak = hub ? hub.filter.chorak : ownChorak
+  const scope = hub ? { school: hub.filter.school, teacher: hub.filter.teacher, class: hub.filter.cls } : {}
   const view = useTrendView()
-  const { data, isLoading } = useSchoolsOverview(chorak, view.period)
+  const { data, isLoading } = useSchoolsOverview(chorak, view.period, scope)
   const unlinked = useUnlinked()
   const [creating, setCreating] = useState(false)
   const [linking, setLinking] = useState(false)
@@ -98,9 +103,11 @@ export function SchoolsPage() {
         </div>
       )}
 
-      <div className="filters">
-        <Segmented value={chorak} onChange={setChorak} options={CHORAK_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))} />
-      </div>
+      {!hub && (
+        <div className="filters">
+          <Segmented value={chorak} onChange={setChorak} options={CHORAK_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))} />
+        </div>
+      )}
 
       {isLoading || !totals ? <Skeleton lines={4} /> : (
         <div className="stiles">

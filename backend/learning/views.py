@@ -686,7 +686,7 @@ class AnalyticsView(APIView):
     def get(self, request, report):
         if report not in self.REPORTS:
             return Response({'detail': 'Topilmadi.'}, status=status.HTTP_404_NOT_FOUND)
-        params = {k: request.query_params.get(k, '') for k in ('period', 'teacher', 'class', 'grade', 'limit')}
+        params = {k: request.query_params.get(k, '') for k in ('period', 'teacher', 'class', 'grade', 'limit', 'school')}
         raw_key = json.dumps([report, request.user.id, request.user.is_oversight, params], sort_keys=True)
         key = 'analytics:' + hashlib.sha256(raw_key.encode()).hexdigest()
         data = cache.get(key)
@@ -702,7 +702,7 @@ class AnalyticsView(APIView):
         class_id = _int_param(request, 'class')
         grade = _grade_param(request)
         limit = min(_int_param(request, 'limit') or 20, 100)
-        scope = {'teacher_id': teacher_id, 'class_id': class_id, 'grade': grade}
+        scope = {'teacher_id': teacher_id, 'class_id': class_id, 'grade': grade, 'school_id': params['school'] or None}
         if report == 'overview':
             return {**analytics.overview(user, since, **scope), **analytics.lessons_summary()}
         if report == 'top-students':
@@ -712,7 +712,7 @@ class AnalyticsView(APIView):
         if report == 'best-reports':
             return LessonReportSerializer(analytics.best_reports(user, since, limit=limit), many=True).data
         if report == 'classes':
-            return analytics.class_compare(user, since, teacher_id=teacher_id)
+            return analytics.class_compare(user, since, teacher_id=teacher_id, school_id=scope['school_id'])
         return analytics.lesson_stats(user, since, grade=grade)
 
 

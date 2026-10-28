@@ -250,6 +250,8 @@ export interface AnalyticsFilters {
   teacher?: string
   class?: string | number
   grade?: string | number
+  /** a partner school id or 'none' (Statistika's filter) */
+  school?: string
 }
 
 // ── Hooks ───────────────────────────────────────────────────────────

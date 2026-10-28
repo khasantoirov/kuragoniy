@@ -163,10 +163,12 @@ export function useSchool(id: string | undefined) {
   })
 }
 
-export function useSchoolsOverview(chorak: string, period = 'month') {
+/** All schools — or as narrowed by Statistika's filter (school / teacher / class). */
+export function useSchoolsOverview(chorak: string, period = 'month', scope: { school?: string; teacher?: string; class?: string } = {}) {
+  const narrow = Object.fromEntries(Object.entries(scope).filter(([, v]) => v))
   return useQuery({
-    queryKey: ['schools', 'overview', chorak, period],
-    queryFn: async () => (await api.get<Overview>('/schools/stats/overview/', { params: { ...chorakParam(chorak), period } })).data,
+    queryKey: ['schools', 'overview', chorak, period, narrow],
+    queryFn: async () => (await api.get<Overview>('/schools/stats/overview/', { params: { ...chorakParam(chorak), period, ...narrow } })).data,
     placeholderData: (prev) => prev,
   })
 }
@@ -185,6 +187,26 @@ export function useMyClassesStats(chorak: string, period = 'month') {
     queryKey: ['schools', 'mine', chorak, period],
     queryFn: async () => (await api.get<MyClassesStats>('/schools/stats/mine/', { params: { ...chorakParam(chorak), period } })).data,
     placeholderData: (prev) => prev,
+  })
+}
+
+/** One class as Statistika's filter sees it (backend stats.class_rows). */
+export interface ClassRowLite {
+  class_id: number
+  name: string
+  school_id: number | null
+  school: string
+  school_text: string
+  teacher_id: string
+  teacher: string
+}
+
+/** Every class in view — the filter panel's schools, teachers and classes. */
+export function useClassRows() {
+  return useQuery({
+    queryKey: ['schools', 'class-rows'],
+    queryFn: async () => (await api.get<ClassRowLite[]>('/schools/stats/classes/')).data,
+    staleTime: 60_000,
   })
 }
 
