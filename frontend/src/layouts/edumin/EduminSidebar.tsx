@@ -53,7 +53,7 @@ export function EduminSidebar({ items, onNav }: { items: EduminNavItem[]; onNav:
       onNav={onNav}
       footer={
         <Link className="edside__made" to="/about" onClick={onNav}>
-          {t('Dastur yaratuvchisi')}: Hasan Toirov
+          {t('Platforma haqida')}
         </Link>
       }
     />
