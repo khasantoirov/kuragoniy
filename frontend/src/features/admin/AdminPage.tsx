@@ -149,6 +149,52 @@ function NewPasswordModal({ email, password, onClose, title = 'Parolni tiklash' 
   )
 }
 
+/** How a person is named in confirmations: the login, else the email. */
+const who = (u: User) => u.username || u.email || u.name || ''
+
+/** A staff member's login, typed by an administrator. The old login keeps
+ * working too, so nobody is locked out before they've been told. */
+function LoginEditModal({ user, onClose }: { user: User; onClose: () => void }) {
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
+  const toast = useToast()
+  const [login, setLogin] = useState(user.username ?? '')
+  const [error, setError] = useState('')
+  const save = useMutation({
+    mutationFn: async () => (await api.post(`/accounts/users/${user.id}/set-login/`, { login })).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      toast(t("Login o'zgartirildi"))
+      onClose()
+    },
+    onError: (err: unknown) => {
+      const data = (err as { response?: { data?: Record<string, string[] | string> } }).response?.data
+      const first = data && Object.values(data)[0]
+      setError(t(Array.isArray(first) ? first[0] : first || "Amalni bajarib bo'lmadi"))
+    },
+  })
+
+  return (
+    <Modal
+      title={t("Loginni o'zgartirish")}
+      onClose={onClose}
+      footer={<>
+        <button className="btn" onClick={onClose}>{t('Bekor qilish')}</button>
+        <button className="btn btn--primary" disabled={save.isPending || login.trim().length < 3}
+          onClick={() => { setError(''); save.mutate() }}>{t('Saqlash')}</button>
+      </>}
+    >
+      <p className="prose prose--note">{user.name} — {t("parol o'zgarmaydi. Eski login ham ishlayveradi, kirganda yangisi aytiladi.")}</p>
+      <label className="field">
+        <span className="field__label">{t('Login')}</span>
+        <input className="input" autoFocus value={login} autoCapitalize="none" spellCheck={false}
+          onChange={(e) => setLogin(e.target.value.toLowerCase())} placeholder="hasantoirov" />
+      </label>
+      {error && <p className="form__note form__note--err" role="alert">{error}</p>}
+    </Modal>
+  )
+}
+
 /** New teacher (or, for the developer, observer) account — the login page
  * no longer offers self-registration. The server builds the login from
  * the name and returns a one-time password, changed at first sign-in. */
@@ -356,6 +402,7 @@ export function AdminPage() {
   const confirm = useConfirm()
   const queryClient = useQueryClient()
   const [newPassword, setNewPassword] = useState<{ email: string; password: string; title?: string } | null>(null)
+  const [editingLogin, setEditingLogin] = useState<User | null>(null)
   const [creatingStaff, setCreatingStaff] = useState(false)
 
   const { data, isLoading } = useQuery({
@@ -379,40 +426,40 @@ export function AdminPage() {
 
   const onApprove = (id: string) => act.mutate({ id, action: 'approve' }, { onSuccess: () => toast(t('Tasdiqlandi')) })
   const onReject = async (u: User) => {
-    if (!(await confirm({ title: t('Arizani rad etish'), text: `${u.email || ''} — ${t("ariza o'chiriladi.")}`, danger: true }))) return
+    if (!(await confirm({ title: t('Arizani rad etish'), text: `${who(u)} — ${t("ariza o'chiriladi.")}`, danger: true }))) return
     act.mutate({ id: u.id, action: 'reject' }, { onSuccess: () => toast(t('Ariza rad etildi')) })
   }
   const onPromote = async (u: User) => {
-    if (!(await confirm({ title: t('Admin qilish'), text: `${u.email || ''} — ${t('admin huquqlari beriladi.')}` }))) return
+    if (!(await confirm({ title: t('Admin qilish'), text: `${who(u)} — ${t('admin huquqlari beriladi.')}` }))) return
     act.mutate({ id: u.id, action: 'promote' }, { onSuccess: () => toast(t('Admin qilindi')) })
   }
   const onSetBoshliq = async (u: User) => {
-    if (!(await confirm({ title: t('Boshliq qilish'), text: `${u.email || ''} — ${t("boshliq huquqlari beriladi (admin kabi nazorat qiladi, lekin dars/jurnal yuritmaydi).")}` }))) return
+    if (!(await confirm({ title: t('Boshliq qilish'), text: `${who(u)} — ${t("boshliq huquqlari beriladi (admin kabi nazorat qiladi, lekin dars/jurnal yuritmaydi).")}` }))) return
     act.mutate({ id: u.id, action: 'set-boshliq' }, { onSuccess: () => toast(t('Boshliq qilindi')) })
   }
   const onDemote = async (u: User) => {
     const isBoshliq = u.role === 'boshliq'
     if (!(await confirm({
       title: isBoshliq ? t('Boshliqlikni olish') : t('Adminlikni olish'),
-      text: `${u.email || ''} — ${t("huquqlari olib tashlanadi (o'qituvchi bo'lib qoladi).")}`,
+      text: `${who(u)} — ${t("huquqlari olib tashlanadi (o'qituvchi bo'lib qoladi).")}`,
       danger: true,
     }))) return
     act.mutate({ id: u.id, action: 'demote' }, { onSuccess: () => toast(isBoshliq ? t('Boshliqlik olindi') : t('Adminlik olindi')) })
   }
   const onSetKuzatuvchi = async (u: User) => {
-    if (!(await confirm({ title: t('Kuzatuvchi qilish'), text: `${u.email || ''} — ${t("barcha ma'lumotlarni faqat ko'rish huquqi beriladi.")}` }))) return
+    if (!(await confirm({ title: t('Kuzatuvchi qilish'), text: `${who(u)} — ${t("barcha ma'lumotlarni faqat ko'rish huquqi beriladi.")}` }))) return
     act.mutate({ id: u.id, action: 'set-kuzatuvchi' }, { onSuccess: () => toast(t('Kuzatuvchi qilindi')) })
   }
   const onUnlock = (u: User) => act.mutate({ id: u.id, action: 'unlock' }, { onSuccess: () => toast(t('Blok ochildi')) })
   const onBlock = async (u: User) => {
-    if (!(await confirm({ title: t("Kirishni to'xtatish"), text: `${u.email || ''} ${t('endi tizimga kira olmaydi. Keyin qayta tasdiqlashingiz mumkin.')}` }))) return
+    if (!(await confirm({ title: t("Kirishni to'xtatish"), text: `${who(u)} ${t('endi tizimga kira olmaydi. Keyin qayta tasdiqlashingiz mumkin.')}` }))) return
     act.mutate({ id: u.id, action: 'block' }, { onSuccess: () => toast(t("Kirish to'xtatildi")) })
   }
   const onResetPassword = async (u: User) => {
-    if (!(await confirm({ title: t('Parolni tiklash'), text: `${u.email || ''} — ${t("yangi parol yaratiladi.")}` }))) return
+    if (!(await confirm({ title: t('Parolni tiklash'), text: `${who(u)} — ${t("yangi parol yaratiladi.")}` }))) return
     try {
       const res = await api.post<{ password: string }>(`/accounts/users/${u.id}/reset-password/`)
-      setNewPassword({ email: u.email ?? u.username ?? '', password: res.data.password })
+      setNewPassword({ email: u.username ? `${t('Login')}: ${u.username}` : u.email ?? '', password: res.data.password })
     } catch {
       toast(t("Amalni bajarib bo'lmadi"), 'error')
     }
@@ -466,6 +513,7 @@ export function AdminPage() {
                     <div className="stf__b">
                       <p className="stf__row"><span>{t("Tug'ilgan sana")}</span><b>{fmtBday(u.bday)}</b></p>
                       <p className="stf__row"><span>{t('Telefon')}</span><b>{u.phone || '—'}</b></p>
+                      <p className="stf__row"><span>{t('Login')}</span><b>{u.username || '—'}</b></p>
                       <p className="stf__row"><span>{t('Email')}</span><b>{u.email || '—'}</b></p>
                       <p className="stf__row">
                         <span>Telegram</span>
@@ -499,7 +547,7 @@ export function AdminPage() {
                     <li key={u.id} className="person">
                       <div>
                         <p className="person__name">{u.name || '—'} <RoleBadge user={u} /></p>
-                        <p className="person__mail">{u.email || ''} · <Presence online={u.online} lastSeen={u.last_seen} /></p>
+                        <p className="person__mail">{[u.username, u.email].filter(Boolean).join(' · ')} · <Presence online={u.online} lastSeen={u.last_seen} /></p>
                       </div>
                       {isSelf ? (
                         <span className="person__you">{t('siz')}</span>
@@ -519,6 +567,7 @@ export function AdminPage() {
                             ))}
                           {locked && <button className="btn btn--sm btn--primary" onClick={() => onUnlock(u)}>{t('Blokni ochish')}</button>}
                           <button className="btn btn--sm btn--ghost" onClick={() => onResetPassword(u)}>{t('Parolni tiklash')}</button>
+                          <button className="btn btn--sm btn--ghost" onClick={() => setEditingLogin(u)}>{t("Loginni o'zgartirish")}</button>
                           <button className="btn btn--sm btn--ghost" onClick={() => onBlock(u)}>{t("Kirishni to'xtatish")}</button>
                         </div>
                       ) : null}
@@ -561,6 +610,7 @@ export function AdminPage() {
               }}
             />
           )}
+          {editingLogin && <LoginEditModal user={editingLogin} onClose={() => setEditingLogin(null)} />}
           {newPassword && (
             <NewPasswordModal email={newPassword.email} password={newPassword.password} title={newPassword.title}
               onClose={() => setNewPassword(null)} />

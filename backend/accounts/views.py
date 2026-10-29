@@ -1,3 +1,4 @@
+import re
 import secrets
 from datetime import datetime, timedelta
 from datetime import timezone as dt_timezone
@@ -59,6 +60,10 @@ RESET_CODES_PER_DAY = 5
 RESET_CODE_COOLDOWN_SECONDS = 60
 
 GENERIC_LOGIN_ERROR = "Login yoki parol noto'g'ri."
+
+# A login an administrator types for a staff member; never an "@" — that
+# is what tells an email from a login at sign-in.
+STAFF_LOGIN_RE = re.compile(r'[a-z][a-z0-9._]{2,29}')
 
 
 def _make_totp_challenge(user, remember=True) -> str:
@@ -794,6 +799,33 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
                channels=('app', 'email'))
         return Response({'id': user.id, 'name': user.name, 'login': user.username, 'email': user.email,
                          'role': user.role, 'password': password}, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], url_path='set-login')
+    def set_login(self, request, pk=None):
+        """A staff member's login chosen by an administrator (the generated
+        one is first name + surname). The old login keeps working, like a
+        regenerated student login, and the sign-in tells which is new."""
+        target = self.get_object()
+        self._guard_target(request, target)
+        if target.is_student:
+            raise PermissionDenied("O'quvchi logini o'quvchilar bo'limida o'zgartiriladi.")
+        login = str(request.data.get('login') or '').strip().lower()
+        if not STAFF_LOGIN_RE.fullmatch(login):
+            raise ValidationError({'login': "Login 3–30 ta lotin harfi, raqam, nuqta yoki pastki chiziqdan iborat "
+                                            "bo'lsin va harf bilan boshlansin."})
+        old = target.username
+        if login != old:
+            if User.objects.filter(Q(username__iexact=login) | Q(previous_username__iexact=login)).exclude(pk=target.pk).exists():
+                raise ValidationError({'login': "Bu login band."})
+            target.username = login
+            fields = ['username']
+            if old:
+                target.previous_username = old
+                fields.append('previous_username')
+            target.save(update_fields=fields)
+            log_event('login_changed', actor=request.user, request=request, detail=f'{target.name}: {old or "—"} → {login}')
+            notify_admin_action(request.user, f"Loginini o'zgartirdi: {target.name} ({old or '—'} → {login})")
+        return Response(AdminUserSerializer(target).data)
 
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):

@@ -44,6 +44,7 @@ const ru: Record<string, string> = {
   'Yangi vazifa': 'Новое задание', 'Darsni topshirish': 'Сдать урок', 'Tekshirish': 'Проверить', 'Tayyor': 'Готов',
   'Jonli viktorina': 'Живая викторина', 'Yangi viktorina': 'Новая викторина', "O'yinni boshlash": 'Начать игру',
   'Savollar tahlili': 'Анализ вопросов', 'Parolni tiklash': 'Сбросить пароль', 'Bloklash': 'Заблокировать',
+  'Loginni o\'zgartirish': 'Изменить логин', 'Login o\'zgartirildi': 'Логин изменён', 'Bu login band.': 'Этот логин занят.', 'parol o\'zgarmaydi. Eski login ham ishlayveradi, kirganda yangisi aytiladi.': 'пароль не меняется. Старый логин тоже работает, при входе будет показан новый.', 'Login 3–30 ta lotin harfi, raqam, nuqta yoki pastki chiziqdan iborat bo\'lsin va harf bilan boshlansin.': 'Логин — 3–30 латинских букв, цифр, точек или подчёркиваний, начинается с буквы.',
   'Hammasiga login-parol yaratish': 'Создать логины для всех', 'Sinf kodini yaratish': 'Создать код класса',
   // Ma'muriyat
   "Ma'muriyat: tahlil": 'Администрация: аналитика', "Eng yaxshi o'quvchilar": 'Лучшие ученики',
@@ -621,6 +622,7 @@ const en: Record<string, string> = {
   'Yangi vazifa': 'New assignment', 'Darsni topshirish': 'Submit lesson', 'Tekshirish': 'Check', 'Tayyor': 'Ready',
   'Jonli viktorina': 'Live quiz', 'Yangi viktorina': 'New quiz', "O'yinni boshlash": 'Start game',
   'Savollar tahlili': 'Question analysis', 'Parolni tiklash': 'Reset password', 'Bloklash': 'Block',
+  'Loginni o\'zgartirish': 'Change login', 'Login o\'zgartirildi': 'Login changed', 'Bu login band.': 'This login is taken.', 'parol o\'zgarmaydi. Eski login ham ishlayveradi, kirganda yangisi aytiladi.': 'the password stays the same. The old login keeps working; signing in with it shows the new one.', 'Login 3–30 ta lotin harfi, raqam, nuqta yoki pastki chiziqdan iborat bo\'lsin va harf bilan boshlansin.': 'A login is 3–30 Latin letters, digits, dots or underscores and starts with a letter.',
   'Hammasiga login-parol yaratish': 'Create logins for everyone', 'Sinf kodini yaratish': 'Create class code',
   "Ma'muriyat: tahlil": 'Administration: analytics', "Eng yaxshi o'quvchilar": 'Top students',
   "Eng yaxshi dars o'tgan o'qituvchilar": 'Teachers with the best lessons', 'Sinflar taqqoslash': 'Class comparison',
