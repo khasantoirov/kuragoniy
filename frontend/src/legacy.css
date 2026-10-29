@@ -2490,6 +2490,8 @@ img.stf__img { width: 54px; height: 54px; max-width: 54px; max-height: 54px; }
 }
 .stf__row span { color: var(--ink-3); }
 .stf__row b { font-weight: 500; font-family: var(--f-mono); font-size: 12px; }
+.stf__edit { margin-left: 6px; padding: 0; border: 0; background: none; color: var(--ink-3); cursor: pointer; vertical-align: -2px; }
+.stf__edit:hover, .stf__edit:focus-visible { color: var(--pick); }
 
 /* ══ Kirish ekrani — bitta ustun, brend yuqorida (1/2-rasm uslubi) ══ */
 .gate__card {

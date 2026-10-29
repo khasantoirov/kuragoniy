@@ -51,7 +51,7 @@ from .services import (
     submit_attempt,
     visible_students,
 )
-from .student_accounts import create_student_account, new_join_code
+from .student_accounts import USERNAME_RE, create_student_account, new_join_code, normalize_username
 
 
 def _grade_param(request):
@@ -249,6 +249,27 @@ class StudentManageViewSet(viewsets.GenericViewSet):
         revoke_all_tokens(user)
         log_event('student_password_reset', actor=request.user, request=request, detail=user.username or '')
         return Response({'username': user.username, 'password': plain})
+
+    @action(detail=True, methods=['post'], url_path='set-login')
+    def set_login(self, request, pk=None):
+        """The class teacher (or an admin) gives a pupil another login. The
+        old one keeps working and the sign-in says which one is new."""
+        user = self._profile(request, pk).user
+        login = normalize_username(request.data.get('username'))
+        if not USERNAME_RE.match(login):
+            raise ValidationError({'username': "Login 3–40 belgi: lotin harflari, raqamlar, nuqta yoki pastki chiziq."})
+        old = user.username
+        if login != old:
+            if User.objects.filter(Q(username__iexact=login) | Q(previous_username__iexact=login)).exclude(pk=user.pk).exists():
+                raise ValidationError({'username': "Bu login band. Boshqasini tanlang."})
+            user.username = login
+            fields = ['username']
+            if old:
+                user.previous_username = old
+                fields.append('previous_username')
+            user.save(update_fields=fields)
+            log_event('student_login_changed', actor=request.user, request=request, detail=f'{user.name}: {old or "—"} → {login}')
+        return Response({'username': user.username})
 
     @action(detail=True, methods=['post'], url_path='set-active')
     def set_active(self, request, pk=None):

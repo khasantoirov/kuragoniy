@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Avatar } from '@/components/Avatar'
 import { useConfirm } from '@/components/ConfirmProvider'
+import { LoginEditModal } from '@/components/LoginEditModal'
 import { Modal } from '@/components/Modal'
 import { RoleBadge } from '@/components/RoleBadge'
 import { Skeleton } from '@/components/Skeleton'
@@ -151,49 +152,6 @@ function NewPasswordModal({ email, password, onClose, title = 'Parolni tiklash' 
 
 /** How a person is named in confirmations: the login, else the email. */
 const who = (u: User) => u.username || u.email || u.name || ''
-
-/** A staff member's login, typed by an administrator. The old login keeps
- * working too, so nobody is locked out before they've been told. */
-function LoginEditModal({ user, onClose }: { user: User; onClose: () => void }) {
-  const { t } = useTranslation()
-  const queryClient = useQueryClient()
-  const toast = useToast()
-  const [login, setLogin] = useState(user.username ?? '')
-  const [error, setError] = useState('')
-  const save = useMutation({
-    mutationFn: async () => (await api.post(`/accounts/users/${user.id}/set-login/`, { login })).data,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
-      toast(t("Login o'zgartirildi"))
-      onClose()
-    },
-    onError: (err: unknown) => {
-      const data = (err as { response?: { data?: Record<string, string[] | string> } }).response?.data
-      const first = data && Object.values(data)[0]
-      setError(t(Array.isArray(first) ? first[0] : first || "Amalni bajarib bo'lmadi"))
-    },
-  })
-
-  return (
-    <Modal
-      title={t("Loginni o'zgartirish")}
-      onClose={onClose}
-      footer={<>
-        <button className="btn" onClick={onClose}>{t('Bekor qilish')}</button>
-        <button className="btn btn--primary" disabled={save.isPending || login.trim().length < 3}
-          onClick={() => { setError(''); save.mutate() }}>{t('Saqlash')}</button>
-      </>}
-    >
-      <p className="prose prose--note">{user.name} — {t("parol o'zgarmaydi. Eski login ham ishlayveradi, kirganda yangisi aytiladi.")}</p>
-      <label className="field">
-        <span className="field__label">{t('Login')}</span>
-        <input className="input" autoFocus value={login} autoCapitalize="none" spellCheck={false}
-          onChange={(e) => setLogin(e.target.value.toLowerCase())} placeholder="hasantoirov" />
-      </label>
-      {error && <p className="form__note form__note--err" role="alert">{error}</p>}
-    </Modal>
-  )
-}
 
 /** New teacher (or, for the developer, observer) account — the login page
  * no longer offers self-registration. The server builds the login from
@@ -403,6 +361,11 @@ export function AdminPage() {
   const queryClient = useQueryClient()
   const [newPassword, setNewPassword] = useState<{ email: string; password: string; title?: string } | null>(null)
   const [editingLogin, setEditingLogin] = useState<User | null>(null)
+  // Never oneself, never the developer, and another administrator only by
+  // the developer. A login its owner may change too.
+  const manageable = (u: User) => u.id !== me?.id && !u.is_dev_superuser
+    && (!!me?.is_dev_superuser || !(u.role === 'admin' || u.role === 'boshliq' || u.role === 'kuzatuvchi'))
+  const loginEditable = (u: User) => u.id === me?.id || manageable(u)
   const [creatingStaff, setCreatingStaff] = useState(false)
 
   const { data, isLoading } = useQuery({
@@ -513,7 +476,10 @@ export function AdminPage() {
                     <div className="stf__b">
                       <p className="stf__row"><span>{t("Tug'ilgan sana")}</span><b>{fmtBday(u.bday)}</b></p>
                       <p className="stf__row"><span>{t('Telefon')}</span><b>{u.phone || '—'}</b></p>
-                      <p className="stf__row"><span>{t('Login')}</span><b>{u.username || '—'}</b></p>
+                      <p className="stf__row"><span>{t('Login')}</span><b>{u.username || '—'}{loginEditable(u) && (
+                    <button type="button" className="stf__edit" onClick={() => setEditingLogin(u)}
+                      title={t("Loginni o'zgartirish")} aria-label={t("Loginni o'zgartirish")}>{IC.edit}</button>
+                  )}</b></p>
                       <p className="stf__row"><span>{t('Email')}</span><b>{u.email || '—'}</b></p>
                       <p className="stf__row">
                         <span>Telegram</span>
@@ -539,9 +505,8 @@ export function AdminPage() {
               <ul className="people">
                 {approved.map((u) => {
                   const isSelf = u.id === me?.id
-                  const targetIsDev = u.is_dev_superuser
                   const targetIsAdm = u.role === 'admin' || u.role === 'boshliq' || u.role === 'kuzatuvchi'
-                  const canManage = !isSelf && !targetIsDev && (me?.is_dev_superuser || !targetIsAdm)
+                  const canManage = manageable(u)
                   const locked = !!u.locked_until && new Date(u.locked_until) > new Date()
                   return (
                     <li key={u.id} className="person">
@@ -550,7 +515,10 @@ export function AdminPage() {
                         <p className="person__mail">{[u.username, u.email].filter(Boolean).join(' · ')} · <Presence online={u.online} lastSeen={u.last_seen} /></p>
                       </div>
                       {isSelf ? (
-                        <span className="person__you">{t('siz')}</span>
+                        <div className="person__acts">
+                          <span className="person__you">{t('siz')}</span>
+                          <button className="btn btn--sm btn--ghost" onClick={() => setEditingLogin(u)}>{t("Loginni o'zgartirish")}</button>
+                        </div>
                       ) : canManage ? (
                         <div className="person__acts">
                           {me?.is_dev_superuser &&
@@ -610,7 +578,10 @@ export function AdminPage() {
               }}
             />
           )}
-          {editingLogin && <LoginEditModal user={editingLogin} onClose={() => setEditingLogin(null)} />}
+          {editingLogin && (
+            <LoginEditModal name={editingLogin.name} login={editingLogin.username ?? ''} url={`/accounts/users/${editingLogin.id}/set-login/`}
+              onSaved={() => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })} onClose={() => setEditingLogin(null)} />
+          )}
           {newPassword && (
             <NewPasswordModal email={newPassword.email} password={newPassword.password} title={newPassword.title}
               onClose={() => setNewPassword(null)} />

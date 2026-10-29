@@ -74,3 +74,33 @@ def test_admin_changes_a_staff_login(as_user, api_client, admin, teacher, make_u
 def test_pupil_login_is_not_changed_here(as_user, admin, student):
     resp = as_user(admin).post(f"/api/accounts/users/{student.pk}/set-login/", {"login": "yangilogin"}, format="json")
     assert resp.status_code in (403, 404)
+
+
+def test_admin_changes_own_login(as_user, api_client, admin):
+    resp = as_user(admin).post(f"/api/accounts/users/{admin.pk}/set-login/", {"login": "bosh.admin"}, format="json")
+    assert resp.status_code == 200 and resp.data["username"] == "bosh.admin"
+    assert _login(api_client, "bosh.admin").status_code == 200
+
+
+def test_class_teacher_changes_a_pupil_login(as_user, api_client, teacher, make_user, journal_class, student):
+    url = f"/api/learning/students/{student.pk}/set-login/"
+    old = User.objects.get(pk=student.pk).username
+
+    for bad in ("ab", "ali@x", "bo'sh joy"):
+        assert as_user(teacher).post(url, {"username": bad}, format="json").status_code == 400
+    taken = make_user("taken@example.com", approved=True)
+    taken.username = "band"
+    taken.save(update_fields=["username"])
+    assert as_user(teacher).post(url, {"username": "Band"}, format="json").status_code == 400
+
+    resp = as_user(teacher).post(url, {"username": "Vali.8A"}, format="json")
+    assert resp.status_code == 200 and resp.data["username"] == "vali.8a"
+    assert User.objects.get(pk=student.pk).check_password("Talaba-2026x")  # password untouched
+
+    assert _login(api_client, "vali.8a", "Talaba-2026x").status_code == 200
+    renamed = _login(api_client, old, "Talaba-2026x")
+    assert renamed.status_code == 200 and renamed.data["renamed_login"] == "vali.8a"
+
+    # Another class's teacher can't.
+    other = make_user("other-teacher@example.com", approved=True)
+    assert as_user(other).post(url, {"username": "boshqa1"}, format="json").status_code == 403

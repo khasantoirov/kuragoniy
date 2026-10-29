@@ -804,9 +804,11 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
     def set_login(self, request, pk=None):
         """A staff member's login chosen by an administrator (the generated
         one is first name + surname). The old login keeps working, like a
-        regenerated student login, and the sign-in tells which is new."""
+        regenerated student login, and the sign-in tells which is new. An
+        administrator may change their own login as well."""
         target = self.get_object()
-        self._guard_target(request, target)
+        if target.pk != request.user.pk:
+            self._guard_target(request, target)
         if target.is_student:
             raise PermissionDenied("O'quvchi logini o'quvchilar bo'limida o'zgartiriladi.")
         login = str(request.data.get('login') or '').strip().lower()

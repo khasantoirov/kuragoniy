@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 
 import { useConfirm } from '@/components/ConfirmProvider'
 import { EmptyState } from '@/components/EmptyState'
+import { LoginEditModal } from '@/components/LoginEditModal'
 import { Modal } from '@/components/Modal'
 import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
@@ -67,6 +68,7 @@ export function StudentsPage() {
   const [creds, setCreds] = useState<Credential[] | null>(null)
   const [newName, setNewName] = useState('')
   const [busy, setBusy] = useState(false)
+  const [editing, setEditing] = useState<StudentAccountRow | null>(null)
 
   useEffect(() => {
     if (classId == null && classes?.length) setClassId(classes[0].id)
@@ -228,6 +230,7 @@ export function StudentsPage() {
                       <td>{s.attempts}</td>
                       <td className="dtable__acts">
                         <button className="btn btn--sm btn--ghost" disabled={busy} onClick={() => act(s, 'reset-password')}>{t('Parolni tiklash')}</button>
+                        <button className="btn btn--sm btn--ghost" disabled={busy} onClick={() => setEditing(s)}>{t("Loginni o'zgartirish")}</button>
                         <button className="btn btn--sm btn--ghost" disabled={busy} onClick={() => act(s, 'set-active', { is_active: !s.is_active })}>
                           {s.is_active ? t('Bloklash') : t('Blokdan chiqarish')}
                         </button>
@@ -244,6 +247,10 @@ export function StudentsPage() {
       )}
 
       {creds && <CredentialsModal creds={creds} className={cls?.name ?? ''} onClose={() => setCreds(null)} />}
+      {editing && (
+        <LoginEditModal name={editing.name} login={editing.username || ''} url={`/learning/students/${editing.id}/set-login/`}
+          field="username" onSaved={invalidate} onClose={() => setEditing(null)} />
+      )}
     </div>
   )
 }
