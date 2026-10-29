@@ -106,7 +106,9 @@ def _signups_by_day(days):
 
 
 def _role_breakdown():
-    rows = User.objects.values('role').annotate(count=Count('id')).order_by('role')
+    """Staff by role — the chart is "Xodimlar rol bo'yicha", so pupils
+    (a crowd of their own) stay out of it."""
+    rows = User.objects.exclude(role=User.Role.STUDENT).values('role').annotate(count=Count('id')).order_by('role')
     return [{'role': r['role'], 'count': r['count']} for r in rows]
 
 

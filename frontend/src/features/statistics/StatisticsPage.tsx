@@ -24,6 +24,7 @@ const ROLE_LABELS: Record<string, string> = {
   teacher: "O'qituvchi",
   admin: 'Admin',
   boshliq: 'Boshliq',
+  kuzatuvchi: 'Kuzatuvchi',
 }
 
 const fmtShortDate = (iso: string, lang: string) => {

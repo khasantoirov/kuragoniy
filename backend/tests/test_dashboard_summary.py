@@ -179,12 +179,14 @@ def test_signups_by_day_zero_fills_gaps(as_user, admin):
 def test_role_breakdown_counts(as_user, admin, make_user):
     make_user("teacher-role@example.com", role=User.Role.TEACHER, approved=True)
     make_user("boshliq-role@example.com", role=User.Role.BOSHLIQ, approved=True)
+    make_user("pupil-role@example.com", role=User.Role.STUDENT, approved=True)
 
     resp = as_user(admin).get(URL)
     by_role = {row["role"]: row["count"] for row in resp.data["users"]["by_role"]}
     assert by_role.get("teacher", 0) >= 1
     assert by_role.get("boshliq", 0) == 1
     assert by_role.get("admin", 0) >= 1  # the `admin` fixture itself
+    assert "student" not in by_role  # staff only
 
 
 def test_pending_approval_count_excludes_admin_and_boshliq(as_user, admin, make_user):
