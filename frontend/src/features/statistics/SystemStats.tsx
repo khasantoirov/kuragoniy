@@ -44,7 +44,7 @@ export function SystemStats() {
   const { lang, viewMode } = useUIStore()
   const { user } = useAuth()
   const admin = isAdminInView(user, viewMode)
-  const { data, isLoading } = useDashboardSummary('u')
+  const { data, isLoading } = useDashboardSummary()
 
   if (isLoading || !data) return <Skeleton lines={4} />
 

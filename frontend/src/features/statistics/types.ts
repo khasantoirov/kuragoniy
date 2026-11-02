@@ -1,23 +1,3 @@
-export type DashboardChorak = 1 | 2 | 3 | 4 | 'u'
-
-export interface MasteryBands {
-  alo: number
-  yaxshi: number
-  qoniqarli: number
-  qoniqarsiz: number
-  yomon: number
-  ungraded: number
-  class_avg: number | null
-  class_pct: number | null
-}
-
-export interface JournalSection {
-  total_classes: number
-  total_students: number
-  mastery: MasteryBands
-  attendance_rate_pct: number | null
-}
-
 export interface SignupDay {
   date: string
   count: number
@@ -79,17 +59,13 @@ export interface EngagementSection {
 
 export interface TeacherDashboardSummary {
   role: 'teacher'
-  chorak: string
   generated_at: string
-  journal: JournalSection
   timetable: TimetableSection
 }
 
 export interface AdminDashboardSummary {
   role: 'admin'
-  chorak: string
   generated_at: string
-  journal: JournalSection
   timetable: TimetableSection
   users: UsersSection
   lessons: LessonsSection

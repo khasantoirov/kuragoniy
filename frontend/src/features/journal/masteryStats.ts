@@ -20,7 +20,7 @@ export interface Bucket {
 
 /** The five grading bands a pupil's period average falls into — the band
  * of the mark it rounds to (scales.ts), a'lo first. Keys match
- * dashboard/mastery.py's BANDS; colours are the journal's .gchip--<level>. */
+ * schools/stats.py's BANDS; colours are the journal's .gchip--<level>. */
 export const BANDS = [
   { key: 'alo', level: 5, label: "A'lo" },
   { key: 'yaxshi', level: 4, label: 'Yaxshi' },

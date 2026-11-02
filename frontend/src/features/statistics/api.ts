@@ -2,16 +2,12 @@ import { useQuery } from '@tanstack/react-query'
 
 import { api } from '@/lib/api/client'
 
-import type { DashboardChorak, DashboardSummary } from './types'
+import type { DashboardSummary } from './types'
 
-export function useDashboardSummary(chorak: DashboardChorak, teacherId?: string) {
+/** The school's working figures for Boshqaruv › Ma'lumot (SystemStats.tsx). */
+export function useDashboardSummary() {
   return useQuery({
-    queryKey: ['dashboard', 'summary', chorak, teacherId ?? null],
-    queryFn: async () =>
-      (
-        await api.get<DashboardSummary>('/dashboard/summary/', {
-          params: { chorak: String(chorak), ...(teacherId ? { teacher: teacherId } : {}) },
-        })
-      ).data,
+    queryKey: ['dashboard', 'summary'],
+    queryFn: async () => (await api.get<DashboardSummary>('/dashboard/summary/')).data,
   })
 }
