@@ -34,6 +34,10 @@ class Student(models.Model):
     # their historical grades/attendance rows (old system's positional
     # index scheme had no such safeguard — see migration plan §2.3).
     active = models.BooleanField(default=True)
+    # Transferred to another class with the marks left behind as an archive
+    # (journal/transfer.py): this row stays here, inactive, pointing at the
+    # pupil's row in the new class; the old journal still shows it, greyed.
+    moved_to = models.ForeignKey('self', null=True, blank=True, related_name='moved_from', on_delete=models.SET_NULL)
 
     class Meta:
         ordering = ['order']

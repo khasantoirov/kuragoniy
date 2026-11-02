@@ -1,14 +1,17 @@
 from datetime import timedelta
 
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from common.permissions import IsApproved
+from common.permissions import IsAdminOrDevSuperuser, IsApproved
+from common.security import log_event
 
 from .locks import ALL_PAST_DAYS, LOCKED_DETAIL, NOT_OWNER_DETAIL, can_edit_day, is_owner, lock_info, today
 from .models import (
@@ -23,6 +26,7 @@ from .models import (
     Student,
 )
 from .scales import convert, level
+from .transfer import MODES, transfer_student
 from .serializers import (
     BulkDaySerializer,
     ClassDaySerializer,
@@ -86,6 +90,9 @@ class JournalClassViewSet(viewsets.ModelViewSet):
         re-deriving the positional 'date:studentIndex' key scheme."""
         journal_class = self.get_object()
         students = list(journal_class.students.filter(active=True).order_by('order'))
+        # pupils moved to another class with their marks left here (journal/transfer.py)
+        archived = list(journal_class.students.filter(active=False, moved_to__isnull=False)
+                        .select_related('moved_to__journal_class').order_by('order'))
         days = list(journal_class.days.order_by('date'))
 
         marks_by_day = {}
@@ -103,6 +110,10 @@ class JournalClassViewSet(viewsets.ModelViewSet):
         return Response({
             'scale': journal_class.scale,
             'students': StudentSerializer(students, many=True).data,
+            'archived': [
+                {'id': s.id, 'full_name': s.full_name, 'moved_to_class': s.moved_to.journal_class.name}
+                for s in archived
+            ],
             'days': [
                 {
                     **ClassDaySerializer(d).data,
@@ -215,6 +226,43 @@ class StudentViewSet(viewsets.ModelViewSet):
         # Soft-delete: keep historical grades/attendance intact.
         instance.active = False
         instance.save(update_fields=['active'])
+
+
+class StudentTransferView(APIView):
+    """POST {target, mode}: an administrator moves a pupil to another class —
+    with the marks (`carry`) or leaving them behind as an archive
+    (`archive`); see journal/transfer.py."""
+
+    permission_classes = [IsAdminOrDevSuperuser]
+
+    def post(self, request, pk):
+        from notifications.models import Kind
+        from notifications.service import notify
+
+        student = get_object_or_404(Student.objects.select_related('journal_class'), pk=pk, active=True)
+        mode = request.data.get('mode')
+        if mode not in MODES:
+            return Response({'detail': "Ko'chirish usulini tanlang."}, status=status.HTTP_400_BAD_REQUEST)
+        target = JournalClass.objects.select_related('teacher').filter(pk=request.data.get('target')).first()
+        if not target or target.pk == student.journal_class_id:
+            return Response({'detail': 'Boshqa sinfni tanlang.'}, status=status.HTTP_400_BAD_REQUEST)
+        # The new class's teacher may have typed the pupil in already — two
+        # rows of one pupil would split their marks between them.
+        if target.students.filter(active=True, full_name__iexact=student.full_name.strip()).exists():
+            return Response(
+                {'detail': f"{target.name} sinfida «{student.full_name}» allaqachon bor — avval o'sha qatorni ro'yxatdan olib tashlang."},
+                status=status.HTTP_400_BAD_REQUEST)
+        source = student.journal_class
+        row = transfer_student(student, target, mode)
+        how = 'baho va davomati bilan' if mode == 'carry' else 'baholari eski sinfda arxivda'
+        log_event('student_transferred', actor=request.user, request=request,
+                  detail=f'{row.full_name}: {class_label(source)} → {class_label(target)} ({how})')
+        if target.teacher_id != request.user.pk:
+            title = f"{row.full_name} sinfingizga ko'chirildi"
+            body = f'{class_label(source)} → {class_label(target)} · {how}'
+            notify(target.teacher, Kind.OQUVCHI, title, body, f'/journal?class={target.pk}',
+                   telegram_text=f'👤 {title}\n{body}')
+        return Response({'student': row.id, 'class': target.pk, 'mode': mode})
 
 
 class FinalGradeViewSet(viewsets.ReadOnlyModelViewSet):

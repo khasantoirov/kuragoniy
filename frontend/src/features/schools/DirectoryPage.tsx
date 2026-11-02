@@ -10,10 +10,13 @@ import { PageHead, StatusPill } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
+import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
+import { useUIStore } from '@/store/uiStore'
 
 import { useDirectory, useSchools, type DirectoryRow } from './api'
 import { MetricPill } from './shared'
 import { useStatsHub } from './statsFilter'
+import { TransferStudentModal } from './TransferStudentModal'
 
 /** Umumiy ma'lumotlar bazasi — every pupil on every partner school's
  * rosters in one searchable table. */
@@ -33,6 +36,10 @@ export function DirectoryPage() {
   const { data: teachers } = useTeachersList()
   const { data, isLoading, isFetching } = useDirectory({ q: debounced, school, teacher, class: cls, page })
   const [exporting, setExporting] = useState(false)
+  // only administrators move pupils between classes (backend IsAdminOrDevSuperuser)
+  const { user } = useAuth()
+  const admin = isAdminInView(user, useUIStore((s) => s.viewMode))
+  const [moving, setMoving] = useState<DirectoryRow | null>(null)
 
   useEffect(() => {
     const id = setTimeout(() => setDebounced(q), 350)
@@ -105,7 +112,7 @@ export function DirectoryPage() {
               <table className="dtable dtable--dense">
                 <thead>
                   <tr><th>{t("O'quvchi")}</th><th>{t('Sinf')}</th><th>{t('Maktab')}</th><th>{t("O'qituvchi")}</th><th>{t('Platforma')}</th>
-                    <th>{t("O'rtacha baho")}</th><th>{t('Sababli')}</th><th>{t('Sababsiz')}</th><th>{t('Kech')}</th></tr>
+                    <th>{t("O'rtacha baho")}</th><th>{t('Sababli')}</th><th>{t('Sababsiz')}</th><th>{t('Kech')}</th>{admin && <th />}</tr>
                 </thead>
                 <tbody>
                   {data.results.map((r) => (
@@ -119,6 +126,11 @@ export function DirectoryPage() {
                       <td>{r.abs_s}</td>
                       <td>{r.abs_n >= 3 ? <StatusPill tone="bad">{r.abs_n}</StatusPill> : r.abs_n}</td>
                       <td>{r.late}</td>
+                      {admin && (
+                        <td className="dtable__acts">
+                          <button className="btn btn--sm btn--ghost" onClick={() => setMoving(r)}>{t("Ko'chirish")}</button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -132,6 +144,7 @@ export function DirectoryPage() {
           </>
         ) : <p className="prose prose--note">{t("Hech narsa topilmadi.")}</p>}
       </section>
+      {moving && <TransferStudentModal row={moving} onClose={() => setMoving(null)} />}
     </div>
   )
 }

@@ -57,9 +57,18 @@ export interface ControlWork {
   by_name: string
 }
 
+/** A pupil moved to another class with their marks left here as an
+ * archive (backend journal/transfer.py) — shown greyed under the roster. */
+export interface ArchivedStudent {
+  id: number
+  full_name: string
+  moved_to_class: string
+}
+
 export interface Grid {
   scale?: number
   students: Student[]
+  archived?: ArchivedStudent[]
   days: GridDay[]
   finals: Record<string, Record<string, number>>
   controls?: ControlWork[]

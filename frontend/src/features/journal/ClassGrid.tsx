@@ -23,7 +23,7 @@ import { GrantDayModal } from './GrantDayModal'
 import { EditStudentsModal } from './EditStudentsModal'
 import { canEditDay, grantFor, isPending, localToday } from './lock'
 import { asScale, fmtAvg, SCALES, type Scale } from './scales'
-import { computeStats, controlAvg } from './stats'
+import { computeStats, controlAvg, meanOf } from './stats'
 import type { ControlWork, JournalClass } from './types'
 
 /** The server's reason (e.g. "this day is closed") when it gives one. */
@@ -84,6 +84,11 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
   const finals = grid.finals[String(chorak)] ?? {}
   const controls = (grid.controls ?? []).filter((w) => w.chorak === chorak)
   const canControl = !!lock?.can_control
+  // Moved to another class, marks kept here: shown greyed under the
+  // roster, outside the class's averages.
+  const archived = grid.archived ?? []
+  const archivedStats = computeStats({ students: archived }, days, scale)
+  const finalsAvg = meanOf(students, finals)
 
   if (!students.length && !owner) {
     return <p className="prose prose--note">{cls.name} — {t("o'quvchi yo'q")}</p>
@@ -176,6 +181,13 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
       ...controls.map((w) => w.marks[s.id] ?? ''),
       stats.perStudent[i].avg != null ? fmtAvg(stats.perStudent[i].avg, scale) : '',
       finals[s.id] ?? '',
+    ])
+    const avgText = (v: number | null, sc: Scale) => (v != null ? fmtAvg(v, sc) : '')
+    rows.push([
+      '', t("Sinf o'rtachasi"),
+      ...days.map((d) => avgText(meanOf(students, d.marks), scale)),
+      ...controls.map((w) => controlAvg(students, [w]) ?? ''),
+      avgText(stats.classAvg, scale), avgText(finalsAvg, scale),
     ])
     tablePdf(`${t('Jurnal')} — ${cls.name}`, head, rows, { orientation: 'landscape' })
   }
@@ -293,6 +305,47 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
               </tr>
             ))}
           </tbody>
+          <tbody>
+            <tr className="jt__sum">
+              <td className="jt__no" />
+              <td className="jt__nm">{t("Sinf o'rtachasi")}</td>
+              {days.map((d) => (
+                <td key={d.id} className="jt__c"><AvgChip avg={meanOf(students, d.marks)} scale={scale} /></td>
+              ))}
+              {controls.map((w) => (
+                <td key={`ctl${w.id}`} className="jt__c jt__ctl"><GradeChip v={controlAvg(students, [w])} scale={100} empty="—" /></td>
+              ))}
+              <td className="jt__avg"><AvgChip avg={stats.classAvg} scale={scale} /></td>
+              <td className="jt__fin"><AvgChip avg={finalsAvg} scale={scale} /></td>
+            </tr>
+          </tbody>
+          {archived.length > 0 && (
+            <tbody className="jt__gone">
+              {archived.map((s, i) => (
+                <tr key={s.id} title={`${t("Boshqa sinfga o'tgan")}: ${s.moved_to_class}`}>
+                  <td className="jt__no">—</td>
+                  <td className="jt__nm">{s.full_name} <span className="jt__moved">→ {s.moved_to_class}</span></td>
+                  {days.map((d) => {
+                    const st = d.attendance[s.id]
+                    const a = st ? attOf(st) : null
+                    return (
+                      <td key={d.id} className="jt__c">
+                        <div className="jt__c-in">
+                          {a && <span className={`at ${a.cls}`} title={t(a.label)}>{a.ic}</span>}
+                          <GradeChip v={d.marks[s.id]} scale={scale} />
+                        </div>
+                      </td>
+                    )
+                  })}
+                  {controls.map((w) => (
+                    <td key={`ctl${w.id}`} className="jt__c jt__ctl"><GradeChip v={w.marks[s.id]} scale={100} /></td>
+                  ))}
+                  <td className="jt__avg"><AvgChip avg={archivedStats.perStudent[i].avg} scale={scale} /></td>
+                  <td className="jt__fin"><GradeChip v={finals[s.id]} scale={scale} /></td>
+                </tr>
+              ))}
+            </tbody>
+          )}
         </table>
       </div>
 

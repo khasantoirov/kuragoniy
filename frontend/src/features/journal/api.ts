@@ -31,6 +31,23 @@ export function useCreateClass() {
   })
 }
 
+/** Move a pupil to another class (administrators; backend
+ * journal/transfer.py): 'carry' takes the marks along, 'archive' leaves
+ * them in the old journal and starts the pupil afresh. */
+export type TransferMode = 'carry' | 'archive'
+
+export function useTransferStudent() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ student, target, mode }: { student: number; target: number; mode: TransferMode }) =>
+      (await api.post<{ student: number; class: number; mode: TransferMode }>(`/journal/students/${student}/transfer/`, { target, mode })).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['journal'] })
+      queryClient.invalidateQueries({ queryKey: ['schools'] })
+    },
+  })
+}
+
 export function useAddStudent(classId: number) {
   const queryClient = useQueryClient()
   return useMutation({

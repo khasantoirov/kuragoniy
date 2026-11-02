@@ -5,7 +5,7 @@ import type { ControlWork, Grid } from './types'
  * mean of all marks as a percent of the top mark (4.2 of 5 = 84%) — the
  * same definition as the statistics pages (backend schools/stats.py), so it
  * means the same on a 0-5, 0-10 or 0-100 class. */
-export function computeStats(grid: Pick<Grid, 'students'>, days: Grid['days'], scale: Scale) {
+export function computeStats(grid: { students: { id: number }[] }, days: Grid['days'], scale: Scale) {
   const perStudent = grid.students.map((s) => {
     const vals = days.map((d) => d.marks[s.id]).filter((v): v is number => typeof v === 'number' && v >= 0 && v <= scale)
     const avg = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null
@@ -26,6 +26,13 @@ export function computeStats(grid: Pick<Grid, 'students'>, days: Grid['days'], s
   }
   const pct = n ? Math.round(sum / n) : null
   return { perStudent, classAvg, pct }
+}
+
+/** The roster's mean of one set of marks — a lesson day's, or the
+ * quarter grades — on the class's scale; null when nobody has one. */
+export function meanOf(students: { id: number }[], marks: Record<string, number> | undefined) {
+  const vals = students.map((s) => marks?.[s.id]).filter((v): v is number => typeof v === 'number')
+  return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null
 }
 
 /** Nazorat ishi: the roster's mean result (out of 100) over some control

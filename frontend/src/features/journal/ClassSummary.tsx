@@ -15,7 +15,7 @@ import { PercentPill } from '@/features/portal/ui'
 
 import { AvgChip, GradeChip } from './GradeCell'
 import { asScale } from './scales'
-import { computeStats, controlAvg } from './stats'
+import { computeStats, controlAvg, meanOf } from './stats'
 import type { JournalClass } from './types'
 
 export function ClassSummary({ cls, teacherId }: { cls: JournalClass; teacherId?: string }) {
@@ -64,6 +64,12 @@ export function ClassSummary({ cls, teacherId }: { cls: JournalClass; teacherId?
   })
   const tot = computeStats(grid, grid.days, scale)
   const controls = grid.controls ?? []
+  // Choraklik baho: the class's mean quarter grade; Umumiy pools every
+  // quarter grade given so far.
+  const finalsOf = (q: number) => grid.finals[String(q)]
+  const allFinals = [1, 2, 3, 4].flatMap((q) => grid.students.map((s) => finalsOf(q)?.[s.id]))
+    .filter((v): v is number => typeof v === 'number')
+  const finalsTot = allFinals.length ? allFinals.reduce((a, b) => a + b, 0) / allFinals.length : null
 
   return (
     <div>
@@ -102,6 +108,13 @@ export function ClassSummary({ cls, teacherId }: { cls: JournalClass; teacherId?
               {rows.map((r) => (<td key={r.q} className="table__q"><PercentPill value={r.pct} /></td>))}
               <td className="table__q"><PercentPill value={tot.pct} /></td>
             </tr>
+            {finalsTot !== null && (
+              <tr>
+                <td>{t('Choraklik baho')} <span className="field__opt">({t("o'rtacha")})</span></td>
+                {rows.map((r) => (<td key={r.q} className="table__q"><AvgChip avg={meanOf(grid.students, finalsOf(r.q))} scale={scale} /></td>))}
+                <td className="table__q"><AvgChip avg={finalsTot} scale={scale} /></td>
+              </tr>
+            )}
             {controls.length > 0 && (
               <tr>
                 <td>{t('Nazorat ishi')} <span className="field__opt">({t("o'rtacha ball")})</span></td>
