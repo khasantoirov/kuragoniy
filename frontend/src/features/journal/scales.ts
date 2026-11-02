@@ -25,10 +25,10 @@ const BAND_MIN: Record<Scale, Record<2 | 3 | 4 | 5, number>> = {
 
 export const LEVELS: { l: 5 | 4 | 3 | 2 | 1; label: string; color: string }[] = [
   { l: 5, label: "A'lo", color: 'Yashil' },
-  { l: 4, label: 'Yaxshi', color: 'Limon sariq' },
-  { l: 3, label: 'Qoniqarli', color: "Zarg'aldoq" },
-  { l: 2, label: 'Qoniqarsiz', color: 'Qizil' },
-  { l: 1, label: 'Yomon', color: "To'q qizil" },
+  { l: 4, label: 'Yaxshi', color: 'Och yashil' },
+  { l: 3, label: 'Qoniqarli', color: 'Sariq' },
+  { l: 2, label: 'Qoniqarsiz', color: "Zarg'aldoq" },
+  { l: 1, label: 'Yomon', color: 'Qizil' },
 ]
 
 export function levelOf(mark: number, scale: Scale): number {

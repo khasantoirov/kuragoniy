@@ -557,10 +557,10 @@ const ru: Record<string, string> = {
   // Baho ranglari (yagona tizim)
   "Rang": "Цвет",
   "Yashil": "Зелёный",
-  "Limon sariq": "Лимонно-жёлтый",
+  "Och yashil": "Светло-зелёный",
+  "Sariq": "Жёлтый",
   "Zarg'aldoq": "Оранжевый",
   "Qizil": "Красный",
-  "To'q qizil": "Тёмно-красный",
   "Shu ranglar butun platformada bir xil: jurnal baholari, nazorat ishi, test va uyga vazifa natijalari, o'zlashtirish foizi. Foizdagi natija 100 ballik ustun bo'yicha, o'rtacha baho esa yaxlitlangan bahosi bo'yicha bo'yaladi (masalan, o'rtacha 4,5 — a'lo, 4,4 — yaxshi).": "Эти цвета одинаковы на всей платформе: оценки в журнале, контрольные работы, результаты тестов и домашних заданий, процент успеваемости. Результат в процентах окрашивается по 100-балльной колонке, а средний балл — по оценке, до которой он округляется (например, средний 4,5 — отлично, 4,4 — хорошо).",
   // Menyu (soddalashtirish)
   "Resurslar": "Ресурсы",
@@ -1138,10 +1138,10 @@ const en: Record<string, string> = {
   // Baho ranglari (yagona tizim)
   "Rang": "Colour",
   "Yashil": "Green",
-  "Limon sariq": "Lemon yellow",
+  "Och yashil": "Light green",
+  "Sariq": "Yellow",
   "Zarg'aldoq": "Orange",
   "Qizil": "Red",
-  "To'q qizil": "Dark red",
   "Shu ranglar butun platformada bir xil: jurnal baholari, nazorat ishi, test va uyga vazifa natijalari, o'zlashtirish foizi. Foizdagi natija 100 ballik ustun bo'yicha, o'rtacha baho esa yaxlitlangan bahosi bo'yicha bo'yaladi (masalan, o'rtacha 4,5 — a'lo, 4,4 — yaxshi).": "These colours are the same across the platform: journal marks, control tests, test and homework results, the mastery percent. A percent is coloured by the 100-point column, an average by the mark it rounds to (e.g. a 4.5 average is excellent, 4.4 good).",
   // Menyu (soddalashtirish)
   "Resurslar": "Resources",

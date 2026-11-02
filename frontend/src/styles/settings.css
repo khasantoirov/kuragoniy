@@ -449,18 +449,17 @@ button.jt__open:hover { color: #fff; }
   .dtable td { padding: 7px 6px; }
 }
 
-/* ══ Rangli baholar (features/journal/grades.ts) ═══════════════════════
-   5 a'lo yashil, 4 yaxshi sariq, 3 qoniqarli qizil, 2 qoniqarsiz binafsha,
-   1 va 0 yomon qora — raqam rang ichida turadi. */
-/* Colour bands (features/journal/scales.ts), the same on every page:
-   5 a'lo green, 4 yaxshi lemon, 3 qoniqarli carrot orange, 2 qoniqarsiz
-   red, 1/0 yomon dark red. */
-:root { --g5: #16a34a; --g4: #facc15; --g3: #f98216; --g2: #d42020; --g1: #7f1d1d; }
-[data-theme="dark"] { --g5: #22c55e; --g4: #facc15; --g3: #f98216; --g2: #e0243c; --g1: #7f1d1d; }
+/* ══ Rangli baholar (features/journal/scales.ts) ═══════════════════════
+   5 a'lo yashil, 4 yaxshi och yashil, 3 qoniqarli sariq, 2 qoniqarsiz
+   zarg'aldoq, 1 va 0 yomon qizil — raqam rang ichida turadi; har sahifada
+   bir xil. A'lo tungi rejimda ham shu yashil: yorqinrog'i och yashilga
+   qo'shilib ketardi. */
+:root { --g5: #16a34a; --g4: #34d399; --g3: #facc15; --g2: #f98216; --g1: #d42020; }
+[data-theme="dark"] { --g5: #16a34a; --g4: #34d399; --g3: #facc15; --g2: #f98216; --g1: #e0243c; }
 .gchip--5 { --gc: var(--g5); --gt: #fff; }
-.gchip--4 { --gc: var(--g4); --gt: #3a2c00; }
-.gchip--3 { --gc: var(--g3); --gt: #2b1100; }
-.gchip--2 { --gc: var(--g2); --gt: #fff; }
+.gchip--4 { --gc: var(--g4); --gt: #053d2b; }
+.gchip--3 { --gc: var(--g3); --gt: #3a2c00; }
+.gchip--2 { --gc: var(--g2); --gt: #2b1100; }
 .gchip--1, .gchip--0 { --gc: var(--g1); --gt: #fff; }
 /* Scores outside the journal (PercentPill, MetricPill, a test's result) wear the same bands. */
 .pill[class*="gchip--"] { background: var(--gc); color: var(--gt); }
