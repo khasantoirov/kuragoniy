@@ -210,7 +210,7 @@ export function StudentsPage() {
           <h3 className="panel__title">{t('Hisoblar')} <span className="badge badge--soft">{active.length}</span></h3>
           {active.length ? (
             <div className="tablewrap">
-              <table className="dtable">
+              <table className="dtable dtable--stack">
                 <thead>
                   <tr><th>{t('Ism')}</th><th>{t('Login')}</th><th>{t('Holat')}</th><th>{t('Faollik')}</th><th>{t('Urinishlar')}</th><th /></tr>
                 </thead>
@@ -227,7 +227,7 @@ export function StudentsPage() {
                         {s.telegram_linked && <span title="Telegram"> {IC.telegram}</span>}
                       </td>
                       <td><Presence online={s.online} lastSeen={s.last_seen} /></td>
-                      <td>{s.attempts}</td>
+                      <td data-label={t('Urinishlar')}>{s.attempts}</td>
                       <td className="dtable__acts">
                         <button className="btn btn--sm btn--ghost" disabled={busy} onClick={() => act(s, 'reset-password')}>{t('Parolni tiklash')}</button>
                         <button className="btn btn--sm btn--ghost" disabled={busy} onClick={() => setEditing(s)}>{t("Loginni o'zgartirish")}</button>

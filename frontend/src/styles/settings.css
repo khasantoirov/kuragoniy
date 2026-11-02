@@ -556,11 +556,14 @@ button.jt__open:hover { color: #fff; }
   background: var(--surface); border-top: 1px solid var(--rule); box-shadow: 0 -6px 18px rgba(20,30,45,.06);
 }
 @media (min-width: 761px) { .dsave { left: var(--sidebar-w, 0px); } }
+/* "Tepaga" sits where the bar's Saqlash button is — lift it clear. */
+body:has(.dsave) .totop { bottom: 90px; }
 .dsave__st { color: var(--ink-2); font-size: 14px; }
 .dsave__st.is-dirty { color: var(--tone-mid); font-weight: 600; }
 .dsave__go { min-width: 140px; height: 44px; font-size: 16px; }
 @media (max-width: 760px) {
   .dsave { bottom: calc(64px + env(safe-area-inset-bottom)); padding: 10px 16px; }
+  body:has(.dsave) .totop { bottom: calc(140px + env(safe-area-inset-bottom)); }
   .dpage { padding-bottom: 150px; }
 }
 @media (max-width: 640px) {

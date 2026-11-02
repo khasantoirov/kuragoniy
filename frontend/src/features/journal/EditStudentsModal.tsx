@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Modal } from '@/components/Modal'
@@ -11,7 +11,14 @@ import type { JournalClass, Student } from './types'
 interface Row {
   id: number | null
   name: string
+  // A stable React key: rows come and go from the middle of the list,
+  // and an index key would hand one pupil's input (and the phone's
+  // keyboard focus) to the next pupil down.
+  key: number
 }
+
+let lastKey = 0
+const newRow = (id: number | null, name: string): Row => ({ id, name, key: ++lastKey })
 
 // Excel/Sheets paste of a student list, in any of the shapes a gradebook
 // tends to come in: a plain single name-per-line column, a "№ | Familiya
@@ -35,7 +42,7 @@ function parsePastedNames(text: string): string[] {
 export function EditStudentsModal({ cls, onClose }: { cls: JournalClass; onClose: () => void }) {
   const { t } = useTranslation()
   const active = [...cls.students.filter((s) => s.active)].sort((a, b) => a.full_name.localeCompare(b.full_name, 'uz'))
-  const [rows, setRows] = useState<Row[]>(active.map((s) => ({ id: s.id, name: s.full_name })))
+  const [rows, setRows] = useState<Row[]>(() => active.map((s) => newRow(s.id, s.full_name)))
   const add = useAddStudent(cls.id)
   const update = useUpdateStudent(cls.id)
   const remove = useRemoveStudent(cls.id)
@@ -44,7 +51,20 @@ export function EditStudentsModal({ cls, onClose }: { cls: JournalClass; onClose
 
   const setName = (i: number, name: string) => setRows((r) => r.map((row, idx) => (idx === i ? { ...row, name } : row)))
   const removeRow = (i: number) => setRows((r) => r.filter((_, idx) => idx !== i))
-  const addRow = () => setRows((r) => [...r, { id: null, name: '' }])
+  // The new row is focused (and so scrolled to), ready to type into —
+  // on a phone it would otherwise land out of sight below the fold.
+  const list = useRef<HTMLDivElement>(null)
+  const focusNew = useRef(false)
+  useEffect(() => {
+    if (!focusNew.current) return
+    focusNew.current = false
+    const inputs = list.current?.querySelectorAll('input')
+    inputs?.[inputs.length - 1]?.focus()
+  }, [rows])
+  const addRow = () => {
+    focusNew.current = true
+    setRows((r) => [...r, newRow(null, '')])
+  }
 
   // Pasting a whole roster copied from Excel/Sheets into any one name
   // field fills that row and inserts the rest right after it, instead of
@@ -59,7 +79,7 @@ export function EditStudentsModal({ cls, onClose }: { cls: JournalClass; onClose
     setRows((r) => {
       const next = [...r]
       next[i] = { ...next[i], name: names[0] }
-      next.splice(i + 1, 0, ...names.slice(1).map((name) => ({ id: null, name })))
+      next.splice(i + 1, 0, ...names.slice(1).map((name) => newRow(null, name)))
       return next
     })
   }
@@ -114,9 +134,9 @@ export function EditStudentsModal({ cls, onClose }: { cls: JournalClass; onClose
         {t("Ismni tahrirlang yoki o'chiring, pastda yangi o'quvchi qo'shing. Saqlanganda ro'yxat alifbo tartibida shakllanadi.")}
         {' '}{t("Excel'dan nusxalangan ro'yxatni ham istalgan maydonga joylashtirsangiz bo'ladi — har bir qator alohida o'quvchi bo'lib qo'shiladi.")}
       </p>
-      <div className="su-list">
+      <div className="su-list" ref={list}>
         {rows.map((row, i) => (
-          <div key={i} className="su-row">
+          <div key={row.key} className="su-row">
             <input
               className="input"
               value={row.name}

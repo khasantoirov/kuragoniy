@@ -1561,7 +1561,7 @@ tr.is-absent .table__name { color: var(--mark); text-decoration: line-through; o
 .modal__title { font-size: 17px; }
 .modal__body  { padding: 18px; overflow-y: auto; }
 .modal__foot  {
-  display: flex; justify-content: flex-end; gap: 8px;
+  display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px;
   padding: 14px 18px; border-top: 1px solid var(--rule);
 }
 
@@ -1628,6 +1628,9 @@ tr.is-absent .table__name { color: var(--mark); text-decoration: line-through; o
 }
 .su-row { display: flex; gap: 7px; align-items: center; }
 .su-row .input { flex: 1; }
+/* A phone's modal is already one scrolling column — a second scroller
+   inside it just traps the thumb. */
+@media (max-width: 640px) { .su-list { max-height: none; overflow: visible; } }
 
 /* ── Tajriba jihozlari ro'yxati (ExperimentEditor) — su-row'ning o'zi
    qayta ishlatiladi, faqat soni/fayl ustunlari tor bo'lishi kerak. ── */

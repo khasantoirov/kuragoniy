@@ -104,6 +104,27 @@ button.stars__b { cursor: pointer; }
 .dtable tr.is-warn td { background: var(--tone-bad-bg); }
 .dtable tr.is-click { cursor: pointer; }
 .dtable tr.is-click:hover td { background: var(--rule-2); }
+/* On a phone a wide table with its buttons at the far end becomes one
+   card per row — the name on top, the details in a line under it, the
+   buttons below — so nothing needs scrolling sideways to reach, and the
+   row being acted on never scrolls out of sight. */
+@media (max-width: 640px) {
+  .dtable--stack thead { display: none; }
+  .dtable--stack, .dtable--stack tbody { display: block; }
+  .dtable--stack tr {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
+    padding: 12px 0; border-bottom: 1px solid var(--rule-2);
+  }
+  .dtable--stack tr:last-child { border-bottom: 0; }
+  table.dtable--stack td { display: block; padding: 0; border: 0; }  /* over settings.css's phone padding */
+  .dtable--stack td:first-child { flex-basis: 100%; font-weight: 600; font-size: 14px; }
+  .dtable--stack td[data-label]::before { content: attr(data-label) ': '; color: var(--ink-3); }
+  .dtable--stack .dtable__acts {
+    flex-basis: 100%; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; white-space: normal;
+  }
+  .dtable--stack .dtable__acts .btn { padding: 8px 6px; text-align: center; line-height: 1.25; }
+  .dtable--stack .dtable__acts .btn + .btn { margin-left: 0; }
+}
 .pager { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 12px; font-size: 13px; color: var(--ink-2); }
 
 .tlist { list-style: none; margin: 0 0 12px; padding: 0; }
