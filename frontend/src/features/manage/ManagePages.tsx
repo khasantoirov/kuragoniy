@@ -10,6 +10,7 @@ import { useToast } from '@/components/Toast'
 import { AnalyticsDashboard, type AwardTarget } from '@/features/learning/AnalyticsDashboard'
 import { useAwards, useInvalidateLearning, useReports, useTeachersList, type Award, type LessonReport } from '@/features/learning/api'
 import { errText, fmtDate, fmtDateTime, PageHead, Segmented, Stars } from '@/features/portal/ui'
+import { RecentAttempts } from '@/features/teacher/RecentAttempts'
 import { ReportCard } from '@/features/teacher/ReportsPage'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
@@ -25,7 +26,7 @@ export function ManageDashboard() {
   return (
     <>
       <AnalyticsDashboard oversight canAward={isAdmin(user)} onAward={setAward}
-        title={t("Ma'muriyat: tahlil")} sub={t("Eng yaxshi o'quvchilar va eng yaxshi dars o'tgan o'qituvchilar — ma'lumotlar asosida.")} />
+        title={t("Onlayn ta'lim")} sub={t("Test, masala va uy vazifasi natijalari: eng yaxshi o'quvchilar va o'qituvchilar, qiyin darslar.")} />
       {award && <AwardModal target={award} onClose={() => setAward(null)} />}
     </>
   )
@@ -133,6 +134,19 @@ function Certificate({ award, onClose }: { award: Award; onClose: () => void }) 
   )
 }
 
+/** Statistika › Onlayn ta'lim: the rankings (a Rag'batlantirish button
+ * beside each pupil), the latest submissions and the awards given — once
+ * three tabs: Tahlil, Natijalar and Rag'batlantirish. */
+export function OnlineLearningTab() {
+  return (
+    <>
+      <ManageDashboard />
+      <RecentAttempts />
+      <AwardsPage />
+    </>
+  )
+}
+
 export function AwardsPage() {
   const { t } = useTranslation()
   const { user } = useAuth()
@@ -163,7 +177,7 @@ export function AwardsPage() {
           {admin && <button className="btn btn--primary" onClick={() => setCreating(true)}>🏆 {t("Rag'bat berish")}</button>}
         </>} />
       {isLoading && <Skeleton lines={4} />}
-      {!isLoading && !data?.length && <EmptyState title={t("Hali rag'bat berilmagan")} hint={t("«Tahlil» bo'limidagi reytinglardan to'g'ridan-to'g'ri rag'batlantirish mumkin.")} />}
+      {!isLoading && !data?.length && <EmptyState title={t("Hali rag'bat berilmagan")} hint={t("Yuqoridagi reytinglardan to'g'ridan-to'g'ri rag'batlantirish mumkin.")} />}
       <ul className="awards awards--grid">
         {data?.map((a) => (
           <li key={a.id} className="award">

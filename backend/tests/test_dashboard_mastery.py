@@ -407,3 +407,28 @@ def test_query_count_is_flat_regardless_of_school_count(as_user, admin, django_a
     seed(6, 2)
     with django_assert_max_num_queries(20):
         as_user(admin).get(URL)
+
+
+def test_partner_school_narrows_the_scope(as_user, admin, teacher):
+    from schools.models import School
+
+    sodiq = School.objects.create(name="Sodiq School")
+    inside = make_class(teacher, "8-A", school="Sodiq")
+    JournalClass.objects.filter(pk=inside.pk).update(partner_school=sodiq)
+    outside = make_class(teacher, "9-B", school="Boshqa maktab")
+    JournalClass.objects.filter(pk=outside.pk).update(partner_school=None)
+    for jc in (inside, outside):
+        make_student(jc, "Aliyev Vali")
+
+    everyone = as_user(admin).get(URL).data["totals"]
+    assert everyone["total_classes"] == 2
+
+    only = as_user(admin).get(URL, {"partner": sodiq.id}).data
+    assert only["totals"]["total_classes"] == 1
+    assert [r["label"] for r in only["breakdown"]["rows"]] == ["8-A"]
+
+    unassigned = as_user(admin).get(URL, {"partner": "none"}).data
+    assert [r["label"] for r in unassigned["breakdown"]["rows"]] == ["9-B"]
+
+    # Junk is ignored rather than failing the page.
+    assert as_user(admin).get(URL, {"partner": "abc"}).data["totals"]["total_classes"] == 2

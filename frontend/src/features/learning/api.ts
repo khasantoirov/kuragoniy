@@ -344,11 +344,12 @@ export const EMPTY_QUESTION: Question = {
 }
 
 export const PERIOD_OPTIONS = [
-  { value: 'week', label: 'Hafta' },
-  { value: 'month', label: 'Oy' },
-  { value: 'quarter', label: 'Chorak' },
-  { value: 'year', label: 'Yil' },
-  { value: 'all', label: 'Hammasi' },
+  // rolling windows back from today, not the school's choraks
+  { value: 'week', label: "So'nggi 7 kun" },
+  { value: 'month', label: "So'nggi 30 kun" },
+  { value: 'quarter', label: "So'nggi 3 oy" },
+  { value: 'year', label: "So'nggi 12 oy" },
+  { value: 'all', label: 'Butun davr' },
 ]
 
 export interface LessonOption {

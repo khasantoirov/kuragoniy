@@ -24,7 +24,7 @@ from rest_framework.views import APIView
 from accounts.models import User
 from announcements.models import Announcement
 from common.permissions import IsApproved
-from journal.models import Student
+from journal.models import JournalClass, Student
 from journal.schools import BLANK_SCHOOL_KEY
 from journal.scoping import scoped_class_ids
 from lessons.models import Experiment, Lesson
@@ -37,7 +37,16 @@ from . import mastery
 
 
 def _scope_class_ids(request):
-    return scoped_class_ids(request.user, request.query_params.get('teacher'))
+    """The caller's classes (their own, or the organisation's for an admin,
+    one teacher's via ?teacher=), narrowed to one partner school via
+    ?partner=<id> — or to classes linked to none via ?partner=none."""
+    ids = scoped_class_ids(request.user, request.query_params.get('teacher'))
+    partner = request.query_params.get('partner') or ''
+    if partner == 'none':
+        ids = list(JournalClass.objects.filter(id__in=ids, partner_school__isnull=True).values_list('id', flat=True))
+    elif partner.isdigit():
+        ids = list(JournalClass.objects.filter(id__in=ids, partner_school_id=int(partner)).values_list('id', flat=True))
+    return ids
 
 
 def _mastery_bands(class_ids, chorak):

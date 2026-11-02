@@ -15,10 +15,12 @@ export function useMasteryBreakdown(params: {
   classId?: number | null
   period: MasteryPeriod
   teacherId?: string
+  /** a partner school id, or 'none' for classes linked to none */
+  partner?: string
 }) {
-  const { chorak, school, classId, period, teacherId } = params
+  const { chorak, school, classId, period, teacherId, partner } = params
   return useQuery({
-    queryKey: ['dashboard', 'mastery', chorak, classId ?? school ?? null, period, teacherId ?? null],
+    queryKey: ['dashboard', 'mastery', chorak, classId ?? school ?? null, period, teacherId ?? null, partner ?? null],
     queryFn: async () =>
       (
         await api.get<MasteryBreakdownResponse>('/dashboard/mastery/', {
@@ -30,6 +32,7 @@ export function useMasteryBreakdown(params: {
             // unambiguous instead of relying on server-side precedence.
             ...(classId != null ? { class: classId } : school ? { school } : {}),
             ...(teacherId ? { teacher: teacherId } : {}),
+            ...(partner ? { partner } : {}),
           },
         })
       ).data,

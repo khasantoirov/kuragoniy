@@ -17,6 +17,7 @@ import { api } from '@/lib/api/client'
 import type { Paginated, User } from '@/lib/api/types'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { Presence } from '@/features/portal/Presence'
+import { SystemStats } from '@/features/statistics/SystemStats'
 import { useUIStore } from '@/store/uiStore'
 
 import { ImportLessonsModal } from './ImportLessonsModal'
@@ -343,6 +344,8 @@ export function AdminDataPanel() {
           })}
         </div>
       </section>
+
+      <SystemStats />
 
       {announcing && <AnnounceModal onClose={() => setAnnouncing(false)} />}
       {importingLessons && <ImportLessonsModal onClose={() => setImportingLessons(false)} />}

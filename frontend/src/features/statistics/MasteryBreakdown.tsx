@@ -7,11 +7,12 @@ import { StatCard } from '@/components/charts/StatCard'
 import { TrendLineChart, type TrendPoint } from '@/components/charts/TrendLineChart'
 import { Skeleton } from '@/components/Skeleton'
 import { BANDS, bucketLabel } from '@/features/journal/masteryStats'
+import { useClassRows } from '@/features/schools/api'
+import { useStatsHub } from '@/features/schools/statsFilter'
 import { useUIStore } from '@/store/uiStore'
 
 import { useMasteryBreakdown } from './masteryApi'
 import { MasteryBreakdownTable } from './MasteryBreakdownTable'
-import { MasteryScopeFilters } from './MasteryScopeFilters'
 import { BLANK_SCHOOL_KEY, type MasteryForm, type MasteryPeriod, type MasteryTrendPoint } from './masteryTypes'
 import type { DashboardChorak } from './types'
 
@@ -69,31 +70,44 @@ export function MasteryBreakdown({ chorak }: { chorak: DashboardChorak }) {
     localStorage.setItem('afmd.stats.period', p)
   }
 
+  // The scope comes from Statistika's filter panel (partner school, teacher,
+  // class); a click on a row drills further in and the trail above the
+  // cards leads back out. The page remounts this when the panel changes,
+  // so a drill never outlives the scope it was made in.
+  const hub = useStatsHub()
+  const { data: classRows = [] } = useClassRows()
+  const hubClass = hub?.filter.cls ? Number(hub.filter.cls) : null
   const [school, setSchool] = useState<string | null>(null)
-  const [classId, setClassId] = useState<number | null>(null)
+  const [drillClass, setDrillClass] = useState<number | null>(null)
+  const classId = hubClass ?? drillClass
 
-  const { data, isLoading } = useMasteryBreakdown({ chorak, school, classId, period })
+  const { data, isLoading } = useMasteryBreakdown({
+    chorak, school: classId === null ? school : null, classId, period,
+    partner: hub?.filter.school || undefined, teacherId: hub?.filter.teacher || undefined,
+  })
 
   if (isLoading && !data) return <Skeleton lines={4} />
   if (!data) return null
 
-  const { totals, breakdown, filters, scope, trend } = data
+  const { totals, breakdown, scope, trend } = data
 
+  // the top of the trail: the partner school picked in the panel, if any
+  const partner = hub?.filter.school
+  const everything = partner === 'none' ? t('Biriktirilmagan')
+    : (partner && classRows.find((r) => String(r.school_id) === partner)?.school) || t('Barcha maktablar')
+  const schoolLabel = scope.school_label ?? t("Maktab ko'rsatilmagan")
   const scopeLabel =
-    scope.level === 'class'
-      ? `${scope.school_label ?? t("Maktab ko'rsatilmagan")} · ${scope.class_name}`
-      : scope.level === 'school'
-        ? (scope.school_label ?? t("Maktab ko'rsatilmagan"))
-        : t('Umumiy')
+    scope.level === 'class' ? `${schoolLabel} · ${scope.class_name}` : scope.level === 'school' ? schoolLabel : everything
+  const drilled = hubClass === null && (school !== null || drillClass !== null)
 
   const levelLabel = breakdown.level === 'school' ? t('Maktab') : t('Sinf')
 
   const onSelectRow = (key: string) => {
     if (breakdown.level === 'school') {
       setSchool(key)
-      setClassId(null)
+      setDrillClass(null)
     } else {
-      setClassId(Number(key))
+      setDrillClass(Number(key))
     }
   }
 
@@ -101,18 +115,20 @@ export function MasteryBreakdown({ chorak }: { chorak: DashboardChorak }) {
 
   return (
     <div className="mstats">
-      <MasteryScopeFilters
-        schools={filters.schools}
-        classes={filters.classes}
-        school={school}
-        classId={classId}
-        onChange={(next) => {
-          setSchool(next.school)
-          setClassId(next.classId)
-        }}
-      />
-
-      <p className="dash__card-title stats__sub">{scopeLabel}</p>
+      <p className="dash__card-title stats__sub mstats__trail">
+        {drilled ? (
+          <button type="button" className="linklike" onClick={() => { setSchool(null); setDrillClass(null) }}>{everything}</button>
+        ) : scope.level === 'org' && everything}
+        {scope.level !== 'org' && (
+          <>
+            {drilled && <span aria-hidden="true"> › </span>}
+            {drilled && scope.level === 'class' && scope.school ? (
+              <button type="button" className="linklike" onClick={() => { setSchool(scope.school); setDrillClass(null) }}>{schoolLabel}</button>
+            ) : schoolLabel}
+            {scope.level === 'class' && <><span aria-hidden="true"> › </span>{scope.class_name}</>}
+          </>
+        )}
+      </p>
 
       <div className="dash__stats">
         <StatCard label={t('Sinflar')} value={totals.total_classes} icon="clipboard" />
@@ -215,7 +231,7 @@ export function MasteryBreakdown({ chorak }: { chorak: DashboardChorak }) {
               ariaLabel={t("O'zlashtirish dinamikasi")}
               valueSuffix="%"
               seriesLabel={scopeLabel}
-              referenceLabel={scope.level === 'class' ? scope.school_label ?? t("Maktab ko'rsatilmagan") : t('Umumiy')}
+              referenceLabel={scope.level === 'class' ? schoolLabel : everything}
               formatDate={(key) => {
                 const point = trend.points.find((p) => p.key === key)
                 return point ? bucketLabel(toBucketMeta(point), lang) : key
@@ -227,7 +243,7 @@ export function MasteryBreakdown({ chorak }: { chorak: DashboardChorak }) {
         </div>
       )}
 
-      <p className="dash__card-title stats__sub">{t('Sinflar kesimida')}</p>
+      <p className="dash__card-title stats__sub">{breakdown.level === 'school' ? t('Maktablar kesimida') : t('Sinflar kesimida')}</p>
       <MasteryBreakdownTable rows={breakdown.rows} levelLabel={levelLabel} />
     </div>
   )

@@ -239,7 +239,7 @@ export function useSchoolsMutation<T, R = unknown>(fn: (v: T) => Promise<R>) {
 }
 
 export const CHORAK_OPTIONS = [
-  { value: 'all', label: "Butun o'quv yili" },
+  { value: 'all', label: "O'quv yili" },
   { value: '1', label: '1-chorak' },
   { value: '2', label: '2-chorak' },
   { value: '3', label: '3-chorak' },
