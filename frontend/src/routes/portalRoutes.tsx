@@ -153,7 +153,7 @@ export const staffPortalRoutes: RouteObject[] = [
   { path: '/manage/awards', element: <MovedTo to="/statistics" bolim="onlayn" /> },
   { path: '/manage/materials', element: <MovedTo to="/lessons" bolim="materiallar" /> },
   { path: '/manage/shop', element: <MovedTo to="/shop" bolim="sotuv" /> },
-  { path: '/manage/schools', element: <MovedTo to="/statistics" bolim="maktablar" /> },
+  { path: '/manage/schools', element: <MovedTo to="/statistics" bolim="jurnal" /> },
   { path: '/manage/schools/:id', element: oversight(<SchoolDetailPage />) },
   { path: '/manage/database', element: <MovedTo to="/statistics" bolim="baza" /> },
   { path: '/manage/security', element: <MovedTo to="/admin" bolim="security" /> },

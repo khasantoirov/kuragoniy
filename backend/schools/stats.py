@@ -174,20 +174,22 @@ def _label(key, period, many_years):
 
 
 def trend(classes, chorak=None, period='month') -> list[dict]:
-    """Average mark and attendance per week, month, school quarter
+    """Average mark, o'zlashtirish and attendance per week, month, school quarter
     (chorak) or school year. Lesson-day sums are fetched once and bucketed
     here, so every grouping uses the same definitions as the tables."""
     period = period if period in PERIODS else 'month'
     ids = [c.id for c in classes]
     if not ids:
         return []
-    marks: dict = defaultdict(lambda: [0, 0])
+    marks: dict = defaultdict(lambda: [0, 0, 0.0])
     years: dict = {}
+    percent = ExpressionWrapper(F('mark') * 100.0 / F('day__journal_class__scale'), output_field=FloatField())
     for r in (GradeEntry.objects.filter(Q(day__journal_class_id__in=ids, student__active=True) & _day_filter(chorak, 'day__'))
-              .values('day__date', 'day__chorak').annotate(s=Sum('level'), n=Count('id'))):
+              .values('day__date', 'day__chorak').annotate(s=Sum('level'), n=Count('id'), p=Sum(percent))):
         k, ay = _bucket(r['day__date'], r['day__chorak'], period)
         marks[k][0] += r['s']
         marks[k][1] += r['n']
+        marks[k][2] += r['p'] or 0
         years[k] = ay
     roster = dict(Student.objects.filter(journal_class_id__in=ids, active=True).values('journal_class')
                   .annotate(n=Count('id')).values_list('journal_class', 'n'))
@@ -205,11 +207,12 @@ def trend(classes, chorak=None, period='month') -> list[dict]:
     many_years = len(set(years.values())) > 1
     out = []
     for k in sorted(set(marks) | set(student_days)):
-        s_, n = marks.get(k, (0, 0))
+        s_, n, p = marks.get(k, (0, 0, 0.0))
         row = {
             'key': k,
             'label': _label(k, period, many_years),
             'avg_mark': round(s_ / n, 2) if n else None,
+            'uzlashtirish': round(p / n + 1e-9, 1) if n else None,
             'marks': n,
             'attendance': round(100 - 100 * absences.get(k, 0) / student_days[k], 1) if student_days.get(k) else None,
         }
@@ -239,6 +242,27 @@ def composition(classes, chorak=None) -> dict:
     att['late'], att['excused'], att['unexcused'] = raw['late'], raw['abs_s'], raw['abs_n']
     att['present'] = max(0, raw['student_days'] - raw['abs_s'] - raw['abs_n'] - raw['late'])
     return {'marks': marks, 'attendance': att}
+
+
+BANDS = ('alo', 'yaxshi', 'qoniqarli', 'qoniqarsiz', 'yomon')
+_BAND_MIN = ((4.5, 'alo'), (3.5, 'yaxshi'), (2.5, 'qoniqarli'), (1.5, 'qoniqarsiz'))
+
+
+def pupil_bands(classes, chorak=None) -> dict:
+    """How many pupils' average falls in each band — the band of the mark the
+    average rounds to (4.5 and up a'lo, 3.5 yaxshi, ...), the way the journal
+    colours a pupil's average — and how many have no mark yet."""
+    ids = [c.id for c in classes]
+    out = dict.fromkeys((*BANDS, 'ungraded'), 0)
+    if not ids:
+        return out
+    graded = 0
+    for r in (GradeEntry.objects.filter(Q(day__journal_class_id__in=ids, student__active=True) & _day_filter(chorak, 'day__'))
+              .values('student').annotate(avg=Avg('level'))):
+        out[next((band for lowest, band in _BAND_MIN if r['avg'] >= lowest), 'yomon')] += 1
+        graded += 1
+    out['ungraded'] = max(0, Student.objects.filter(journal_class_id__in=ids, active=True).count() - graded)
+    return out
 
 
 def attention(classes, chorak=None, limit=100) -> list[dict]:

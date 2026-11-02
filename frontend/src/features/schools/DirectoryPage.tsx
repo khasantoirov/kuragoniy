@@ -73,7 +73,7 @@ export function DirectoryPage() {
 
   return (
     <div>
-      {!hub && <Link to="/statistics?bolim=maktablar" className="backlink">← {t('Hamkor maktablar')}</Link>}
+      {!hub && <Link to="/statistics?bolim=jurnal" className="backlink">← {t('Statistika')}</Link>}
       <PageHead title={t("O'quvchilar bazasi")}
         sub={t("Barcha hamkor maktablardagi o'quvchilar: sinfi, o'qituvchisi, platforma logini, bahosi va davomati.")}
         actions={<button className="btn" disabled={exporting || !data?.count} onClick={exportAll}>{IC.download} {exporting ? t('Tayyorlanmoqda…') : 'CSV'}</button>} />

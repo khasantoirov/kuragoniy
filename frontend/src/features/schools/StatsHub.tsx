@@ -13,14 +13,15 @@ import { STATS_FILTER_PARAMS, StatsFilterBar, StatsFilterProvider, type StatsFie
 /** What each tab can be filtered by. */
 const FIELDS: Record<string, StatsField[]> = {
   umumiy: ['chorak', 'school', 'teacher', 'class'],
-  maktablar: ['chorak', 'school', 'teacher', 'class'],
-  sinflar: ['chorak', 'school', 'teacher', 'class'],
+  jurnal: ['chorak', 'school', 'teacher', 'class'],
   onlayn: ['school', 'teacher', 'class'],
   baza: ['school', 'teacher', 'class'],
 }
 
 /** Old tab names, still in bookmarks and old notifications. */
-const MOVED: Record<string, string> = { tahlil: 'onlayn', natijalar: 'onlayn', awards: 'onlayn' }
+const MOVED: Record<string, string> = {
+  tahlil: 'onlayn', natijalar: 'onlayn', awards: 'onlayn', maktablar: 'jurnal', sinflar: 'jurnal',
+}
 
 /** Statistika — the administration's analytics in one place, with one
  * filter panel over them (statsFilter.tsx); the overview (Umumiy) keeps its
@@ -32,7 +33,7 @@ export function StatsHub() {
   const admin = isAdminInView(user, viewMode)
   const tabs = [
     { key: 'umumiy', label: "Umumiy ko'rinish", element: <StatisticsPage />, show: admin },
-    { key: 'maktablar', label: 'Hamkor maktablar', element: <SchoolsPage /> },
+    { key: 'jurnal', label: 'Jurnal', element: <SchoolsPage /> },
     { key: 'onlayn', label: "Onlayn ta'lim", element: <OnlineLearningTab /> },
     { key: 'baza', label: "O'quvchilar bazasi", element: <DirectoryPage /> },
   ]

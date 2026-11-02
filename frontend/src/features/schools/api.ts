@@ -52,6 +52,22 @@ export interface GroupRow extends Metrics {
   name: string
   classes: number
   teachers?: number
+  /** a teacher's row: the partner schools of their classes, and whether some are linked to none */
+  schools?: string[]
+  unlinked?: boolean
+}
+
+/** What Statistika's journal rows are grouped by. */
+export type StatsGroup = 'school' | 'teacher' | 'class'
+
+/** Pupils by the band their average rounds to, and those with no mark yet. */
+export interface PupilBands {
+  alo: number
+  yaxshi: number
+  qoniqarli: number
+  qoniqarsiz: number
+  yomon: number
+  ungraded: number
 }
 
 export interface ClassRow extends Metrics {
@@ -71,6 +87,7 @@ export interface TrendPoint {
   label: string
   month?: string
   avg_mark: number | null
+  uzlashtirish?: number | null
   marks: number
   attendance: number | null
 }
@@ -96,9 +113,12 @@ export interface AttentionRow {
 
 export interface Overview {
   totals: Metrics & { schools: number; teachers: number; classes: number }
-  schools: GroupRow[]
+  group: StatsGroup
+  /** GroupRow for school / teacher, ClassRow for class */
+  rows: (GroupRow | ClassRow)[]
   trend: TrendPoint[]
   composition?: Composition
+  bands: PupilBands
 }
 
 export interface SchoolStats {
@@ -164,11 +184,12 @@ export function useSchool(id: string | undefined) {
 }
 
 /** All schools — or as narrowed by Statistika's filter (school / teacher / class). */
-export function useSchoolsOverview(chorak: string, period = 'month', scope: { school?: string; teacher?: string; class?: string } = {}) {
+export function useSchoolsOverview(chorak: string, period = 'month', scope: { school?: string; teacher?: string; class?: string } = {},
+  group: StatsGroup = 'school') {
   const narrow = Object.fromEntries(Object.entries(scope).filter(([, v]) => v))
   return useQuery({
-    queryKey: ['schools', 'overview', chorak, period, narrow],
-    queryFn: async () => (await api.get<Overview>('/schools/stats/overview/', { params: { ...chorakParam(chorak), period, ...narrow } })).data,
+    queryKey: ['schools', 'overview', chorak, period, narrow, group],
+    queryFn: async () => (await api.get<Overview>('/schools/stats/overview/', { params: { ...chorakParam(chorak), period, group, ...narrow } })).data,
     placeholderData: (prev) => prev,
   })
 }

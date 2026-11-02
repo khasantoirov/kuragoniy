@@ -185,3 +185,32 @@ def test_trend_periods_and_composition(as_user, admin, teacher):
     assert comp["attendance"] == {"present": 4, "late": 1, "excused": 1, "unexcused": 2}
     mine = as_user(teacher).get("/api/schools/stats/mine/", {"period": "quarter"}).data
     assert mine["trend"][0]["label"] == "1-chorak" and "composition" in mine
+
+
+def test_overview_groups_by_teacher_and_class(as_user, admin, teacher):
+    school = School.objects.create(name="Sodiq")
+    jc = _class_with_data(teacher, school)
+    url = "/api/schools/stats/overview/"
+
+    by_school = as_user(admin).get(url).data
+    assert by_school["group"] == "school" and by_school["rows"] == by_school["schools"]
+
+    by_teacher = as_user(admin).get(url, {"group": "teacher"}).data
+    assert by_teacher["group"] == "teacher" and "schools" not in by_teacher
+    row = next(r for r in by_teacher["rows"] if r["id"] == teacher.id)
+    assert (row["uzlashtirish"], row["classes"], row["schools"], row["unlinked"]) == (70.0, 1, ["Sodiq"], False)
+
+    by_class = as_user(admin).get(url, {"group": "class"}).data
+    assert [(r["class_id"], r["uzlashtirish"], r["teacher"]) for r in by_class["rows"]] == [(jc.id, 70.0, teacher.name)]
+
+    # Every grouping pools to the same totals.
+    assert by_school["totals"] == by_teacher["totals"] == by_class["totals"]
+
+
+def test_overview_counts_pupils_by_band_and_trends_mastery(as_user, admin, teacher):
+    _class_with_data(teacher, School.objects.create(name="Sodiq"))
+    data = as_user(admin).get("/api/schools/stats/overview/").data
+    # pupils' averages 5, 4, 3 and 2
+    assert data["bands"] == {"alo": 1, "yaxshi": 1, "qoniqarli": 1, "qoniqarsiz": 1, "yomon": 0, "ungraded": 0}
+    # September's marks 5, 4, 2, 2 -> (100 + 80 + 40 + 40) / 4; October's 4, 4
+    assert {t["month"]: t["uzlashtirish"] for t in data["trend"]} == {"2026-09": 65.0, "2026-10": 80.0}

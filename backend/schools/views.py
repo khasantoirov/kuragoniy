@@ -3,6 +3,7 @@ shared directory (/api/schools/)."""
 
 import hashlib
 import json
+from collections import defaultdict
 
 from django.core.cache import cache
 from django.db.models import Avg, Count, Q
@@ -161,9 +162,10 @@ def _cached(request, name, compute):
 
 
 class StatsOverviewView(APIView):
-    """All partner schools side by side + totals + monthly trend —
-    optionally narrowed by Statistika's filter: ?school= (an id or 'none'),
-    ?teacher=, ?class=."""
+    """Statistika's journal figures, one source for every tab: totals, the
+    rows grouped by ?group=school (default) | teacher | class, the trend,
+    the mark composition and the pupils per band — optionally narrowed by
+    the filter panel: ?school= (an id or 'none'), ?teacher=, ?class=."""
 
     permission_classes = [IsOversight]
 
@@ -173,6 +175,19 @@ class StatsOverviewView(APIView):
         teacher_id = request.query_params.get('teacher') or None
         class_id = request.query_params.get('class') or None
         narrowed = bool(school_id or teacher_id or class_id)
+        group = request.query_params.get('group')
+        if group not in ('school', 'teacher', 'class'):
+            group = 'school'
+
+        def by_teacher(classes):
+            rows = stats.grouped(classes, chorak, key=lambda c: c.teacher_id, label=lambda c: c.teacher.name)
+            schools = defaultdict(set)
+            for c in classes:
+                schools[c.teacher_id].add(c.partner_school.name if c.partner_school_id else '')
+            for row in rows:
+                row['schools'] = sorted(name for name in schools[row['id']] if name)
+                row['unlinked'] = '' in schools[row['id']]
+            return sorted(rows, key=lambda r: r['name'].lower())
 
         def compute():
             classes = stats.classes_for(request.user, school_id=school_id, teacher_id=teacher_id)
@@ -194,6 +209,7 @@ class StatsOverviewView(APIView):
                     schools.append({'id': s.id, 'name': s.name, 'classes': 0, 'teachers': members.get(s.id, 0),
                                     **stats.derive(dict.fromkeys(stats.RAW_KEYS, 0))})
             schools.sort(key=lambda r: (r['id'] == 'none', r['name'].lower()))
+            rows = schools if group == 'school' else by_teacher(classes) if group == 'teacher' else stats.class_rows(classes, chorak)
             totals = stats.derive(stats.pool(stats.class_raw(classes, chorak).values()))
             totals.update({
                 'schools': (len({c.partner_school_id for c in classes if c.partner_school_id}) if narrowed
@@ -201,8 +217,13 @@ class StatsOverviewView(APIView):
                 'teachers': len({c.teacher_id for c in classes}),
                 'classes': len(classes),
             })
-            return {'totals': totals, 'schools': schools, 'trend': stats.trend(classes, chorak, _period(request)),
-                'composition': stats.composition(classes, chorak)}
+            payload = {'totals': totals, 'group': group, 'rows': rows,
+                       'trend': stats.trend(classes, chorak, _period(request)),
+                       'composition': stats.composition(classes, chorak),
+                       'bands': stats.pupil_bands(classes, chorak)}
+            if group == 'school':
+                payload['schools'] = rows  # what an older cached page reads
+            return payload
 
         return Response(_cached(request, 'overview', compute))
 

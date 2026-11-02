@@ -75,8 +75,8 @@ export function SchoolDetailPage() {
 
   return (
     <div>
-      <Link to="/statistics?bolim=maktablar" className="backlink">← {t('Hamkor maktablar')}</Link>
-      <PageHead title={title} sub={isNone ? t("Maktab nomi hech qaysi hamkor maktabga mos kelmagan sinflar — «Hamkor maktablar» sahifasidagi «Moslashtirish» orqali biriktiring.") : school?.district}
+      <Link to="/statistics?bolim=jurnal" className="backlink">← {t('Statistika')}</Link>
+      <PageHead title={title} sub={isNone ? t("Maktab nomi hech qaysi hamkor maktabga mos kelmagan sinflar — Statistika › «Jurnal» bo'limidagi «Moslashtirish» orqali biriktiring.") : school?.district}
         actions={<>
           <Segmented value={chorak} onChange={setChorak} options={CHORAK_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))} />
           {admin && school && <button className="btn" onClick={() => setEditing(true)}>{IC.edit} {t('Tahrirlash')}</button>}

@@ -1,21 +1,21 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { Modal } from '@/components/Modal'
 import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
 import { downloadCsv } from '@/features/portal/csv'
-import { errText, PageHead, Segmented, StatTile } from '@/features/portal/ui'
+import { errText, PageHead, Segmented } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
 
-import { CHORAK_OPTIONS, useSchools, useSchoolsMutation, useSchoolsOverview, useUnlinked, type UnlinkedName } from './api'
+import {
+  useSchools, useSchoolsMutation, useSchoolsOverview, useUnlinked, type ClassRow, type GroupRow, type StatsGroup, type UnlinkedName,
+} from './api'
 import { METRIC_CSV_HEAD, METRIC_HELP, MetricCells, MetricHeads, metricCsv, SchoolFormModal } from './shared'
 import { useStatsHub } from './statsFilter'
-import { TrendPanels } from './TrendPanels'
-import { useTrendView } from './trendView'
 
 /** Map free-text spellings (from journals/timetables) onto partner schools. */
 function LinkModal({ rows, onClose }: { rows: UnlinkedName[]; onClose: () => void }) {
@@ -67,31 +67,74 @@ function LinkModal({ rows, onClose }: { rows: UnlinkedName[]; onClose: () => voi
   )
 }
 
+const GROUPS: { value: StatsGroup; label: string }[] = [
+  { value: 'school', label: 'Maktab' },
+  { value: 'teacher', label: "O'qituvchi" },
+  { value: 'class', label: 'Sinf' },
+]
+const isGroup = (v: string | null): v is StatsGroup => v === 'school' || v === 'teacher' || v === 'class'
+
+/** Statistika › Jurnal: every journal figure in one table, grouped by
+ * school, teacher or class (?guruh=). A school row opens its teachers, a
+ * teacher's row their classes — by narrowing the filter panel, so the rest
+ * of Statistika follows — and a class row opens that class's journal. The
+ * numbers are the ones Umumiy ko'rinish shows (schools/stats.py). */
 export function SchoolsPage() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const admin = isAdmin(user)
   const navigate = useNavigate()
-  const hub = useStatsHub()
-  const [ownChorak, setChorak] = useState('all')
-  // inside Statistika the one filter panel decides
-  const chorak = hub ? hub.filter.chorak : ownChorak
-  const scope = hub ? { school: hub.filter.school, teacher: hub.filter.teacher, class: hub.filter.cls } : {}
-  const view = useTrendView()
-  const { data, isLoading } = useSchoolsOverview(chorak, view.period, scope)
+  const [params, setParams] = useSearchParams()
+  const f = useStatsHub()?.filter
+  // unless picked, one level below what the filter panel narrows to
+  const raw = params.get('guruh')
+  const group: StatsGroup = isGroup(raw) ? raw : f?.teacher || f?.cls ? 'class' : f?.school ? 'teacher' : 'school'
+  const scope = f ? { school: f.school, teacher: f.teacher, class: f.cls } : {}
+  const { data, isLoading } = useSchoolsOverview(f?.chorak ?? 'all', 'month', scope, group)
   const unlinked = useUnlinked()
   const [creating, setCreating] = useState(false)
   const [linking, setLinking] = useState(false)
-  const totals = data?.totals
 
-  const exportCsv = () => data && downloadCsv(`hamkor-maktablar-${chorak}`,
-    ['Maktab', "O'qituvchilar", 'Sinflar', "O'quvchilar", 'Darslar', ...METRIC_CSV_HEAD, 'Platforma hisoblari'],
-    data.schools.map((s) => [s.id === 'none' ? 'Biriktirilmagan' : s.name, s.teachers ?? '', s.classes, s.students, s.days, ...metricCsv(s), s.accounts]))
+  const setGroup = (next: StatsGroup, narrow: Record<string, string> = {}) => setParams((prev) => {
+    const p = new URLSearchParams(prev)
+    for (const [k, v] of Object.entries(narrow)) p.set(k, v)
+    if (Object.keys(narrow).length) p.delete('class')
+    p.set('guruh', next)
+    return p
+  }, { replace: true })
+
+  const rows = data?.group === group ? data.rows : []
+  const schoolRows = group === 'school' ? (rows as GroupRow[]) : []
+  const teacherRows = group === 'teacher' ? (rows as GroupRow[]) : []
+  const classRows = group === 'class' ? (rows as ClassRow[]) : []
+  const schoolName = (r: GroupRow) => (r.id === 'none' ? t('Biriktirilmagan sinflar') : r.name)
+  const teacherSchools = (r: GroupRow) => [...(r.schools ?? []), ...(r.unlinked ? [t('Biriktirilmagan')] : [])].join(', ')
+  const period = f?.chorak ?? 'all'
+
+  const exportCsv = () => {
+    const tail = (m: GroupRow | ClassRow) => [m.students, m.days, ...metricCsv(m), m.abs_n, m.late]
+    const head = ["O'quvchilar", 'Darslar', ...METRIC_CSV_HEAD, 'Sababsiz', 'Kech']
+    if (group === 'school') downloadCsv(`jurnal-maktablar-${period}`, ['Maktab', "O'qituvchilar", 'Sinflar', ...head],
+      schoolRows.map((r) => [schoolName(r), r.teachers ?? '', r.classes, ...tail(r)]))
+    else if (group === 'teacher') downloadCsv(`jurnal-oqituvchilar-${period}`, ["O'qituvchi", 'Maktab', 'Sinflar', ...head],
+      teacherRows.map((r) => [r.name, teacherSchools(r), r.classes, ...tail(r)]))
+    else downloadCsv(`jurnal-sinflar-${period}`, ['Sinf', 'Maktab', "O'qituvchi", ...head],
+      classRows.map((r) => [r.name, r.school || r.school_text, r.teacher, ...tail(r)]))
+  }
+
+  const cells = (m: GroupRow | ClassRow): ReactNode => (
+    <>
+      <td>{m.students}</td>
+      <td>{m.days}</td>
+      <MetricCells m={m} />
+      <td>{m.abs_n} / {m.late}</td>
+    </>
+  )
 
   return (
     <div>
-      <PageHead title={t('Hamkor maktablar')}
-        sub={t("Maktablar, ularga biriktirilgan o'qituvchilar va sinflar — o'zlashtirish va davomat bo'yicha.")}
+      <PageHead title={t('Jurnal')}
+        sub={t("O'zlashtirish va davomat — maktab, o'qituvchi yoki sinf kesimida. Qatorni bosing — ichkariga kirasiz.")}
         actions={<>
           {admin && <button className="btn btn--primary" onClick={() => setCreating(true)}>+ {t('Maktab')}</button>}
         </>} />
@@ -103,53 +146,52 @@ export function SchoolsPage() {
         </div>
       )}
 
-      {!hub && (
-        <div className="filters">
-          <Segmented value={chorak} onChange={setChorak} options={CHORAK_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))} />
-        </div>
-      )}
-
-      {isLoading || !totals ? <Skeleton lines={4} /> : (
-        <div className="stiles">
-          <StatTile label={t('Hamkor maktablar')} value={totals.schools} />
-          <StatTile label={t("O'qituvchilar")} value={totals.teachers} hint={`${totals.classes} ${t('ta sinf')}`} />
-          <StatTile label={t("O'quvchilar")} value={totals.students} hint={`${totals.accounts} ${t('tasi platformada')}`} />
-          <StatTile label={t("O'rtacha baho")} value={totals.avg_mark?.toFixed(2) ?? '—'} hint={`${totals.marks} ${t('ta baho')}`} />
-          <StatTile label={t("O'zlashtirish")} value={totals.uzlashtirish != null ? `${totals.uzlashtirish}%` : '—'} />
-          <StatTile label={t('Davomat')} value={totals.attendance != null ? `${totals.attendance}%` : '—'}
-            hint={`${t('sababsiz')} ${totals.abs_n} · ${t('kech')} ${totals.late}`}
-            tone={totals.attendance == null ? undefined : totals.attendance >= 95 ? 'ok' : totals.attendance >= 85 ? 'warn' : 'bad'} />
-        </div>
-      )}
-
-      {data && <TrendPanels trend={data.trend} composition={data.composition} view={view} />}
-
       <section className="panel">
         <div className="thead">
-          <h3 className="panel__title">{t('Maktablar kesimida')}</h3>
+          <Segmented value={group} onChange={(g) => setGroup(g)} options={GROUPS.map((g) => ({ ...g, label: t(g.label) }))} />
           <p className="thead__hint">{t(METRIC_HELP)}</p>
           {data && <button className="btn btn--sm btn--ghost" onClick={exportCsv}>{IC.download} CSV</button>}
         </div>
-        {isLoading ? <Skeleton lines={5} /> : (
+        {isLoading && !data ? <Skeleton lines={5} /> : (
           <div className="tablewrap">
             <table className="dtable">
               <thead>
                 <tr>
-                  <th>{t('Maktab')}</th><th>{t("O'qituvchi")}</th><th>{t('Sinf')}</th><th>{t("O'quvchi")}</th><th>{t('Dars')}</th>
+                  {group === 'school' && <><th>{t('Maktab')}</th><th>{t("O'qituvchi")}</th><th>{t('Sinf')}</th></>}
+                  {group === 'teacher' && <><th>{t("O'qituvchi")}</th><th>{t('Maktab')}</th><th>{t('Sinf')}</th></>}
+                  {group === 'class' && <><th>{t('Sinf')}</th><th>{t('Maktab')}</th><th>{t("O'qituvchi")}</th></>}
+                  <th>{t("O'quvchi")}</th><th>{t('Dars')}</th>
                   <MetricHeads />
                   <th>{t('Sababsiz / kech')}</th>
                 </tr>
               </thead>
               <tbody>
-                {data?.schools.map((s) => (
-                  <tr key={s.id} className="is-click" onClick={() => navigate(`/manage/schools/${s.id}`)}>
-                    <td>{s.id === 'none' ? <i className="muted">{t('Biriktirilmagan sinflar')}</i> : <b>{s.name}</b>}</td>
-                    <td>{s.teachers ?? '—'}</td>
-                    <td>{s.classes}</td>
-                    <td>{s.students}</td>
-                    <td>{s.days}</td>
-                    <MetricCells m={s} />
-                    <td>{s.abs_n} / {s.late}</td>
+                {schoolRows.map((r) => (
+                  <tr key={r.id} className="is-click" onClick={() => setGroup('teacher', { school: String(r.id) })}>
+                    <td>
+                      {r.id === 'none' ? <i className="muted">{schoolName(r)}</i> : <b>{r.name}</b>}{' '}
+                      <button type="button" className="linklike" title={t('Maktab sahifasi')} aria-label={t('Maktab sahifasi')}
+                        onClick={(e) => { e.stopPropagation(); navigate(`/manage/schools/${r.id}`) }}>↗</button>
+                    </td>
+                    <td>{r.teachers ?? '—'}</td>
+                    <td>{r.classes}</td>
+                    {cells(r)}
+                  </tr>
+                ))}
+                {teacherRows.map((r) => (
+                  <tr key={r.id} className="is-click" onClick={() => setGroup('class', { teacher: String(r.id) })}>
+                    <td><b>{r.name}</b></td>
+                    <td>{teacherSchools(r) || '—'}</td>
+                    <td>{r.classes}</td>
+                    {cells(r)}
+                  </tr>
+                ))}
+                {classRows.map((r) => (
+                  <tr key={r.class_id} className="is-click" title={t('Sinf jurnalini ochish')} onClick={() => navigate(`/journal?class=${r.class_id}`)}>
+                    <td><b>{r.name}</b></td>
+                    <td>{r.school || <i className="muted">{r.school_text || t('Biriktirilmagan')}</i>}</td>
+                    <td>{r.teacher}</td>
+                    {cells(r)}
                   </tr>
                 ))}
               </tbody>
