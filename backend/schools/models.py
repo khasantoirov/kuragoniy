@@ -9,7 +9,8 @@ links free-text rows to the right School through either.
 """
 
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
+from django.utils import timezone
 
 
 class School(models.Model):
@@ -51,3 +52,52 @@ class SchoolTeacher(models.Model):
 
     def __str__(self):
         return f'{self.teacher} @ {self.school}'
+
+
+def school_year_of(day) -> int:
+    """The o'quv yili a date falls in, as its first calendar year. Classes
+    are set up from August, so 2026-08-25 and 2027-05-20 are both 2026."""
+    return day.year if day.month >= 8 else day.year - 1
+
+
+class AcademicYear(models.Model):
+    """O'quv yili — 2026-2027 is start_year 2026. Every journal class
+    belongs to one (JournalClass.year); exactly one is current: where new
+    classes go and what the pages show unless another year is picked."""
+
+    start_year = models.PositiveSmallIntegerField(unique=True)
+    is_current = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-start_year']
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def name(self):
+        return f'{self.start_year}-{self.start_year + 1}'
+
+    @classmethod
+    def current(cls):
+        year = cls.objects.filter(is_current=True).first()
+        if year is None:  # a fresh database: the year today falls in
+            year, _ = cls.objects.get_or_create(start_year=school_year_of(timezone.localdate()))
+            year.make_current()
+        return year
+
+    @classmethod
+    def from_param(cls, raw):
+        """?year=<id> from a request, or the current year."""
+        if raw and str(raw).isdigit():
+            year = cls.objects.filter(pk=int(raw)).first()
+            if year:
+                return year
+        return cls.current()
+
+    @transaction.atomic
+    def make_current(self):
+        AcademicYear.objects.exclude(pk=self.pk).filter(is_current=True).update(is_current=False)
+        AcademicYear.objects.filter(pk=self.pk).update(is_current=True)
+        self.is_current = True

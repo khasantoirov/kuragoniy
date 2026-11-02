@@ -300,8 +300,11 @@ def attention(classes, chorak=None, limit=100) -> list[dict]:
     return rows[:limit]
 
 
-def classes_for(viewer, *, school_id=None, teacher_id=None):
-    qs = JournalClass.objects.select_related('teacher', 'partner_school')
+def classes_for(viewer, *, school_id=None, teacher_id=None, year=None):
+    """The classes in view: one o'quv yili's (the current one by default)."""
+    from .models import AcademicYear
+
+    qs = JournalClass.objects.select_related('teacher', 'partner_school').filter(year=year or AcademicYear.current())
     if not viewer.is_oversight:
         qs = qs.filter(teacher=viewer)
     elif teacher_id:

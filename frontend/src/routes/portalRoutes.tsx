@@ -5,6 +5,7 @@ import { MovedTo, PageTabs } from '@/components/PageTabs'
 import { Skeleton } from '@/components/Skeleton'
 import { AdminDataPanel, AdminPage } from '@/features/admin/AdminPage'
 import { ModulesPanel } from '@/features/admin/ModulesPanel'
+import { YearPicker } from '@/features/schools/YearPicker'
 import { JournalPage } from '@/features/journal/JournalPage'
 import { LessonsPage } from '@/features/lessons/LessonsPage'
 import { ChangePasswordPage } from '@/features/auth/ChangePasswordPage'
@@ -24,6 +25,7 @@ const named = <T extends Record<string, unknown>>(loader: () => Promise<T>, key:
   lazy(() => loader().then((m) => ({ default: m[key] as React.ComponentType })))
 
 const StudentsPage = named(() => import('@/features/teacher/StudentsPage'), 'StudentsPage')
+const AcademicYearsPanel = named(() => import('@/features/admin/AcademicYearsPanel'), 'AcademicYearsPanel')
 const AssignmentsPage = named(() => import('@/features/teacher/AssignmentsPage'), 'AssignmentsPage')
 const AssignmentResultsPage = named(() => import('@/features/teacher/AssignmentsPage'), 'AssignmentResultsPage')
 const ReportsPage = named(() => import('@/features/teacher/ReportsPage'), 'ReportsPage')
@@ -89,6 +91,7 @@ export function AdminTabs() {
       { key: 'malumot', label: "Ma'lumot", element: <AdminDataPanel /> },
       { key: 'security', label: 'Xavfsizlik jurnali', element: <SecurityLogPage /> },
       { key: 'modules', label: 'Modullar', element: <ModulesPanel /> },
+      { key: 'yillar', label: "O'quv yillari", element: <AcademicYearsPanel /> },
     ]} />
   )
 }
@@ -116,7 +119,7 @@ export function JournalTabs() {
       { key: 'jurnal', label: 'Jurnal', element: <JournalPage /> },
       { key: 'sinflarim', label: 'Sinflarim', element: <MyClassesPage />, show: isTeacherLike(user) },
       { key: 'oquvchilar', label: "O'quvchilar", element: <StudentsPage />, show: isTeacherLike(user) },
-    ]} />
+    ]} aside={<YearPicker />} />
   )
 }
 

@@ -734,6 +734,11 @@ select.jscale:focus-visible { outline: 2px solid var(--pick, var(--ok)); outline
 
 /* Sozlamalar's pages as tabs (SettingsTabs) */
 .settabs { margin: 0 0 16px; }
+/* the tabs with something at their right end — the o'quv yili picker */
+.settabs-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 16px; }
+.settabs-row .settabs { margin: 0; }
+.yearpick { width: auto; font-weight: 600; }
+.yearpick.is-other { border-color: var(--tone-mid); color: var(--tone-mid); }
 .settabs .seg__b { text-decoration: none; }
 
 /* Boshqaruv → Modullar (features/admin/ModulesPanel.tsx) */

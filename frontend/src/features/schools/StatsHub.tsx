@@ -7,6 +7,7 @@ import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore } from '@/store/uiStore'
 
 import { DirectoryPage } from './DirectoryPage'
+import { YearPicker } from './YearPicker'
 import { SchoolsPage } from './SchoolsPage'
 import { STATS_FILTER_PARAMS, StatsFilterBar, StatsFilterProvider, type StatsField } from './statsFilter'
 
@@ -46,7 +47,7 @@ export function StatsHub() {
   const open = bolim || tabs.find((x) => x.show !== false)!.key
   return (
     <StatsFilterProvider>
-      <PageTabs tabs={tabs} keep={STATS_FILTER_PARAMS} toolbar={<StatsFilterBar fields={FIELDS[open] ?? []} />} />
+      <PageTabs tabs={tabs} keep={STATS_FILTER_PARAMS} toolbar={<StatsFilterBar fields={FIELDS[open] ?? []} />} aside={<YearPicker />} />
     </StatsFilterProvider>
   )
 }

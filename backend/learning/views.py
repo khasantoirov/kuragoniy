@@ -85,6 +85,9 @@ class TeacherClassViewSet(viewsets.ReadOnlyModelViewSet):
             account_count=Count('student_profiles', filter=Q(student_profiles__user__approved=True), distinct=True),
             pending_count=Count('student_profiles', filter=Q(student_profiles__user__approved=False), distinct=True),
         )
+        if self.action == 'list':  # one o'quv yili's classes; any class by id
+            from schools.models import AcademicYear
+            qs = qs.filter(year=AcademicYear.from_param(self.request.query_params.get('year')))
         teacher_id = self.request.query_params.get('teacher')
         if user.is_oversight:
             return qs.filter(teacher_id=teacher_id) if teacher_id else qs

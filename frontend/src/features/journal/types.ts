@@ -13,6 +13,9 @@ export interface JournalClass {
   name: string
   /** Grading scale: marks go 0..scale (5, 10 or 100). */
   scale: number
+  /** O'quv yili (backend schools.AcademicYear) — "2026-2027". */
+  year?: number | null
+  year_name?: string
   created_at: string
   students: Student[]
 }

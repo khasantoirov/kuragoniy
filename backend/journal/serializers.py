@@ -23,10 +23,12 @@ class StudentSerializer(serializers.ModelSerializer):
 class JournalClassSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
     partner_school_name = serializers.CharField(source='partner_school.name', read_only=True, default='')
+    year_name = serializers.CharField(source='year.name', read_only=True, default='')
 
     class Meta:
         model = JournalClass
-        fields = ['id', 'school', 'partner_school', 'partner_school_name', 'name', 'scale', 'created_at', 'students']
+        fields = ['id', 'school', 'partner_school', 'partner_school_name', 'name', 'scale', 'year', 'year_name',
+                  'created_at', 'students']
         read_only_fields = ['created_at']
 
     def validate(self, attrs):
@@ -42,6 +44,15 @@ class JournalClassSerializer(serializers.ModelSerializer):
         elif 'school' in attrs and 'partner_school' not in attrs and self.instance is not None:
             if self.instance.partner_school_id and attrs['school'] != self.instance.school:
                 attrs['partner_school'] = None
+        # O'quv yili: chosen when the class is made (the current year when
+        # left out) — next year's may be prepared ahead, a past one not.
+        year = attrs.get('year')
+        if self.instance is not None:
+            attrs.pop('year', None)
+        elif year is not None:
+            from schools.models import AcademicYear
+            if year.start_year < AcademicYear.current().start_year:
+                raise serializers.ValidationError({'year': "O'tgan o'quv yiliga sinf qo'shib bo'lmaydi."})
         return attrs
 
 

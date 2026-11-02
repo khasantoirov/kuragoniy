@@ -224,6 +224,23 @@ export interface ClassRowLite {
   teacher: string
 }
 
+/** O'quv yili (backend schools.AcademicYear): one is current. */
+export interface AcademicYear {
+  id: number
+  name: string
+  start_year: number
+  is_current: boolean
+  classes: number
+}
+
+export function useYears() {
+  return useQuery({
+    queryKey: ['schools', 'years'],
+    queryFn: async () => (await api.get<AcademicYear[]>('/schools/years/')).data,
+    staleTime: 5 * 60_000,
+  })
+}
+
 /** Every class in view — the filter panel's schools, teachers and classes. */
 export function useClassRows() {
   return useQuery({

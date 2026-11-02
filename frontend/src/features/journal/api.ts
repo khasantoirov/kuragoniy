@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
+import { useYearStore } from '@/lib/year'
 
 import type { AttendanceStatus, ControlWork, EditGrant, Grid, GrantTeacher, JournalClass, Student } from './types'
 
@@ -25,8 +26,9 @@ export function useClass(id: number) {
 export function useCreateClass() {
   const queryClient = useQueryClient()
   return useMutation({
+    // into the o'quv yili on screen (the current one unless another is picked)
     mutationFn: async (data: { school: string; name: string; partner_school?: number | null; scale?: number }) =>
-      (await api.post<JournalClass>('/journal/classes/', data)).data,
+      (await api.post<JournalClass>('/journal/classes/', { ...data, year: useYearStore.getState().yearId ?? undefined })).data,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['journal', 'classes'] }),
   })
 }

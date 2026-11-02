@@ -17,6 +17,9 @@ class JournalClass(models.Model):
     # The school's grading scale for this class: marks go 0..scale
     # (journal/scales.py maps them to colour bands).
     scale = models.PositiveSmallIntegerField(choices=[(5, '0-5'), (10, '0-10'), (100, '0-100')], default=5)
+    # O'quv yili: a class is one school year's — next year's 8-A is a new
+    # class. Set to the current year when left empty.
+    year = models.ForeignKey('schools.AcademicYear', related_name='classes', null=True, blank=True, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -24,6 +27,12 @@ class JournalClass(models.Model):
 
     def __str__(self):
         return f'{self.name} ({self.teacher})'
+
+    def save(self, *args, **kwargs):
+        if self.year_id is None:
+            from schools.models import AcademicYear
+            self.year = AcademicYear.current()
+        super().save(*args, **kwargs)
 
 
 class Student(models.Model):

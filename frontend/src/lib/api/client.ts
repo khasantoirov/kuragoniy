@@ -2,6 +2,7 @@ import axios, { isAxiosError, type AxiosError, type InternalAxiosRequestConfig }
 
 import { idleMs } from '@/lib/auth/idle'
 import { deviceHeader, deviceReady } from '@/lib/device'
+import { yearParamFor } from '@/lib/year'
 
 /**
  * Access token is kept in memory only (not localStorage) — the refresh
@@ -33,6 +34,9 @@ api.interceptors.request.use(async (config) => {
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`
   }
+  // the o'quv yili picked in a year picker, on the lists it narrows
+  const year = yearParamFor(config.method, config.url)
+  if (year != null) config.params = { year, ...config.params }
   // Sign-in and refresh carry the device details for the sessions list;
   // the hints resolve in milliseconds, but never hold a request for long.
   if (config.url?.includes('/auth/') || config.url?.includes('change-password')) {

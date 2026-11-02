@@ -14,38 +14,40 @@ export interface PageTab {
  * ?bolim=<key> — the pages keep their own ?tab= and other params. `keep`:
  * params that stay when the tab changes (a filter shared by the tabs);
  * `toolbar`: shown between the tabs and the page. */
-export function PageTabs({ tabs, keep = [], toolbar }: { tabs: PageTab[]; keep?: string[]; toolbar?: ReactNode }) {
+export function PageTabs({ tabs, keep = [], toolbar, aside }: { tabs: PageTab[]; keep?: string[]; toolbar?: ReactNode; aside?: ReactNode }) {
   const { t } = useTranslation()
   const [params, setParams] = useSearchParams()
   const shown = tabs.filter((x) => x.show !== false)
   const current = shown.find((x) => x.key === params.get('bolim')) ?? shown[0]
   if (!current) return null
+  const bar = shown.length > 1 && (
+    <div className="seg settabs" role="tablist">
+      {shown.map((x) => (
+        <button
+          key={x.key}
+          type="button"
+          role="tab"
+          aria-selected={x === current}
+          className={`seg__b ${x === current ? 'is-on' : ''}`}
+          onClick={() => setParams((prev) => {
+            const next = new URLSearchParams()
+            for (const k of keep) {
+              const v = prev.get(k)
+              if (v) next.set(k, v)
+            }
+            if (x !== shown[0]) next.set('bolim', x.key)
+            return next
+          }, { replace: true })}
+        >
+          {t(x.label)}
+        </button>
+      ))}
+    </div>
+  )
   return (
     <>
-      {shown.length > 1 && (
-        <div className="seg settabs" role="tablist">
-          {shown.map((x) => (
-            <button
-              key={x.key}
-              type="button"
-              role="tab"
-              aria-selected={x === current}
-              className={`seg__b ${x === current ? 'is-on' : ''}`}
-              onClick={() => setParams((prev) => {
-                const next = new URLSearchParams()
-                for (const k of keep) {
-                  const v = prev.get(k)
-                  if (v) next.set(k, v)
-                }
-                if (x !== shown[0]) next.set('bolim', x.key)
-                return next
-              }, { replace: true })}
-            >
-              {t(x.label)}
-            </button>
-          ))}
-        </div>
-      )}
+      {/* `aside` (e.g. the o'quv yili picker) sits at the tabs' right end */}
+      {aside ? <div className="settabs-row">{bar}{aside}</div> : bar}
       {toolbar}
       {current.element}
     </>

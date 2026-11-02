@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 
 from common.permissions import IsAdminOrDevSuperuser, IsApproved
 from common.security import log_event
+from schools.models import AcademicYear
 
 from .locks import ALL_PAST_DAYS, LOCKED_DETAIL, NOT_OWNER_DETAIL, can_edit_day, is_owner, lock_info, today
 from .models import (
@@ -59,7 +60,9 @@ class JournalClassViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         teacher_id = self.request.query_params.get('teacher')
-        qs = JournalClass.objects.prefetch_related('students')
+        qs = JournalClass.objects.prefetch_related('students').select_related('year')
+        if self.action == 'list':  # one o'quv yili's classes; any class by id
+            qs = qs.filter(year=AcademicYear.from_param(self.request.query_params.get('year')))
         # Administrators may look at any teacher's journal, never write to
         # it — writes always resolve to the requester's own classes.
         if teacher_id and user.is_admin and self.request.method in permissions.SAFE_METHODS:
@@ -538,7 +541,8 @@ class EditGrantViewSet(viewsets.GenericViewSet):
         ]
         out = {u.pk: {'id': u.pk, 'name': u.name or u.login_name, 'role': u.role, 'classes': [], 'open': [], 'pending': 0}
                for u in people}
-        for c in JournalClass.objects.filter(teacher_id__in=out).order_by('name'):
+        year = AcademicYear.from_param(request.query_params.get('year'))
+        for c in JournalClass.objects.filter(teacher_id__in=out, year=year).order_by('name'):
             out[c.teacher_id]['classes'].append({'id': c.id, 'label': class_label(c)})
         for g in JournalEditGrant.objects.select_related('journal_class').filter(
                 teacher_id__in=out, status=JournalEditGrant.Status.APPROVED, expires_at__gt=timezone.now()):

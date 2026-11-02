@@ -20,17 +20,23 @@ from accounts.models import User
 from common.audit import notify_admin_action
 from common.permissions import IsAdminOrDevSuperuser, IsApproved, IsOversight
 from common.presence import presence_for
+from common.security import log_event
 from journal.models import AttendanceEntry, GradeEntry, JournalClass, Student
 
 from . import stats
 from .matching import link_school, norm, unlinked_names
-from .models import School, SchoolTeacher
+from .models import AcademicYear, School, SchoolTeacher
 from .serializers import SchoolBriefSerializer, SchoolSerializer
 
 
 def _chorak(request):
     raw = request.query_params.get('chorak')
     return int(raw) if raw in ('1', '2', '3', '4') else None
+
+
+def _year(request):
+    """?year=<id>: which o'quv yili the figures are for — the current one by default."""
+    return AcademicYear.from_param(request.query_params.get('year'))
 
 
 def _period(request):
@@ -191,7 +197,7 @@ class StatsOverviewView(APIView):
             return sorted(rows, key=lambda r: r['name'].lower())
 
         def compute():
-            classes = stats.classes_for(request.user, school_id=school_id, teacher_id=teacher_id)
+            classes = stats.classes_for(request.user, school_id=school_id, teacher_id=teacher_id, year=_year(request))
             if class_id:
                 classes = [c for c in classes if str(c.id) == class_id]
             schools = stats.grouped(classes, chorak, key=lambda c: c.partner_school_id or 'none',
@@ -240,7 +246,7 @@ class StatsSchoolView(APIView):
         school = None if school_id == 'none' else get_object_or_404(School, pk=school_id)
 
         def compute():
-            classes = stats.classes_for(request.user, school_id='none' if school is None else school.id)
+            classes = stats.classes_for(request.user, school_id='none' if school is None else school.id, year=_year(request))
             return {
                 'school': SchoolBriefSerializer(school).data if school else None,
                 'totals': stats.derive(stats.pool(stats.class_raw(classes, chorak).values())),
@@ -264,7 +270,7 @@ class StatsClassesView(APIView):
     def get(self, request):
         chorak = _chorak(request)
         classes = stats.classes_for(request.user, school_id=request.query_params.get('school') or None,
-                                    teacher_id=request.query_params.get('teacher') or None)
+                                    teacher_id=request.query_params.get('teacher') or None, year=_year(request))
         return Response(_cached(request, 'classes', lambda: stats.class_rows(classes, chorak)))
 
 
@@ -273,7 +279,7 @@ class StatsAttentionView(APIView):
 
     def get(self, request):
         chorak = _chorak(request)
-        classes = stats.classes_for(request.user, school_id=request.query_params.get('school') or None)
+        classes = stats.classes_for(request.user, school_id=request.query_params.get('school') or None, year=_year(request))
         return Response(_cached(request, 'attention', lambda: stats.attention(classes, chorak)))
 
 
@@ -288,7 +294,7 @@ class StatsMineView(APIView):
         chorak = _chorak(request)
 
         def compute():
-            classes = stats.classes_for(request.user, teacher_id=request.user.id)
+            classes = stats.classes_for(request.user, teacher_id=request.user.id, year=_year(request))
             return {
                 'totals': stats.derive(stats.pool(stats.class_raw(classes, chorak).values())),
                 'schools': stats.grouped(classes, chorak, key=lambda c: c.partner_school_id or 'none',
@@ -348,6 +354,7 @@ class DirectoryView(APIView):
             qs = qs.filter(journal_class__teacher_id=p['teacher'])
         if p.get('class'):
             qs = qs.filter(journal_class_id=p['class'])
+        qs = qs.filter(journal_class__year=_year(request))
         qs = qs.order_by('journal_class__partner_school__name', 'journal_class__name', 'order', 'full_name')
 
         paginator = DirectoryPagination()
@@ -374,3 +381,53 @@ class DirectoryView(APIView):
                 'abs_s': a.get('s', 0), 'abs_n': a.get('n', 0) + a.get('x', 0), 'late': a.get('k', 0),
             })
         return paginator.get_paginated_response(rows)
+
+
+def _year_row(year, counts):
+    return {'id': year.id, 'name': year.name, 'start_year': year.start_year,
+            'is_current': year.is_current, 'classes': counts.get(year.id, 0)}
+
+
+class AcademicYearsView(APIView):
+    """O'quv yillari — GET: every year, newest first, with its class count
+    (anyone signed in: the year pickers); POST: the administration adds
+    the year after the newest one."""
+
+    def get_permissions(self):
+        return [IsApproved()] if self.request.method in SAFE_METHODS else [IsAdminOrDevSuperuser()]
+
+    def get(self, request):
+        AcademicYear.current()  # a fresh database still gets its first year
+        counts = dict(JournalClass.objects.values('year').annotate(n=Count('id')).values_list('year', 'n'))
+        return Response([_year_row(y, counts) for y in AcademicYear.objects.all()])
+
+    def post(self, request):
+        newest = AcademicYear.objects.order_by('-start_year').first() or AcademicYear.current()
+        year = AcademicYear.objects.create(start_year=newest.start_year + 1)
+        log_event('academic_year_added', actor=request.user, request=request, detail=year.name)
+        return Response(_year_row(year, {}), status=status.HTTP_201_CREATED)
+
+
+class AcademicYearView(APIView):
+    """POST: make this year the current one (where new classes go and what
+    every page shows first); DELETE: remove a year that has no classes."""
+
+    permission_classes = [IsAdminOrDevSuperuser]
+
+    def post(self, request, pk):
+        from .signals import bump_stats_cache
+
+        year = get_object_or_404(AcademicYear, pk=pk)
+        year.make_current()
+        bump_stats_cache()
+        log_event('academic_year_current', actor=request.user, request=request, detail=year.name)
+        counts = dict(JournalClass.objects.values('year').annotate(n=Count('id')).values_list('year', 'n'))
+        return Response(_year_row(year, counts))
+
+    def delete(self, request, pk):
+        year = get_object_or_404(AcademicYear, pk=pk)
+        if year.is_current or year.classes.exists():
+            return Response({'detail': "Joriy yoki sinflari bor o'quv yilini o'chirib bo'lmaydi."}, status=status.HTTP_400_BAD_REQUEST)
+        log_event('academic_year_deleted', actor=request.user, request=request, detail=year.name)
+        year.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
