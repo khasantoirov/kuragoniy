@@ -214,3 +214,10 @@ def test_overview_counts_pupils_by_band_and_trends_mastery(as_user, admin, teach
     assert data["bands"] == {"alo": 1, "yaxshi": 1, "qoniqarli": 1, "qoniqarsiz": 1, "yomon": 0, "ungraded": 0}
     # September's marks 5, 4, 2, 2 -> (100 + 80 + 40 + 40) / 4; October's 4, 4
     assert {t["month"]: t["uzlashtirish"] for t in data["trend"]} == {"2026-09": 65.0, "2026-10": 80.0}
+
+
+def test_overview_lists_pupils_needing_attention(as_user, admin, teacher):
+    _class_with_data(teacher, School.objects.create(name="Sodiq"))
+    data = as_user(admin).get("/api/schools/stats/overview/").data
+    # only the pupil whose average (2) is below "3"; nobody has 3 unexcused absences
+    assert [(r["name"], r["reasons"]) for r in data["attention"]] == [("O'quvchi 3", ["low_mark"])]

@@ -164,7 +164,8 @@ def _cached(request, name, compute):
 class StatsOverviewView(APIView):
     """Statistika's journal figures, one source for every tab: totals, the
     rows grouped by ?group=school (default) | teacher | class, the trend,
-    the mark composition and the pupils per band — optionally narrowed by
+    the mark composition, the pupils per band and those needing attention
+    (a low average or several unexcused absences) — optionally narrowed by
     the filter panel: ?school= (an id or 'none'), ?teacher=, ?class=."""
 
     permission_classes = [IsOversight]
@@ -220,7 +221,8 @@ class StatsOverviewView(APIView):
             payload = {'totals': totals, 'group': group, 'rows': rows,
                        'trend': stats.trend(classes, chorak, _period(request)),
                        'composition': stats.composition(classes, chorak),
-                       'bands': stats.pupil_bands(classes, chorak)}
+                       'bands': stats.pupil_bands(classes, chorak),
+                       'attention': stats.attention(classes, chorak, limit=100)}
             if group == 'school':
                 payload['schools'] = rows  # what an older cached page reads
             return payload

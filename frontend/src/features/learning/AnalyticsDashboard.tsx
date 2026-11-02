@@ -63,6 +63,8 @@ export function AnalyticsDashboard({ oversight, canAward, onAward, title, sub }:
   const classRows = useAnalytics<ClassRow[]>('classes', filters)
   const lessons = useAnalytics<LessonStatRow[]>('lessons', filters)
   const o = overview.data
+  const withPupils = classRows.data?.filter((c) => c.students > 0) ?? []
+  const noPupils = (classRows.data?.length ?? 0) - withPupils.length
 
   return (
     <div>
@@ -90,11 +92,18 @@ export function AnalyticsDashboard({ oversight, canAward, onAward, title, sub }:
       {overview.isLoading || !o ? <Skeleton lines={3} /> : (
         <div className="stiles">
           <StatTile label={t("O'quvchilar")} value={o.students} hint={`${o.active_students} ${t('faol')}`} />
-          <StatTile label={t("O'rtacha natija")} value={o.avg_percent != null ? `${Math.round(o.avg_percent)}%` : '—'} hint={`${o.attempts} ${t('urinish')}`} />
-          <StatTile label={t('Uy vazifasi bajarilishi')} value={o.completion_rate != null ? `${Math.round(o.completion_rate)}%` : '—'}
-            hint={`${o.homework_done}/${o.homework_expected}`} tone={o.completion_rate == null ? undefined : o.completion_rate >= 70 ? 'ok' : o.completion_rate >= 40 ? 'warn' : 'bad'} />
+          {/* a tile with nothing measured yet would only say "—" */}
+          {o.avg_percent != null && (
+            <StatTile label={t("O'rtacha natija")} value={`${Math.round(o.avg_percent)}%`} hint={`${o.attempts} ${t('urinish')}`} />
+          )}
+          {o.completion_rate != null && (
+            <StatTile label={t('Uy vazifasi bajarilishi')} value={`${Math.round(o.completion_rate)}%`}
+              hint={`${o.homework_done}/${o.homework_expected}`} tone={o.completion_rate >= 70 ? 'ok' : o.completion_rate >= 40 ? 'warn' : 'bad'} />
+          )}
           <StatTile label={t('Dars hisobotlari')} value={o.reports} hint={o.avg_rating != null ? `${t("o'rtacha baho")} ${o.avg_rating}/5` : undefined} />
-          <StatTile label={t('Darsga tayyorgarlik')} value={o.readiness_avg != null ? `${Math.round(o.readiness_avg)}%` : '—'} hint={`${o.readiness_checks} ${t('tekshiruv')}`} />
+          {o.readiness_avg != null && (
+            <StatTile label={t('Darsga tayyorgarlik')} value={`${Math.round(o.readiness_avg)}%`} hint={`${o.readiness_checks} ${t('tekshiruv')}`} />
+          )}
           <StatTile label={t("Materiali tayyor darslar")} value={`${o.with_material}/${o.lessons}`} />
         </div>
       )}
@@ -135,7 +144,7 @@ export function AnalyticsDashboard({ oversight, canAward, onAward, title, sub }:
         ) : <p className="prose prose--note">{t("Bu davrda natijalar yo'q.")}</p>}
       </section>
 
-      {oversight && (
+      {oversight && (teachersRank.isLoading || !!teachersRank.data?.length) && (
         <section className="panel">
           <TableHead title={`⭐ ${t("Eng yaxshi dars o'tgan o'qituvchilar")}`}
             hint={t("Reyting = 35% hisobotlar bahosi + 25% o'quvchilar natijasi + 20% darsga tayyorgarlik + 20% uy vazifasi bajarilishi")}
@@ -162,7 +171,7 @@ export function AnalyticsDashboard({ oversight, canAward, onAward, title, sub }:
                 </tbody>
               </table>
             </div>
-          ) : <p className="prose prose--note">{t("Bu davrda ma'lumot yo'q.")}</p>}
+          ) : null}
         </section>
       )}
 
@@ -180,23 +189,26 @@ export function AnalyticsDashboard({ oversight, canAward, onAward, title, sub }:
         </section>
       )}
 
+      {(withPupils.length > 0 || !!lessons.data?.length) && (
       <div className="cols2">
+        {withPupils.length > 0 && (
         <section className="panel">
-          <TableHead title={t('Sinflar taqqoslash')} onCsv={classRows.data?.length ? () => downloadCsv('sinflar', [t('Sinf'), t('Maktab'), t("O'qituvchi"), t("O'quvchilar"), t('Faol'), t('Urinishlar'), t("O'rtacha %")],
-            classRows.data!.map((c) => [c.name, c.school, c.teacher, c.students, c.active_students, c.attempts, c.avg_percent ?? ''])) : undefined} />
-          {classRows.data?.length ? (
-            <div className="tablewrap">
-              <table className="dtable">
-                <thead><tr><th>{t('Sinf')}</th>{oversight && <th>{t("O'qituvchi")}</th>}<th>{t("O'quvchi")}</th><th>{t('Faol')}</th><th>{t("O'rtacha")}</th></tr></thead>
-                <tbody>
-                  {classRows.data.map((c) => (
-                    <tr key={c.class_id}><td>{c.name}</td>{oversight && <td>{c.teacher}</td>}<td>{c.students}</td><td>{c.active_students}</td><td><PercentPill value={c.avg_percent} /></td></tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : <p className="prose prose--note">{t("Ma'lumot yo'q.")}</p>}
+          <TableHead title={t('Sinflar taqqoslash')} onCsv={() => downloadCsv('sinflar', [t('Sinf'), t('Maktab'), t("O'qituvchi"), t("O'quvchilar"), t('Faol'), t('Urinishlar'), t("O'rtacha %")],
+            classRows.data!.map((c) => [c.name, c.school, c.teacher, c.students, c.active_students, c.attempts, c.avg_percent ?? '']))} />
+          <div className="tablewrap">
+            <table className="dtable">
+              <thead><tr><th>{t('Sinf')}</th>{oversight && <th>{t("O'qituvchi")}</th>}<th>{t("O'quvchi")}</th><th>{t('Faol')}</th><th>{t("O'rtacha")}</th></tr></thead>
+              <tbody>
+                {withPupils.map((c) => (
+                  <tr key={c.class_id}><td>{c.name}</td>{oversight && <td>{c.teacher}</td>}<td>{c.students}</td><td>{c.active_students}</td><td><PercentPill value={c.avg_percent} /></td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {noPupils > 0 && <p className="prose prose--note">{noPupils} {t("ta sinfda hali o'quvchi hisobi yo'q.")}</p>}
         </section>
+        )}
+        {!!lessons.data?.length && (
         <section className="panel">
           <TableHead title={t('Darslar: eng qiyinlari')} hint={t("Past natija — video yoki nazariyani yaxshilash kerakligi belgisi")} />
           {lessons.data?.length ? (
@@ -210,9 +222,11 @@ export function AnalyticsDashboard({ oversight, canAward, onAward, title, sub }:
                 </tbody>
               </table>
             </div>
-          ) : <p className="prose prose--note">{t("Ma'lumot yo'q.")}</p>}
+          ) : null}
         </section>
+        )}
       </div>
+      )}
     </div>
   )
 }

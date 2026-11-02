@@ -1,12 +1,15 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { RankBarChart, type RankDatum } from '@/components/charts/RankBarChart'
 import { StatCard } from '@/components/charts/StatCard'
+import { EmptyState } from '@/components/EmptyState'
 import { Skeleton } from '@/components/Skeleton'
 import { BANDS } from '@/features/journal/masteryStats'
-import { PageHead } from '@/features/portal/ui'
-import { useSchoolsOverview, type StatsGroup } from '@/features/schools/api'
+import { PageHead, StatusPill } from '@/features/portal/ui'
+import { useSchoolsOverview, type AttentionRow, type StatsGroup } from '@/features/schools/api'
+import { MetricPill } from '@/features/schools/shared'
 import { useStatsHub } from '@/features/schools/statsFilter'
 import { TrendPanels } from '@/features/schools/TrendPanels'
 import { useTrendView } from '@/features/schools/trendView'
@@ -19,6 +22,54 @@ const COMPARE_TITLE: Record<StatsGroup, string> = {
 }
 
 const pct = (v: number | null | undefined) => (v == null ? '—' : `${v}%`)
+
+const ATTENTION_SHOWN = 10
+
+/** Pupils who need a closer look; a row opens the class's journal. */
+function Attention({ rows }: { rows: AttentionRow[] }) {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const [all, setAll] = useState(false)
+  if (!rows.length) {
+    return (
+      <section className="panel dash">
+        <h3 className="panel__title">{t("E'tibor talab qiladi")}</h3>
+        <p className="prose prose--note">✓ {t("Hozircha o'rtacha bahosi past yoki ko'p dars qoldirgan o'quvchi yo'q.")}</p>
+      </section>
+    )
+  }
+  const shown = all ? rows : rows.slice(0, ATTENTION_SHOWN)
+  return (
+    <section className="panel panel--attention">
+      <h3 className="panel__title">{t("E'tibor talab qiladi")} <span className="badge">{rows.length}</span></h3>
+      <p className="prose prose--note">{t("O'rtacha bahosi «3»dan past yoki 3 va undan ko'p sababsiz qoldirgan o'quvchilar. Qatorni bosing — sinf jurnali ochiladi.")}</p>
+      <div className="tablewrap">
+        <table className="dtable">
+          <thead>
+            <tr><th>{t("O'quvchi")}</th><th>{t('Sinf')}</th><th>{t('Maktab')}</th><th>{t("O'qituvchi")}</th><th>{t("O'rtacha baho")}</th><th>{t('Sababsiz')}</th></tr>
+          </thead>
+          <tbody>
+            {shown.map((r) => (
+              <tr key={r.student_id} className="is-click" onClick={() => navigate(`/journal?class=${r.class_id}`)}>
+                <td><b>{r.name}</b></td>
+                <td>{r.class_name}</td>
+                <td>{r.school || '—'}</td>
+                <td>{r.teacher}</td>
+                <td><MetricPill value={r.avg_mark} band="mark" suffix="" digits={2} /> <small className="muted">({r.marks})</small></td>
+                <td>{r.unexcused >= 3 ? <StatusPill tone="bad">{r.unexcused}</StatusPill> : r.unexcused}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {rows.length > ATTENTION_SHOWN && (
+        <button type="button" className="btn btn--sm btn--ghost" onClick={() => setAll(!all)}>
+          {all ? t('Kamroq ko‘rsatish') : `${t('Hammasini ko‘rsatish')} (${rows.length})`}
+        </button>
+      )}
+    </section>
+  )
+}
 
 /** Statistika › Umumiy ko'rinish: how the journal stands for the period and
  * scope picked in the filter panel — the headline figures, pupils by band,
@@ -53,7 +104,7 @@ export function StatisticsPage() {
 
   const compare: RankDatum[] = level && data.group === level
     ? data.rows
-      .filter((r) => r.students > 0)
+      .filter((r) => r.marks > 0)
       .map((r) => ({
         key: 'class_id' in r ? String(r.class_id) : String(r.id),
         label: 'class_id' in r ? r.name : r.id === 'none' ? t('Biriktirilmagan') : r.name,
@@ -69,6 +120,10 @@ export function StatisticsPage() {
       <PageHead title={t("Umumiy ko'rinish")}
         sub={t("Jurnal bo'yicha o'zlashtirish va davomat. Davr, maktab, o'qituvchi va sinfni yuqoridagi filtrdan tanlang.")} />
 
+      {!totals.marks && !totals.days ? (
+        <EmptyState title={t("Bu davr va tanlovda jurnalda hali ma'lumot yo'q")}
+          hint={t("Boshqa chorak, maktab yoki o'qituvchini tanlab ko'ring.")} />
+      ) : <>
       <div className="dash__stats">
         <StatCard label={t("O'quvchilar")} value={totals.students} hint={`${totals.classes} ${t('ta sinf')}`} icon="users" />
         <StatCard label={t("O'rtacha baho")} value={totals.avg_mark?.toFixed(2) ?? '—'} hint={`${totals.marks} ${t('ta baho')}`} icon="star" />
@@ -88,6 +143,8 @@ export function StatisticsPage() {
         <p className="form__note mstats__note">{t("O'quvchining o'rtacha bahosi qaysi bahoga yaqin bo'lsa, shu guruhda sanaladi.")}</p>
       </section>
 
+      <Attention rows={data.attention ?? []} />
+
       <TrendPanels trend={data.trend} composition={data.composition} view={view} />
 
       {level && compare.length > 1 && (
@@ -103,6 +160,7 @@ export function StatisticsPage() {
       <p>
         <button type="button" className="btn btn--ghost" onClick={openJurnal}>{IC.list} {t('Batafsil jadval — «Jurnal» bo‘limida')}</button>
       </p>
+      </>}
     </div>
   )
 }

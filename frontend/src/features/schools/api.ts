@@ -119,6 +119,8 @@ export interface Overview {
   trend: TrendPoint[]
   composition?: Composition
   bands: PupilBands
+  /** pupils with an average below "3" or several unexcused absences */
+  attention: AttentionRow[]
 }
 
 export interface SchoolStats {

@@ -73,6 +73,7 @@ const GROUPS: { value: StatsGroup; label: string }[] = [
   { value: 'class', label: 'Sinf' },
 ]
 const isGroup = (v: string | null): v is StatsGroup => v === 'school' || v === 'teacher' || v === 'class'
+const EMPTY_UNIT: Record<StatsGroup, string> = { school: 'ta maktabda', teacher: "ta o'qituvchida", class: 'ta sinfda' }
 
 /** Statistika › Jurnal: every journal figure in one table, grouped by
  * school, teacher or class (?guruh=). A school row opens its teachers, a
@@ -94,8 +95,10 @@ export function SchoolsPage() {
   const unlinked = useUnlinked()
   const [creating, setCreating] = useState(false)
   const [linking, setLinking] = useState(false)
+  // rows with neither a lesson day nor a mark yet wait behind one line
+  const [showEmpty, setShowEmpty] = useState(false)
 
-  const setGroup = (next: StatsGroup, narrow: Record<string, string> = {}) => setParams((prev) => {
+  const setGroup =(next: StatsGroup, narrow: Record<string, string> = {}) => setParams((prev) => {
     const p = new URLSearchParams(prev)
     for (const [k, v] of Object.entries(narrow)) p.set(k, v)
     if (Object.keys(narrow).length) p.delete('class')
@@ -104,9 +107,15 @@ export function SchoolsPage() {
   }, { replace: true })
 
   const rows = data?.group === group ? data.rows : []
+  const hasData = (m: GroupRow | ClassRow) => m.marks > 0 || m.days > 0
+  const emptyCount = rows.filter((m) => !hasData(m)).length
+  const shown = showEmpty ? rows : rows.filter(hasData)
   const schoolRows = group === 'school' ? (rows as GroupRow[]) : []
   const teacherRows = group === 'teacher' ? (rows as GroupRow[]) : []
   const classRows = group === 'class' ? (rows as ClassRow[]) : []
+  const shownSchools = group === 'school' ? (shown as GroupRow[]) : []
+  const shownTeachers = group === 'teacher' ? (shown as GroupRow[]) : []
+  const shownClasses = group === 'class' ? (shown as ClassRow[]) : []
   const schoolName = (r: GroupRow) => (r.id === 'none' ? t('Biriktirilmagan sinflar') : r.name)
   const teacherSchools = (r: GroupRow) => [...(r.schools ?? []), ...(r.unlinked ? [t('Biriktirilmagan')] : [])].join(', ')
   const period = f?.chorak ?? 'all'
@@ -166,7 +175,7 @@ export function SchoolsPage() {
                 </tr>
               </thead>
               <tbody>
-                {schoolRows.map((r) => (
+                {shownSchools.map((r) => (
                   <tr key={r.id} className="is-click" onClick={() => setGroup('teacher', { school: String(r.id) })}>
                     <td>
                       {r.id === 'none' ? <i className="muted">{schoolName(r)}</i> : <b>{r.name}</b>}{' '}
@@ -178,7 +187,7 @@ export function SchoolsPage() {
                     {cells(r)}
                   </tr>
                 ))}
-                {teacherRows.map((r) => (
+                {shownTeachers.map((r) => (
                   <tr key={r.id} className="is-click" onClick={() => setGroup('class', { teacher: String(r.id) })}>
                     <td><b>{r.name}</b></td>
                     <td>{teacherSchools(r) || '—'}</td>
@@ -186,7 +195,7 @@ export function SchoolsPage() {
                     {cells(r)}
                   </tr>
                 ))}
-                {classRows.map((r) => (
+                {shownClasses.map((r) => (
                   <tr key={r.class_id} className="is-click" title={t('Sinf jurnalini ochish')} onClick={() => navigate(`/journal?class=${r.class_id}`)}>
                     <td><b>{r.name}</b></td>
                     <td>{r.school || <i className="muted">{r.school_text || t('Biriktirilmagan')}</i>}</td>
@@ -194,6 +203,16 @@ export function SchoolsPage() {
                     {cells(r)}
                   </tr>
                 ))}
+                {emptyCount > 0 && (
+                  <tr className="dtable__more">
+                    <td colSpan={9}>
+                      <span className="muted">{emptyCount} {t(EMPTY_UNIT[group])} {t("hali dars ham, baho ham yo'q")}.</span>{' '}
+                      <button type="button" className="linklike" onClick={() => setShowEmpty(!showEmpty)}>
+                        {showEmpty ? t('Yashirish') : t('Ko‘rsatish')}
+                      </button>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
