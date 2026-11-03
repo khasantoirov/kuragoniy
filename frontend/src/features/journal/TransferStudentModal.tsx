@@ -5,8 +5,9 @@ import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/Modal'
 import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
+import { record } from '@/lib/history'
 
-import { useTransferStudent, useTransferTargets, type TransferMode, type TransferTarget } from './api'
+import { useTransferStudent, useTransferTargets, useUndoTransfer, type TransferMode, type TransferTarget } from './api'
 
 const MODES: { v: TransferMode; title: string; text: string }[] = [
   {
@@ -37,6 +38,7 @@ export function TransferStudentModal({ pupil, onClose, onDone }: { pupil: Transf
   const toast = useToast()
   const { data: targets, isLoading } = useTransferTargets(pupil.id)
   const transfer = useTransferStudent()
+  const undoTransfer = useUndoTransfer()
   const [target, setTarget] = useState('')
   const [mode, setMode] = useState<TransferMode | null>(null)
 
@@ -51,8 +53,13 @@ export function TransferStudentModal({ pupil, onClose, onDone }: { pupil: Transf
   const submit = async () => {
     if (!target || !mode) return
     try {
-      await transfer.mutateAsync({ student: pupil.id, target: Number(target), mode })
-      toast(`${t("Ko'chirildi")}: ${pupil.name} → ${picked?.name ?? ''}`)
+      const move = { student: pupil.id, target: Number(target), mode }
+      // Ctrl+Z puts the move back on the server exactly; Ctrl+Shift+Z moves again
+      const done = { id: (await transfer.mutateAsync(move)).transfer }
+      record(`${t("Ko'chirish")}: ${pupil.name} → ${picked?.name ?? ''}`,
+        async () => { await undoTransfer.mutateAsync(done.id) },
+        async () => { done.id = (await transfer.mutateAsync(move)).transfer })
+      toast(`${t("Ko'chirildi")}: ${pupil.name} → ${picked?.name ?? ''} · ${t('Ctrl+Z — bekor qilish')}`)
       onClose()
       onDone?.()
     } catch (err) {

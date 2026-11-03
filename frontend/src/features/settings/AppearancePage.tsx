@@ -8,6 +8,7 @@ import { useVisibleNavItems } from '@/layouts/navItems'
 import { NavRail, type RailItem } from '@/layouts/NavRail'
 import { MAX_NAV_ITEMS, useUIStore, type Lang, type ThemeMode } from '@/store/uiStore'
 
+import { GradePalettePanel } from './GradePalettePanel'
 import { ViewAsPupilModal } from './ViewAsPupilModal'
 
 const LANGS: { k: Lang; label: string }[] = [
@@ -87,6 +88,8 @@ export function AppearancePage() {
           {pickingPupil && <ViewAsPupilModal onClose={() => setPickingPupil(false)} />}
         </section>
       )}
+
+      {user?.is_dev_superuser && <GradePalettePanel />}
 
       <section className="panel">
         <h3 className="panel__title">{t("Pastki navbar bo'limlari")}</h3>

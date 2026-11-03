@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
 
 import { api } from '@/lib/api/client'
 import { useAuth } from '@/lib/auth/AuthContext'
@@ -26,6 +27,26 @@ export interface ModulesState {
   modules: Record<ModuleKey, boolean>
   /** Administrators only: rows each section holds (null: nothing stored). */
   usage?: Record<ModuleKey, number | null>
+  /** How marks are coloured, for everyone — the developer's pick. */
+  grade_palette?: GradePalette
+}
+
+/** The four ways marks can be coloured (styles/settings.css, <html data-grades>). */
+export type GradePalette = 'aralash' | 'tonal' | 'klassik' | 'chiziq'
+export const GRADE_PALETTES: { key: GradePalette; label: string; sub: string }[] = [
+  { key: 'aralash', label: 'Aralash', sub: "A'lo va yomon to'liq rangli, o'rtadagilari och fonda" },
+  { key: 'tonal', label: 'Tonal juftlik', sub: "Har baho bir rang tusida: och fon, o'sha rangning to'q raqami" },
+  { key: 'klassik', label: 'Klassik shkala', sub: "To'liq bo'yalgan bloklar, raqam oq yoki to'q" },
+  { key: 'chiziq', label: 'Neytral + chiziq', sub: "Raqam neytral, darajani chapdagi rangli chiziq ko'rsatadi" },
+]
+
+/** Puts the platform's mark colours on the page (both portals call it). */
+export function useGradePalette() {
+  const { data } = useModules()
+  const palette = data?.grade_palette ?? 'aralash'
+  useEffect(() => {
+    document.documentElement.dataset.grades = palette
+  }, [palette])
 }
 
 export function useModules() {

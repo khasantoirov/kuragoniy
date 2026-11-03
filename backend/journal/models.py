@@ -58,6 +58,28 @@ class Student(models.Model):
         return self.full_name
 
 
+class StudentTransfer(models.Model):
+    """One move of a pupil to another class (journal/transfer.py) with
+    everything it changed, so Ctrl+Z can put it back exactly: where each
+    mark, absence and control mark was, the pupil's place in the old
+    roster, their account, and the lesson days / control works the move
+    had to create in the new class."""
+
+    student = models.ForeignKey(Student, related_name='transfers', on_delete=models.CASCADE)
+    # archive: the fresh row the pupil got in the new class
+    new_row = models.ForeignKey(Student, related_name='+', null=True, blank=True, on_delete=models.SET_NULL)
+    source = models.ForeignKey(JournalClass, related_name='+', on_delete=models.CASCADE)
+    target = models.ForeignKey(JournalClass, related_name='+', on_delete=models.CASCADE)
+    mode = models.CharField(max_length=10)
+    state = models.JSONField(default=dict)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='+', null=True, blank=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+    undone_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+
 class ClassDay(models.Model):
     journal_class = models.ForeignKey(JournalClass, related_name='days', on_delete=models.CASCADE)
     date = models.DateField()

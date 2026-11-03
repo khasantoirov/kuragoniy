@@ -1,5 +1,5 @@
 import { isAxiosError } from 'axios'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useBlocker, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
@@ -8,8 +8,9 @@ import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
 import { GuideLink } from '@/features/guide/GuideLink'
 import { IC } from '@/icons'
+import { record } from '@/lib/history'
 
-import { useBulkMarks, useClasses, useGrid } from './api'
+import { useBulkMarks, useClasses, useDropDay, useGrid } from './api'
 import { isAbsent } from './attendance'
 import { EditRequestModal } from './EditRequestModal'
 import { DAY_ATT, dayTitle } from './grades'
@@ -51,6 +52,7 @@ function DayEditor({ grid, cls, classId, date, teacherId, quarter }: {
   const confirm = useConfirm()
   const navigate = useNavigate()
   const bulk = useBulkMarks(classId)
+  const dropDay = useDropDay(classId)
   const lock = grid.lock
   const day = grid.days.find((d) => d.date === date)
   const students = grid.students
@@ -69,6 +71,23 @@ function DayEditor({ grid, cls, classId, date, teacherId, quarter }: {
   const [granting, setGranting] = useState(false)
 
   const markOf = (sid: number) => (isAbsent(att[sid]) ? null : marks[sid] ?? null)
+
+  // The saved day changed underneath (Ctrl+Z / Ctrl+Shift+Z, another tab):
+  // take it over — unless something entered here is still unsaved.
+  const seen = useRef(day)
+  useEffect(() => {
+    const was = seen.current
+    seen.current = day
+    if (was === day) return
+    const clean = students.every((s) => (att[s.id] ?? '') === (was?.attendance[s.id] ?? '')
+      && (isAbsent(att[s.id]) ? null : marks[s.id] ?? null) === (was?.marks[s.id] ?? null))
+      && topic === (was?.topic ?? '') && period === (was?.period ?? null)
+    if (!clean) return
+    setAtt(Object.fromEntries(students.map((s) => [s.id, (day?.attendance[s.id] ?? '') as AttendanceStatus | ''])))
+    setMarks(Object.fromEntries(students.map((s) => [s.id, day?.marks[s.id] ?? null])))
+    setTopic(day?.topic ?? '')
+    setPeriod(day?.period ?? null)
+  }, [day])  // eslint-disable-line react-hooks/exhaustive-deps
   const attChanged = students.filter((s) => (att[s.id] ?? '') !== origAtt(s.id))
   const markChanged = students.filter((s) => markOf(s.id) !== origMark(s.id))
   const dirty = editable && (!day || attChanged.length > 0 || markChanged.length > 0 || topic !== (day?.topic ?? '') || period !== (day?.period ?? null))
@@ -83,12 +102,23 @@ function DayEditor({ grid, cls, classId, date, teacherId, quarter }: {
   const future = date > (lock?.today ?? localToday())
 
   const save = async () => {
+    // what this save changes, both ways — Ctrl+Z puts the day back as it was
+    const after = {
+      date, chorak, topic, period,
+      attendance: attChanged.map((s) => ({ student_id: s.id, status: att[s.id] || null })),
+      marks: markChanged.map((s) => ({ student_id: s.id, mark: markOf(s.id) })),
+    }
+    const before = {
+      date, chorak, topic: day?.topic ?? '', period: day?.period ?? null,
+      attendance: attChanged.map((s) => ({ student_id: s.id, status: origAtt(s.id) || null })),
+      marks: markChanged.map((s) => ({ student_id: s.id, mark: origMark(s.id) })),
+    }
+    const existed = !!day
     try {
-      await bulk.mutateAsync({
-        date, chorak, topic, period,
-        attendance: attChanged.map((s) => ({ student_id: s.id, status: att[s.id] || null })),
-        marks: markChanged.map((s) => ({ student_id: s.id, mark: markOf(s.id) })),
-      })
+      await bulk.mutateAsync(after)
+      record(`${t('Dars kuni')} ${dayLabel}`,
+        async () => { if (existed) await bulk.mutateAsync(before); else await dropDay.mutateAsync(date) },
+        async () => { await bulk.mutateAsync(after) })
       toast(t('Saqlandi'))
     } catch (err) {
       toast(t(errDetail(err) ?? 'Saqlashda xatolik'), 'error')

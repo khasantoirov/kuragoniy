@@ -15,6 +15,7 @@ import { IC, themeIconMoon, themeIconSun } from '@/icons'
 import { useAuth } from '@/lib/auth/AuthContext'
 import { setupEnterKeyNav } from '@/lib/enterKeyNav'
 import { redoLast, undoLast } from '@/lib/history'
+import { useGradePalette } from '@/lib/modules'
 import { usePageScrolled, useScrollRestoration } from '@/lib/scroll'
 import { useUIStore } from '@/store/uiStore'
 
@@ -30,6 +31,7 @@ export function AppShell() {
   const location = useLocation()
   const navigate = useNavigate()
   const toast = useToast()
+  useGradePalette()  // the platform's mark colours (the developer's pick)
 
   const [acctOpen, setAcctOpen] = useState(false)
   const topbarRef = useRef<HTMLElement>(null)
@@ -85,17 +87,27 @@ export function AppShell() {
   }, [navigate, acctOpen])
 
   // Ctrl+Z / Ctrl+Shift+Z (and Ctrl+Y) — global undo/redo, ported from
-  // js/history.js's watchKeys(). Skipped while typing in a text field so
-  // the browser's own native undo still works there.
+  // js/history.js's watchKeys(); it works wherever the focus is. A text
+  // field keeps the keys for itself only while it holds typing of its own
+  // (its value differs from when it got focus) — the browser undoes that
+  // typing; a field merely left focused after a save hands them on.
   useEffect(() => {
+    const atFocus = new WeakMap<EventTarget, string>()
+    const valueOf = (el: HTMLElement) =>
+      el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement ? el.value : el.isContentEditable ? el.textContent ?? '' : null
+    const onFocus = (e: FocusEvent) => {
+      const el = e.target as HTMLElement
+      const v = el && valueOf(el)
+      if (v != null) atFocus.set(el, v)
+    }
     const onKey = (e: KeyboardEvent) => {
-      if (!(e.ctrlKey || e.metaKey)) return
+      if (!(e.ctrlKey || e.metaKey) || e.altKey) return
       const k = e.key.toLowerCase()
       if (k !== 'z' && k !== 'y') return
 
       const tgt = e.target as HTMLElement | null
-      const tag = (tgt?.tagName || '').toUpperCase()
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tgt?.isContentEditable) return
+      const v = tgt ? valueOf(tgt) : null
+      if (v != null && v !== (atFocus.get(tgt!) ?? v)) return  // the field's own typing
 
       e.preventDefault()
       const isRedo = k === 'y' || e.shiftKey
@@ -106,8 +118,12 @@ export function AppShell() {
         else if (res.error) toast((isRedo ? t("Qaytarib bo'lmadi: ") : t("Bekor qilib bo'lmadi: ")) + res.error, 'error')
       })
     }
+    document.addEventListener('focusin', onFocus)
     document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('focusin', onFocus)
+      document.removeEventListener('keydown', onKey)
+    }
   }, [t, toast])
 
   // Enter-to-next-field, and Enter-to-save from the last field, across

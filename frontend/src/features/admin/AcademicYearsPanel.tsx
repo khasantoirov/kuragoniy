@@ -8,6 +8,7 @@ import { useToast } from '@/components/Toast'
 import { errText, StatusPill } from '@/features/portal/ui'
 import { useYears, type AcademicYear } from '@/features/schools/api'
 import { api } from '@/lib/api/client'
+import { record } from '@/lib/history'
 import { useYearStore } from '@/lib/year'
 
 import { RolloverModal } from './RolloverModal'
@@ -46,7 +47,12 @@ export function AcademicYearsPanel() {
       title: `${y.name} — ${t("joriy o'quv yili")}`,
       text: t("Yangi sinflar shu yilga qo'shiladi, Jurnal va Statistika birinchi navbatda shu yilni ko'rsatadi. Boshqa yillarning ma'lumoti o'zgarmaydi."),
     }))) return
-    await run(() => makeCurrent.mutateAsync(y.id), 'Saqlandi')
+    const was = years?.find((x) => x.is_current)
+    await run(async () => {
+      await makeCurrent.mutateAsync(y.id)
+      // Ctrl+Z makes the previous year current again
+      if (was) record(`${t("Joriy o'quv yili")}: ${y.name}`, async () => { await makeCurrent.mutateAsync(was.id) }, async () => { await makeCurrent.mutateAsync(y.id) })
+    }, 'Saqlandi')
   }
   const onRemove = async (y: AcademicYear) => {
     if (!(await confirm({ title: t("O'quv yilini o'chirish"), text: y.name, danger: true }))) return

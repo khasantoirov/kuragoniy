@@ -13,7 +13,7 @@ import { BrandMark } from '@/layouts/edumin/BrandMark'
 import { SidebarToggle } from '@/layouts/edumin/Sidebar'
 import { useAuth } from '@/lib/auth/AuthContext'
 import { useViewAs } from '@/lib/viewAs'
-import { routeOn, useModules } from '@/lib/modules'
+import { routeOn, useGradePalette, useModules } from '@/lib/modules'
 import { usePageScrolled, useScrollRestoration } from '@/lib/scroll'
 import { useUIStore } from '@/store/uiStore'
 
@@ -79,6 +79,7 @@ export function StudentShell() {
   useScrollRestoration()
 
   const { on } = useModules()
+  useGradePalette()
   const items = ITEMS.filter((it) => routeOn(it.to, on))
   const active = [...items].reverse().find((it) => (it.end ? pathname === it.to : pathname.startsWith(it.to)))
   const rail: RailItem[] = items.filter((it) => it.to !== '/s/results').map((it) => ({ to: it.to, icon: IC[it.icon], label: t(it.label) }))

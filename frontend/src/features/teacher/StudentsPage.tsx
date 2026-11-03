@@ -20,6 +20,7 @@ import { Presence } from '@/features/portal/Presence'
 import { errText, PageHead, StatusPill } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
+import { record } from '@/lib/history'
 
 /** Printable login sheet — one slip per student to cut out and hand over. */
 function CredentialsModal({ creds, className, onClose }: { creds: Credential[]; className: string; onClose: () => void }) {
@@ -124,6 +125,15 @@ export function StudentsPage() {
     if (action === 'set-active' && body && !(body as { is_active: boolean }).is_active
       && !(await confirm({ title: t('Bloklash'), text: `${s.name} ${t('endi tizimga kira olmaydi.')}`, danger: true }))) return
     await api.post(`/learning/students/${s.id}/${action}/`, body ?? {})
+    if (action === 'set-active' && body) {
+      // blocking is reversible: Ctrl+Z / Ctrl+Shift+Z flip it back and forth
+      const on = (body as { is_active: boolean }).is_active
+      const flip = (to: boolean) => async () => {
+        await api.post(`/learning/students/${s.id}/set-active/`, { is_active: to })
+        invalidate()
+      }
+      record(`${t(on ? 'Blokdan chiqarish' : 'Bloklash')}: ${s.name}`, flip(!on), flip(on))
+    }
     toast(t('Bajarildi'))
   })
 

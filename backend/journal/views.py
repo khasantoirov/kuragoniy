@@ -28,9 +28,10 @@ from .models import (
     JournalClass,
     JournalEditGrant,
     Student,
+    StudentTransfer,
 )
 from .scales import convert, level
-from .transfer import MODES, transfer_student
+from .transfer import MODES, UndoRefused, transfer_student, undo_transfer
 from .serializers import (
     BulkDaySerializer,
     ClassDaySerializer,
@@ -302,7 +303,8 @@ class StudentTransferView(APIView):
                 {'detail': f"{target.name} sinfida «{student.full_name}» allaqachon bor — avval o'sha qatorni ro'yxatdan olib tashlang."},
                 status=status.HTTP_400_BAD_REQUEST)
         source = student.journal_class
-        row = transfer_student(student, target, mode)
+        record = transfer_student(student, target, mode, actor=request.user)
+        row = record.new_row or record.student
         how = 'baho va davomati bilan' if mode == 'carry' else 'baholari eski sinfda arxivda'
         log_event('student_transferred', actor=request.user, request=request,
                   detail=f'{row.full_name}: {class_label(source)} → {class_label(target)} ({how})')
@@ -311,7 +313,29 @@ class StudentTransferView(APIView):
             body = f'{class_label(source)} → {class_label(target)} · {how}'
             notify(target.teacher, Kind.OQUVCHI, title, body, f'/journal?class={target.pk}',
                    telegram_text=f'👤 {title}\n{body}')
-        return Response({'student': row.id, 'class': target.pk, 'mode': mode})
+        return Response({'student': row.id, 'class': target.pk, 'mode': mode, 'transfer': record.id})
+
+
+class TransferUndoView(APIView):
+    """POST: put a move back exactly as it was (journal/transfer.py
+    undo_transfer) — Ctrl+Z after "Ko'chirish". By whoever made it, or an
+    administrator."""
+
+    permission_classes = [IsTeacher]
+
+    def post(self, request, pk):
+        record = get_object_or_404(StudentTransfer.objects.select_related('student', 'source', 'target'), pk=pk)
+        if not (request.user.is_admin or record.actor_id == request.user.pk):
+            raise PermissionDenied("Bu ko'chirishni faqat uni qilgan o'qituvchi yoki ma'muriyat bekor qiladi.")
+        if is_past_year(record.source) or is_past_year(record.target):
+            return Response({'detail': PAST_YEAR_DETAIL}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            row = undo_transfer(record)
+        except UndoRefused as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_409_CONFLICT)
+        log_event('student_transfer_reverted', actor=request.user, request=request,
+                  detail=f'{row.full_name}: {class_label(record.target)} → {class_label(record.source)} (bekor qilindi)')
+        return Response({'student': row.id, 'class': record.source_id})
 
 
 class FinalGradeViewSet(viewsets.ReadOnlyModelViewSet):

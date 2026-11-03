@@ -201,6 +201,7 @@ export function AwardsPage() {
 
 const ACTION_LABELS: Record<string, string> = {
   modules_changed: "Modullar o'zgartirildi",
+  grade_palette_changed: "Baho ranglari o'zgardi",
   login_ok: 'Kirish',
   login_failed: "Noto'g'ri parol",
   login_locked: 'Hisob bloklandi',
@@ -221,6 +222,7 @@ const ACTION_LABELS: Record<string, string> = {
   student_active_changed: "O'quvchi holati o'zgardi",
   student_moved: "O'quvchi ko'chirildi",
   student_transferred: "O'quvchi boshqa sinfga o'tkazildi",
+  student_transfer_reverted: "O'quvchini ko'chirish bekor qilindi",
   student_view_as: "O'quvchi ko'rinishi ochildi",
   academic_year_added: "O'quv yili qo'shildi",
   academic_year_current: "Joriy o'quv yili o'zgardi",

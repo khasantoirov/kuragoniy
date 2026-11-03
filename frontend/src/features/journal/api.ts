@@ -60,7 +60,19 @@ export function useTransferStudent() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ student, target, mode }: { student: number; target: number; mode: TransferMode }) =>
-      (await api.post<{ student: number; class: number; mode: TransferMode }>(`/journal/students/${student}/transfer/`, { target, mode })).data,
+      (await api.post<{ student: number; class: number; mode: TransferMode; transfer: number }>(`/journal/students/${student}/transfer/`, { target, mode })).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['journal'] })
+      queryClient.invalidateQueries({ queryKey: ['schools'] })
+    },
+  })
+}
+
+/** Ctrl+Z after a move: the server puts it back exactly (journal/transfer.py undo_transfer). */
+export function useUndoTransfer() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (transfer: number) => (await api.post(`/journal/transfers/${transfer}/undo/`)).data,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['journal'] })
       queryClient.invalidateQueries({ queryKey: ['schools'] })
@@ -89,11 +101,12 @@ export function useAddStudent(classId: number) {
 export function useUpdateStudent(classId: number) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, full_name, order }: { id: number; full_name?: string; order?: number }) =>
+    mutationFn: async ({ id, full_name, order, active }: { id: number; full_name?: string; order?: number; active?: boolean }) =>
       (
         await api.patch<Student>(`/journal/students/${id}/`, {
           ...(full_name !== undefined ? { full_name } : {}),
           ...(order !== undefined ? { order } : {}),
+          ...(active !== undefined ? { active } : {}),
         })
       ).data,
     onSuccess: () => {

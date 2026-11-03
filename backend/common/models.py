@@ -31,9 +31,14 @@ class AuditLog(models.Model):
 class PlatformSettings(models.Model):
     """Singleton (pk=1) — platform-wide switches the administration sets.
     `modules`: the optional sections (common/modules.py) as {key: bool}; a
-    missing key means on."""
+    missing key means on. `grade_palette`: how marks are coloured on every
+    page, for everyone — the developer picks it (frontend styles/settings.css
+    has the four)."""
+
+    GRADE_PALETTES = ('aralash', 'tonal', 'klassik', 'chiziq')
 
     modules = models.JSONField(default=dict, blank=True)
+    grade_palette = models.CharField(max_length=20, default='aralash')
     updated_at = models.DateTimeField(auto_now=True)
 
     @classmethod

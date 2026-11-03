@@ -26,7 +26,7 @@ export interface HistoryResult {
   empty?: boolean
 }
 
-const MAX = 20
+const MAX = 50
 
 let undoStack: HistoryAction[] = []
 let redoStack: HistoryAction[] = []

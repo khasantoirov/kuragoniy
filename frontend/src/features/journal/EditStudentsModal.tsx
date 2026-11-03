@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/Modal'
 import { useToast } from '@/components/Toast'
 import { IC } from '@/icons'
+import { record } from '@/lib/history'
 
 import { useAddStudent, useRemoveStudent, useUpdateStudent } from './api'
 import { TransferStudentModal } from './TransferStudentModal'
@@ -97,21 +98,42 @@ export function EditStudentsModal({ cls, onClose }: { cls: JournalClass; onClose
       .sort((a, b) => a.name.localeCompare(b.name, 'uz'))
     if (!kept.length) return toast(t("Kamida bitta o'quvchi qoldiring"), 'error')
     setBusy(true)
+    // every row this save touches, as it was and as it becomes — Ctrl+Z
+    // replays `before` (a removed pupil comes back, an added one goes),
+    // Ctrl+Shift+Z replays `after`
+    type Fields = { full_name?: string; order?: number; active?: boolean }
+    const changes: { id: number; before: Fields; after: Fields }[] = []
     try {
       const keptIds = new Set(kept.filter((r) => r.id !== null).map((r) => r.id))
       for (const s of active) {
-        if (!keptIds.has(s.id)) await remove.mutateAsync(s.id)
+        if (keptIds.has(s.id)) continue
+        await remove.mutateAsync(s.id)
+        changes.push({ id: s.id, before: { active: true }, after: { active: false } })
       }
       for (let i = 0; i < kept.length; i++) {
         const row = kept[i]
         if (row.id === null) {
-          await add.mutateAsync({ full_name: row.name, order: i })
+          const made = await add.mutateAsync({ full_name: row.name, order: i })
+          changes.push({ id: made.id, before: { active: false }, after: { active: true } })
           continue
         }
         const original = active.find((s) => s.id === row.id)
         const full_name = original && original.full_name !== row.name ? row.name : undefined
         const order = original && original.order !== i ? i : undefined
-        if (full_name !== undefined || order !== undefined) await update.mutateAsync({ id: row.id, full_name, order })
+        if (full_name !== undefined || order !== undefined) {
+          await update.mutateAsync({ id: row.id, full_name, order })
+          changes.push({
+            id: row.id,
+            before: { ...(full_name !== undefined ? { full_name: original!.full_name } : {}), ...(order !== undefined ? { order: original!.order } : {}) },
+            after: { full_name, order },
+          })
+        }
+      }
+      if (changes.length) {
+        const replay = async (side: 'before' | 'after') => {
+          for (const c of changes) await update.mutateAsync({ id: c.id, ...c[side] })
+        }
+        record(`${t("O'quvchilar ro'yxati")} · ${cls.name}`, () => replay('before'), () => replay('after'))
       }
       toast(t("O'quvchilar ro'yxati yangilandi"))
       onClose()

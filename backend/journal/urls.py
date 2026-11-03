@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     ControlWorkViewSet, EditGrantViewSet, FinalGradeViewSet, JournalClassViewSet, StudentTransferView, StudentViewSet,
+    TransferUndoView,
 )
 
 router = DefaultRouter()
@@ -14,5 +15,6 @@ router.register('controls', ControlWorkViewSet, basename='journal-control')
 
 urlpatterns = [
     path('students/<int:pk>/transfer/', StudentTransferView.as_view(), name='journal-student-transfer'),
+    path('transfers/<int:pk>/undo/', TransferUndoView.as_view(), name='journal-transfer-undo'),
     *router.urls,
 ]

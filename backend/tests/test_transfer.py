@@ -100,3 +100,58 @@ def test_refuses_a_class_that_already_has_the_pupil(as_user, admin, setup):
     assert resp.status_code == 400 and "allaqachon bor" in resp.data["detail"]
     vali.refresh_from_db()
     assert vali.journal_class == setup["source"] and vali.grades.count() == 2
+
+
+# ── Ctrl+Z: putting a move back exactly (journal/transfer.py undo_transfer) ──
+
+def _undo(api, transfer_id):
+    return api.post(f"/api/journal/transfers/{transfer_id}/undo/")
+
+
+def test_undoing_a_carry_puts_every_mark_back(as_user, teacher, setup):
+    vali, source, target = setup["vali"], setup["source"], setup["target"]
+    before = {g.pk: (g.day_id, g.mark, g.level) for g in vali.grades.all()}
+    api = as_user(teacher)
+    tid = api.post(_url(vali), {"target": target.pk, "mode": "carry"}, format="json").data["transfer"]
+    assert ClassDay.objects.filter(journal_class=target).count() == 2  # the 17th had to be made
+    assert _undo(api, tid).status_code == 200
+    vali.refresh_from_db()
+    assert vali.journal_class == source
+    assert {g.pk: (g.day_id, g.mark, g.level) for g in vali.grades.all()} == before  # 4/5 and 5/5 again, on 8-A's days
+    assert AttendanceEntry.objects.get(student=vali).day.journal_class == source
+    assert FinalGrade.objects.get(student=vali).mark == 4
+    assert ControlMark.objects.get(student=vali).work.journal_class == source
+    # what the move made in 8-B is gone; 8-B's own lesson stays
+    assert list(ClassDay.objects.filter(journal_class=target)) == [setup["shared"]]
+    assert not ControlWork.objects.filter(journal_class=target).exists()
+    assert StudentProfile.objects.get(user=setup["account"]).journal_class == source
+    # once only
+    assert _undo(api, tid).status_code == 409
+
+
+def test_undoing_an_archive_removes_the_fresh_row(as_user, admin, setup):
+    vali, source, target = setup["vali"], setup["source"], setup["target"]
+    api = as_user(admin)
+    resp = api.post(_url(vali), {"target": target.pk, "mode": "archive"}, format="json").data
+    assert _undo(api, resp["transfer"]).status_code == 200
+    vali.refresh_from_db()
+    assert (vali.active, vali.moved_to) == (True, None)
+    assert not Student.objects.filter(pk=resp["student"]).exists()
+    assert StudentProfile.objects.get(user=setup["account"]).roster_entry == vali
+
+
+def test_no_undo_once_the_new_class_has_marked_the_pupil(as_user, teacher, setup):
+    vali, target = setup["vali"], setup["target"]
+    api = as_user(teacher)
+    tid = api.post(_url(vali), {"target": target.pk, "mode": "carry"}, format="json").data["transfer"]
+    extra = ClassDay.objects.create(journal_class=target, date=date(2026, 9, 24), chorak=1)
+    GradeEntry.objects.create(student=vali, day=extra, mark=7)
+    resp = _undo(api, tid)
+    assert resp.status_code == 409 and "yangi baho" in resp.data["detail"]
+
+
+def test_only_its_maker_or_an_administrator_undoes_a_move(as_user, admin, teacher, setup):
+    vali, target = setup["vali"], setup["target"]
+    tid = as_user(teacher).post(_url(vali), {"target": target.pk, "mode": "carry"}, format="json").data["transfer"]
+    assert _undo(as_user(target.teacher), tid).status_code == 403
+    assert _undo(as_user(admin), tid).status_code == 200

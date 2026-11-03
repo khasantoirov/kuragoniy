@@ -470,12 +470,70 @@ button.jt__open:hover { color: #fff; }
 [data-theme="dark"] .gchip--4 { --gc: rgba(134, 239, 172, .14); --gt: #86efac; --gr: rgba(134, 239, 172, .35); }
 [data-theme="dark"] .gchip--3 { --gc: rgba(250, 204, 21, .14); --gt: #fde047; --gr: rgba(250, 204, 21, .35); }
 [data-theme="dark"] .gchip--2 { --gc: rgba(249, 115, 22, .16); --gt: #fdba74; --gr: rgba(249, 115, 22, .4); }
+/* ── The developer's choice of mark colours (common.PlatformSettings
+   .grade_palette → <html data-grades>). Each palette also styles its
+   preview card (.palpick__opt[data-grades]), one class stronger, so a
+   card shows its own colours whatever the page uses. --g* stays the
+   band for stripes and charts; --gbw is the stripe (chiziq only). */
+/* tonal: a tint of the hue with a deep number of it (dark: deep tint, light number) */
+[data-grades="tonal"], .palpick__opt[data-grades="tonal"] { --g5: #018a36; --g4: #85ae20; --g3: #dfbf32; --g2: #e68126; --g1: #d23837; }
+[data-grades="tonal"] .gchip--5, .palpick__opt[data-grades="tonal"] .gchip--5 { --gc: #cbf6ce; --gt: #005820; --gr: #9cd4a1; --gbw: 0px; }
+[data-grades="tonal"] .gchip--4, .palpick__opt[data-grades="tonal"] .gchip--4 { --gc: #e5f1be; --gt: #3b5300; --gr: #bdcd8e; --gbw: 0px; }
+[data-grades="tonal"] .gchip--3, .palpick__opt[data-grades="tonal"] .gchip--3 { --gc: #fceab9; --gt: #594a00; --gr: #dbc587; --gbw: 0px; }
+[data-grades="tonal"] .gchip--2, .palpick__opt[data-grades="tonal"] .gchip--2 { --gc: #fee7d7; --gt: #773b00; --gr: #f5ba8f; --gbw: 0px; }
+[data-grades="tonal"] :is(.gchip--1, .gchip--0), .palpick__opt[data-grades="tonal"] :is(.gchip--1, .gchip--0) { --gc: #ffe5e2; --gt: #980f1b; --gr: #ffb4aa; --gbw: 0px; }
+[data-theme="dark"][data-grades="tonal"], [data-theme="dark"] .palpick__opt[data-grades="tonal"] { --g5: #23a64a; --g4: #9ec342; --g3: #f0d04e; --g2: #f6933f; --g1: #ed5a52; }
+[data-theme="dark"][data-grades="tonal"] .gchip--5, [data-theme="dark"] .palpick__opt[data-grades="tonal"] .gchip--5 { --gc: #214326; --gt: #95ea9f; --gr: #35693d; --gbw: 0px; }
+[data-theme="dark"][data-grades="tonal"] .gchip--4, [data-theme="dark"] .palpick__opt[data-grades="tonal"] .gchip--4 { --gc: #353f1a; --gt: #c8e281; --gr: #54642b; --gbw: 0px; }
+[data-theme="dark"][data-grades="tonal"] .gchip--3, [data-theme="dark"] .palpick__opt[data-grades="tonal"] .gchip--3 { --gc: #453b16; --gt: #f2d577; --gr: #6d5d25; --gbw: 0px; }
+[data-theme="dark"][data-grades="tonal"] .gchip--2, [data-theme="dark"] .palpick__opt[data-grades="tonal"] .gchip--2 { --gc: #54341b; --gt: #ffcdab; --gr: #83532d; --gbw: 0px; }
+[data-theme="dark"][data-grades="tonal"] :is(.gchip--1, .gchip--0), [data-theme="dark"] .palpick__opt[data-grades="tonal"] :is(.gchip--1, .gchip--0) { --gc: #5c2e29; --gt: #fecbc4; --gr: #904a42; --gbw: 0px; }
+/* klassik: solid fills stepping in lightness, white or deep number */
+[data-grades="klassik"], .palpick__opt[data-grades="klassik"] { --g5: #028133; --g4: #aed058; --g3: #fcdb62; --g2: #f99a4b; --g1: #c33e39; }
+[data-grades="klassik"] .gchip--5, .palpick__opt[data-grades="klassik"] .gchip--5 { --gc: #028133; --gt: #ffffff; --gr: transparent; --gbw: 0px; }
+[data-grades="klassik"] .gchip--4, .palpick__opt[data-grades="klassik"] .gchip--4 { --gc: #aed058; --gt: #293a00; --gr: transparent; --gbw: 0px; }
+[data-grades="klassik"] .gchip--3, .palpick__opt[data-grades="klassik"] .gchip--3 { --gc: #fcdb62; --gt: #3f3400; --gr: transparent; --gbw: 0px; }
+[data-grades="klassik"] .gchip--2, .palpick__opt[data-grades="klassik"] .gchip--2 { --gc: #f99a4b; --gt: #552900; --gr: transparent; --gbw: 0px; }
+[data-grades="klassik"] :is(.gchip--1, .gchip--0), .palpick__opt[data-grades="klassik"] :is(.gchip--1, .gchip--0) { --gc: #c33e39; --gt: #ffffff; --gr: transparent; --gbw: 0px; }
+[data-theme="dark"][data-grades="klassik"], [data-theme="dark"] .palpick__opt[data-grades="klassik"] { --g5: #028133; --g4: #9bb94f; --g3: #e2c55a; --g2: #db8742; --g1: #c33e39; }
+[data-theme="dark"][data-grades="klassik"] .gchip--5, [data-theme="dark"] .palpick__opt[data-grades="klassik"] .gchip--5 { --gc: #028133; --gt: #ffffff; --gr: transparent; --gbw: 0px; }
+[data-theme="dark"][data-grades="klassik"] .gchip--4, [data-theme="dark"] .palpick__opt[data-grades="klassik"] .gchip--4 { --gc: #9bb94f; --gt: #263500; --gr: transparent; --gbw: 0px; }
+[data-theme="dark"][data-grades="klassik"] .gchip--3, [data-theme="dark"] .palpick__opt[data-grades="klassik"] .gchip--3 { --gc: #e2c55a; --gt: #3a3000; --gr: transparent; --gbw: 0px; }
+[data-theme="dark"][data-grades="klassik"] .gchip--2, [data-theme="dark"] .palpick__opt[data-grades="klassik"] .gchip--2 { --gc: #db8742; --gt: #4e2600; --gr: transparent; --gbw: 0px; }
+[data-theme="dark"][data-grades="klassik"] :is(.gchip--1, .gchip--0), [data-theme="dark"] .palpick__opt[data-grades="klassik"] :is(.gchip--1, .gchip--0) { --gc: #c33e39; --gt: #ffffff; --gr: transparent; --gbw: 0px; }
+/* chiziq: neutral chip and ink number, the band a left stripe */
+[data-grades="chiziq"], .palpick__opt[data-grades="chiziq"] { --g5: #018a36; --g4: #85ae20; --g3: #dfbf32; --g2: #e68126; --g1: #d23837; }
+[data-grades="chiziq"] .gchip--5, .palpick__opt[data-grades="chiziq"] .gchip--5 { --gc: #eef1f5; --gt: #1d2533; --gr: transparent; --gbw: 3px; }
+[data-grades="chiziq"] .gchip--4, .palpick__opt[data-grades="chiziq"] .gchip--4 { --gc: #eef1f5; --gt: #1d2533; --gr: transparent; --gbw: 3px; }
+[data-grades="chiziq"] .gchip--3, .palpick__opt[data-grades="chiziq"] .gchip--3 { --gc: #eef1f5; --gt: #1d2533; --gr: transparent; --gbw: 3px; }
+[data-grades="chiziq"] .gchip--2, .palpick__opt[data-grades="chiziq"] .gchip--2 { --gc: #eef1f5; --gt: #1d2533; --gr: transparent; --gbw: 3px; }
+[data-grades="chiziq"] :is(.gchip--1, .gchip--0), .palpick__opt[data-grades="chiziq"] :is(.gchip--1, .gchip--0) { --gc: #eef1f5; --gt: #1d2533; --gr: transparent; --gbw: 3px; }
+[data-theme="dark"][data-grades="chiziq"], [data-theme="dark"] .palpick__opt[data-grades="chiziq"] { --g5: #23a64a; --g4: #9ec342; --g3: #f0d04e; --g2: #f6933f; --g1: #ed5a52; }
+[data-theme="dark"][data-grades="chiziq"] .gchip--5, [data-theme="dark"] .palpick__opt[data-grades="chiziq"] .gchip--5 { --gc: #283041; --gt: #e8ebf1; --gr: transparent; --gbw: 3px; }
+[data-theme="dark"][data-grades="chiziq"] .gchip--4, [data-theme="dark"] .palpick__opt[data-grades="chiziq"] .gchip--4 { --gc: #283041; --gt: #e8ebf1; --gr: transparent; --gbw: 3px; }
+[data-theme="dark"][data-grades="chiziq"] .gchip--3, [data-theme="dark"] .palpick__opt[data-grades="chiziq"] .gchip--3 { --gc: #283041; --gt: #e8ebf1; --gr: transparent; --gbw: 3px; }
+[data-theme="dark"][data-grades="chiziq"] .gchip--2, [data-theme="dark"] .palpick__opt[data-grades="chiziq"] .gchip--2 { --gc: #283041; --gt: #e8ebf1; --gr: transparent; --gbw: 3px; }
+[data-theme="dark"][data-grades="chiziq"] :is(.gchip--1, .gchip--0), [data-theme="dark"] .palpick__opt[data-grades="chiziq"] :is(.gchip--1, .gchip--0) { --gc: #283041; --gt: #e8ebf1; --gr: transparent; --gbw: 3px; }
+/* aralash: the default above, for its preview card */
+.palpick__opt[data-grades="aralash"] { --g5: #047857; --g4: #4ade80; --g3: #eab308; --g2: #ea580c; --g1: #991b1b; }
+.palpick__opt[data-grades="aralash"] .gchip--5 { --gc: var(--g5); --gt: #fff; --gr: transparent; --gbw: 0px; }
+.palpick__opt[data-grades="aralash"] .gchip--4 { --gc: #dcfce7; --gt: #15803d; --gr: rgba(22, 163, 74, .35); --gbw: 0px; }
+.palpick__opt[data-grades="aralash"] .gchip--3 { --gc: #fef9c3; --gt: #a16207; --gr: rgba(202, 138, 4, .35); --gbw: 0px; }
+.palpick__opt[data-grades="aralash"] .gchip--2 { --gc: #ffedd5; --gt: #c2410c; --gr: rgba(234, 88, 12, .35); --gbw: 0px; }
+.palpick__opt[data-grades="aralash"] :is(.gchip--1, .gchip--0) { --gc: var(--g1); --gt: #fff; --gr: transparent; --gbw: 0px; }
+[data-theme="dark"] .palpick__opt[data-grades="aralash"] { --g5: #15803d; --g4: #86efac; --g3: #facc15; --g2: #f97316; --g1: #e11d48; }
+[data-theme="dark"] .palpick__opt[data-grades="aralash"] .gchip--5 { --gc: var(--g5); --gt: #fff; --gr: transparent; --gbw: 0px; }
+[data-theme="dark"] .palpick__opt[data-grades="aralash"] .gchip--4 { --gc: rgba(134, 239, 172, .14); --gt: #86efac; --gr: rgba(134, 239, 172, .35); --gbw: 0px; }
+[data-theme="dark"] .palpick__opt[data-grades="aralash"] .gchip--3 { --gc: rgba(250, 204, 21, .14); --gt: #fde047; --gr: rgba(250, 204, 21, .35); --gbw: 0px; }
+[data-theme="dark"] .palpick__opt[data-grades="aralash"] .gchip--2 { --gc: rgba(249, 115, 22, .16); --gt: #fdba74; --gr: rgba(249, 115, 22, .4); --gbw: 0px; }
+[data-theme="dark"] .palpick__opt[data-grades="aralash"] :is(.gchip--1, .gchip--0) { --gc: var(--g1); --gt: #fff; --gr: transparent; --gbw: 0px; }
 /* Scores outside the journal (PercentPill, MetricPill, a test's result) wear the same bands. */
-.pill[class*="gchip--"] { background: var(--gc); color: var(--gt); box-shadow: inset 0 0 0 1px var(--gr, transparent); }
+.pill[class*="gchip--"] { background: var(--gc); color: var(--gt); box-shadow: inset var(--gbw, 0px) 0 0 var(--gb, transparent), inset 0 0 0 1px var(--gr, transparent); }
 .review__score[class*="gchip--"] { background: color-mix(in srgb, var(--gb) 16%, var(--surface)); box-shadow: inset 4px 0 0 var(--gb); }
 .gchip {
   display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 5px;
-  border-radius: 6px; background: var(--gc); color: var(--gt); box-shadow: inset 0 0 0 1px var(--gr, transparent);
+  border-radius: 6px; background: var(--gc); color: var(--gt); padding-left: calc(5px + var(--gbw, 0px));
+  box-shadow: inset var(--gbw, 0px) 0 0 var(--gb, transparent), inset 0 0 0 1px var(--gr, transparent);
   font: 700 13px/1 var(--f-mono, inherit); font-variant-numeric: tabular-nums;
 }
 .jlegend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 12px; font-size: 12.5px; color: var(--ink-2); }
@@ -488,7 +546,7 @@ button.jt__open:hover { color: #fff; }
   width: 32px; height: 30px; border: 1px solid var(--rule-2); border-radius: 6px; background: transparent;
   font: 700 14px/1 var(--f-mono, inherit); color: var(--ink); cursor: pointer;
 }
-.gcell.gchip { border-color: transparent; background: var(--gc); color: var(--gt); box-shadow: inset 0 0 0 1px var(--gr, transparent); }
+.gcell.gchip { border-color: transparent; background: var(--gc); color: var(--gt); box-shadow: inset var(--gbw, 0px) 0 0 var(--gb, transparent), inset 0 0 0 1px var(--gr, transparent); }
 .gcell:disabled { cursor: default; }
 .gpop {
   position: fixed; z-index: 4000; width: 228px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;
@@ -553,7 +611,7 @@ button.jt__open:hover { color: #fff; }
   display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 10px; cursor: pointer;
   border: 1px solid var(--rule); border-radius: 9px; background: var(--surface); color: var(--ink-2); font-size: 13px;
 }
-.dgrade b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 6px; background: var(--gc); color: var(--gt); box-shadow: inset 0 0 0 1px var(--gr, transparent); font-family: var(--f-mono, inherit); }
+.dgrade b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 6px; background: var(--gc); color: var(--gt); box-shadow: inset var(--gbw, 0px) 0 0 var(--gb, transparent), inset 0 0 0 1px var(--gr, transparent); font-family: var(--f-mono, inherit); }
 .dgrade.is-on { background: var(--gc); color: var(--gt); border-color: var(--gb); font-weight: 700; }
 .dgrade.is-on b { background: rgba(255,255,255,.22); }
 .dgrade:disabled { cursor: default; }
@@ -648,6 +706,16 @@ body:has(.dsave) .totop { bottom: 90px; }
 
 /* ══ Baholash shkalalari (features/journal/scales.ts) ═══════════════ */
 .gchip--wide { min-width: 34px; }
+/* the developer's palette cards (features/settings/GradePalettePanel) */
+.palpick { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin-top: 10px; }
+.palpick__opt { display: grid; gap: 6px; padding: 12px 14px; text-align: left; cursor: pointer; border-radius: var(--r);
+  border: 1px solid var(--rule); background: var(--surface); color: var(--ink); transition: border-color .15s, box-shadow .15s; }
+.palpick__opt:hover { border-color: var(--pick, var(--ink-3)); }
+.palpick__opt.is-on { border-color: var(--pick, var(--ink)); box-shadow: inset 0 0 0 1px var(--pick, var(--ink)); }
+.palpick__t { font-weight: 600; font-size: 14.5px; }
+.palpick__t small { font-weight: 500; color: var(--pick, var(--ink-3)); }
+.palpick__s { font-size: 12.5px; color: var(--ink-3); line-height: 1.4; }
+.palpick__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .gchip--none { --gc: var(--rule-2); --gt: var(--ink-3); }
 .gpop.gpop--s10 { width: 260px; grid-template-columns: repeat(6, minmax(0, 1fr)); }
 .gpop--s10 .gpop__b { justify-content: center; padding: 0; }
