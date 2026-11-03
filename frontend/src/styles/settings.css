@@ -450,27 +450,33 @@ button.jt__open:hover { color: #fff; }
 }
 
 /* ══ Rangli baholar (features/journal/scales.ts) ═══════════════════════
-   5 a'lo to'q yashil, 4 yaxshi och(roq) yashil, 3 qoniqarli sariq, 2
-   qoniqarsiz zarg'aldoq, 1 va 0 yomon qizil — har sahifada, ikkala
-   rejimda bir xil. --g* — baho rangining o'zi (chiziq, nuqta, ustunlar). */
-:root { --g5: #15803d; --g4: #66bb6a; --g3: #facc15; --g2: #f98216; --g1: #d42020; }
-[data-theme="dark"] { --g5: #15803d; --g4: #66bb6a; --g3: #facc15; --g2: #f98216; --g1: #e0243c; }
-/* A mark: the number in its band's colour (--gt) on a light tint of that
-   colour (--gc). Yellow, orange and the mid green give the number a deeper
-   shade of their own hue — the bright one can't be read on its own tint;
-   a'lo's tint is the deeper of the two greens so the two stay apart.
-   --gb is the band itself, for stripes, dots and bars. */
-.gchip--5 { --gb: var(--g5); --gt: #166534; --gc: color-mix(in srgb, var(--g5) 34%, #fff); }
-.gchip--4 { --gb: var(--g4); --gt: #2e7d32; --gc: color-mix(in srgb, var(--g4) 22%, #fff); }
-.gchip--3 { --gb: var(--g3); --gt: #a16207; --gc: color-mix(in srgb, var(--g3) 36%, #fff); }
-.gchip--2 { --gb: var(--g2); --gt: #c2410c; --gc: color-mix(in srgb, var(--g2) 28%, #fff); }
-.gchip--1, .gchip--0 { --gb: var(--g1); --gt: #b91c1c; --gc: color-mix(in srgb, var(--g1) 26%, #fff); }
+   An ordinal ramp — 5 a'lo emerald, 4 yaxshi light green, 3 qoniqarli
+   yellow, 2 qoniqarsiz orange, 1/0 yomon red — tuned per theme so that
+   neighbours stay apart under normal vision and colour blindness.
+   --g* is the band itself: stripes, dots, bars. */
+:root { --g5: #047857; --g4: #4ade80; --g3: #eab308; --g2: #ea580c; --g1: #991b1b; }
+[data-theme="dark"] { --g5: #15803d; --g4: #86efac; --g3: #facc15; --g2: #f97316; --g1: #e11d48; }
+/* A mark (--gc fill, --gt number, --gr hairline ring). The two ends are
+   solid with a white number — the best and the worst read at a glance,
+   and a'lo/yaxshi, qoniqarsiz/yomon never rest on hue alone; the middle
+   three are a tint of their hue with the number in a deep shade of it
+   (on the dark theme a translucent tint with a light number). Every
+   number clears 4.5:1 on its fill. --gb is the band, for accents. */
+.gchip--5 { --gb: var(--g5); --gc: var(--g5); --gt: #fff; --gr: transparent; }
+.gchip--4 { --gb: var(--g4); --gc: #dcfce7; --gt: #15803d; --gr: rgba(22, 163, 74, .35); }
+.gchip--3 { --gb: var(--g3); --gc: #fef9c3; --gt: #a16207; --gr: rgba(202, 138, 4, .35); }
+.gchip--2 { --gb: var(--g2); --gc: #ffedd5; --gt: #c2410c; --gr: rgba(234, 88, 12, .35); }
+.gchip--1, .gchip--0 { --gb: var(--g1); --gc: var(--g1); --gt: #fff; --gr: transparent; }
+[data-theme="dark"] .gchip--4 { --gc: rgba(134, 239, 172, .14); --gt: #86efac; --gr: rgba(134, 239, 172, .35); }
+[data-theme="dark"] .gchip--3 { --gc: rgba(250, 204, 21, .14); --gt: #fde047; --gr: rgba(250, 204, 21, .35); }
+[data-theme="dark"] .gchip--2 { --gc: rgba(249, 115, 22, .16); --gt: #fdba74; --gr: rgba(249, 115, 22, .4); }
 /* Scores outside the journal (PercentPill, MetricPill, a test's result) wear the same bands. */
-.pill[class*="gchip--"] { background: var(--gc); color: var(--gt); }
+.pill[class*="gchip--"] { background: var(--gc); color: var(--gt); box-shadow: inset 0 0 0 1px var(--gr, transparent); }
 .review__score[class*="gchip--"] { background: color-mix(in srgb, var(--gb) 16%, var(--surface)); box-shadow: inset 4px 0 0 var(--gb); }
 .gchip {
   display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 5px;
-  border-radius: 6px; background: var(--gc); color: var(--gt); font: 700 13px/1 var(--f-mono, inherit);
+  border-radius: 6px; background: var(--gc); color: var(--gt); box-shadow: inset 0 0 0 1px var(--gr, transparent);
+  font: 700 13px/1 var(--f-mono, inherit); font-variant-numeric: tabular-nums;
 }
 .jlegend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 12px; font-size: 12.5px; color: var(--ink-2); }
 .jlegend > span { display: inline-flex; align-items: center; gap: 6px; }
@@ -482,7 +488,7 @@ button.jt__open:hover { color: #fff; }
   width: 32px; height: 30px; border: 1px solid var(--rule-2); border-radius: 6px; background: transparent;
   font: 700 14px/1 var(--f-mono, inherit); color: var(--ink); cursor: pointer;
 }
-.gcell.gchip { border-color: transparent; background: var(--gc); color: var(--gt); }
+.gcell.gchip { border-color: transparent; background: var(--gc); color: var(--gt); box-shadow: inset 0 0 0 1px var(--gr, transparent); }
 .gcell:disabled { cursor: default; }
 .gpop {
   position: fixed; z-index: 4000; width: 228px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;
@@ -547,8 +553,8 @@ button.jt__open:hover { color: #fff; }
   display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 10px; cursor: pointer;
   border: 1px solid var(--rule); border-radius: 9px; background: var(--surface); color: var(--ink-2); font-size: 13px;
 }
-.dgrade b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 6px; background: var(--gc); color: var(--gt); font-family: var(--f-mono, inherit); }
-.dgrade.is-on { background: var(--gc); color: var(--gt); border-color: var(--gt); font-weight: 700; }
+.dgrade b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 6px; background: var(--gc); color: var(--gt); box-shadow: inset 0 0 0 1px var(--gr, transparent); font-family: var(--f-mono, inherit); }
+.dgrade.is-on { background: var(--gc); color: var(--gt); border-color: var(--gb); font-weight: 700; }
 .dgrade.is-on b { background: rgba(255,255,255,.22); }
 .dgrade:disabled { cursor: default; }
 .dsave {
