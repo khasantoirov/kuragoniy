@@ -4,6 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 
 import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
+import { TransferStudentModal } from '@/features/journal/TransferStudentModal'
 import { useTeachersList } from '@/features/learning/api'
 import { downloadCsv } from '@/features/portal/csv'
 import { PageHead, StatusPill } from '@/features/portal/ui'
@@ -16,7 +17,6 @@ import { useUIStore } from '@/store/uiStore'
 import { useDirectory, useSchools, type DirectoryRow } from './api'
 import { MetricPill } from './shared'
 import { useStatsHub } from './statsFilter'
-import { TransferStudentModal } from './TransferStudentModal'
 
 /** Umumiy ma'lumotlar bazasi — every pupil on every partner school's
  * rosters in one searchable table. */
@@ -144,7 +144,12 @@ export function DirectoryPage() {
           </>
         ) : <p className="prose prose--note">{t("Hech narsa topilmadi.")}</p>}
       </section>
-      {moving && <TransferStudentModal row={moving} onClose={() => setMoving(null)} />}
+      {moving && (
+        <TransferStudentModal onClose={() => setMoving(null)} pupil={{
+          id: moving.id, name: moving.name,
+          from: `${moving.school ? `${moving.school} | ` : ''}${moving.class_name} (${moving.teacher})`,
+        }} />
+      )}
     </div>
   )
 }

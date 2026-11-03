@@ -6,6 +6,7 @@ import { useToast } from '@/components/Toast'
 import { IC } from '@/icons'
 
 import { useAddStudent, useRemoveStudent, useUpdateStudent } from './api'
+import { TransferStudentModal } from './TransferStudentModal'
 import type { JournalClass, Student } from './types'
 
 interface Row {
@@ -48,6 +49,8 @@ export function EditStudentsModal({ cls, onClose }: { cls: JournalClass; onClose
   const remove = useRemoveStudent(cls.id)
   const toast = useToast()
   const [busy, setBusy] = useState(false)
+  // a saved pupil going to another class (journal/transfer.py)
+  const [moving, setMoving] = useState<Row | null>(null)
 
   const setName = (i: number, name: string) => setRows((r) => r.map((row, idx) => (idx === i ? { ...row, name } : row)))
   const removeRow = (i: number) => setRows((r) => r.filter((_, idx) => idx !== i))
@@ -144,6 +147,11 @@ export function EditStudentsModal({ cls, onClose }: { cls: JournalClass; onClose
               onPaste={handlePaste(i)}
               placeholder={t('Ism familiya')}
             />
+            {row.id !== null && (
+              <button type="button" className="icon-btn" onClick={() => setMoving(row)} title={t("Boshqa sinfga ko'chirish")} aria-label={t("Boshqa sinfga ko'chirish")}>
+                {IC.move}
+              </button>
+            )}
             <button type="button" className="icon-btn icon-btn--danger" onClick={() => removeRow(i)} title={t("O'chirish")}>
               {IC.trash}
             </button>
@@ -151,6 +159,11 @@ export function EditStudentsModal({ cls, onClose }: { cls: JournalClass; onClose
         ))}
       </div>
       <button type="button" className="btn btn--sm" onClick={addRow}>+ {t("Yana o'quvchi")}</button>
+      {moving && moving.id !== null && (
+        // the roster here is stale once someone has left — close it too
+        <TransferStudentModal pupil={{ id: moving.id, name: moving.name, from: cls.school ? `${cls.school} | ${cls.name}` : cls.name }}
+          onClose={() => setMoving(null)} onDone={onClose} />
+      )}
     </Modal>
   )
 }

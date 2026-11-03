@@ -38,6 +38,24 @@ export function useCreateClass() {
  * them in the old journal and starts the pupil afresh. */
 export type TransferMode = 'carry' | 'archive'
 
+/** Where a pupil can be moved (GET on the transfer endpoint): every class
+ * of the same o'quv yili but theirs — `mine` for the viewer's own. */
+export interface TransferTarget {
+  id: number
+  name: string
+  scale: number
+  mine: boolean
+  school: string
+  teacher: string
+}
+
+export function useTransferTargets(student: number) {
+  return useQuery({
+    queryKey: ['journal', 'transfer-targets', student],
+    queryFn: async () => (await api.get<TransferTarget[]>(`/journal/students/${student}/transfer/`)).data,
+  })
+}
+
 export function useTransferStudent() {
   const queryClient = useQueryClient()
   return useMutation({

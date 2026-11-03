@@ -10,7 +10,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from common.permissions import IsAdminOrDevSuperuser, IsApproved
+from common.permissions import IsApproved, IsTeacher
 from common.security import log_event
 from schools.models import AcademicYear
 
@@ -253,17 +253,37 @@ class StudentViewSet(viewsets.ModelViewSet):
 
 
 class StudentTransferView(APIView):
-    """POST {target, mode}: an administrator moves a pupil to another class —
-    with the marks (`carry`) or leaving them behind as an archive
-    (`archive`); see journal/transfer.py."""
+    """Moving a pupil to another class (journal/transfer.py) — by an
+    administrator, or by the teacher of the pupil's class: into any class of
+    the same o'quv yili, theirs or a colleague's (who is told). A teacher
+    never takes a pupil out of someone else's class.
+    GET: the classes the pupil can go to. POST {target, mode}: move them —
+    with the marks (`carry`) or leaving those behind (`archive`)."""
 
-    permission_classes = [IsAdminOrDevSuperuser]
+    permission_classes = [IsTeacher]
+
+    def _student(self, request, pk):
+        student = get_object_or_404(Student.objects.select_related('journal_class'), pk=pk, active=True)
+        if not (request.user.is_admin or student.journal_class.teacher_id == request.user.pk):
+            raise PermissionDenied("Faqat o'z sinfingizdagi o'quvchini ko'chira olasiz.")
+        return student
+
+    def get(self, request, pk):
+        student = self._student(request, pk)
+        source = student.journal_class
+        targets = (JournalClass.objects.filter(year=source.year_id).exclude(pk=source.pk)
+                   .select_related('teacher', 'partner_school').order_by('partner_school__name', 'school', 'name'))
+        return Response([
+            {'id': c.id, 'name': c.name, 'scale': c.scale, 'mine': c.teacher_id == request.user.pk,
+             'school': c.partner_school.name if c.partner_school_id else c.school, 'teacher': c.teacher.name}
+            for c in targets
+        ])
 
     def post(self, request, pk):
         from notifications.models import Kind
         from notifications.service import notify
 
-        student = get_object_or_404(Student.objects.select_related('journal_class'), pk=pk, active=True)
+        student = self._student(request, pk)
         mode = request.data.get('mode')
         if mode not in MODES:
             return Response({'detail': "Ko'chirish usulini tanlang."}, status=status.HTTP_400_BAD_REQUEST)
@@ -273,6 +293,8 @@ class StudentTransferView(APIView):
         if is_past_year(student.journal_class) or is_past_year(target):
             return Response({'detail': "O'tgan o'quv yilining sinfiga yoki sinfidan ko'chirib bo'lmaydi."},
                             status=status.HTTP_400_BAD_REQUEST)
+        if target.year_id != student.journal_class.year_id:
+            return Response({'detail': "Faqat shu o'quv yilining sinfiga ko'chirish mumkin."}, status=status.HTTP_400_BAD_REQUEST)
         # The new class's teacher may have typed the pupil in already — two
         # rows of one pupil would split their marks between them.
         if target.students.filter(active=True, full_name__iexact=student.full_name.strip()).exists():

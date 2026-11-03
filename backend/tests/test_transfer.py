@@ -76,11 +76,21 @@ def test_archive_leaves_the_marks_and_starts_fresh(as_user, admin, teacher, setu
     assert vali.pk not in [s["id"] for s in grid["students"]]
 
 
-def test_only_administrators_transfer_and_only_to_another_class(as_user, admin, teacher, setup):
-    vali = setup["vali"]
-    assert as_user(teacher).post(_url(vali), {"target": setup["target"].pk, "mode": "carry"}, format="json").status_code == 403
-    assert as_user(admin).post(_url(vali), {"target": setup["source"].pk, "mode": "carry"}, format="json").status_code == 400
-    assert as_user(admin).post(_url(vali), {"target": setup["target"].pk, "mode": "nope"}, format="json").status_code == 400
+def test_the_classes_teacher_moves_their_pupil_but_nobody_elses(as_user, admin, teacher, setup):
+    vali, source, target = setup["vali"], setup["source"], setup["target"]
+    other = target.teacher
+    # the pupil's own teacher sees where they can go — any class of the year but this one
+    targets = as_user(teacher).get(_url(vali)).data
+    assert [(c["id"], c["mine"]) for c in targets] == [(target.id, False)]
+    # another teacher can't take a pupil out of someone else's class
+    assert as_user(other).get(_url(vali)).status_code == 403
+    assert as_user(other).post(_url(vali), {"target": target.pk, "mode": "carry"}, format="json").status_code == 403
+    assert as_user(teacher).post(_url(vali), {"target": source.pk, "mode": "carry"}, format="json").status_code == 400
+    assert as_user(teacher).post(_url(vali), {"target": target.pk, "mode": "nope"}, format="json").status_code == 400
+    resp = as_user(teacher).post(_url(vali), {"target": target.pk, "mode": "carry"}, format="json")
+    assert resp.status_code == 200
+    vali.refresh_from_db()
+    assert vali.journal_class == target
 
 
 def test_refuses_a_class_that_already_has_the_pupil(as_user, admin, setup):
