@@ -450,14 +450,14 @@ button.jt__open:hover { color: #fff; }
 }
 
 /* ══ Rangli baholar (features/journal/scales.ts) ═══════════════════════
-   5 a'lo yashil, 4 yaxshi och yashil, 3 qoniqarli sariq, 2 qoniqarsiz
-   zarg'aldoq, 1 va 0 yomon qizil — raqam rang ichida turadi; har sahifada
-   bir xil. A'lo tungi rejimda ham shu yashil: yorqinrog'i och yashilga
-   qo'shilib ketardi. */
-:root { --g5: #16a34a; --g4: #34d399; --g3: #facc15; --g2: #f98216; --g1: #d42020; }
-[data-theme="dark"] { --g5: #16a34a; --g4: #34d399; --g3: #facc15; --g2: #f98216; --g1: #e0243c; }
+   5 a'lo yashil, 4 yaxshi och yashil (Excel'dagi «yaxshi» rangi), 3
+   qoniqarli sariq, 2 qoniqarsiz zarg'aldoq, 1 va 0 yomon qizil — raqam
+   rang ichida turadi; har sahifada bir xil. A'lo tungi rejimda ham shu
+   yashil. Och yashil oq fonda yo'qolmasin deb nozik chiziqli. */
+:root { --g5: #16a34a; --g4: #c6efce; --g3: #facc15; --g2: #f98216; --g1: #d42020; }
+[data-theme="dark"] { --g5: #16a34a; --g4: #c6efce; --g3: #facc15; --g2: #f98216; --g1: #e0243c; }
 .gchip--5 { --gc: var(--g5); --gt: #fff; }
-.gchip--4 { --gc: var(--g4); --gt: #053d2b; }
+.gchip--4 { --gc: var(--g4); --gt: #006100; box-shadow: inset 0 0 0 1px rgba(0, 97, 0, .22); }
 .gchip--3 { --gc: var(--g3); --gt: #3a2c00; }
 .gchip--2 { --gc: var(--g2); --gt: #2b1100; }
 .gchip--1, .gchip--0 { --gc: var(--g1); --gt: #fff; }
