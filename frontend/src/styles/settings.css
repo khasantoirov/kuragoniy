@@ -451,26 +451,27 @@ button.jt__open:hover { color: #fff; }
 
 /* ══ Rangli baholar (features/journal/scales.ts) ═══════════════════════
    5 a'lo to'q yashil, 4 yaxshi och(roq) yashil, 3 qoniqarli sariq, 2
-   qoniqarsiz zarg'aldoq, 1 va 0 yomon qizil — raqam oq, rang ichida
-   turadi; har sahifada, ikkala rejimda bir xil. Ikki yashil oq raqamni
-   ko'tara oladigan darajada to'q va bir-biridan aniq farqli. */
+   qoniqarsiz zarg'aldoq, 1 va 0 yomon qizil — har sahifada, ikkala
+   rejimda bir xil. --g* — baho rangining o'zi (chiziq, nuqta, ustunlar). */
 :root { --g5: #15803d; --g4: #66bb6a; --g3: #facc15; --g2: #f98216; --g1: #d42020; }
 [data-theme="dark"] { --g5: #15803d; --g4: #66bb6a; --g3: #facc15; --g2: #f98216; --g1: #e0243c; }
-/* The number is white on every band; on the three light ones a thin
-   shadow in the band's own dark shade keeps it readable. */
-.gchip--5 { --gc: var(--g5); --gt: #fff; }
-.gchip--4 { --gc: var(--g4); --gt: #fff; --gts: 0 0 2px rgba(0, 80, 0, .8), 0 1px 1px rgba(0, 80, 0, .6); }
-.gchip--3 { --gc: var(--g3); --gt: #fff; --gts: 0 0 2px rgba(110, 75, 0, .9), 0 1px 1px rgba(110, 75, 0, .8); }
-.gchip--2 { --gc: var(--g2); --gt: #fff; --gts: 0 0 2px rgba(120, 45, 0, .85), 0 1px 1px rgba(120, 45, 0, .7); }
-.gchip--1, .gchip--0 { --gc: var(--g1); --gt: #fff; }
+/* A mark: the number in its band's colour (--gt) on a light tint of that
+   colour (--gc). Yellow, orange and the mid green give the number a deeper
+   shade of their own hue — the bright one can't be read on its own tint;
+   a'lo's tint is the deeper of the two greens so the two stay apart.
+   --gb is the band itself, for stripes, dots and bars. */
+.gchip--5 { --gb: var(--g5); --gt: #166534; --gc: color-mix(in srgb, var(--g5) 34%, #fff); }
+.gchip--4 { --gb: var(--g4); --gt: #2e7d32; --gc: color-mix(in srgb, var(--g4) 22%, #fff); }
+.gchip--3 { --gb: var(--g3); --gt: #a16207; --gc: color-mix(in srgb, var(--g3) 36%, #fff); }
+.gchip--2 { --gb: var(--g2); --gt: #c2410c; --gc: color-mix(in srgb, var(--g2) 28%, #fff); }
+.gchip--1, .gchip--0 { --gb: var(--g1); --gt: #b91c1c; --gc: color-mix(in srgb, var(--g1) 26%, #fff); }
 /* Scores outside the journal (PercentPill, MetricPill, a test's result) wear the same bands. */
-.pill[class*="gchip--"] { background: var(--gc); color: var(--gt); text-shadow: var(--gts, none); }
-.review__score[class*="gchip--"] { background: color-mix(in srgb, var(--gc) 16%, var(--surface)); box-shadow: inset 4px 0 0 var(--gc); }
+.pill[class*="gchip--"] { background: var(--gc); color: var(--gt); }
+.review__score[class*="gchip--"] { background: color-mix(in srgb, var(--gb) 16%, var(--surface)); box-shadow: inset 4px 0 0 var(--gb); }
 .gchip {
   display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 5px;
-  border-radius: 6px; background: var(--gc); color: var(--gt); text-shadow: var(--gts, none); font: 700 13px/1 var(--f-mono, inherit);
+  border-radius: 6px; background: var(--gc); color: var(--gt); font: 700 13px/1 var(--f-mono, inherit);
 }
-[data-theme="dark"] .gchip--1, [data-theme="dark"] .gchip--0 { box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
 .jlegend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 12px; font-size: 12.5px; color: var(--ink-2); }
 .jlegend > span { display: inline-flex; align-items: center; gap: 6px; }
 .at--x { background: rgba(91,75,183,.14); border-color: rgba(91,75,183,.45); color: #5b4bb7; opacity: 1; }
@@ -481,7 +482,7 @@ button.jt__open:hover { color: #fff; }
   width: 32px; height: 30px; border: 1px solid var(--rule-2); border-radius: 6px; background: transparent;
   font: 700 14px/1 var(--f-mono, inherit); color: var(--ink); cursor: pointer;
 }
-.gcell.gchip { border-color: transparent; background: var(--gc); color: var(--gt); text-shadow: var(--gts, none); }
+.gcell.gchip { border-color: transparent; background: var(--gc); color: var(--gt); }
 .gcell:disabled { cursor: default; }
 .gpop {
   position: fixed; z-index: 4000; width: 228px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;
@@ -546,8 +547,8 @@ button.jt__open:hover { color: #fff; }
   display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 10px; cursor: pointer;
   border: 1px solid var(--rule); border-radius: 9px; background: var(--surface); color: var(--ink-2); font-size: 13px;
 }
-.dgrade b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 6px; background: var(--gc); color: var(--gt); text-shadow: var(--gts, none); font-family: var(--f-mono, inherit); }
-.dgrade.is-on { background: var(--gc); color: var(--gt); text-shadow: var(--gts, none); border-color: transparent; font-weight: 700; }
+.dgrade b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 6px; background: var(--gc); color: var(--gt); font-family: var(--f-mono, inherit); }
+.dgrade.is-on { background: var(--gc); color: var(--gt); border-color: var(--gt); font-weight: 700; }
 .dgrade.is-on b { background: rgba(255,255,255,.22); }
 .dgrade:disabled { cursor: default; }
 .dsave {
@@ -717,7 +718,7 @@ select.jscale:focus-visible { outline: 2px solid var(--pick, var(--ok)); outline
 .ctl__in { height: 34px; padding: 0 4px; text-align: center; font: 700 15px/1 var(--f-mono, inherit); }
 .ctl__in.is-bad { border-color: var(--mark); }
 /* the colour band as an underline — all a phone has room for */
-.ctl__in[class*="gchip--"] { box-shadow: inset 0 -3px 0 var(--gc); }
+.ctl__in[class*="gchip--"] { box-shadow: inset 0 -3px 0 var(--gb); }
 .ctl__lvl { width: 100%; height: 28px; font-size: 11.5px; }
 .ctl__sum { margin: 10px 2px 0; font-size: 13px; color: var(--ink-2); }
 .ctl__del { margin-right: auto; color: var(--mark); }
