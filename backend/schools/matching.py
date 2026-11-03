@@ -11,7 +11,7 @@ from django.db import transaction
 from journal.models import JournalClass
 from timetable.models import TimetableSlot
 
-from .models import School, SchoolTeacher
+from .models import AcademicYear, School, SchoolTeacher
 
 
 def norm(text) -> str:
@@ -48,16 +48,19 @@ def link_school(school: School) -> dict:
     matches `school` (name or alias), and records the teachers of those
     classes — and of matching timetable slots — as working there."""
     keys = school_keys(school)
-    classes = [c for c in JournalClass.objects.filter(partner_school__isnull=True).exclude(school='') if norm(c.school) in keys]
+    classes = [c for c in JournalClass.objects.filter(partner_school__isnull=True).exclude(school='').select_related('year') if norm(c.school) in keys]
     for c in classes:
         c.partner_school = school
     JournalClass.objects.bulk_update(classes, ['partner_school'])
 
-    teacher_ids = {c.teacher_id for c in classes}
+    # the staff now: teachers of this and coming years' classes, not a past year's
+    current = AcademicYear.current()
+    teacher_ids = {c.teacher_id for c in classes if c.year is None or c.year.start_year >= current.start_year}
     teacher_ids |= {
         s.teacher_id for s in TimetableSlot.objects.exclude(maktab='').only('teacher_id', 'maktab') if norm(s.maktab) in keys
     }
-    teacher_ids |= set(JournalClass.objects.filter(partner_school=school).values_list('teacher_id', flat=True))
+    teacher_ids |= set(JournalClass.objects.filter(partner_school=school, year__start_year__gte=current.start_year)
+                       .values_list('teacher_id', flat=True))
     existing = set(SchoolTeacher.objects.filter(school=school).values_list('teacher_id', flat=True))
     SchoolTeacher.objects.bulk_create(
         [SchoolTeacher(school=school, teacher_id=t) for t in teacher_ids - existing], ignore_conflicts=True,

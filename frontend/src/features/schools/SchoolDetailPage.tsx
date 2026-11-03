@@ -18,6 +18,8 @@ import { Presence } from '@/features/portal/Presence'
 import { METRIC_CSV_HEAD, METRIC_HELP, MetricCells, MetricHeads, metricCsv, MetricPill, SchoolFormModal } from './shared'
 import { TrendPanels } from './TrendPanels'
 import { useTrendView } from './trendView'
+import { YearPicker } from './YearPicker'
+import type { SchoolYearRow } from './api'
 
 export function SchoolDetailPage() {
   const { t } = useTranslation()
@@ -52,6 +54,20 @@ export function SchoolDetailPage() {
       toast(t(errText(err)), 'error')
     }
   }
+  const yearActive = useSchoolsMutation(async (y: SchoolYearRow) =>
+    api.post(`/schools/${id}/year-active/`, { year: y.id, is_active: !y.is_active }))
+  const onYear = async (y: SchoolYearRow) => {
+    try {
+      await yearActive.mutateAsync(y)
+      toast(`${y.name}: ${t(y.is_active ? 'Faol emas' : 'Faol')}`)
+    } catch (err) {
+      toast(t(errText(err)), 'error')
+    }
+  }
+  // Another o'quv yili in view: its teachers are those of its classes, and
+  // assigning staff (a "now" thing) is left to the current year.
+  const pastView = !!school?.years?.find((y) => y.id === school.year && !y.is_current)
+
   const teacherAction = useSchoolsMutation(async ({ action, teacher }: { action: 'add-teacher' | 'remove-teacher'; teacher: string }) =>
     api.post(`/schools/${id}/${action}/`, { teacher }))
 
@@ -78,6 +94,7 @@ export function SchoolDetailPage() {
       <Link to="/statistics?bolim=jurnal" className="backlink">← {t('Statistika')}</Link>
       <PageHead title={title} sub={isNone ? t("Maktab nomi hech qaysi hamkor maktabga mos kelmagan sinflar — Statistika › «Jurnal» bo'limidagi «Moslashtirish» orqali biriktiring.") : school?.district}
         actions={<>
+          <YearPicker />
           <Segmented value={chorak} onChange={setChorak} options={CHORAK_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))} />
           {admin && school && <button className="btn" onClick={() => setEditing(true)}>{IC.edit} {t('Tahrirlash')}</button>}
         </>} />
@@ -93,6 +110,18 @@ export function SchoolDetailPage() {
             {school.aliases.length > 0 && <li><span>{t('Muqobil nomlar')}</span><b>{school.aliases.join(' · ')}</b></li>}
           </ul>
           {school.notes && <p className="prose prose--note">{school.notes}</p>}
+          {!!school.years?.length && (
+            <div className="syears">
+              <span className="syears__h">{t("Hamkorlik o'quv yillari bo'yicha")}</span>
+              {school.years.map((y) => {
+                const label = <>{y.name}{y.is_current ? ` · ${t('joriy')}` : ''} — {t(y.is_active ? 'Faol' : 'Faol emas')}{y.classes > 0 && <small> · {y.classes} {t('sinf')}</small>}</>
+                return admin
+                  ? <button key={y.id} type="button" className={`chip ${y.is_active ? 'is-on' : ''}`} disabled={yearActive.isPending}
+                      title={t('Bosib almashtiring')} onClick={() => onYear(y)}>{label}</button>
+                  : <span key={y.id} className={`chip ${y.is_active ? 'is-on' : ''}`}>{label}</span>
+              })}
+            </div>
+          )}
         </section>
       )}
 
@@ -114,7 +143,7 @@ export function SchoolDetailPage() {
           <h3 className="panel__title">{t("O'qituvchilar")}</h3>
           <div className="tablewrap">
             <table className="dtable">
-              <thead><tr><th>{t("O'qituvchi")}</th><th>{t('Faollik')}</th><th>{t('Sinf')}</th><th>{t("O'quvchi")}</th><MetricHeads />{admin && <th />}</tr></thead>
+              <thead><tr><th>{t("O'qituvchi")}</th><th>{t('Faollik')}</th><th>{t('Sinf')}</th><th>{t("O'quvchi")}</th><MetricHeads />{admin && !pastView && <th />}</tr></thead>
               <tbody>
                 {(school?.teachers ?? []).map((tch) => {
                   const m = data?.teachers.find((r) => r.id === tch.id)
@@ -122,14 +151,14 @@ export function SchoolDetailPage() {
                     <tr key={tch.id}>
                       <td>
                         <b>{tch.name}</b>
-                        {!tch.assigned && <> <StatusPill tone="mid">{t('faqat sinf orqali')}</StatusPill></>}
+                        {!tch.assigned && !pastView && <> <StatusPill tone="mid">{t('faqat sinf orqali')}</StatusPill></>}
                         <br /><small className="muted">{tch.phone || tch.email}</small>
                       </td>
                       <td><Presence online={tch.online} lastSeen={tch.last_seen} /></td>
                       <td>{tch.classes}</td>
                       <td>{m?.students ?? 0}</td>
                       {m ? <MetricCells m={m} /> : <><td>—</td><td>—</td><td>—</td><td>—</td></>}
-                      {admin && (
+                      {admin && !pastView && (
                         <td className="dtable__acts">
                           {tch.assigned
                             ? <button className="btn btn--sm btn--ghost" onClick={() => onTeacher('remove-teacher', tch.id, tch.name)}>{t('Chiqarish')}</button>

@@ -758,3 +758,8 @@ select.jscale:focus-visible { outline: 2px solid var(--pick, var(--ok)); outline
 /* Statistika's one filter panel (features/schools/statsFilter.tsx) */
 .statsfilter { margin: 0 0 16px; }
 .statsfilter select { max-width: 260px; }
+
+/* School page: the partnership year by year (SchoolDetailPage). */
+.syears { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--rule-2); }
+.syears__h { font-size: 12.5px; color: var(--ink-3); margin-right: 4px; }
+.syears .chip small { color: inherit; opacity: .75; }

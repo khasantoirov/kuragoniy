@@ -25,7 +25,7 @@ from journal.models import AttendanceEntry, GradeEntry, JournalClass, Student
 
 from . import stats
 from .matching import link_school, norm, unlinked_names
-from .models import AcademicYear, School, SchoolTeacher
+from .models import AcademicYear, School, SchoolTeacher, SchoolYear
 from .serializers import SchoolBriefSerializer, SchoolSerializer
 
 
@@ -67,7 +67,7 @@ class SchoolViewSet(viewsets.ModelViewSet):
         return SchoolSerializer if self.request.user.is_oversight else SchoolBriefSerializer
 
     def perform_create(self, serializer):
-        school = serializer.save()
+        school = serializer.save()  # its per-year rows: schools/signals.py
         result = link_school(school)
         notify_admin_action(self.request.user, f"Hamkor maktab qo'shdi: «{school.name}» ({result['classes']} ta sinf biriktirildi)")
 
@@ -84,8 +84,13 @@ class SchoolViewSet(viewsets.ModelViewSet):
         school = self.get_object()
         data = self.get_serializer(school).data
         if request.user.is_oversight:
-            members = {m.teacher_id: m for m in school.memberships.select_related('teacher')}
-            class_teachers = dict(school.classes.values('teacher').annotate(n=Count('id')).values_list('teacher', 'n'))
+            # one o'quv yili's teachers: those with a class here that year,
+            # and — for the current year — those assigned to the school
+            year = _year(request)
+            members = ({m.teacher_id: m for m in school.memberships.select_related('teacher')} if year.is_current else {})
+            class_teachers = dict(school.classes.filter(year=year).values('teacher').annotate(n=Count('id')).values_list('teacher', 'n'))
+            data['year'] = year.id
+            data['years'] = self._years(school)
             teachers = list(User.objects.filter(Q(pk__in=members) | Q(pk__in=class_teachers)).order_by('name'))
             presence = presence_for(teachers)
             data['teachers'] = [
@@ -95,6 +100,23 @@ class SchoolViewSet(viewsets.ModelViewSet):
                 for t in teachers
             ]
         return Response(data)
+
+    @staticmethod
+    def _years(school):
+        active = dict(school.school_years.values_list('year_id', 'is_active'))
+        classes = dict(school.classes.values('year').annotate(n=Count('id')).values_list('year', 'n'))
+        return [{'id': y.id, 'name': y.name, 'is_current': y.is_current, 'is_active': active.get(y.id, False),
+                 'classes': classes.get(y.id, 0)} for y in AcademicYear.objects.all()]
+
+    @action(detail=True, methods=['post'], url_path='year-active')
+    def year_active(self, request, pk=None):
+        """POST {year, is_active}: a partner in that o'quv yili or not."""
+        school = self.get_object()
+        year = get_object_or_404(AcademicYear, pk=request.data.get('year'))
+        active = bool(request.data.get('is_active'))
+        SchoolYear.set(school, year, active)
+        notify_admin_action(request.user, f"«{school.name}» — {year.name}: {'faol hamkor' if active else 'faol emas'}")
+        return Response({'years': self._years(school)})
 
     @action(detail=True, methods=['post'], url_path='add-teacher')
     def add_teacher(self, request, pk=None):
@@ -197,14 +219,19 @@ class StatsOverviewView(APIView):
             return sorted(rows, key=lambda r: r['name'].lower())
 
         def compute():
-            classes = stats.classes_for(request.user, school_id=school_id, teacher_id=teacher_id, year=_year(request))
+            year = _year(request)
+            classes = stats.classes_for(request.user, school_id=school_id, teacher_id=teacher_id, year=year)
             if class_id:
                 classes = [c for c in classes if str(c.id) == class_id]
             schools = stats.grouped(classes, chorak, key=lambda c: c.partner_school_id or 'none',
                                     label=lambda c: c.partner_school.name if c.partner_school_id else '')
-            members = dict(SchoolTeacher.objects.values('school').annotate(n=Count('id')).values_list('school', 'n'))
+            # a school's staff is its assigned teachers now; a past or coming
+            # year has only the teachers of that year's classes
+            members = (dict(SchoolTeacher.objects.values('school').annotate(n=Count('id')).values_list('school', 'n'))
+                       if year.is_current else {})
+            partners = School.objects.filter(school_years__year=year, school_years__is_active=True)
             for row in schools:
-                if narrowed or row['id'] == 'none':
+                if narrowed or row['id'] == 'none' or not year.is_current:
                     # the teachers of the classes in view, not the school's whole staff
                     row['teachers'] = len({c.teacher_id for c in classes if (c.partner_school_id or 'none') == row['id']})
                 else:
@@ -212,7 +239,7 @@ class StatsOverviewView(APIView):
             if not narrowed:
                 # Partner schools with no classes yet still belong in the list.
                 listed = {r['id'] for r in schools}
-                for s in School.objects.filter(is_active=True).exclude(pk__in=[i for i in listed if i != 'none']):
+                for s in partners.exclude(pk__in=[i for i in listed if i != 'none']):
                     schools.append({'id': s.id, 'name': s.name, 'classes': 0, 'teachers': members.get(s.id, 0),
                                     **stats.derive(dict.fromkeys(stats.RAW_KEYS, 0))})
             schools.sort(key=lambda r: (r['id'] == 'none', r['name'].lower()))
@@ -220,7 +247,7 @@ class StatsOverviewView(APIView):
             totals = stats.derive(stats.pool(stats.class_raw(classes, chorak).values()))
             totals.update({
                 'schools': (len({c.partner_school_id for c in classes if c.partner_school_id}) if narrowed
-                            else School.objects.filter(is_active=True).count()),
+                            else partners.count()),
                 'teachers': len({c.teacher_id for c in classes}),
                 'classes': len(classes),
             })
@@ -404,6 +431,7 @@ class AcademicYearsView(APIView):
     def post(self, request):
         newest = AcademicYear.objects.order_by('-start_year').first() or AcademicYear.current()
         year = AcademicYear.objects.create(start_year=newest.start_year + 1)
+        SchoolYear.carry_over(AcademicYear.current(), year)  # the partners go on unless marked otherwise
         log_event('academic_year_added', actor=request.user, request=request, detail=year.name)
         return Response(_year_row(year, {}), status=status.HTTP_201_CREATED)
 

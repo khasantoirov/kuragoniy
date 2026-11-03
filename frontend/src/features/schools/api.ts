@@ -18,6 +18,17 @@ export interface School {
   teachers_count: number
   classes_count: number
   students_count: number
+  /** A school's page: the o'quv yili in view, and the partnership year by year. */
+  year?: number
+  years?: SchoolYearRow[]
+}
+
+export interface SchoolYearRow {
+  id: number
+  name: string
+  is_current: boolean
+  is_active: boolean
+  classes: number
 }
 
 export interface SchoolTeacherRow {

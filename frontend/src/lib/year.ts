@@ -16,6 +16,7 @@ const SCOPED = [
   /^\/learning\/classes\/$/,
   /^\/schools\/stats\//,
   /^\/schools\/directory\/$/,
+  /^\/schools\/\d+\/$/, // a school's page: that year's teachers
 ]
 
 export function yearParamFor(method: string | undefined, url: string | undefined): number | null {

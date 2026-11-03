@@ -87,6 +87,9 @@ class AcademicYear(models.Model):
             year.make_current()
         return year
 
+    def is_past(self):
+        return self.start_year < AcademicYear.current().start_year
+
     @classmethod
     def from_param(cls, raw):
         """?year=<id> from a request, or the current year."""
@@ -101,3 +104,46 @@ class AcademicYear(models.Model):
         AcademicYear.objects.exclude(pk=self.pk).filter(is_current=True).update(is_current=False)
         AcademicYear.objects.filter(pk=self.pk).update(is_current=True)
         self.is_current = True
+        # School.is_active is "a partner this year" — now this year's.
+        active = set(self.school_years.filter(is_active=True).values_list('school_id', flat=True))
+        School.objects.filter(pk__in=active).update(is_active=True)
+        School.objects.exclude(pk__in=active).update(is_active=False)
+
+
+class SchoolYear(models.Model):
+    """Whether a school is a partner in one o'quv yili. A school with no
+    row for a year isn't one that year. School.is_active mirrors the
+    current year's row, so everything that asks "a partner now?" still
+    reads that one field."""
+
+    school = models.ForeignKey(School, related_name='school_years', on_delete=models.CASCADE)
+    year = models.ForeignKey(AcademicYear, related_name='school_years', on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ('school', 'year')
+        ordering = ['year__start_year']
+
+    def __str__(self):
+        return f'{self.school} {self.year}: {"faol" if self.is_active else "faol emas"}'
+
+    @classmethod
+    def set(cls, school, year, active):
+        cls.objects.update_or_create(school=school, year=year, defaults={'is_active': active})
+        if year.is_current and school.is_active != active:
+            School.objects.filter(pk=school.pk).update(is_active=active)
+            school.is_active = active
+
+    @classmethod
+    def start(cls, school):
+        """A new school: a partner from the current year on, as its own
+        is_active says."""
+        current = AcademicYear.current()
+        for year in AcademicYear.objects.filter(start_year__gte=current.start_year):
+            cls.objects.get_or_create(school=school, year=year, defaults={'is_active': school.is_active})
+
+    @classmethod
+    def carry_over(cls, source, target):
+        """A newly added year starts with the partners of `source`."""
+        for row in cls.objects.filter(year=source):
+            cls.objects.get_or_create(school_id=row.school_id, year=target, defaults={'is_active': row.is_active})

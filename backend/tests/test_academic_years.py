@@ -8,7 +8,7 @@ from datetime import date
 import pytest
 
 from journal.models import ClassDay, JournalClass
-from schools.models import AcademicYear, school_year_of
+from schools.models import AcademicYear, School, SchoolYear, school_year_of
 
 pytestmark = pytest.mark.django_db
 
@@ -90,3 +90,63 @@ def test_migration_puts_each_class_in_its_first_lessons_year(teacher, years):
     empty.refresh_from_db()
     assert (may.year, empty.year) == (years["last"], years["this"])
     assert AcademicYear.current() == years["this"]
+
+
+# ── Partner schools year by year (schools.SchoolYear) ──
+
+def _school(api, name="Sodiq School"):
+    resp = api.post("/api/schools/", {"name": name}, format="json")
+    assert resp.status_code == 201
+    return School.objects.get(pk=resp.data["id"])
+
+
+def test_a_new_school_is_a_partner_from_this_year_on(as_user, admin, years):
+    nxt = AcademicYear.objects.create(start_year=years["this"].start_year + 1)
+    school = _school(as_user(admin))
+    assert dict(school.school_years.values_list("year_id", "is_active")) == {years["this"].id: True, nxt.id: True}
+
+
+def test_a_year_by_year_partnership(as_user, admin, teacher, years):
+    api = as_user(admin)
+    school = _school(api)
+    # last year: not a partner yet, then marked as one — School.is_active is this year's
+    resp = api.post(f"/api/schools/{school.id}/year-active/", {"year": years["last"].id, "is_active": True}, format="json")
+    assert resp.status_code == 200
+    school.refresh_from_db()
+    assert school.is_active
+    api.post(f"/api/schools/{school.id}/year-active/", {"year": years["this"].id, "is_active": False}, format="json")
+    school.refresh_from_db()
+    assert not school.is_active
+    detail = api.get(f"/api/schools/{school.id}/").data
+    assert {y["name"]: y["is_active"] for y in detail["years"]} == {years["this"].name: False, years["last"].name: True}
+    # Statistika lists the partners of the year in view
+    names = lambda q: [r["name"] for r in api.get(f"/api/schools/stats/overview/{q}").data["rows"]]
+    assert "Sodiq School" not in names("")
+    assert "Sodiq School" in names(f"?year={years['last'].id}")
+    # teachers only look
+    assert as_user(teacher).post(f"/api/schools/{school.id}/year-active/", {"year": years["last"].id, "is_active": False}, format="json").status_code == 403
+
+
+def test_a_new_year_keeps_the_partners_and_making_it_current_follows_them(as_user, admin, years):
+    api = as_user(admin)
+    stays, leaves = _school(api, "Stays"), _school(api, "Leaves")
+    nxt = AcademicYear.objects.get(pk=api.post("/api/schools/years/").data["id"])
+    assert set(SchoolYear.objects.filter(year=nxt, is_active=True).values_list("school__name", flat=True)) == {"Stays", "Leaves"}
+    api.post(f"/api/schools/{leaves.id}/year-active/", {"year": nxt.id, "is_active": False}, format="json")
+    leaves.refresh_from_db()
+    assert leaves.is_active  # still a partner this year
+    api.post(f"/api/schools/years/{nxt.id}/")
+    stays.refresh_from_db()
+    leaves.refresh_from_db()
+    assert (stays.is_active, leaves.is_active) == (True, False)
+
+
+def test_a_school_page_shows_one_years_teachers(as_user, admin, teacher, make_user, years):
+    api = as_user(admin)
+    school = _school(api)
+    old_hand = make_user("old-hand@example.com", approved=True)
+    JournalClass.objects.create(teacher=old_hand, name="9-A", partner_school=school, year=years["last"])
+    JournalClass.objects.create(teacher=teacher, name="8-A", partner_school=school)
+    now = {t["id"] for t in api.get(f"/api/schools/{school.id}/").data["teachers"]}
+    then = {t["id"] for t in api.get(f"/api/schools/{school.id}/?year={years['last'].id}").data["teachers"]}
+    assert (now, then) == ({teacher.id}, {old_hand.id})

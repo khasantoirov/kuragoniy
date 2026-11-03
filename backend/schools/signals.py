@@ -10,7 +10,7 @@ from journal.models import JournalClass
 from timetable.models import TimetableSlot
 
 from .matching import find_school
-from .models import School, SchoolTeacher
+from .models import AcademicYear, School, SchoolTeacher, SchoolYear
 
 STATS_GENERATION_KEY = 'schools:gen'
 
@@ -25,9 +25,20 @@ def bump_stats_cache(**kwargs):
         cache.set(STATS_GENERATION_KEY, 1, None)
 
 
-for _model in (School, SchoolTeacher, JournalClass):
+for _model in (School, SchoolTeacher, SchoolYear, JournalClass):
     post_save.connect(bump_stats_cache, sender=_model, dispatch_uid=f'schools-gen-save-{_model.__name__}')
     post_delete.connect(bump_stats_cache, sender=_model, dispatch_uid=f'schools-gen-del-{_model.__name__}')
+
+
+@receiver(post_save, sender=School)
+def school_year_rows(sender, instance, created, **kwargs):
+    """However a school is made or edited (the API, Django admin), its
+    per-year rows follow: new — a partner from this year on; edited —
+    "Faol hamkor" is this year's."""
+    if created:
+        SchoolYear.start(instance)
+    else:
+        SchoolYear.set(instance, AcademicYear.current(), instance.is_active)
 
 
 @receiver(pre_save, sender=JournalClass)
@@ -40,7 +51,8 @@ def auto_link_class(sender, instance, **kwargs):
 
 @receiver(post_save, sender=JournalClass)
 def remember_class_teacher(sender, instance, **kwargs):
-    if instance.partner_school_id:
+    # a past year's class says where the teacher worked then, not now
+    if instance.partner_school_id and not (instance.year and instance.year.is_past()):
         SchoolTeacher.objects.get_or_create(school_id=instance.partner_school_id, teacher_id=instance.teacher_id)
 
 
