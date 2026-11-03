@@ -203,7 +203,9 @@ class StudentLessonDetailView(APIView):
     def get(self, request, lesson_id):
         lesson = self._lesson(request, lesson_id)
         material = lesson.material
-        progress, _ = LessonProgress.objects.get_or_create(user=request.user, lesson=lesson)
+        # read, not get_or_create: opening a page writes nothing (an
+        # administrator's "view as a pupil" stays read-only too)
+        progress = LessonProgress.objects.filter(user=request.user, lesson=lesson).first() or LessonProgress(user=request.user, lesson=lesson)
         experiments = [
             {'id': e.id, 'name': e.name, 'type': e.type, 'desc': e.desc, 'video': e.video, 'image': e.image,
              'minutes': e.minutes, 'safety': e.safety}

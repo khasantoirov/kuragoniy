@@ -240,6 +240,25 @@ class StudentManageViewSet(viewsets.GenericViewSet):
         log_event('student_rejected', actor=request.user, request=request, detail=label or '')
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(detail=True, methods=['post'], url_path='view-as')
+    def view_as(self, request, pk=None):
+        """Ko'rish rejimi → O'quvchi: an administrator starts looking at the
+        student portal as this pupil (read-only — common/permissions.py
+        view_as_pupil); written to the security log once, here."""
+        if not request.user.is_admin:
+            raise PermissionDenied("O'quvchi ko'rinishini faqat ma'muriyat ochadi.")
+        profile = self._profile(request, pk, manage=False)
+        u = profile.user
+        if not (u.approved and u.is_active):
+            raise ValidationError({'detail': "Bu o'quvchi hali tasdiqlanmagan yoki bloklangan."})
+        jc = profile.journal_class
+        class_name = jc.name if jc else ''
+        log_event('student_view_as', actor=request.user, request=request, detail=f'{u.name} ({u.username}) {class_name}'.strip())
+        return Response({'id': u.id, 'name': u.name, 'username': u.username, 'student': {
+            'grade': profile.grade, 'class_id': profile.journal_class_id, 'class_name': class_name,
+            'school': jc.school if jc else '', 'teacher_name': jc.teacher.name if jc else '',
+        }})
+
     @action(detail=True, methods=['post'], url_path='reset-password')
     def reset_password(self, request, pk=None):
         """The class teacher resets a student's password — students without

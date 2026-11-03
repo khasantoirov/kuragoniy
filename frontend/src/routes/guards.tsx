@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 
 import {
   homePathFor,
+  isAdmin,
   isAdminInView,
   isApproved,
   isObserver,
@@ -12,6 +13,7 @@ import {
   useAuth,
 } from '@/lib/auth/AuthContext'
 import { useModules, type ModuleKey } from '@/lib/modules'
+import { useViewAs } from '@/lib/viewAs'
 import { useUIStore } from '@/store/uiStore'
 
 function FullScreenSpinner() {
@@ -43,6 +45,10 @@ export function RequireApproved({ children }: { children: ReactNode }) {
 
 export function RequireStudent({ children }: { children: ReactNode }) {
   const { user } = useAuth()
+  const viewing = useViewAs((s) => s.pupil)
+  // an administrator looking at the portal as one pupil (Ko'rish rejimi);
+  // without one picked, the place to pick one
+  if (isAdmin(user) && !isStudent(user)) return viewing ? children : <Navigate to="/settings/appearance" replace />
   if (!isStudent(user)) return <Navigate to={homePathFor(user)} replace />
   if (!user?.approved) return <Navigate to="/pending-approval" replace />
   return children

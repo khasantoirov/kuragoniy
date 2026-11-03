@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Outlet, useLocation } from 'react-router-dom'
@@ -11,9 +12,12 @@ import { NavRail, type RailItem } from '@/layouts/NavRail'
 import { BrandMark } from '@/layouts/edumin/BrandMark'
 import { SidebarToggle } from '@/layouts/edumin/Sidebar'
 import { useAuth } from '@/lib/auth/AuthContext'
+import { useViewAs } from '@/lib/viewAs'
 import { routeOn, useModules } from '@/lib/modules'
 import { usePageScrolled, useScrollRestoration } from '@/lib/scroll'
 import { useUIStore } from '@/store/uiStore'
+
+import { usePortalUser, useViewedPupil } from './portalUser'
 
 const ITEMS: PortalNavItem[] = [
   { to: '/s', label: 'Bosh sahifa', icon: 'home', end: true },
@@ -57,7 +61,18 @@ function RenamedLoginNotice() {
  * fewer, bigger targets, nothing a student can't use. */
 export function StudentShell() {
   const { t } = useTranslation()
-  const { user, logout } = useAuth()
+  const { logout } = useAuth()
+  const user = usePortalUser()
+  // Ko'rish rejimi → O'quvchi: an administrator looking through this pupil
+  const viewing = useViewedPupil()
+  const stopViewing = useViewAs((s) => s.stop)
+  const queryClient = useQueryClient()
+  // with the view gone the student guard takes an administrator back to
+  // Sozlamalar → Ko'rish rejimi
+  const exitView = () => {
+    stopViewing()
+    queryClient.removeQueries({ queryKey: ['student'] })
+  }
   const { theme, toggleTheme } = useUIStore()
   const { pathname } = useLocation()
   const scrolled = usePageScrolled(4)
@@ -88,7 +103,8 @@ export function StudentShell() {
             <button className="iconbtn" onClick={toggleTheme} title={t('Rejimni almashtirish')} aria-label={t('Rejim')}>
               {theme === 'dark' ? themeIconMoon() : themeIconSun()}
             </button>
-            <button className="iconbtn" onClick={() => logout()} title={t('Chiqish')} aria-label={t('Chiqish')}>
+            <button className="iconbtn" onClick={() => (viewing ? exitView() : logout())}
+              title={viewing ? t("Ko'rish rejimidan chiqish") : t('Chiqish')} aria-label={t('Chiqish')}>
               {IC.logout}
             </button>
           </div>
@@ -100,7 +116,17 @@ export function StudentShell() {
       <div className="appmain">
         <div className="shell">
           <main className="main sportal">
-            <RenamedLoginNotice />
+            {viewing && (
+              <div className="viewas" role="status">
+                <span className="viewas__ic">{IC.eye}</span>
+                <span className="viewas__tx">
+                  <b>{t("Ko'rish rejimi")}:</b> {viewing.name}{viewing.student.class_name ? ` · ${viewing.student.class_name}` : ''}
+                  <small>{t("O'quvchi platformani shunday ko'radi. Bu yerda hech narsa o'zgartirilmaydi.")}</small>
+                </span>
+                <button type="button" className="btn btn--sm" onClick={exitView}>{t("Ko'rish rejimidan chiqish")}</button>
+              </div>
+            )}
+            {!viewing && <RenamedLoginNotice />}
             <Outlet />
           </main>
         </div>

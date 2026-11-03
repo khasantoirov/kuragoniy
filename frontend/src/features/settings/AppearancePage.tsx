@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { PageHead } from '@/features/portal/ui'
@@ -6,6 +7,8 @@ import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
 import { useVisibleNavItems } from '@/layouts/navItems'
 import { NavRail, type RailItem } from '@/layouts/NavRail'
 import { MAX_NAV_ITEMS, useUIStore, type Lang, type ThemeMode } from '@/store/uiStore'
+
+import { ViewAsPupilModal } from './ViewAsPupilModal'
 
 const LANGS: { k: Lang; label: string }[] = [
   { k: 'uz', label: "O'zbekcha" },
@@ -32,6 +35,7 @@ export function AppearancePage() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const s = useUIStore()
+  const [pickingPupil, setPickingPupil] = useState(false)
   const navItems = useVisibleNavItems().filter((it) => it.to !== '/settings')
   const byPath = new Map(navItems.map((it) => [it.to, it]))
   const chosen = s.navItems.filter((p) => byPath.has(p))
@@ -77,8 +81,10 @@ export function AppearancePage() {
           <div className="pf__mode">
             <button type="button" className={`grade ${s.viewMode === 'admin' ? 'is-on' : ''}`} onClick={() => s.setViewMode('admin')}>{t('Admin')}</button>
             <button type="button" className={`grade ${s.viewMode === 'teacher' ? 'is-on' : ''}`} onClick={() => s.setViewMode('teacher')}>{t("O'qituvchi")}</button>
+            <button type="button" className="grade" onClick={() => setPickingPupil(true)}>{t("O'quvchi")}…</button>
           </div>
-          <p className="form__note">{t("Platformani oddiy o'qituvchi qanday ko'rishini shu yerdan tekshirasiz.")}</p>
+          <p className="form__note">{t("Platformani oddiy o'qituvchi qanday ko'rishini shu yerdan tekshirasiz. «O'quvchi» — tanlangan o'quvchining oynasini uning ko'zi bilan ochadi (faqat ko'rish).")}</p>
+          {pickingPupil && <ViewAsPupilModal onClose={() => setPickingPupil(false)} />}
         </section>
       )}
 

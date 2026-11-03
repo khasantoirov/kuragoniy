@@ -3,13 +3,13 @@ import { Link } from 'react-router-dom'
 
 import { Skeleton } from '@/components/Skeleton'
 import { ATTEMPT_KIND_LABEL, fmtDateTime, Meter, PageHead, PercentPill, StatTile } from '@/features/portal/ui'
-import { useAuth } from '@/lib/auth/AuthContext'
 
 import { useLeaderboard, useStudentDashboard } from './api'
+import { usePortalUser } from './portalUser'
 
 export function StudentHome() {
   const { t } = useTranslation()
-  const { user } = useAuth()
+  const user = usePortalUser()
   const { data, isLoading, error } = useStudentDashboard()
   const board = useLeaderboard()
 

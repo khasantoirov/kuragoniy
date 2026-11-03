@@ -11,6 +11,7 @@ staff endpoint) and Kuzatuvchi (read-only oversight). common/
 authentication.py enforces the same split centrally as a second layer.
 """
 
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
@@ -49,12 +50,38 @@ class IsDevSuperuser(BasePermission):
         return bool(user and user.is_authenticated and user.is_dev_superuser)
 
 
+VIEW_AS_HEADER = 'HTTP_X_VIEW_AS_STUDENT'
+
+
 class IsStudent(BasePermission):
     message = "Bu bo'lim faqat tasdiqlangan o'quvchilar uchun."
 
     def has_permission(self, request, view):
         user = request.user
-        return bool(user and user.is_authenticated and user.is_student and user.approved)
+        if user and user.is_authenticated and user.is_student and user.approved:
+            return True
+        return view_as_pupil(request)
+
+
+def view_as_pupil(request) -> bool:
+    """Ko'rish rejimi → O'quvchi: an administrator sees the student portal
+    as one pupil does (X-View-As-Student: <the pupil's user id>). Reads
+    only — the request then runs as that pupil, so every page shows exactly
+    their data; anything that would write is refused."""
+    raw = request.META.get(VIEW_AS_HEADER)
+    user = request.user
+    if not raw or not (user and user.is_authenticated and user.is_admin):
+        return False
+    if request.method not in SAFE_METHODS:
+        raise PermissionDenied("Ko'rish rejimida faqat ko'rish mumkin — o'quvchi nomidan hech narsa o'zgartirilmaydi.")
+    from accounts.models import User
+
+    pupil = User.objects.filter(pk=raw, role=User.Role.STUDENT, approved=True, is_active=True).first()
+    if pupil is None:
+        return False
+    request.viewed_by = user
+    request.user = pupil
+    return True
 
 
 class IsTeacher(BasePermission):

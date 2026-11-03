@@ -9,6 +9,8 @@ import { api } from '@/lib/api/client'
 import { useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore, type Lang } from '@/store/uiStore'
 
+import { usePortalUser, useViewedPupil } from './portalUser'
+
 const LANGS: { k: Lang; label: string }[] = [
   { k: 'uz', label: "O'zbekcha" },
   { k: 'ru', label: 'Ruscha' },
@@ -17,7 +19,10 @@ const LANGS: { k: Lang; label: string }[] = [
 
 export function StudentProfile() {
   const { t } = useTranslation()
-  const { user, refreshMe } = useAuth()
+  const { refreshMe } = useAuth()
+  const user = usePortalUser()
+  // the view through a pupil: their details, none of their account settings
+  const viewing = !!useViewedPupil()
   const { lang, setLang, theme, setTheme } = useUIStore()
   const toast = useToast()
   const [pwOpen, setPwOpen] = useState(false)
@@ -52,6 +57,9 @@ export function StudentProfile() {
         <p className="form__note">{t("Ismingizda xato bo'lsa, o'qituvchingizga ayting — u jurnalda tuzatadi.")}</p>
       </section>
 
+      {viewing ? (
+        <p className="prose prose--note">{t("Ko'rish rejimida o'quvchining Telegram, parol va sinf kodi sozlamalari ko'rsatilmaydi.")}</p>
+      ) : (<>
       <section className="panel">
         <h3 className="panel__title">{t('Telegram')}</h3>
         <TelegramLinkBox />
@@ -75,6 +83,7 @@ export function StudentProfile() {
           <button type="button" className="btn" onClick={join} disabled={joining || code.trim().length < 6}>{t("Qo'shilish")}</button>
         </div>
       </section>
+      </>)}
 
       <section className="panel">
         <h3 className="panel__title">{t('Til va rejim')}</h3>
