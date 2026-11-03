@@ -18,11 +18,12 @@ export function isPending(lock: GridLock | undefined, date: string) {
 }
 
 /** Mirrors backend journal/locks.py can_edit_day(): only the journal's
- * own teacher writes, on the lesson day or a day opened for them. */
+ * own teacher writes, on the lesson day or a day opened for them — and a
+ * past o'quv yili's journal has no lesson day, only opened ones. */
 export function canEditDay(lock: GridLock | undefined, date: string) {
   if (!lock) return true
   if (!lock.owner) return false
-  return date === lock.today || !!grantFor(lock, date)
+  return (date === lock.today && !lock.past_year) || !!grantFor(lock, date)
 }
 
 /** "Every past day" grants (the teacher-row button) span ~400 days. */

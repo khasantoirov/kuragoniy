@@ -459,3 +459,42 @@ class AcademicYearView(APIView):
         log_event('academic_year_deleted', actor=request.user, request=request, detail=year.name)
         year.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AcademicYearRolloverView(APIView):
+    """Yangi o'quv yiliga o'tish (journal/rollover.py) from this year to the
+    next — GET: the plan, class by class; POST {exclude, make_current}: the
+    next year's classes, one grade up, with their pupils (the year itself
+    is added first if it isn't there yet)."""
+
+    permission_classes = [IsAdminOrDevSuperuser]
+
+    def get(self, request, pk):
+        from journal.rollover import plan
+
+        source = get_object_or_404(AcademicYear, pk=pk)
+        target = AcademicYear.objects.filter(start_year=source.start_year + 1).first()
+        return Response({
+            'source': source.name, 'target': f'{source.start_year + 1}-{source.start_year + 2}',
+            'target_exists': target is not None, 'target_current': bool(target and target.is_current),
+            'rows': plan(source, target),
+        })
+
+    def post(self, request, pk):
+        from journal.rollover import roll_over
+
+        from .signals import bump_stats_cache
+
+        source = get_object_or_404(AcademicYear, pk=pk)
+        target = AcademicYear.objects.filter(start_year=source.start_year + 1).first()
+        if target is None:
+            target = AcademicYear.objects.create(start_year=source.start_year + 1)
+            SchoolYear.carry_over(source, target)
+        done = roll_over(source, target, exclude=request.data.get('exclude') or [])
+        if request.data.get('make_current'):
+            target.make_current()
+            bump_stats_cache()
+        log_event('academic_year_rollover', actor=request.user, request=request,
+                  detail=f"{source.name} → {target.name}: {done['classes']} ta sinf, {done['students']} ta o'quvchi"
+                         + (f'; {target.name} joriy' if request.data.get('make_current') else ''))
+        return Response({**done, 'target': target.name, 'target_id': target.id, 'current': target.is_current})

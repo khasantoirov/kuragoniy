@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useConfirm } from '@/components/ConfirmProvider'
@@ -9,6 +10,8 @@ import { useYears, type AcademicYear } from '@/features/schools/api'
 import { api } from '@/lib/api/client'
 import { useYearStore } from '@/lib/year'
 
+import { RolloverModal } from './RolloverModal'
+
 /** Boshqaruv → O'quv yillari: the years, which one is current (where new
  * classes go and what every page shows first), and adding the next one. */
 export function AcademicYearsPanel() {
@@ -18,6 +21,7 @@ export function AcademicYearsPanel() {
   const queryClient = useQueryClient()
   const setYear = useYearStore((s) => s.setYear)
   const { data: years, isLoading } = useYears()
+  const [rolling, setRolling] = useState<AcademicYear | null>(null)
 
   const refresh = () => {
     setYear(null)
@@ -68,6 +72,9 @@ export function AcademicYearsPanel() {
                   <td data-label={t('Sinflar')}>{y.classes}</td>
                   <td>{y.is_current ? <StatusPill tone="ok">{t('Joriy')}</StatusPill> : null}</td>
                   <td className="dtable__acts">
+                    {y.classes > 0 && (
+                      <button className="btn btn--sm btn--primary" onClick={() => setRolling(y)}>{t("Keyingi yilga o'tkazish")}…</button>
+                    )}
                     {!y.is_current && (
                       <button className="btn btn--sm" disabled={makeCurrent.isPending} onClick={() => onCurrent(y)}>{t('Joriy qilish')}</button>
                     )}
@@ -88,6 +95,7 @@ export function AcademicYearsPanel() {
           </button>
         </div>
       )}
+      {rolling && <RolloverModal year={rolling} onClose={() => setRolling(null)} />}
     </section>
   )
 }

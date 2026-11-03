@@ -14,6 +14,7 @@ urlpatterns = [
     path('directory/', views.DirectoryView.as_view(), name='schools-directory'),
     path('years/', views.AcademicYearsView.as_view(), name='schools-years'),
     path('years/<int:pk>/', views.AcademicYearView.as_view(), name='schools-year'),
+    path('years/<int:pk>/rollover/', views.AcademicYearRolloverView.as_view(), name='schools-year-rollover'),
     path('stats/mine/', views.StatsMineView.as_view(), name='schools-stats-mine'),
     path('classes/<int:class_id>/teacher/', views.ClassTeacherView.as_view(), name='schools-class-teacher'),
     path('stats/overview/', views.StatsOverviewView.as_view(), name='schools-stats-overview'),

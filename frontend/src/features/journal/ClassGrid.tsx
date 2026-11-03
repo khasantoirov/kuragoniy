@@ -58,7 +58,11 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
   if (isLoading || !grid) return <Skeleton lines={4} />
 
   const lock = grid.lock
-  const owner = !lock || lock.owner
+  // a past o'quv yili's journal: looked at, not written (but for opened days)
+  const past = !!lock?.past_year
+  const owner = (!lock || lock.owner) && !past
+  // its quarter grades open while an administrator's permission does
+  const finalsOpen = past ? !!lock?.owner && (lock?.grants.length ?? 0) > 0 : owner
 
   const students = grid.students
   const days = grid.days.filter((d) => d.chorak === chorak).sort((a, b) => a.date.localeCompare(b.date))
@@ -83,7 +87,7 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
   const stats = computeStats(grid, days, scale)
   const finals = grid.finals[String(chorak)] ?? {}
   const controls = (grid.controls ?? []).filter((w) => w.chorak === chorak)
-  const canControl = !!lock?.can_control
+  const canControl = !!lock?.can_control && !past
   // Moved to another class, marks kept here: shown greyed under the
   // roster, outside the class's averages.
   const archived = grid.archived ?? []
@@ -204,6 +208,7 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
           ) : (
             <span className="jscale" title={t('Baholash shkalasi')}>{t(SCALES.find((x) => x.v === scale)!.label)}</span>
           )}
+          {past && <span className="jpast">{IC.lock} {cls.year_name} {t("o'quv yili — faqat ko'rish")}</span>}
           {lock && lock.pending.length > 0 && <span className="jpending">{IC.lock} {lock.pending.length} {t("ta so'rov ko'rib chiqilmoqda")}</span>}
           <GuideLink section="jurnal" />
         </div>
@@ -300,7 +305,7 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
                 ))}
                 <td className="jt__avg"><AvgChip avg={stats.perStudent[i].avg} scale={scale} /></td>
                 <td className="jt__fin">
-                  <GradeCell value={finals[s.id]} scale={scale} disabled={!owner} onChange={(v) => onFinalChange(s.id, v)} />
+                  <GradeCell value={finals[s.id]} scale={scale} disabled={!finalsOpen} onChange={(v) => onFinalChange(s.id, v)} />
                 </td>
               </tr>
             ))}

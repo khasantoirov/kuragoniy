@@ -175,6 +175,9 @@ class TeacherClassViewSet(viewsets.ReadOnlyModelViewSet):
         """New pupil not yet on the roster: adds the roster row and the
         account in one go."""
         jc = self._own_class(request)
+        from journal.locks import PAST_YEAR_DETAIL, is_past_year
+        if is_past_year(jc):  # a past o'quv yili's roster is closed
+            raise PermissionDenied(PAST_YEAR_DETAIL)
         full_name = str(request.data.get('full_name') or '').strip()
         if not 3 <= len(full_name) <= 150:
             raise ValidationError({'full_name': "Ism-familiyani to'liq kiriting."})

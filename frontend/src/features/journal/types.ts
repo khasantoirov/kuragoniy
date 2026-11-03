@@ -39,6 +39,8 @@ export interface GridDay {
 export interface GridLock {
   today: string
   owner: boolean
+  /** A past o'quv yili's journal: read-only but for opened days. */
+  past_year?: boolean
   can_grant: boolean
   /** The viewer grades nazorat ishi here (administrators). */
   can_control?: boolean

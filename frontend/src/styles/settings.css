@@ -673,6 +673,10 @@ select.jscale:hover { border-color: var(--ink-3); color: var(--ink); }
 select.jscale:focus-visible { outline: 2px solid var(--pick, var(--ok)); outline-offset: 1px; }
 .jpending { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--tone-mid, #b45309); }
 .jpending .svic { width: 14px; height: 14px; }
+/* a past o'quv yili's journal — read-only */
+.jpast { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 50rem; font-size: 12.5px; font-weight: 600;
+  color: var(--ink-2); background: var(--rule-2); }
+.jpast .svic { width: 14px; height: 14px; }
 .jhelp {
   display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
   border: 1px solid var(--rule); background: var(--surface); color: var(--ink-2);

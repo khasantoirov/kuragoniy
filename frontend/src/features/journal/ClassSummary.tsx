@@ -22,7 +22,7 @@ export function ClassSummary({ cls, teacherId }: { cls: JournalClass; teacherId?
   const { t } = useTranslation()
   const { lang } = useUIStore()
   const { data: grid, isLoading } = useGrid(cls.id, teacherId)
-  const owner = !teacherId
+  const owner = !teacherId && !grid?.lock?.past_year  // a past o'quv yili's journal is read-only
   const deleteClass = useDeleteClass()
   const toast = useToast()
   const confirm = useConfirm()

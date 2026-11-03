@@ -20,6 +20,9 @@ class JournalClass(models.Model):
     # O'quv yili: a class is one school year's — next year's 8-A is a new
     # class. Set to the current year when left empty.
     year = models.ForeignKey('schools.AcademicYear', related_name='classes', null=True, blank=True, on_delete=models.PROTECT)
+    # Made by "Yangi yilga o'tish" from last year's class (journal/rollover.py):
+    # 7-A of 2026-2027 → this 8-A of 2027-2028, so a second run skips it.
+    rolled_from = models.ForeignKey('self', related_name='rolled_to', null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

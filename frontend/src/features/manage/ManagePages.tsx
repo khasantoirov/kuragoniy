@@ -224,6 +224,7 @@ const ACTION_LABELS: Record<string, string> = {
   academic_year_added: "O'quv yili qo'shildi",
   academic_year_current: "Joriy o'quv yili o'zgardi",
   academic_year_deleted: "O'quv yili o'chirildi",
+  academic_year_rollover: "Yangi o'quv yiliga o'tildi",
   student_joined_class: "O'quvchi sinfga qo'shildi",
   telegram_unlinked: 'Telegram uzildi',
   admin_action: "Ma'muriyat amali",

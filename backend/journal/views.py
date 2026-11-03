@@ -14,7 +14,10 @@ from common.permissions import IsAdminOrDevSuperuser, IsApproved
 from common.security import log_event
 from schools.models import AcademicYear
 
-from .locks import ALL_PAST_DAYS, LOCKED_DETAIL, NOT_OWNER_DETAIL, can_edit_day, is_owner, lock_info, today
+from .locks import (
+    ALL_PAST_DAYS, LOCKED_DETAIL, NOT_OWNER_DETAIL, PAST_YEAR_DETAIL, can_edit_day, is_owner, is_past_year, lock_info,
+    past_year_open, today,
+)
 from .models import (
     AttendanceEntry,
     ClassDay,
@@ -75,6 +78,8 @@ class JournalClassViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         """Changing a class's scale carries every mark already given over
         to the new scale, keeping each one in its colour band."""
+        if is_past_year(serializer.instance):
+            raise PermissionDenied(PAST_YEAR_DETAIL)
         old = serializer.instance.scale
         with transaction.atomic():
             cls = serializer.save()
@@ -85,6 +90,11 @@ class JournalClassViewSet(viewsets.ModelViewSet):
                         r.mark = convert(r.mark, old, cls.scale)
                         r.level = level(r.mark, cls.scale)
                     model.objects.bulk_update(rows, ['mark', 'level'])
+
+    def perform_destroy(self, instance):
+        if is_past_year(instance):
+            raise PermissionDenied(PAST_YEAR_DETAIL)
+        instance.delete()
 
     @action(detail=True, methods=['get'])
     def grid(self, request, pk=None):
@@ -188,6 +198,8 @@ class JournalClassViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='set-final')
     def set_final(self, request, pk=None):
         journal_class = self.get_object()
+        if is_past_year(journal_class) and not past_year_open(request.user, journal_class):
+            return Response({'detail': PAST_YEAR_DETAIL}, status=status.HTTP_403_FORBIDDEN)
         student_id = request.data.get('student_id')
         chorak = request.data.get('chorak')
         mark = request.data.get('mark')
@@ -223,9 +235,18 @@ class StudentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         journal_class_id = self.request.data.get('journal_class')
         journal_class = JournalClass.objects.get(id=journal_class_id, teacher=self.request.user)
+        if is_past_year(journal_class):
+            raise PermissionDenied(PAST_YEAR_DETAIL)
         serializer.save(journal_class=journal_class)
 
+    def perform_update(self, serializer):
+        if is_past_year(serializer.instance.journal_class):
+            raise PermissionDenied(PAST_YEAR_DETAIL)
+        serializer.save()
+
     def perform_destroy(self, instance):
+        if is_past_year(instance.journal_class):
+            raise PermissionDenied(PAST_YEAR_DETAIL)
         # Soft-delete: keep historical grades/attendance intact.
         instance.active = False
         instance.save(update_fields=['active'])
@@ -249,6 +270,9 @@ class StudentTransferView(APIView):
         target = JournalClass.objects.select_related('teacher').filter(pk=request.data.get('target')).first()
         if not target or target.pk == student.journal_class_id:
             return Response({'detail': 'Boshqa sinfni tanlang.'}, status=status.HTTP_400_BAD_REQUEST)
+        if is_past_year(student.journal_class) or is_past_year(target):
+            return Response({'detail': "O'tgan o'quv yilining sinfiga yoki sinfidan ko'chirib bo'lmaydi."},
+                            status=status.HTTP_400_BAD_REQUEST)
         # The new class's teacher may have typed the pupil in already — two
         # rows of one pupil would split their marks between them.
         if target.students.filter(active=True, full_name__iexact=student.full_name.strip()).exists():
@@ -305,11 +329,20 @@ class ControlWorkViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("Nazorat ishini faqat ma'muriyat baholaydi.")
 
     def perform_create(self, serializer):
+        if is_past_year(serializer.validated_data['journal_class']):
+            raise PermissionDenied(PAST_YEAR_DETAIL)
         self._tell_teacher(serializer.save(created_by=self.request.user), had_marks=False)
 
     def perform_update(self, serializer):
+        if is_past_year(serializer.instance.journal_class):
+            raise PermissionDenied(PAST_YEAR_DETAIL)
         had_marks = ControlMark.objects.filter(work=serializer.instance).exists()
         self._tell_teacher(serializer.save(), had_marks)
+
+    def perform_destroy(self, instance):
+        if is_past_year(instance.journal_class):
+            raise PermissionDenied(PAST_YEAR_DETAIL)
+        instance.delete()
 
     def _tell_teacher(self, work, had_marks):
         """Once, when the first results go in — not on every correction."""
