@@ -450,23 +450,25 @@ button.jt__open:hover { color: #fff; }
 }
 
 /* ══ Rangli baholar (features/journal/scales.ts) ═══════════════════════
-   5 a'lo yashil, 4 yaxshi och yashil (Excel'dagi «yaxshi» rangi), 3
-   qoniqarli sariq, 2 qoniqarsiz zarg'aldoq, 1 va 0 yomon qizil — raqam
-   rang ichida turadi; har sahifada bir xil. A'lo tungi rejimda ham shu
-   yashil. Och yashil oq fonda yo'qolmasin deb nozik chiziqli. */
-:root { --g5: #16a34a; --g4: #c6efce; --g3: #facc15; --g2: #f98216; --g1: #d42020; }
-[data-theme="dark"] { --g5: #16a34a; --g4: #c6efce; --g3: #facc15; --g2: #f98216; --g1: #e0243c; }
+   5 a'lo to'q yashil, 4 yaxshi och(roq) yashil, 3 qoniqarli sariq, 2
+   qoniqarsiz zarg'aldoq, 1 va 0 yomon qizil — raqam oq, rang ichida
+   turadi; har sahifada, ikkala rejimda bir xil. Ikki yashil oq raqamni
+   ko'tara oladigan darajada to'q va bir-biridan aniq farqli. */
+:root { --g5: #15803d; --g4: #66bb6a; --g3: #facc15; --g2: #f98216; --g1: #d42020; }
+[data-theme="dark"] { --g5: #15803d; --g4: #66bb6a; --g3: #facc15; --g2: #f98216; --g1: #e0243c; }
+/* The number is white on every band; on the three light ones a thin
+   shadow in the band's own dark shade keeps it readable. */
 .gchip--5 { --gc: var(--g5); --gt: #fff; }
-.gchip--4 { --gc: var(--g4); --gt: #006100; box-shadow: inset 0 0 0 1px rgba(0, 97, 0, .22); }
-.gchip--3 { --gc: var(--g3); --gt: #3a2c00; }
-.gchip--2 { --gc: var(--g2); --gt: #2b1100; }
+.gchip--4 { --gc: var(--g4); --gt: #fff; --gts: 0 0 2px rgba(0, 80, 0, .8), 0 1px 1px rgba(0, 80, 0, .6); }
+.gchip--3 { --gc: var(--g3); --gt: #fff; --gts: 0 0 2px rgba(110, 75, 0, .9), 0 1px 1px rgba(110, 75, 0, .8); }
+.gchip--2 { --gc: var(--g2); --gt: #fff; --gts: 0 0 2px rgba(120, 45, 0, .85), 0 1px 1px rgba(120, 45, 0, .7); }
 .gchip--1, .gchip--0 { --gc: var(--g1); --gt: #fff; }
 /* Scores outside the journal (PercentPill, MetricPill, a test's result) wear the same bands. */
-.pill[class*="gchip--"] { background: var(--gc); color: var(--gt); }
+.pill[class*="gchip--"] { background: var(--gc); color: var(--gt); text-shadow: var(--gts, none); }
 .review__score[class*="gchip--"] { background: color-mix(in srgb, var(--gc) 16%, var(--surface)); box-shadow: inset 4px 0 0 var(--gc); }
 .gchip {
   display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 5px;
-  border-radius: 6px; background: var(--gc); color: var(--gt); font: 700 13px/1 var(--f-mono, inherit);
+  border-radius: 6px; background: var(--gc); color: var(--gt); text-shadow: var(--gts, none); font: 700 13px/1 var(--f-mono, inherit);
 }
 [data-theme="dark"] .gchip--1, [data-theme="dark"] .gchip--0 { box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
 .jlegend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 12px; font-size: 12.5px; color: var(--ink-2); }
@@ -479,7 +481,7 @@ button.jt__open:hover { color: #fff; }
   width: 32px; height: 30px; border: 1px solid var(--rule-2); border-radius: 6px; background: transparent;
   font: 700 14px/1 var(--f-mono, inherit); color: var(--ink); cursor: pointer;
 }
-.gcell.gchip { border-color: transparent; background: var(--gc); color: var(--gt); }
+.gcell.gchip { border-color: transparent; background: var(--gc); color: var(--gt); text-shadow: var(--gts, none); }
 .gcell:disabled { cursor: default; }
 .gpop {
   position: fixed; z-index: 4000; width: 228px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;
@@ -544,8 +546,8 @@ button.jt__open:hover { color: #fff; }
   display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 10px; cursor: pointer;
   border: 1px solid var(--rule); border-radius: 9px; background: var(--surface); color: var(--ink-2); font-size: 13px;
 }
-.dgrade b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 6px; background: var(--gc); color: var(--gt); font-family: var(--f-mono, inherit); }
-.dgrade.is-on { background: var(--gc); color: var(--gt); border-color: transparent; font-weight: 700; }
+.dgrade b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 6px; background: var(--gc); color: var(--gt); text-shadow: var(--gts, none); font-family: var(--f-mono, inherit); }
+.dgrade.is-on { background: var(--gc); color: var(--gt); text-shadow: var(--gts, none); border-color: transparent; font-weight: 700; }
 .dgrade.is-on b { background: rgba(255,255,255,.22); }
 .dgrade:disabled { cursor: default; }
 .dsave {
