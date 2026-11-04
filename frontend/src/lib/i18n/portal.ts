@@ -594,6 +594,10 @@ const ru: Record<string, string> = {
   "Maktab": "Школа",
   // Profil: ism va familiya alohida
   "Ism": "Имя",
+  "o'quvchi": "уч.",
+  "ta o'quvchi": "уч.",
+  "ta maktab": "шк.",
+  "O'qituvchi, maktab yoki sinf": "Учитель, школа или класс",
   "O'quvchi hisoblari o'chirildi": "Аккаунты учеников удалены",
   "Yangi xodim hisobi yaratildi": "Создан аккаунт сотрудника",
   "Ma'lumotlar tahrirlandi (dasturchi)": "Данные изменены (разработчик)",
@@ -1194,6 +1198,10 @@ const en: Record<string, string> = {
   "Maktab": "School",
   // Profil: ism va familiya alohida
   "Ism": "First name",
+  "o'quvchi": "pupils",
+  "ta o'quvchi": "pupils",
+  "ta maktab": "schools",
+  "O'qituvchi, maktab yoki sinf": "Teacher, school or class",
   "O'quvchi hisoblari o'chirildi": "Pupil accounts deleted",
   "Yangi xodim hisobi yaratildi": "Staff account created",
   "Ma'lumotlar tahrirlandi (dasturchi)": "Details edited (developer)",

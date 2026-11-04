@@ -100,11 +100,23 @@ export interface EditGrant {
   active: boolean
 }
 
+/** One school on a teacher's card: its classes and pupils, per grade
+ *  (grade null — the class name has no leading number). */
+export interface TeacherSchool {
+  name: string
+  classes: number
+  students: number
+  grades: { grade: number | null; classes: number; students: number }[]
+}
+
 export interface GrantTeacher {
   id: string
+  /** "Ism Familiya" */
   name: string
+  photo: string | null
   role: string
-  classes: { id: number; label: string }[]
+  classes: { id: number; label: string; students: number }[]
+  schools: TeacherSchool[]
   open: { id: number; class_label: string; date_from: string; date_to: string; expires_at: string }[]
   pending: number
 }

@@ -609,8 +609,18 @@ class EditGrantViewSet(viewsets.GenericViewSet):
     def teachers(self, request):
         """Everyone who teaches (administrators included — their own
         journals are locked too), with their classes, the days open to
-        them right now and their waiting requests."""
+        them right now and their waiting requests.
+
+        `name` is "Ism Familiya" (an old one-field name is turned round by
+        the same guess the profile form starts from); `schools` sums each
+        school's classes and pupils, per grade (the class name's leading
+        number: "7-A" → 7)."""
+        import re
+
+        from django.db.models import Count, Q
+
         from accounts.models import User
+        from accounts.profile import full_name, split_full_name
 
         if (denied := self._admin_only(request)):
             return denied
@@ -618,11 +628,33 @@ class EditGrantViewSet(viewsets.GenericViewSet):
             u for u in User.objects.filter(is_active=True).exclude(role__in=[User.Role.STUDENT, User.Role.KUZATUVCHI])
             if u.is_approved_effective
         ]
-        out = {u.pk: {'id': u.pk, 'name': u.name or u.login_name, 'role': u.role, 'classes': [], 'open': [], 'pending': 0}
+
+        def shown_name(u):
+            if u.first_name:
+                return u.name
+            return full_name(*split_full_name(u.name)) if u.name else u.login_name
+
+        out = {u.pk: {'id': u.pk, 'name': shown_name(u), 'photo': u.photo.url if u.photo else None, 'role': u.role,
+                      'classes': [], 'schools': [], 'open': [], 'pending': 0}
                for u in people}
         year = AcademicYear.from_param(request.query_params.get('year'))
-        for c in JournalClass.objects.filter(teacher_id__in=out, year=year).order_by('name'):
-            out[c.teacher_id]['classes'].append({'id': c.id, 'label': class_label(c)})
+        schools = {}  # (teacher, school) -> {name, classes, students, grades: {grade: {classes, students}}}
+        classes = (JournalClass.objects.filter(teacher_id__in=out, year=year).select_related('partner_school')
+                   .annotate(pupils=Count('students', filter=Q(students__active=True))).order_by('name'))
+        for c in classes:
+            out[c.teacher_id]['classes'].append({'id': c.id, 'label': class_label(c), 'students': c.pupils})
+            school = (c.partner_school.name if c.partner_school else c.school.strip()) or ''
+            m = re.match(r'\s*(\d{1,2})(?!\d)', c.name or '')
+            grade = int(m.group(1)) if m and 1 <= int(m.group(1)) <= 11 else None
+            row = schools.setdefault((c.teacher_id, school), {'name': school, 'classes': 0, 'students': 0, 'grades': {}})
+            row['classes'] += 1
+            row['students'] += c.pupils
+            g = row['grades'].setdefault(grade, {'grade': grade, 'classes': 0, 'students': 0})
+            g['classes'] += 1
+            g['students'] += c.pupils
+        for (teacher_id, _), row in sorted(schools.items(), key=lambda kv: (kv[1]['name'] == '', kv[1]['name'].lower())):
+            row['grades'] = sorted(row['grades'].values(), key=lambda g: (g['grade'] is None, g['grade'] or 0))
+            out[teacher_id]['schools'].append(row)
         for g in JournalEditGrant.objects.select_related('journal_class').filter(
                 teacher_id__in=out, status=JournalEditGrant.Status.APPROVED, expires_at__gt=timezone.now()):
             out[g.teacher_id]['open'].append({

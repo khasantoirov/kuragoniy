@@ -806,6 +806,40 @@ select.jscale:focus-visible { outline: 2px solid var(--pick, var(--ok)); outline
 .jpick__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .jpick__txt small { color: var(--ink-3); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .jpick__go { color: var(--ink-3); font-size: 20px; line-height: 1; }
+
+/* O'qituvchilar jurnali: teacher cards (features/journal/TeacherCard.tsx) */
+.tcards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 12px; align-items: start; }
+.tcard {
+  width: 100%; display: flex; flex-direction: column; gap: 10px; padding: 14px; text-align: left; cursor: pointer;
+  border: 1px solid var(--rule); border-radius: 14px; background: var(--surface); color: var(--ink); font: inherit;
+  transition: border-color .15s, box-shadow .15s;
+}
+.tcard:hover { border-color: var(--pick); box-shadow: 0 6px 18px -12px var(--pick); }
+.tcard:focus-visible { outline: 2px solid var(--pick); outline-offset: 2px; }
+.tcard__head { display: flex; align-items: center; gap: 12px; }
+.tcard__av {
+  flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--rule-2); color: var(--ink-2); font-weight: 700; font-size: 16px;
+}
+.tcard__av--img { object-fit: cover; padding: 0; }
+.tcard__id { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.tcard__nm { font-size: 15.5px; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+.tcard__id small { color: var(--ink-3); font-size: 12.5px; }
+.tcard__go { color: var(--ink-3); font-size: 22px; line-height: 1; }
+.tcard__sch { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid var(--rule-2); }
+.tcard__srow { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.tcard__srow b { font-size: 13.5px; font-weight: 600; }
+.tcard__srow small { color: var(--ink-3); font-size: 12px; white-space: nowrap; }
+.tcard__grades { display: flex; flex-wrap: wrap; gap: 6px; }
+.tcard__g {
+  display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 9px; border-radius: 8px;
+  background: var(--rule-2); font-size: 12px; color: var(--ink-2); white-space: nowrap;
+}
+.tcard__g b { color: var(--ink); font-weight: 600; }
+.tcard__g span + span::before { content: '·'; margin-right: 6px; color: var(--ink-3); }
+@media (max-width: 640px) {
+  .tcards { grid-template-columns: minmax(0, 1fr); }
+}
 @media (max-width: 640px) {
   .ctl__row { grid-template-columns: 20px minmax(0, 1fr) 72px; gap: 8px; padding: 6px 8px; }
   .ctl__lvl { display: none; }

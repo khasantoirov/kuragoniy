@@ -15,6 +15,7 @@ import { ClassModal } from './ClassModal'
 import { ClassSummary } from './ClassSummary'
 import { EditGrantsPanel } from './EditGrantsPanel'
 import { quarterLabel } from './labels'
+import { TeacherCard } from './TeacherCard'
 
 type Chorak = 1 | 2 | 3 | 4 | 'u'
 
@@ -115,23 +116,18 @@ function TeacherList() {
   if (isLoading) return <Skeleton lines={4} />
   const needle = q.trim().toLowerCase()
   const list = (data ?? []).filter((p) => p.classes.length > 0 && (!needle || p.name.toLowerCase().includes(needle)
-    || p.classes.some((c) => c.label.toLowerCase().includes(needle))))
+    || p.classes.some((c) => c.label.toLowerCase().includes(needle))
+    || (p.schools ?? []).some((s) => s.name.toLowerCase().includes(needle))))
   return (
     <div className="jpick">
       <input className="input jpick__q" type="search" value={q} onChange={(e) => setQ(e.target.value)}
-        placeholder={t("O'qituvchi yoki sinf")} aria-label={t('Qidirish')} />
+        placeholder={t("O'qituvchi, maktab yoki sinf")} aria-label={t('Qidirish')} />
       {list.length ? (
-        <ul className="jpick__list">
+        <ul className="tcards">
           {list.map((p) => (
             <li key={p.id}>
-              <button type="button" className="jpick__b" onClick={() => navigate(`/journal?teacher=${encodeURIComponent(p.id)}`)}>
-                <span className="jteach__av" aria-hidden="true">{(p.name || '?').slice(0, 1).toUpperCase()}</span>
-                <span className="jpick__txt">
-                  <b>{p.name}</b>
-                  <small>{p.classes.map((c) => c.label).join(' · ')}</small>
-                </span>
-                <span className="jpick__go" aria-hidden="true">›</span>
-              </button>
+              <TeacherCard person={{ ...p, schools: p.schools ?? [] }}
+                onOpen={() => navigate(`/journal?teacher=${encodeURIComponent(p.id)}`)} />
             </li>
           ))}
         </ul>
