@@ -305,6 +305,12 @@ export function AppShell() {
           )}
 
           <main className="main" onClick={closeAll}>
+            {user && user.role !== 'student' && user.profile_complete === false && !location.search.includes('edit=1') && (
+              <div className="notice" role="status">
+                <span>{t("Profilingizni to'ldiring: ism, tug'ilgan sana va telefon raqam majburiy.")}</span>
+                <Link className="btn btn--sm btn--primary" to="/settings/profile?edit=1">{t("To'ldirish")}</Link>
+              </div>
+            )}
             <Outlet />
           </main>
         </div>

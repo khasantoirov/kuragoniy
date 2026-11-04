@@ -100,7 +100,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     # (manage.py rename_student_logins) — still accepted at sign-in, so
     # nobody is locked out before their teacher hands them the new one.
     previous_username = models.CharField(max_length=40, null=True, blank=True, db_index=True)
+    # What everyone sees. Built from first_name + last_name once the first
+    # name is set (accounts/profile.py); older accounts keep the full name
+    # they were made with until they — or the developer — fill those in.
     name = models.CharField(max_length=150)
+    first_name = models.CharField(max_length=40, blank=True)  # one word: "Hasan"
+    last_name = models.CharField(max_length=60, blank=True)
     role = models.CharField(max_length=16, choices=Role.choices, default=Role.TEACHER)
 
     # Replaces the old hardcoded dev-email string comparison in
@@ -165,6 +170,18 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email or self.username or self.name
+
+    def save(self, *args, **kwargs):
+        if self.first_name:
+            self.name = f'{self.first_name} {self.last_name}'.strip()
+            if kwargs.get('update_fields') is not None and {'first_name', 'last_name'} & set(kwargs['update_fields']):
+                kwargs['update_fields'] = {*kwargs['update_fields'], 'name'}
+        super().save(*args, **kwargs)
+
+    @property
+    def profile_complete(self):
+        """A staff member's profile has what it must: first name, birth date, phone."""
+        return bool(self.first_name and self.bday and self.phone)
 
     @property
     def login_name(self):

@@ -592,6 +592,25 @@ const ru: Record<string, string> = {
   "O'rtacha bahoning eng yuqori bahoga nisbatan foizi": "Средний балл в процентах от высшей оценки",
   "Barcha maktablar": "Все школы",
   "Maktab": "Школа",
+  // Profil: ism va familiya alohida
+  "Ism": "Имя",
+  "O'quvchi hisoblari o'chirildi": "Аккаунты учеников удалены",
+  "Yangi xodim hisobi yaratildi": "Создан аккаунт сотрудника",
+  "Ma'lumotlar tahrirlandi (dasturchi)": "Данные изменены (разработчик)",
+  "Familiya": "Фамилия",
+  "Ismni kiriting.": "Введите имя.",
+  "Ism bitta so'zdan iborat bo'lsin — familiyani alohida maydonga yozing.": "Имя — одно слово; фамилию впишите в отдельное поле.",
+  "Ismni to'g'ri yozing: faqat harflar.": "Введите имя правильно: только буквы.",
+  "Familiyani to'g'ri yozing: faqat harflar.": "Введите фамилию правильно: только буквы.",
+  "Tug'ilgan sanani kiriting.": "Введите дату рождения.",
+  "Tug'ilgan sanani to'g'ri kiriting.": "Введите правильную дату рождения.",
+  "Telefon raqamni kiriting.": "Введите номер телефона.",
+  "Telefon raqamni to'liq kiriting: +998 90 123 45 67.": "Введите номер полностью: +998 90 123 45 67.",
+  "Profilingizni to'ldiring: ism, tug'ilgan sana va telefon raqam majburiy.": "Заполните профиль: имя, дата рождения и телефон обязательны.",
+  "To'ldirish": "Заполнить",
+  "Ma'lumotlarni tahrirlash": "Редактировать данные",
+  "Ma'lumotlar saqlandi": "Данные сохранены",
+  "parol o'zgarmaydi. Login o'zgarsa, eskisi ham ishlayveradi.": "пароль не меняется. Если сменить логин, старый тоже продолжит работать.",
 }
 
 const en: Record<string, string> = {
@@ -1173,6 +1192,25 @@ const en: Record<string, string> = {
   "O'rtacha bahoning eng yuqori bahoga nisbatan foizi": "The mean mark as a percent of the top mark",
   "Barcha maktablar": "All schools",
   "Maktab": "School",
+  // Profil: ism va familiya alohida
+  "Ism": "First name",
+  "O'quvchi hisoblari o'chirildi": "Pupil accounts deleted",
+  "Yangi xodim hisobi yaratildi": "Staff account created",
+  "Ma'lumotlar tahrirlandi (dasturchi)": "Details edited (developer)",
+  "Familiya": "Surname",
+  "Ismni kiriting.": "Enter the first name.",
+  "Ism bitta so'zdan iborat bo'lsin — familiyani alohida maydonga yozing.": "The first name is one word — put the surname in its own field.",
+  "Ismni to'g'ri yozing: faqat harflar.": "Write the first name correctly: letters only.",
+  "Familiyani to'g'ri yozing: faqat harflar.": "Write the surname correctly: letters only.",
+  "Tug'ilgan sanani kiriting.": "Enter the date of birth.",
+  "Tug'ilgan sanani to'g'ri kiriting.": "Enter a valid date of birth.",
+  "Telefon raqamni kiriting.": "Enter the phone number.",
+  "Telefon raqamni to'liq kiriting: +998 90 123 45 67.": "Enter the full number: +998 90 123 45 67.",
+  "Profilingizni to'ldiring: ism, tug'ilgan sana va telefon raqam majburiy.": "Complete your profile: first name, date of birth and phone are required.",
+  "To'ldirish": "Complete",
+  "Ma'lumotlarni tahrirlash": "Edit details",
+  "Ma'lumotlar saqlandi": "Details saved",
+  "parol o'zgarmaydi. Login o'zgarsa, eskisi ham ishlayveradi.": "the password stays. If the login changes, the old one keeps working too.",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

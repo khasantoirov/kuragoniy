@@ -12,7 +12,15 @@ export interface StudentInfo {
 
 export interface User {
   id: string
+  /** "Ism Familiya", built by the server from first_name + last_name */
   name: string
+  /** one word ("Hasan"); empty on an account from before the split */
+  first_name?: string
+  last_name?: string
+  /** [first, last] guessed from an old one-field name, null once split */
+  name_guess?: [string, string] | null
+  /** first name, birth date and phone are all there */
+  profile_complete?: boolean
   email: string | null
   role: Role
   approved: boolean

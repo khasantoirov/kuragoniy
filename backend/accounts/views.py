@@ -13,6 +13,7 @@ from django.core.mail import send_mail
 from django.core.validators import EmailValidator
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from django.utils.crypto import constant_time_compare, salted_hmac
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -748,7 +749,7 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
         # plain admin promote/demote other admins.
         if self.action in ('list', 'retrieve'):
             return [IsApproved()]
-        if self.action in ('promote', 'demote', 'set_boshliq', 'set_kuzatuvchi'):
+        if self.action in ('promote', 'demote', 'set_boshliq', 'set_kuzatuvchi', 'edit_profile'):
             return [IsDevSuperuser()]
         return [IsAdminOrDevSuperuser()]
 
@@ -770,9 +771,31 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
         password is one-time: it has to be changed at the first sign-in."""
         from learning.student_accounts import unique_username
 
-        name = ' '.join(str(request.data.get('name') or '').split())
-        if not 3 <= len(name) <= 150 or len(name.split()) < 2:
-            raise ValidationError({'name': "Ism va familiyani to'liq yozing."})
+        from .profile import clean_first_name, clean_last_name, clean_phone, full_name, split_full_name
+
+        data = request.data
+        if 'first_name' not in data and data.get('name'):  # an older page sends one "Familiya Ism"
+            first, last = split_full_name(data['name'])
+        else:
+            first, last = data.get('first_name'), data.get('last_name')
+        errors = {}
+        try:
+            first = clean_first_name(first)
+        except ValidationError as exc:
+            errors['first_name'] = exc.detail
+        try:
+            last = clean_last_name(last)
+        except ValidationError as exc:
+            errors['last_name'] = exc.detail
+        phone = str(data.get('phone') or '').strip()
+        if phone:
+            try:
+                phone = clean_phone(phone)
+            except ValidationError as exc:
+                errors['phone'] = exc.detail
+        if errors:
+            raise ValidationError(errors)
+        name = full_name(first, last)
         role = request.data.get('role') or User.Role.TEACHER
         if role not in (User.Role.TEACHER, User.Role.KUZATUVCHI):
             raise ValidationError({'role': "Faqat o'qituvchi yoki kuzatuvchi yaratish mumkin."})
@@ -788,9 +811,9 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
                 raise ValidationError({'email': "Bu email bilan hisob allaqachon bor."})
         password = generate_readable_password()
         user = User.objects.create_user(
-            email=email, password=password, name=name, role=role,
+            email=email, password=password, name=name, first_name=first, last_name=last, role=role,
             username=unique_username(name), approved=True, must_change_password=True,
-            phone=str(request.data.get('phone') or '').strip()[:32],
+            phone=phone,
         )
         log_event('staff_created', actor=request.user, request=request, detail=f'{user.name} ({user.username})')
         notify_admin_action(request.user, f"Yangi xodim hisobini yaratdi: {self._label(user)}")
@@ -799,6 +822,55 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
                channels=('app', 'email'))
         return Response({'id': user.id, 'name': user.name, 'login': user.username, 'email': user.email,
                          'role': user.role, 'password': password}, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], url_path='edit-profile')
+    def edit_profile(self, request, pk=None):
+        """The developer corrects anyone's details: first name, surname,
+        phone, birth date and login (accounts/profile.py rules; phone and
+        birth date may be left empty here — a profile owner can't)."""
+        from .profile import clean_bday, clean_first_name, clean_last_name, clean_phone
+
+        target = self.get_object()
+        data, errors, changed = request.data, {}, []
+
+        def take(field, rule, value):
+            try:
+                setattr(target, field, rule(value))
+                changed.append(field)
+            except ValidationError as exc:
+                errors[field] = exc.detail
+
+        if 'first_name' in data:
+            take('first_name', clean_first_name, data['first_name'])
+        if 'last_name' in data:
+            take('last_name', clean_last_name, data['last_name'])
+        if 'phone' in data:
+            take('phone', lambda v: clean_phone(v) if str(v or '').strip() else '', data['phone'])
+        if 'bday' in data:
+            raw = str(data['bday'] or '').strip()
+            day = parse_date(raw) if raw else None
+            if raw and day is None:
+                errors['bday'] = ["Tug'ilgan sanani to'g'ri kiriting."]
+            else:
+                take('bday', lambda v: clean_bday(v) if v else None, day)
+        login = str(data.get('login') or '').strip().lower() if 'login' in data else None
+        if login is not None and login != (target.username or ''):
+            if not STAFF_LOGIN_RE.fullmatch(login):
+                errors['login'] = ["Login 3–30 ta lotin harfi, raqam, nuqta yoki pastki chiziqdan iborat bo'lsin va harf bilan boshlansin."]
+            elif User.objects.filter(Q(username__iexact=login) | Q(previous_username__iexact=login)).exclude(pk=target.pk).exists():
+                errors['login'] = ["Bu login band."]
+            else:
+                if target.username:
+                    target.previous_username = target.username
+                    changed.append('previous_username')
+                target.username = login
+                changed.append('username')
+        if errors:
+            raise ValidationError(errors)
+        if changed:
+            target.save(update_fields=list({*changed, 'name'}))
+            log_event('profile_edited', actor=request.user, request=request, detail=f'{target.name}: {", ".join(sorted(set(changed)))}')
+        return Response(AdminUserSerializer(target).data)
 
     @action(detail=True, methods=['post'], url_path='set-login')
     def set_login(self, request, pk=None):

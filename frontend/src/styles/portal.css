@@ -31,6 +31,10 @@
 .btn--lg { padding: 13px 26px; font-size: 16px; }
 .badge--soft { background: var(--rule-2); color: var(--ink-2); }
 .form__note--err { color: var(--tone-bad); font-weight: 500; }
+/* A field's own error under it, and the "majburiy" star (features/profile). */
+.field__err { display: block; margin-top: 4px; font-size: 12.5px; color: var(--tone-bad); font-weight: 500; }
+.field__req { color: var(--tone-bad); font-weight: 600; }
+.input[aria-invalid="true"] { border-color: var(--tone-bad); }
 .check { display: flex; align-items: flex-start; gap: 8px; margin: 10px 0; font-size: 13.5px; color: var(--ink-2); cursor: pointer; }
 .check input { margin-top: 3px; accent-color: var(--solid); }
 .fs { border: 0; padding: 0; margin: 0; min-width: 0; }

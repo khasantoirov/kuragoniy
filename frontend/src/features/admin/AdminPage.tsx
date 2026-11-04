@@ -16,10 +16,12 @@ import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import type { Paginated, User } from '@/lib/api/types'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
+import { ONE_WORD } from '@/features/profile/names'
 import { Presence } from '@/features/portal/Presence'
 import { SystemStats } from '@/features/statistics/SystemStats'
 import { useUIStore } from '@/store/uiStore'
 
+import { EditPersonModal } from './EditPersonModal'
 import { ImportLessonsModal } from './ImportLessonsModal'
 import { ImportTranslationsModal } from './ImportTranslationsModal'
 
@@ -164,14 +166,15 @@ function CreateStaffModal({ onClose, onCreated, canObserver }: {
 }) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const [name, setName] = useState('')
+  const [first, setFirst] = useState('')
+  const [last, setLast] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [role, setRole] = useState('teacher')
   const [error, setError] = useState('')
   const create = useMutation({
     mutationFn: async () => (await api.post<{ login: string; password: string }>('/accounts/users/create-staff/',
-      { name, email, phone, role })).data,
+      { first_name: first.trim(), last_name: last.trim(), email, phone, role })).data,
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
       onCreated(res.login, res.password)
@@ -189,15 +192,23 @@ function CreateStaffModal({ onClose, onCreated, canObserver }: {
       onClose={onClose}
       footer={<>
         <button className="btn" onClick={onClose}>{t('Bekor qilish')}</button>
-        <button className="btn btn--primary" disabled={create.isPending || name.trim().split(/\s+/).length < 2}
+        <button className="btn btn--primary" disabled={create.isPending || !first.trim() || /\s/.test(first.trim())}
           onClick={() => { setError(''); create.mutate() }}>{t('Yaratish')}</button>
       </>}
     >
       <p className="prose prose--note">{t("Login ism va familiyadan avtomatik yaratiladi (masalan, hasantoirov). Bir martalik parol beriladi — xodim birinchi kirishda uni o'zgartiradi.")}</p>
-      <label className="field">
-        <span className="field__label">{t('Familiya va ism')}</span>
-        <input className="input" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Toirov Hasan" />
-      </label>
+      <div className="row row--2">
+        <label className="field">
+          <span className="field__label">{t('Ism')} <span className="field__req" aria-hidden="true">*</span></span>
+          <input className="input" autoFocus value={first} onChange={(e) => setFirst(e.target.value)} placeholder="Hasan"
+            aria-invalid={/\s/.test(first.trim())} />
+          {/\s/.test(first.trim()) && <span className="field__err" role="alert">{t(ONE_WORD)}</span>}
+        </label>
+        <label className="field">
+          <span className="field__label">{t('Familiya')} <small className="muted">({t('ixtiyoriy')})</small></span>
+          <input className="input" value={last} onChange={(e) => setLast(e.target.value)} placeholder="Toirov" />
+        </label>
+      </div>
       <div className="row row--2">
         <label className="field">
           <span className="field__label">{t('Email')} <small className="muted">({t('ixtiyoriy')})</small></span>
@@ -364,6 +375,7 @@ export function AdminPage() {
   const queryClient = useQueryClient()
   const [newPassword, setNewPassword] = useState<{ email: string; password: string; title?: string } | null>(null)
   const [editingLogin, setEditingLogin] = useState<User | null>(null)
+  const [editingPerson, setEditingPerson] = useState<User | null>(null)  // the developer's "Tahrirlash"
   // Never oneself, never the developer, and another administrator only by
   // the developer. A login its owner may change too.
   const manageable = (u: User) => u.id !== me?.id && !u.is_dev_superuser
@@ -471,7 +483,10 @@ export function AdminPage() {
                         <Avatar name={u.name} photo={u.photo} className="stf__img" />
                       </div>
                       <div className="stf__id">
-                        <p className="stf__nm">{u.name || '—'}</p>
+                        <p className="stf__nm">{u.name || '—'}{me?.is_dev_superuser && (
+                      <button type="button" className="stf__edit" onClick={() => setEditingPerson(u)}
+                        title={t("Ma'lumotlarni tahrirlash")} aria-label={t("Ma'lumotlarni tahrirlash")}>{IC.edit}</button>
+                    )}</p>
                         <RoleBadge user={u} />
                         <Presence online={u.online} lastSeen={u.last_seen} />
                       </div>
@@ -520,10 +535,13 @@ export function AdminPage() {
                       {isSelf ? (
                         <div className="person__acts">
                           <span className="person__you">{t('siz')}</span>
-                          <button className="btn btn--sm btn--ghost" onClick={() => setEditingLogin(u)}>{t("Loginni o'zgartirish")}</button>
+                          {me?.is_dev_superuser
+                            ? <button className="btn btn--sm btn--ghost" onClick={() => setEditingPerson(u)}>{t('Tahrirlash')}</button>
+                            : <button className="btn btn--sm btn--ghost" onClick={() => setEditingLogin(u)}>{t("Loginni o'zgartirish")}</button>}
                         </div>
                       ) : canManage ? (
                         <div className="person__acts">
+                          {me?.is_dev_superuser && <button className="btn btn--sm btn--ghost" onClick={() => setEditingPerson(u)}>{t('Tahrirlash')}</button>}
                           {me?.is_dev_superuser &&
                             (targetIsAdm ? (
                               <button className="btn btn--sm btn--ghost" onClick={() => onDemote(u)}>
@@ -538,8 +556,12 @@ export function AdminPage() {
                             ))}
                           {locked && <button className="btn btn--sm btn--primary" onClick={() => onUnlock(u)}>{t('Blokni ochish')}</button>}
                           <button className="btn btn--sm btn--ghost" onClick={() => onResetPassword(u)}>{t('Parolni tiklash')}</button>
-                          <button className="btn btn--sm btn--ghost" onClick={() => setEditingLogin(u)}>{t("Loginni o'zgartirish")}</button>
+                          {!me?.is_dev_superuser && <button className="btn btn--sm btn--ghost" onClick={() => setEditingLogin(u)}>{t("Loginni o'zgartirish")}</button>}
                           <button className="btn btn--sm btn--ghost" onClick={() => onBlock(u)}>{t("Kirishni to'xtatish")}</button>
+                        </div>
+                      ) : me?.is_dev_superuser ? (
+                        <div className="person__acts">
+                          <button className="btn btn--sm btn--ghost" onClick={() => setEditingPerson(u)}>{t('Tahrirlash')}</button>
                         </div>
                       ) : null}
                     </li>
@@ -585,6 +607,7 @@ export function AdminPage() {
             <LoginEditModal name={editingLogin.name} login={editingLogin.username ?? ''} url={`/accounts/users/${editingLogin.id}/set-login/`}
               onSaved={() => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })} onClose={() => setEditingLogin(null)} />
           )}
+          {editingPerson && <EditPersonModal person={editingPerson} onClose={() => setEditingPerson(null)} />}
           {newPassword && (
             <NewPasswordModal email={newPassword.email} password={newPassword.password} title={newPassword.title}
               onClose={() => setNewPassword(null)} />

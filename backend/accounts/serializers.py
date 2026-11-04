@@ -6,6 +6,7 @@ from rest_framework import serializers
 from common.presence import presence_of
 
 from .models import User
+from .profile import clean_bday, clean_first_name, clean_last_name, clean_phone, split_full_name
 
 
 class PresenceMixin(serializers.Serializer):
@@ -31,16 +32,28 @@ class PresenceMixin(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     """Public-ish profile shape, shared with other approved users
     (mirrors the old users/{uid} read rule: approved users can see
-    each other's name/photo/bday)."""
+    each other's name/photo/bday).
+
+    `name` is built from first_name + last_name (User.save); an account
+    from before the split has only `name`, and `name_guess` offers its
+    [first, last] for the form to start from."""
+
+    name_guess = serializers.SerializerMethodField()
+    profile_complete = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
         fields = [
-            'id', 'name', 'email', 'role', 'approved', 'photo',
-            'bday', 'phone', 'telegram_linked', 'telegram_username',
+            'id', 'name', 'first_name', 'last_name', 'name_guess', 'profile_complete', 'email', 'role', 'approved',
+            'photo', 'bday', 'phone', 'telegram_linked', 'telegram_username',
             'is_dev_superuser', 'created_at', 'totp_enabled',
         ]
-        read_only_fields = ['id', 'email', 'role', 'approved', 'is_dev_superuser', 'created_at', 'totp_enabled']
+        read_only_fields = ['id', 'name', 'email', 'role', 'approved', 'is_dev_superuser', 'created_at', 'totp_enabled']
+
+    def get_name_guess(self, user):
+        if user.first_name or not user.name:
+            return None
+        return list(split_full_name(user.name))
 
 
 class MeSerializer(UserSerializer):
@@ -78,11 +91,31 @@ class MeSerializer(UserSerializer):
             'teacher_name': jc.teacher.name if jc else '',
         }
 
+    PROFILE_FIELDS = ('first_name', 'last_name', 'bday', 'phone')
+
     def validate(self, attrs):
         # A student's name comes from the class roster — renaming
         # themselves would only confuse their teacher's results screens.
         if self.instance is not None and self.instance.is_student:
-            attrs.pop('name', None)
+            for f in ('first_name', 'last_name'):
+                attrs.pop(f, None)
+            return attrs
+        # Touching one's details means giving all that must be there: the
+        # first name (one word), the birth date and the phone — the surname
+        # may stay empty (accounts/profile.py has the rules).
+        if any(f in self.initial_data for f in self.PROFILE_FIELDS):
+            current = {f: getattr(self.instance, f) for f in self.PROFILE_FIELDS} if self.instance else {}
+            given = {f: attrs.get(f, current.get(f)) for f in self.PROFILE_FIELDS}
+            errors, clean = {}, {}
+            for f, rule in (('first_name', clean_first_name), ('last_name', clean_last_name),
+                            ('bday', clean_bday), ('phone', clean_phone)):
+                try:
+                    clean[f] = rule(given[f])
+                except serializers.ValidationError as exc:
+                    errors[f] = exc.detail
+            if errors:
+                raise serializers.ValidationError(errors)
+            attrs.update(clean)
         return attrs
 
     def update(self, instance, validated_data):

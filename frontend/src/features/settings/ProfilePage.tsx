@@ -105,7 +105,16 @@ export function ProfilePage() {
   const [params, setParams] = useSearchParams()
   const tab = (TABS.some((x) => x.key === params.get('tab')) ? params.get('tab') : 'general') as Tab
   const ov = useOverview()
-  const [editing, setEditing] = useState(false)
+  // ?edit=1 — the "profilingizni to'ldiring" notice opens the form straight away.
+  const [editing, setEditingState] = useState(() => params.get('edit') === '1')
+  const setEditing = (on: boolean) => {
+    setEditingState(on)
+    if (!on && params.has('edit')) {
+      const next = new URLSearchParams(params)
+      next.delete('edit')
+      setParams(next, { replace: true })
+    }
+  }
   if (!user) return null
 
   return (
@@ -171,7 +180,7 @@ export function ProfilePage() {
 
       {editing && (
         <Modal title={t('Profilni tahrirlash')} onClose={() => setEditing(false)}>
-          <ProfileCard />
+          <ProfileCard onSaved={() => setEditing(false)} />
         </Modal>
       )}
     </div>

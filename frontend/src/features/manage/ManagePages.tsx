@@ -216,6 +216,7 @@ const ACTION_LABELS: Record<string, string> = {
   register_teacher: "O'qituvchi ro'yxatdan o'tdi",
   register_student: "O'quvchi ro'yxatdan o'tdi",
   students_created: "O'quvchi hisoblari yaratildi",
+  students_deleted: "O'quvchi hisoblari o'chirildi",
   student_password_reset: "O'quvchi paroli tiklandi",
   student_approved: "O'quvchi tasdiqlandi",
   student_rejected: "O'quvchi rad etildi",
@@ -230,6 +231,8 @@ const ACTION_LABELS: Record<string, string> = {
   academic_year_rollover: "Yangi o'quv yiliga o'tildi",
   student_joined_class: "O'quvchi sinfga qo'shildi",
   telegram_unlinked: 'Telegram uzildi',
+  staff_created: 'Yangi xodim hisobi yaratildi',
+  profile_edited: "Ma'lumotlar tahrirlandi (dasturchi)",
   admin_action: "Ma'muriyat amali",
 }
 
