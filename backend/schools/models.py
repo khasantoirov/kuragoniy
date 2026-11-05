@@ -147,3 +147,26 @@ class SchoolYear(models.Model):
         """A newly added year starts with the partners of `source`."""
         for row in cls.objects.filter(year=source):
             cls.objects.get_or_create(school_id=row.school_id, year=target, defaults={'is_active': row.is_active})
+
+
+class TeacherMove(models.Model):
+    """One move of a teacher from a school (schools/moves.py): to another
+    school and/or handing their classes and timetable there to a successor.
+    `state` holds exactly what changed, so "Bekor qilish" (Ctrl+Z) can put
+    it back as it was."""
+
+    teacher = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='school_moves', on_delete=models.CASCADE)
+    from_school = models.ForeignKey(School, related_name='moves_out', on_delete=models.CASCADE)
+    to_school = models.ForeignKey(School, related_name='moves_in', null=True, blank=True, on_delete=models.SET_NULL)
+    successor = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='school_takeovers', null=True, blank=True,
+                                  on_delete=models.SET_NULL)
+    state = models.JSONField(default=dict)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='+', null=True, blank=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+    undone_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.teacher} {self.from_school} → {self.to_school or "-"}'

@@ -969,3 +969,9 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
    phones it shares the second row with nothing. */
 .ltbar--nocats .ltbar__search { flex: 1 1 auto; max-width: 420px; margin-right: auto; }
 @media (max-width: 760px) { .ltbar--nocats .ltbar__search { flex-basis: 100%; max-width: none; } }
+
+/* Maktab sahifasi: biriktirish qatori va o'qituvchini ko'chirish (features/schools) */
+.assignrow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; margin-top: 12px; }
+@media (max-width: 640px) { .assignrow { grid-template-columns: minmax(0, 1fr); } }
+.mvt__sum { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: var(--rule-2); font-size: 13px; color: var(--ink-2); }
+.mvt__sum.is-warn { background: color-mix(in srgb, var(--tone-mid, #e0a020) 14%, transparent); color: var(--ink); }

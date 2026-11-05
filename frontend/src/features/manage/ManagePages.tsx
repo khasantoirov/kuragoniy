@@ -230,6 +230,8 @@ const ACTION_LABELS: Record<string, string> = {
   student_transferred: "O'quvchi boshqa sinfga o'tkazildi",
   student_transfer_reverted: "O'quvchini ko'chirish bekor qilindi",
   student_view_as: "O'quvchi ko'rinishi ochildi",
+  teacher_moved: "O'qituvchi boshqa maktabga ko'chirildi",
+  teacher_move_reverted: "O'qituvchini ko'chirish bekor qilindi",
   academic_year_added: "O'quv yili qo'shildi",
   academic_year_current: "Joriy o'quv yili o'zgardi",
   academic_year_deleted: "O'quv yili o'chirildi",

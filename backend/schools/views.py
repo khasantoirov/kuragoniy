@@ -126,12 +126,75 @@ class SchoolViewSet(viewsets.ModelViewSet):
         notify_admin_action(request.user, f"O'qituvchini maktabga biriktirdi: {teacher.name} → «{school.name}»")
         return Response({'ok': True})
 
+    @action(detail=True, methods=['get', 'post'], url_path='move-teacher')
+    def move_teacher(self, request, pk=None):
+        """GET ?teacher=: what moving them would take along (their classes
+        here, timetable lessons). POST {teacher, to_school?, successor?,
+        since?}: move them — schools/moves.py. Administrators only."""
+        from django.utils.dateparse import parse_date
+
+        from notifications.models import Kind as NotifyKind
+        from notifications.service import notify
+
+        from .moves import move_teacher, preview
+
+        if not request.user.is_admin:
+            return Response({'detail': "Bu amal faqat administrator uchun."}, status=status.HTTP_403_FORBIDDEN)
+        school = self.get_object()
+        staff = User.objects.exclude(role__in=[User.Role.STUDENT, User.Role.KUZATUVCHI])
+        if request.method == 'GET':
+            teacher = get_object_or_404(staff, pk=request.query_params.get('teacher'))
+            return Response(preview(teacher, school))
+
+        teacher = get_object_or_404(staff, pk=request.data.get('teacher'))
+        to_school = get_object_or_404(School, pk=request.data['to_school']) if request.data.get('to_school') else None
+        successor = (get_object_or_404(staff.filter(is_active=True), pk=request.data['successor'])
+                     if request.data.get('successor') else None)
+        since = parse_date(str(request.data.get('since') or '')) or None
+        record = move_teacher(teacher, school, to_school=to_school, successor=successor, since=since, actor=request.user)
+        s = record.state
+        parts = [f"{teacher.name}: «{school.name}»" + (f" → «{to_school.name}»" if to_school else " dan chiqarildi")]
+        if successor:
+            parts.append(f"o'rniga {successor.name} ({len(s['classes'])} ta sinf, {len(s['slots_moved'])} ta jadval darsi)")
+        detail = '; '.join(parts)
+        log_event('teacher_moved', actor=request.user, request=request, detail=detail)
+        notify_admin_action(request.user, f"O'qituvchini ko'chirdi — {detail}")
+        if to_school:
+            notify(teacher, NotifyKind.JAMOA, f"Siz «{to_school.name}» maktabiga o'tkazildingiz",
+                   f"«{school.name}» dan" + (f"; sinflaringiz {successor.name}ga topshirildi" if s['classes'] else ''),
+                   '/journal', channels=('app', 'telegram'))
+        if successor:
+            notify(successor, NotifyKind.JAMOA, f"Siz «{school.name}» maktabiga biriktirildingiz",
+                   f"{teacher.name} o'rniga" + (f": {len(s['classes'])} ta sinf jurnali sizga o'tdi" if s['classes'] else ''),
+                   '/journal', channels=('app', 'telegram'))
+        return Response({'move': record.id, 'classes': len(s['classes']), 'slots_moved': len(s['slots_moved']),
+                         'slots_kept': len(s['slots_kept'])}, status=status.HTTP_201_CREATED)
+
     @action(detail=True, methods=['post'], url_path='remove-teacher')
     def remove_teacher(self, request, pk=None):
         school = self.get_object()
         deleted, _ = SchoolTeacher.objects.filter(school=school, teacher_id=request.data.get('teacher')).delete()
         if deleted:
             notify_admin_action(request.user, f"O'qituvchini maktabdan chiqardi: «{school.name}»")
+        return Response({'ok': True})
+
+
+class TeacherMoveUndoView(APIView):
+    """POST /schools/teacher-moves/<id>/undo/ — Ctrl+Z after a move."""
+
+    permission_classes = [IsAdminOrDevSuperuser]
+
+    def post(self, request, pk):
+        from .models import TeacherMove
+        from .moves import UndoRefused, undo_move
+
+        record = get_object_or_404(TeacherMove.objects.select_related('teacher', 'from_school'), pk=pk)
+        try:
+            undo_move(record)
+        except UndoRefused as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_409_CONFLICT)
+        log_event('teacher_move_reverted', actor=request.user, request=request,
+                  detail=f"{record.teacher.name}: «{record.from_school.name}» ga qaytarildi")
         return Response({'ok': True})
 
 

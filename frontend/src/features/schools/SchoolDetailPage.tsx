@@ -14,6 +14,7 @@ import type { Paginated, User } from '@/lib/api/types'
 import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
 
 import { CHORAK_OPTIONS, useSchool, useSchoolsMutation, useSchoolStats } from './api'
+import { MoveTeacherModal } from './MoveTeacherModal'
 import { Presence } from '@/features/portal/Presence'
 import { METRIC_CSV_HEAD, METRIC_HELP, MetricCells, MetricHeads, metricCsv, MetricPill, SchoolFormModal } from './shared'
 import { TrendPanels } from './TrendPanels'
@@ -35,6 +36,9 @@ export function SchoolDetailPage() {
   const { data, isLoading } = useSchoolStats(id, chorak, view.period)
   const [editing, setEditing] = useState(false)
   const [addTeacher, setAddTeacher] = useState('')
+  // "o'rniga": the newcomer replaces one of this school's teachers
+  const [replacing, setReplacing] = useState('')
+  const [moving, setMoving] = useState<{ teacher?: string; successor?: string } | null>(null)
   const staff = useQuery({
     queryKey: ['schools', 'staff-options'],
     enabled: admin,
@@ -160,6 +164,10 @@ export function SchoolDetailPage() {
                       {m ? <MetricCells m={m} /> : <><td>—</td><td>—</td><td>—</td><td>—</td></>}
                       {admin && !pastView && (
                         <td className="dtable__acts">
+                          {(tch.assigned || tch.classes > 0) && (
+                            <button className="btn btn--sm btn--ghost" onClick={() => setMoving({ teacher: tch.id })}
+                              title={t("Boshqa maktabga o'tkazish yoki o'rniga boshqasini qo'yish")}>{t("Ko'chirish")}</button>
+                          )}
                           {tch.assigned
                             ? <button className="btn btn--sm btn--ghost" onClick={() => onTeacher('remove-teacher', tch.id, tch.name)}>{t('Chiqarish')}</button>
                             : <button className="btn btn--sm btn--ghost" onClick={() => onTeacher('add-teacher', tch.id)}>{t('Biriktirish')}</button>}
@@ -171,14 +179,26 @@ export function SchoolDetailPage() {
               </tbody>
             </table>
           </div>
-          {admin && (
-            <div className="row row--2" style={{ marginTop: 12 }}>
-              <select className="input" value={addTeacher} onChange={(e) => setAddTeacher(e.target.value)}>
+          {admin && !pastView && (
+            <div className="assignrow">
+              <select className="input" value={addTeacher} onChange={(e) => setAddTeacher(e.target.value)} aria-label={t("O'qituvchi biriktirish")}>
                 <option value="">{t("O'qituvchi biriktirish…")}</option>
                 {staff.data?.filter((u) => !assignedIds.has(u.id)).map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
               </select>
-              <button className="btn" disabled={!addTeacher || teacherAction.isPending} onClick={() => onTeacher('add-teacher', addTeacher)}>{t('Biriktirish')}</button>
+              <select className="input" value={replacing} onChange={(e) => setReplacing(e.target.value)} aria-label={t("Kimning o'rniga")}>
+                <option value="">{t("Qo'shimcha (hech kimning o'rniga emas)")}</option>
+                {(school?.teachers ?? []).map((x) => <option key={x.id} value={x.id}>{t("o'rniga")}: {x.name}</option>)}
+              </select>
+              <button className="btn" disabled={!addTeacher || teacherAction.isPending}
+                onClick={() => (replacing ? setMoving({ teacher: replacing, successor: addTeacher }) : onTeacher('add-teacher', addTeacher))}>
+                {replacing ? t('Almashtirish…') : t('Biriktirish')}
+              </button>
             </div>
+          )}
+          {moving && school && staff.data && (
+            <MoveTeacherModal school={school} teachers={(school.teachers ?? []).map((x) => ({ id: x.id, name: x.name }))}
+              staff={staff.data} initialTeacher={moving.teacher} initialSuccessor={moving.successor}
+              onClose={() => { setMoving(null); setAddTeacher(''); setReplacing('') }} />
           )}
         </section>
       )}
