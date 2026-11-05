@@ -211,12 +211,18 @@ class StudentLessonDetailView(APIView):
              'minutes': e.minutes, 'safety': e.safety}
             for e in lesson.experiments.all()
         ]
+        # Modullar → "O'quv materiallari" off: the theory, formulas and videos
+        # stay stored but aren't handed out (experiments and the test stay).
+        from common.modules import state as modules_state
+
+        shown = modules_state()['materials']
         return Response({
             'id': lesson.id, 'title': lesson.title, 'title_ru': lesson.title_ru, 'title_en': lesson.title_en,
             'grade': lesson.grade, 'chorak': lesson.chorak, 'hafta': lesson.hafta, 'goal': lesson.goal,
-            'sim_id': lesson.sim_id,
-            'theory': material.theory, 'formulas': material.formulas, 'video_url': material.video_url,
-            'extra_videos': material.extra_videos, 'experiments': experiments,
+            'sim_id': getattr(lesson, 'sim_id', ''),  # Ko'ragoniy's lessons have no simulation
+            'theory': material.theory if shown else '', 'formulas': material.formulas if shown else [],
+            'video_url': material.video_url if shown else '',
+            'extra_videos': material.extra_videos if shown else [], 'experiments': experiments,
             'question_count': lesson_bank(lesson.id).count(),
             'progress': {
                 'theory_done': progress.theory_done, 'video_done': progress.video_done,

@@ -4,7 +4,8 @@ from django.contrib import admin
 from django.urls import include, path
 
 from accounts import urls as accounts_urls
-from common.views import ModulesView
+from common.protected_media import ProtectedFileView
+from common.views import ModulesView, ProtectionEventView
 
 urlpatterns = [
     path(settings.DJANGO_ADMIN_URL, admin.site.urls),
@@ -27,6 +28,9 @@ urlpatterns = [
     path('api/notifications/', include('notifications.urls')),
     path('api/schools/', include('schools.urls')),
     path('api/common/modules/', ModulesView.as_view(), name='platform-modules'),
+    path('api/common/protection-event/', ProtectionEventView.as_view(), name='protection-event'),
+    # Lesson files, books, sheets, posters: expiring links (common/protected_media.py).
+    path('api/files/<str:token>/<str:filename>', ProtectedFileView.as_view(), name='protected-file'),
 ]
 
 if settings.DEBUG:

@@ -13,11 +13,16 @@ import './skin-edumin.css'
 import './styles/portal.css'
 import './styles/gate.css'
 import './styles/settings.css'
+import './styles/protection.css'
+import { startDeviceMode } from './lib/deviceMode'
 
 // Service-worker registration/update handling lives in <AutoUpdate>
 // (mounted in App.tsx): a new deploy is switched to automatically, but
 // only at a moment that loses nothing — never mid-typing, mid-test or
 // mid-game.
+
+// Qurilma rejimi (Mobil / Kompyuter) before the first paint.
+startDeviceMode()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -3,12 +3,14 @@ import { useTranslation } from 'react-i18next'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 import { Avatar } from '@/components/Avatar'
+import { ContentGuard } from '@/components/ContentGuard'
 import { isAnyModalOpen } from '@/components/Modal'
 import { RoleBadge } from '@/components/RoleBadge'
 import { ScrollTopButton } from '@/components/ScrollTopButton'
 import { useToast } from '@/components/Toast'
 import { AnnouncementsBell } from '@/features/announcements/AnnouncementsBell'
 import { NotificationsLive } from '@/features/notifications/live'
+import { NotifyPermissionPrompt } from '@/features/notifications/PermissionPrompt'
 import { usePrefsSync } from '@/features/settings/syncPrefs'
 import { GRADES, gradeLabel } from '@/features/lessons/labels'
 import { IC, themeIconMoon, themeIconSun } from '@/icons'
@@ -132,8 +134,9 @@ export function AppShell() {
   // listener rather than per-form wiring.
   useEffect(() => setupEnterKeyNav(), [])
 
-  // (the grade chips belong to the Darslar tab, not its siblings)
-  const onLessons = location.pathname.startsWith('/lessons') && !new URLSearchParams(location.search).get('bolim')
+  // (the grade chips belong to a lesson's page; the Darslar list has them
+  // in its own bar — features/lessons/LessonsPage.tsx)
+  const onLessons = location.pathname.startsWith('/lessons/') && !new URLSearchParams(location.search).get('bolim')
 
   // --grades-h: the Darslar toolbar sticks right below these sticky grade
   // chips, whatever height they wrap to.
@@ -318,6 +321,8 @@ export function AppShell() {
 
       <ScrollTopButton />
       <NotificationsLive />
+      <NotifyPermissionPrompt />
+      <ContentGuard />
 
       <BottomNav items={visibleNavItems} />
     </>

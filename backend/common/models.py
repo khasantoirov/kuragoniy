@@ -37,11 +37,23 @@ class PlatformSettings(models.Model):
 
     GRADE_PALETTES = ('aralash', 'tonal', 'klassik', 'chiziq')
 
+    # Kontent himoyasi (the developer's switches; frontend lib/protection.ts):
+    # a watermark with the viewer's name, no selecting/copying, no browser
+    # printing, the screenshot guard — for everyone but the developer, or
+    # for pupils only. A missing key takes PROTECTION_DEFAULTS.
+    PROTECTION_DEFAULTS = {'watermark': True, 'no_copy': True, 'no_print': True, 'screenshot': True, 'scope': 'all'}
+    PROTECTION_SCOPES = ('all', 'students')
+
     modules = models.JSONField(default=dict, blank=True)
     grade_palette = models.CharField(max_length=20, default='aralash')
+    protection = models.JSONField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     @classmethod
     def get(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+    def protection_state(self) -> dict:
+        stored = self.protection or {}
+        return {k: stored.get(k, v) for k, v in self.PROTECTION_DEFAULTS.items()}

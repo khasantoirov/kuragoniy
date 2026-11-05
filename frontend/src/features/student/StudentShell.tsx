@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { Outlet, useLocation } from 'react-router-dom'
 
 import { Avatar } from '@/components/Avatar'
+import { ContentGuard } from '@/components/ContentGuard'
+import { NotifyPermissionPrompt } from '@/features/notifications/PermissionPrompt'
 import { ScrollTopButton } from '@/components/ScrollTopButton'
 import { RENAMED_LOGIN_KEY } from '@/features/auth/LoginPage'
 import { PortalSidebar, type PortalNavItem } from '@/features/portal/PortalSidebar'
@@ -134,6 +136,8 @@ export function StudentShell() {
       </div>
 
       <ScrollTopButton />
+      <ContentGuard />
+      {!viewing && <NotifyPermissionPrompt />}
 
       <nav className="bottomnav" aria-label={t('Asosiy navigatsiya')}>
         <NavRail items={rail} activeTo={active?.to ?? ''} />

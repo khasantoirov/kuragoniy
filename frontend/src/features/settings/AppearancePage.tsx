@@ -6,6 +6,7 @@ import { IC } from '@/icons'
 import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
 import { useVisibleNavItems } from '@/layouts/navItems'
 import { NavRail, type RailItem } from '@/layouts/NavRail'
+import { setDeviceMode, useDeviceMode, type DeviceMode } from '@/lib/deviceMode'
 import { MAX_NAV_ITEMS, useUIStore, type Lang, type ThemeMode } from '@/store/uiStore'
 
 import { GradePalettePanel } from './GradePalettePanel'
@@ -32,11 +33,18 @@ function Choice({ on, onClick, title, sub }: { on: boolean; onClick: () => void;
   )
 }
 
+const DEVICE_MODES: { k: DeviceMode; label: string; sub: string }[] = [
+  { k: 'auto', label: 'Avtomatik', sub: "Ekran o'lchamiga qarab o'zi tanlaydi" },
+  { k: 'mobile', label: 'Mobil', sub: "Telefon ko'rinishi: pastki menyu, ixcham kartalar" },
+  { k: 'desktop', label: 'Kompyuter', sub: "To'liq ko'rinish — telefonda ham keng jadval va yon menyu" },
+]
+
 export function AppearancePage() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const s = useUIStore()
   const [pickingPupil, setPickingPupil] = useState(false)
+  const device = useDeviceMode()
   const navItems = useVisibleNavItems().filter((it) => it.to !== '/settings')
   const byPath = new Map(navItems.map((it) => [it.to, it]))
   const chosen = s.navItems.filter((p) => byPath.has(p))
@@ -72,6 +80,16 @@ export function AppearancePage() {
             <button key={l.k} type="button" className={`chip settings__opt ${l.k === s.lang ? 'is-on' : ''}`} onClick={() => s.setLang(l.k)}>
               {t(l.label)}
             </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="panel">
+        <h3 className="panel__title">{t('Qurilma rejimi')}</h3>
+        <p className="prose prose--note">{t("Sayt shu qurilmada qaysi ko'rinishda ochilsin — faqat shu qurilmaga saqlanadi")}</p>
+        <div className="choices">
+          {DEVICE_MODES.map((x) => (
+            <Choice key={x.k} on={device === x.k} onClick={() => setDeviceMode(x.k)} title={t(x.label)} sub={t(x.sub)} />
           ))}
         </div>
       </section>

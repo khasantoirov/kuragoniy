@@ -25,11 +25,13 @@ STUDENT_ALLOWED_PREFIXES = (
     '/api/accounts/me/',
     '/api/student/',
     '/api/common/modules/',  # which sections the portal shows
+    '/api/common/protection-event/',  # the screenshot guard's report
     '/api/games/play/',
     '/api/games/mini/',
     '/api/push/',
 )
-SELF_SERVICE_PREFIXES = ('/api/auth/', '/api/accounts/me/', '/api/push/', '/api/notifications/')
+SELF_SERVICE_PREFIXES = ('/api/auth/', '/api/accounts/me/', '/api/push/', '/api/notifications/',
+                         '/api/common/protection-event/')
 PASSWORD_CHANGE_PREFIXES = ('/api/auth/', '/api/accounts/me/')
 
 

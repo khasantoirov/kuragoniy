@@ -8,7 +8,8 @@ from django.apps import apps
 
 from .models import PlatformSettings
 
-MODULES = ('lab', 'library', 'timetable', 'assignments', 'games', 'reports', 'readiness', 'shop', 'equipment', 'poster')
+MODULES = ('lab', 'library', 'timetable', 'assignments', 'games', 'reports', 'readiness', 'shop', 'equipment', 'poster',
+           'materials')
 
 
 def state() -> dict:
@@ -38,4 +39,5 @@ def usage() -> dict:
         'shop': _count('shop.Product') + _count('shop.Order'),
         'equipment': _count('lessons.LabEquipment') + _count('lessons.EquipmentSheet'),
         'poster': _count('lessons.LessonPoster'),
+        'materials': _count('learning.LessonMaterial'),
     }

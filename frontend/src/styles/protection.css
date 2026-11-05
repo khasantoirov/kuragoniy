@@ -1,0 +1,34 @@
+/* Kontent himoyasi (components/ContentGuard.tsx). The switches arrive as
+   <html data-guard-copy | data-guard-print | data-guard-shot>. */
+
+/* No selecting outside form fields; no long-press menu on pictures/links. */
+html[data-guard-copy] body { -webkit-user-select: none; user-select: none; }
+html[data-guard-copy] :is(input, textarea, select, [contenteditable=""], [contenteditable="true"], .allow-copy) {
+  -webkit-user-select: text; user-select: text;
+}
+html[data-guard-copy] :is(img, a) { -webkit-touch-callout: none; -webkit-user-drag: none; }
+
+/* The browser's own print gives a blank page; the platform's buttons
+   (lib/protection.ts printPage) set data-printing and print as before. */
+@media print {
+  html[data-guard-print]:not([data-printing]) body > * { display: none !important; }
+  html[data-guard-print]:not([data-printing]) body::before {
+    content: "Chop etish cheklangan — Amaliy Fizika"; display: block; padding: 40px; font: 600 18px system-ui, sans-serif;
+  }
+}
+
+/* The viewer's name across the screen, too faint to get in the way. */
+.wmark {
+  position: fixed; inset: 0; z-index: 2147483000; pointer-events: none;
+  background-image: var(--wm-light); background-repeat: repeat;
+}
+[data-theme="dark"] .wmark { background-image: var(--wm-dark); }
+@media print { .wmark { position: fixed; } }
+
+/* PrintScreen pressed (flash) or the page left (away): content covered. */
+.gshield {
+  position: fixed; inset: 0; z-index: 2147483001; display: grid; place-items: center;
+  background: var(--paper, #fff); color: var(--ink-2, #555); font: 600 15px system-ui, sans-serif;
+}
+.gshield--away { background: color-mix(in srgb, var(--paper, #fff) 70%, transparent); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+.gshield span { padding: 10px 16px; border-radius: 10px; background: var(--surface, #fff); box-shadow: 0 6px 24px -10px rgba(0, 0, 0, .35); }

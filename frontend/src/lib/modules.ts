@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth/AuthContext'
    home; its data stays. */
 
 export type ModuleKey = 'lab' | 'library' | 'timetable' | 'assignments' | 'games' | 'reports' | 'readiness' | 'shop' | 'equipment' | 'poster'
+  | 'materials'
 
 /** This platform's optional sections, in the order Modullar lists them. */
 export const MODULES: { key: ModuleKey; label: string; sub: string }[] = [
@@ -21,6 +22,7 @@ export const MODULES: { key: ModuleKey; label: string; sub: string }[] = [
   { key: 'readiness', label: "Darsga tayyorgarlik", sub: "O'qituvchining darsdan oldingi o'z-o'zini tekshirishi" },
   { key: 'shop', label: "Do'kon", sub: "Dars ishlanmalari va tajriba to'plamlari savdosi" },
   { key: 'equipment', label: "Jihozlar jadvali", sub: "Darslar uchun rasmli jihozlar ro'yxati" },
+  { key: 'materials', label: "O'quv materiallari", sub: "Darslar bo'limida: o'quvchilar ko'radigan nazariya, formulalar va videolar" },
 ]
 
 export interface ModulesState {
@@ -29,6 +31,17 @@ export interface ModulesState {
   usage?: Record<ModuleKey, number | null>
   /** How marks are coloured, for everyone — the developer's pick. */
   grade_palette?: GradePalette
+  /** Kontent himoyasi — the developer's switches (lib/protection.ts). */
+  protection?: Protection
+}
+
+export interface Protection {
+  watermark: boolean
+  no_copy: boolean
+  no_print: boolean
+  screenshot: boolean
+  /** 'all': everyone but the developer; 'students': pupils only */
+  scope: 'all' | 'students'
 }
 
 /** The four ways marks can be coloured (styles/settings.css, <html data-grades>). */

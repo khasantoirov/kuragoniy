@@ -14,6 +14,7 @@ import { RecentAttempts } from '@/features/teacher/RecentAttempts'
 import { ReportCard } from '@/features/teacher/ReportsPage'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
+import { printPage } from '@/lib/protection'
 import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
 
 import { AWARD_KINDS, AwardModal } from './AwardModal'
@@ -115,7 +116,7 @@ function Certificate({ award, onClose }: { award: Award; onClose: () => void }) 
   const { t } = useTranslation()
   return (
     <Modal title={t('Sertifikat')} onClose={onClose}
-      footer={<><button className="btn" onClick={onClose}>{t('Yopish')}</button><button className="btn btn--primary" onClick={() => window.print()}>{IC.print} {t('Chop etish / PDF')}</button></>}>
+      footer={<><button className="btn" onClick={onClose}>{t('Yopish')}</button><button className="btn btn--primary" onClick={printPage}>{IC.print} {t('Chop etish / PDF')}</button></>}>
       <div className="cert printable">
         <img className="cert__logo" src="/logo.png" alt="" />
         <p className="cert__org">KO'RAGONIY EDU</p>
@@ -201,6 +202,10 @@ export function AwardsPage() {
 
 const ACTION_LABELS: Record<string, string> = {
   modules_changed: "Modullar o'zgartirildi",
+  protection_changed: "Kontent himoyasi o'zgartirildi",
+  screenshot_attempt: 'Skrinshot urinishi',
+  print_attempt: 'Chop etish urinishi',
+  copy_attempt: 'Nusxa olish urinishi',
   grade_palette_changed: "Baho ranglari o'zgardi",
   login_ok: 'Kirish',
   login_failed: "Noto'g'ri parol",

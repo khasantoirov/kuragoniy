@@ -35,6 +35,25 @@ function audio(): AudioContext | null {
   }
 }
 
+/** Browsers keep a page silent until the user has clicked or typed on it;
+ *  the first such gesture wakes the audio so later notifications are heard. */
+export function unlockAudio(): void {
+  audio()
+}
+
+let armed = false
+export function armAudioUnlock(): void {
+  if (armed) return
+  armed = true
+  const wake = () => {
+    unlockAudio()
+    window.removeEventListener('pointerdown', wake, true)
+    window.removeEventListener('keydown', wake, true)
+  }
+  window.addEventListener('pointerdown', wake, true)
+  window.addEventListener('keydown', wake, true)
+}
+
 export function playSound(key: SoundKey, volume = getDeviceSettings().volume): void {
   if (key === 'none' || volume <= 0) return
   if (key === 'custom') {

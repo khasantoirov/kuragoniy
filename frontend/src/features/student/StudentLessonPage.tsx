@@ -10,6 +10,7 @@ import { AttemptReview, QuizRunner, type AttemptPayload, type AttemptResult } fr
 import { errText } from '@/features/portal/ui'
 import { VideoEmbed } from '@/features/portal/VideoEmbed'
 import { api } from '@/lib/api/client'
+import { useModules } from '@/lib/modules'
 import { useUIStore } from '@/store/uiStore'
 
 import { useStudentLesson } from './api'
@@ -38,6 +39,8 @@ export function StudentLessonPage() {
   const [attempt, setAttempt] = useState<AttemptPayload | null>(null)
   const [result, setResult] = useState<AttemptResult | null>(null)
   const [starting, setStarting] = useState(false)
+  // Modullar → "O'quv materiallari" off: the server sends no theory/videos.
+  const materials = useModules().on('materials')
 
   if (isLoading) return <Skeleton lines={8} />
   if (error || !lesson) return <p className="prose">{t('Dars topilmadi.')}</p>
@@ -79,9 +82,11 @@ export function StudentLessonPage() {
         <h2 className="slesson__title">{trTitle(lesson, lang)}</h2>
         {lesson.goal && <p className="slesson__goal">{lesson.goal}</p>}
         <ol className="steps">
-          <li className={p.theory_done ? 'is-done' : ''}>{t('Nazariya')}</li>
-          <li className={lesson.formulas.length ? (p.theory_done ? 'is-done' : '') : 'is-skip'}>{t('Formulalar')}</li>
-          <li className={p.video_done ? 'is-done' : ''}>{t('Video')}</li>
+          {materials && <>
+            <li className={p.theory_done ? 'is-done' : ''}>{t('Nazariya')}</li>
+            <li className={lesson.formulas.length ? (p.theory_done ? 'is-done' : '') : 'is-skip'}>{t('Formulalar')}</li>
+            <li className={p.video_done ? 'is-done' : ''}>{t('Video')}</li>
+          </>}
           <li className={p.best_percent != null ? 'is-done' : ''}>{t('Test va masala')}</li>
         </ol>
       </header>

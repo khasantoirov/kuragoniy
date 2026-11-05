@@ -5,6 +5,7 @@ import { MovedTo, PageTabs } from '@/components/PageTabs'
 import { Skeleton } from '@/components/Skeleton'
 import { AdminDataPanel, AdminPage } from '@/features/admin/AdminPage'
 import { ModulesPanel } from '@/features/admin/ModulesPanel'
+import { ProtectionPanel } from '@/features/admin/ProtectionPanel'
 import { YearPicker } from '@/features/schools/YearPicker'
 import { JournalPage } from '@/features/journal/JournalPage'
 import { LessonsPage } from '@/features/lessons/LessonsPage'
@@ -91,6 +92,7 @@ export function AdminTabs() {
       { key: 'malumot', label: "Ma'lumot", element: <AdminDataPanel /> },
       { key: 'security', label: 'Xavfsizlik jurnali', element: <SecurityLogPage /> },
       { key: 'modules', label: 'Modullar', element: <ModulesPanel /> },
+      { key: 'himoya', label: 'Himoya', element: <ProtectionPanel /> },
       { key: 'yillar', label: "O'quv yillari", element: <AcademicYearsPanel /> },
     ]} />
   )
@@ -106,7 +108,7 @@ export function LessonsTabs() {
     <PageTabs tabs={[
       { key: 'darslar', label: 'Darslar', element: <LessonsPage /> },
       { key: 'tayyorgarlik', label: 'Darsga tayyorgarlik', element: <ReadinessPage />, show: isTeacherLike(user) && on('readiness') },
-      { key: 'materiallar', label: "O'quv materiallari", element: <MaterialsPage />, show: oversees(user, viewMode) },
+      { key: 'materiallar', label: "O'quv materiallari", element: <MaterialsPage />, show: oversees(user, viewMode) && on('materials') },
     ]} />
   )
 }

@@ -13,6 +13,10 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Exactly one trusted proxy (nginx) in front of daphne — see base.py.
 REST_FRAMEWORK['NUM_PROXIES'] = 1  # noqa: F405
 
+# nginx sends protected uploads from its internal /protected-media/
+# location (common/protected_media.py); its /media/<those folders>/ answer 404.
+PROTECTED_MEDIA_ACCEL = env.bool('PROTECTED_MEDIA_ACCEL', default=True)  # noqa: F405
+
 MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',

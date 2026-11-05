@@ -168,13 +168,12 @@ function CreateStaffModal({ onClose, onCreated, canObserver }: {
   const queryClient = useQueryClient()
   const [first, setFirst] = useState('')
   const [last, setLast] = useState('')
-  const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [role, setRole] = useState('teacher')
   const [error, setError] = useState('')
   const create = useMutation({
     mutationFn: async () => (await api.post<{ login: string; password: string }>('/accounts/users/create-staff/',
-      { first_name: first.trim(), last_name: last.trim(), email, phone, role })).data,
+      { first_name: first.trim(), last_name: last.trim(), phone, role })).data,
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
       onCreated(res.login, res.password)
@@ -209,16 +208,10 @@ function CreateStaffModal({ onClose, onCreated, canObserver }: {
           <input className="input" value={last} onChange={(e) => setLast(e.target.value)} placeholder="Toirov" />
         </label>
       </div>
-      <div className="row row--2">
-        <label className="field">
-          <span className="field__label">{t('Email')} <small className="muted">({t('ixtiyoriy')})</small></span>
-          <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        </label>
-        <label className="field">
-          <span className="field__label">{t('Telefon')} <small className="muted">({t('ixtiyoriy')})</small></span>
-          <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} />
-        </label>
-      </div>
+      <label className="field">
+        <span className="field__label">{t('Telefon')} <small className="muted">({t('ixtiyoriy')})</small></span>
+        <input className="input" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+998 90 123 45 67" />
+      </label>
       {canObserver && (
         <label className="field">
           <span className="field__label">{t('Rol')}</span>
@@ -380,7 +373,6 @@ export function AdminPage() {
   // the developer. A login its owner may change too.
   const manageable = (u: User) => u.id !== me?.id && !u.is_dev_superuser
     && (!!me?.is_dev_superuser || !(u.role === 'admin' || u.role === 'boshliq' || u.role === 'kuzatuvchi'))
-  const loginEditable = (u: User) => u.id === me?.id || manageable(u)
   const [creatingStaff, setCreatingStaff] = useState(false)
 
   const { data, isLoading } = useQuery({
@@ -455,7 +447,7 @@ export function AdminPage() {
                   <li key={u.id} className="person">
                     <div>
                       <p className="person__name">{u.name || '—'}</p>
-                      <p className="person__mail">{u.email || ''}</p>
+                      <p className="person__mail">{u.username || ''}</p>
                     </div>
                     <div className="person__acts">
                       <button className="btn btn--sm btn--primary" onClick={() => onApprove(u.id)}>{t('Tasdiqlash')}</button>
@@ -494,11 +486,7 @@ export function AdminPage() {
                     <div className="stf__b">
                       <p className="stf__row"><span>{t("Tug'ilgan sana")}</span><b>{fmtBday(u.bday)}</b></p>
                       <p className="stf__row"><span>{t('Telefon')}</span><b>{u.phone || '—'}</b></p>
-                      <p className="stf__row"><span>{t('Login')}</span><b>{u.username || '—'}{loginEditable(u) && (
-                    <button type="button" className="stf__edit" onClick={() => setEditingLogin(u)}
-                      title={t("Loginni o'zgartirish")} aria-label={t("Loginni o'zgartirish")}>{IC.edit}</button>
-                  )}</b></p>
-                      <p className="stf__row"><span>{t('Email')}</span><b>{u.email || '—'}</b></p>
+                      <p className="stf__row"><span>{t('Login')}</span><b>{u.username || '—'}</b></p>
                       <p className="stf__row">
                         <span>Telegram</span>
                         <b>
@@ -530,7 +518,7 @@ export function AdminPage() {
                     <li key={u.id} className="person">
                       <div>
                         <p className="person__name">{u.name || '—'} <RoleBadge user={u} /></p>
-                        <p className="person__mail">{[u.username, u.email].filter(Boolean).join(' · ')} · <Presence online={u.online} lastSeen={u.last_seen} /></p>
+                        <p className="person__mail">{u.username ? `${u.username} · ` : ''}<Presence online={u.online} lastSeen={u.last_seen} /></p>
                       </div>
                       {isSelf ? (
                         <div className="person__acts">

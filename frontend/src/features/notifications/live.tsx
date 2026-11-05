@@ -16,7 +16,7 @@ import { useAnnouncementsSocket } from '@/lib/ws/useAnnouncementsSocket'
 import type { AppNotification, NotifySummary } from './api'
 import { getDeviceSettings, soundFor } from './device'
 import { showPopup, useNotifyLive } from './liveStore'
-import { playSound } from './sounds'
+import { armAudioUnlock, playSound } from './sounds'
 
 export function NotificationsLive() {
   const { t } = useTranslation()
@@ -27,6 +27,7 @@ export function NotificationsLive() {
   const setUnread = useNotifyLive((s) => s.setUnread)
 
   useAnnouncementsSocket(true)
+  useEffect(armAudioUnlock, [])
 
   const { data } = useQuery({
     queryKey: ['notifications', 'summary'],

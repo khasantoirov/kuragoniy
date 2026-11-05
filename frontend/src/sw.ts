@@ -71,8 +71,13 @@ self.addEventListener('push', (event) => {
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',
       tag: data.tag,
+      // Heard and felt: the system's notification sound, a short buzz on
+      // phones, and a repeated tag still alerts instead of replacing quietly.
+      silent: false,
+      renotify: !!data.tag,
+      vibrate: [120, 60, 120],
       data: { url: data.url || '/' },
-    }),
+    } as NotificationOptions),
   )
 })
 

@@ -2,10 +2,13 @@ import os
 
 from rest_framework import serializers
 
+from common.protected_media import ProtectedFilesMixin
+
 from .models import LibraryItem
 
 
-class LibraryItemSerializer(serializers.ModelSerializer):
+class LibraryItemSerializer(ProtectedFilesMixin, serializers.ModelSerializer):
+    protected_files = ('file',)
     file_name = serializers.SerializerMethodField()
     file_size = serializers.SerializerMethodField()
 

@@ -187,6 +187,7 @@ REST_FRAMEWORK = {
         'password_reset': '30/hour',
         'password_reset_confirm': '60/hour',
         'game_answer': '120/min',
+        'protection_event': '20/hour',
     },
     # None = trust X-Forwarded-For as-is (dev, no proxy). prod.py sets 1:
     # nginx appends the real peer address last, and anything before it is

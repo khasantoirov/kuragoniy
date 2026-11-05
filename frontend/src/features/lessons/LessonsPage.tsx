@@ -32,7 +32,7 @@ import { type Lang, useUIStore } from '@/store/uiStore'
 import { useLessons, useQuarterLocks, useReorderLesson } from './api'
 import { ExperimentRow } from './ExperimentRow'
 import { LessonEditor } from './LessonEditor'
-import { gradeLabel, lessonLabel, quarterLabel } from './labels'
+import { GRADES, gradeLabel, lessonLabel, quarterLabel } from './labels'
 import type { Lesson } from './types'
 
 type ViewMode = 'grid' | 'list'
@@ -45,7 +45,7 @@ export function LessonsPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const { user } = useAuth()
-  const { grade, lang, viewMode: appViewMode } = useUIStore()
+  const { grade, setGrade, lang, viewMode: appViewMode } = useUIStore()
   const admin = isAdminInView(user, appViewMode)
   const { data, isLoading } = useLessons({ grade })
   const { data: locks, isLoading: locksLoading } = useQuarterLocks()
@@ -54,7 +54,6 @@ export function LessonsPage() {
 
   const [query, setQuery] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
-  const [viewMenuOpen, setViewMenuOpen] = useState(false)
   const [creatingForQuarter, setCreatingForQuarter] = useState<number | null>(null)
 
   const filtered = useMemo(() => {
@@ -108,11 +107,24 @@ export function LessonsPage() {
     )
   }
 
-  if (isLoading || locksLoading) return <Skeleton lines={4} />
+  // Sinf — a segmented control at the head of the one sticky bar.
+  const grades = (
+    <div className="seg ltbar__grades" role="group" aria-label={t('Sinf')}>
+      {GRADES.map((g) => (
+        <button key={g} type="button" className={`seg__b ${g === grade ? 'is-on' : ''}`} aria-pressed={g === grade}
+          onClick={() => setGrade(g)}>
+          {gradeLabel(g, lang)}
+        </button>
+      ))}
+    </div>
+  )
+
+  if (isLoading || locksLoading) return <><div className="ltbar">{grades}</div><Skeleton lines={4} /></>
 
   if (!data?.length) {
     return (
       <>
+        <div className="ltbar">{grades}</div>
         <EmptyState
           title={`${gradeLabel(grade, lang)} — ${t("hali dars yo'q")}`}
           hint={admin ? t("Birinchi darsni qo'shing.") : t("Administrator darslarni qo'shgach shu yerda ko'rinadi.")}
@@ -127,8 +139,9 @@ export function LessonsPage() {
 
   return (
     <div>
-      <div className={`toolbar toolbar--lessons ${scrolled ? 'is-stuck' : ''}`}>
-        <div className="search">
+      <div className={`ltbar ltbar--nocats ${scrolled ? 'is-stuck' : ''}`}>
+        {grades}
+        <div className="search ltbar__search">
           <span className="search__ic" aria-hidden="true">{IC.search}</span>
           <input
             className="search__input"
@@ -143,30 +156,11 @@ export function LessonsPage() {
             </button>
           )}
         </div>
-        <div className="chips chips--cat">
-          <div className="viewpick">
-            <button className="btn btn--sm viewpick__btn" onClick={() => setViewMenuOpen((v) => !v)} aria-label={t("Ko'rinish")}>
-              {viewMode === 'list' ? IC.list : IC.grid}
-              <span>{t("Ko'rinish")}</span>
-              <span className="viewpick__cx" aria-hidden="true">▾</span>
-            </button>
-            {viewMenuOpen && (
-              <div className="acct__pop viewpick__pop">
-                <button
-                  className={`acct__item ${viewMode === 'grid' ? 'is-on' : ''}`}
-                  onClick={() => { setViewMode('grid'); setViewMenuOpen(false) }}
-                >
-                  {IC.grid} {t('Katak')}
-                </button>
-                <button
-                  className={`acct__item ${viewMode === 'list' ? 'is-on' : ''}`}
-                  onClick={() => { setViewMode('list'); setViewMenuOpen(false) }}
-                >
-                  {IC.list} {t("Ro'yxat")}
-                </button>
-              </div>
-            )}
-          </div>
+        <div className="seg ltbar__view" role="group" aria-label={t("Ko'rinish")}>
+          <button type="button" className={`seg__b ${viewMode === 'grid' ? 'is-on' : ''}`} aria-pressed={viewMode === 'grid'}
+            onClick={() => setViewMode('grid')} title={t('Katak')} aria-label={t('Katak')}>{IC.grid}</button>
+          <button type="button" className={`seg__b ${viewMode === 'list' ? 'is-on' : ''}`} aria-pressed={viewMode === 'list'}
+            onClick={() => setViewMode('list')} title={t("Ro'yxat")} aria-label={t("Ro'yxat")}>{IC.list}</button>
         </div>
       </div>
 

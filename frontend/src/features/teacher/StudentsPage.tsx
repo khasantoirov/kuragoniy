@@ -20,6 +20,7 @@ import { Presence } from '@/features/portal/Presence'
 import { errText, PageHead, StatusPill } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
+import { printPage } from '@/lib/protection'
 import { record } from '@/lib/history'
 
 /** Printable login sheet — one slip per student to cut out and hand over. */
@@ -35,7 +36,7 @@ function CredentialsModal({ creds, className, onClose }: { creds: Credential[]; 
           <button className="btn" onClick={() => downloadCsv(`loginlar-${className}`, [t('Ism'), t('Login'), t('Parol')], creds.map((c) => [c.name, c.username, c.password]))}>
             {IC.download} CSV
           </button>
-          <button className="btn" onClick={() => window.print()}>{IC.print} {t('Chop etish')}</button>
+          <button className="btn" onClick={printPage}>{IC.print} {t('Chop etish')}</button>
           <button className="btn btn--primary" onClick={onClose}>{t('Yopish')}</button>
         </>
       }

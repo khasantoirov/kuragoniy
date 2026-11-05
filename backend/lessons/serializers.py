@@ -3,6 +3,7 @@ import os
 from django.db import transaction
 from rest_framework import serializers
 
+from common.protected_media import ProtectedFilesMixin
 from common.uploads import delete_file_field
 
 from .models import EquipmentItem, EquipmentSheet, Experiment, Lesson, QuarterLock
@@ -60,14 +61,17 @@ class QuarterLockSerializer(serializers.ModelSerializer):
         fields = ['chorak', 'is_open']
 
 
-class EquipmentSheetSerializer(serializers.ModelSerializer):
+class EquipmentSheetSerializer(ProtectedFilesMixin, serializers.ModelSerializer):
+    protected_files = ('image',)
+
     class Meta:
         model = EquipmentSheet
         fields = ['id', 'grade', 'hafta', 'title', 'image', 'created_at']
         read_only_fields = ['id', 'created_at']
 
 
-class LessonSerializer(serializers.ModelSerializer):
+class LessonSerializer(ProtectedFilesMixin, serializers.ModelSerializer):
+    protected_files = ('file',)
     experiments = ExperimentSerializer(many=True, required=False)
     file_name = serializers.SerializerMethodField()
     file_size = serializers.SerializerMethodField()
