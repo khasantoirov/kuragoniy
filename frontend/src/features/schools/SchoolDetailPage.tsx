@@ -11,9 +11,10 @@ import { errText, fmtDate, PageHead, Segmented, StatTile, StatusPill } from '@/f
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import type { Paginated, User } from '@/lib/api/types'
-import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
+import { isAdmin, isOversight, isSchoolAdmin, useAuth } from '@/lib/auth/AuthContext'
 
-import { CHORAK_OPTIONS, useSchool, useSchoolsMutation, useSchoolStats } from './api'
+import { CHORAK_OPTIONS, useSchool, useSchoolsMutation, useSchoolStats, type TeacherKind } from './api'
+import { KindComparison, LicencePanel, ManagersPanel } from './SchoolLicencePanels'
 import { MoveTeacherModal } from './MoveTeacherModal'
 import { Presence } from '@/features/portal/Presence'
 import { METRIC_CSV_HEAD, METRIC_HELP, MetricCells, MetricHeads, metricCsv, MetricPill, SchoolFormModal } from './shared'
@@ -44,12 +45,16 @@ export function SchoolDetailPage() {
     enabled: admin,
     queryFn: async () => (await api.get<Paginated<User>>('/accounts/users/')).data.results.filter((u) => u.role !== 'kuzatuvchi'),
   })
+  // who can teach here — the school's ma'muriyat accounts aren't teachers
+  const staffList = staff.data?.filter((u) => u.role !== 'maktab')
+  const kindAction = useSchoolsMutation(async ({ teacher, kind }: { teacher: string; kind: TeacherKind }) =>
+    api.post(`/schools/${id}/teacher-kind/`, { teacher, kind }))
   const classTeacher = useSchoolsMutation(async ({ classId, teacher }: { classId: number; teacher: string }) =>
     api.post(`/schools/classes/${classId}/teacher/`, { teacher }))
 
   // Hand a class (roster, marks, student accounts) to another teacher.
   const onClassTeacher = async (classId: number, className: string, teacher: string) => {
-    const name = staff.data?.find((u) => u.id === teacher)?.name ?? ''
+    const name = staffList?.find((u) => u.id === teacher)?.name ?? ''
     if (!(await confirm({ title: t("Sinfni boshqa o'qituvchiga o'tkazish"), text: `${className} → ${name}` }))) return
     try {
       await classTeacher.mutateAsync({ classId, teacher })
@@ -95,7 +100,7 @@ export function SchoolDetailPage() {
 
   return (
     <div>
-      <Link to="/statistics?bolim=jurnal" className="backlink">← {t('Statistika')}</Link>
+      {!isSchoolAdmin(user) && <Link to="/statistics?bolim=jurnal" className="backlink">← {t('Statistika')}</Link>}
       <PageHead title={title} sub={isNone ? t("Maktab nomi hech qaysi hamkor maktabga mos kelmagan sinflar — Statistika › «Jurnal» bo'limidagi «Moslashtirish» orqali biriktiring.") : school?.district}
         actions={<>
           <YearPicker />
@@ -140,7 +145,11 @@ export function SchoolDetailPage() {
         </div>
       )}
 
+      {school && <LicencePanel school={school} admin={admin} />}
+      {school && <ManagersPanel school={school} staff={staff.data ?? []} admin={admin} />}
+
       {data && <TrendPanels trend={data.trend} composition={data.composition} view={view} />}
+      {data?.by_kind && <KindComparison rows={data.by_kind} />}
 
       {!isNone && (
         <section className="panel">
@@ -154,7 +163,11 @@ export function SchoolDetailPage() {
                   return (
                     <tr key={tch.id}>
                       <td>
-                        <b>{tch.name}</b>
+                        {(isOversight(user) || isSchoolAdmin(user)) && tch.classes > 0
+                          ? <Link to={`/journal?teacher=${encodeURIComponent(tch.id)}&name=${encodeURIComponent(tch.name)}`}
+                              title={t("Jurnalini ko'rish")}><b>{tch.name}</b></Link>
+                          : <b>{tch.name}</b>}
+                        {tch.kind === 'muhandis' && <> <StatusPill tone="ok">{t('Muhandis D')}</StatusPill></>}
                         {!tch.assigned && !pastView && <> <StatusPill tone="mid">{t('faqat sinf orqali')}</StatusPill></>}
                         <br /><small className="muted">{tch.phone || tch.email}</small>
                       </td>
@@ -164,6 +177,14 @@ export function SchoolDetailPage() {
                       {m ? <MetricCells m={m} /> : <><td>—</td><td>—</td><td>—</td><td>—</td></>}
                       {admin && !pastView && (
                         <td className="dtable__acts">
+                          {tch.assigned && (
+                            <select className="input input--sm" value={tch.kind} aria-label={t("O'qituvchi turi")}
+                              disabled={kindAction.isPending}
+                              onChange={(e) => kindAction.mutate({ teacher: tch.id, kind: e.target.value as TeacherKind })}>
+                              <option value="maktab">{t("Maktab o'qituvchisi")}</option>
+                              <option value="muhandis">{t("Muhandis D o'qituvchisi")}</option>
+                            </select>
+                          )}
                           {(tch.assigned || tch.classes > 0) && (
                             <button className="btn btn--sm btn--ghost" onClick={() => setMoving({ teacher: tch.id })}
                               title={t("Boshqa maktabga o'tkazish yoki o'rniga boshqasini qo'yish")}>{t("Ko'chirish")}</button>
@@ -183,7 +204,7 @@ export function SchoolDetailPage() {
             <div className="assignrow">
               <select className="input" value={addTeacher} onChange={(e) => setAddTeacher(e.target.value)} aria-label={t("O'qituvchi biriktirish")}>
                 <option value="">{t("O'qituvchi biriktirish…")}</option>
-                {staff.data?.filter((u) => !assignedIds.has(u.id)).map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+                {staffList?.filter((u) => !assignedIds.has(u.id)).map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
               </select>
               <select className="input" value={replacing} onChange={(e) => setReplacing(e.target.value)} aria-label={t("Kimning o'rniga")}>
                 <option value="">{t("Qo'shimcha (hech kimning o'rniga emas)")}</option>
@@ -195,9 +216,9 @@ export function SchoolDetailPage() {
               </button>
             </div>
           )}
-          {moving && school && staff.data && (
+          {moving && school && staffList && (
             <MoveTeacherModal school={school} teachers={(school.teachers ?? []).map((x) => ({ id: x.id, name: x.name }))}
-              staff={staff.data} initialTeacher={moving.teacher} initialSuccessor={moving.successor}
+              staff={staffList} initialTeacher={moving.teacher} initialSuccessor={moving.successor}
               onClose={() => { setMoving(null); setAddTeacher(''); setReplacing('') }} />
           )}
         </section>
@@ -218,12 +239,12 @@ export function SchoolDetailPage() {
                   <tr key={c.class_id}>
                     <td><Link to={`/statistics?bolim=baza&class=${c.class_id}`}><b>{c.name}</b></Link>{isNone && <><br /><small className="muted">«{c.school_text}»</small></>}</td>
                     <td>
-                      {admin && staff.data ? (
+                      {admin && staffList ? (
                         <select className="input input--sm" value={c.teacher_id} aria-label={t("O'qituvchi")}
                           disabled={classTeacher.isPending}
                           onChange={(e) => onClassTeacher(c.class_id, c.name, e.target.value)}>
-                          {!staff.data.some((u) => u.id === c.teacher_id) && <option value={c.teacher_id}>{c.teacher}</option>}
-                          {staff.data.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+                          {!staffList.some((u) => u.id === c.teacher_id) && <option value={c.teacher_id}>{c.teacher}</option>}
+                          {staffList.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
                         </select>
                       ) : c.teacher}
                     </td>

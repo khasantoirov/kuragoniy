@@ -1,6 +1,6 @@
 import type { Grade } from '@/features/lessons/labels'
 
-export type Role = 'teacher' | 'admin' | 'boshliq' | 'kuzatuvchi' | 'student'
+export type Role = 'teacher' | 'admin' | 'boshliq' | 'kuzatuvchi' | 'maktab' | 'student'
 
 export interface StudentInfo {
   grade: Grade | null
@@ -40,6 +40,8 @@ export interface User {
   username?: string | null
   must_change_password?: boolean
   student?: StudentInfo | null
+  /** Maktab ma'muriyati (role 'maktab'): the schools they see — /accounts/me/ only. */
+  managed_schools?: { id: number; name: string; position: 'direktor' | 'zavuch' | 'boshqa' }[] | null
   // Admin view only.
   online?: boolean
   last_seen?: string | null

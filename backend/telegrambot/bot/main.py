@@ -16,6 +16,7 @@ from aiogram.enums import ParseMode
 from telegrambot.bot import backup_commands, handlers, library, replies
 from telegrambot.bot.announcements import watch_announcements
 from telegrambot.bot.lessons_backup import watch_lessons_backup
+from telegrambot.bot.license_reminders import watch_license_reminders
 from telegrambot.bot.translation import watch_translation_jobs
 
 logger = logging.getLogger(__name__)
@@ -40,4 +41,5 @@ async def run():
         watch_announcements(bot),
         watch_translation_jobs(bot),
         watch_lessons_backup(bot),
+        watch_license_reminders(bot),
     )

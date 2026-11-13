@@ -8,6 +8,7 @@ import {
   isApproved,
   isObserver,
   isOversight,
+  isSchoolAdmin,
   isStudent,
   isTeacherLike,
   useAuth,
@@ -113,5 +114,15 @@ export function RequirePasswordChange({ children }: { children: ReactNode }) {
   if (loading) return <FullScreenSpinner />
   if (!user) return <Navigate to="/login" replace />
   if (!user.must_change_password) return <Navigate to={homePathFor(user)} replace />
+  return children
+}
+
+/** A school's page: the administration, or that school's own ma'muriyat
+ *  (the backend keeps them to their own school). */
+export function RequireSchoolView({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
+  const viewMode = useUIStore((s) => s.viewMode)
+  const allowed = isSchoolAdmin(user) || isObserver(user) || (isOversight(user) && viewMode !== 'teacher')
+  if (!allowed) return <Navigate to="/" replace />
   return children
 }

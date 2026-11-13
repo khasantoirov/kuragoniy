@@ -25,7 +25,7 @@ from journal.models import AttendanceEntry, GradeEntry, JournalClass, Student
 
 from . import stats
 from .matching import link_school, norm, unlinked_names
-from .models import AcademicYear, School, SchoolTeacher, SchoolYear
+from .models import AcademicYear, School, SchoolLicense, SchoolTeacher, SchoolYear
 from .serializers import SchoolBriefSerializer, SchoolSerializer
 
 
@@ -52,8 +52,12 @@ class SchoolViewSet(viewsets.ModelViewSet):
         return [IsAdminOrDevSuperuser()]
 
     def get_queryset(self):
+        from .access import managed_school_ids
+
         qs = School.objects.all()
-        if self.request.user.is_oversight:
+        if self.request.user.is_school_admin:
+            qs = qs.filter(pk__in=managed_school_ids(self.request.user))
+        if self.request.user.is_oversight or self.request.user.is_school_admin:
             qs = qs.annotate(
                 teachers_count=Count('memberships', distinct=True),
                 classes_count=Count('classes', distinct=True),
@@ -64,7 +68,8 @@ class SchoolViewSet(viewsets.ModelViewSet):
         return qs
 
     def get_serializer_class(self):
-        return SchoolSerializer if self.request.user.is_oversight else SchoolBriefSerializer
+        user = self.request.user
+        return SchoolSerializer if (user.is_oversight or user.is_school_admin) else SchoolBriefSerializer
 
     def perform_create(self, serializer):
         school = serializer.save()  # its per-year rows: schools/signals.py
@@ -83,7 +88,7 @@ class SchoolViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         school = self.get_object()
         data = self.get_serializer(school).data
-        if request.user.is_oversight:
+        if request.user.is_oversight or request.user.is_school_admin:  # (get_queryset keeps them to theirs)
             # one o'quv yili's teachers: those with a class here that year,
             # and — for the current year — those assigned to the school
             year = _year(request)
@@ -91,10 +96,20 @@ class SchoolViewSet(viewsets.ModelViewSet):
             class_teachers = dict(school.classes.filter(year=year).values('teacher').annotate(n=Count('id')).values_list('teacher', 'n'))
             data['year'] = year.id
             data['years'] = self._years(school)
+            from . import licensing
+
+            data['licence'] = {**licensing.status(school), 'usage': licensing.usage(school, year),
+                               'enforced': licensing.enforced()}
+            data['managers'] = [
+                {'id': m.user_id, 'name': m.user.name, 'phone': m.user.phone, 'position': m.position,
+                 'position_label': m.get_position_display()}
+                for m in school.managers.select_related('user').order_by('position', 'user__name')
+            ]
             teachers = list(User.objects.filter(Q(pk__in=members) | Q(pk__in=class_teachers)).order_by('name'))
             presence = presence_for(teachers)
             data['teachers'] = [
                 {'id': t.id, 'name': t.name, 'phone': t.phone, 'email': t.email, 'assigned': t.id in members,
+                 'kind': members[t.id].kind if t.id in members else SchoolTeacher.Kind.MAKTAB,
                  'classes': class_teachers.get(t.id, 0), 'since': members[t.id].since if t.id in members else None,
                  'online': presence[t.id]['online'], 'last_seen': presence[t.id]['last_seen']}
                 for t in teachers
@@ -141,7 +156,7 @@ class SchoolViewSet(viewsets.ModelViewSet):
         if not request.user.is_admin:
             return Response({'detail': "Bu amal faqat administrator uchun."}, status=status.HTTP_403_FORBIDDEN)
         school = self.get_object()
-        staff = User.objects.exclude(role__in=[User.Role.STUDENT, User.Role.KUZATUVCHI])
+        staff = User.objects.exclude(role__in=[User.Role.STUDENT, User.Role.KUZATUVCHI, User.Role.MAKTAB])
         if request.method == 'GET':
             teacher = get_object_or_404(staff, pk=request.query_params.get('teacher'))
             return Response(preview(teacher, school))
@@ -170,6 +185,51 @@ class SchoolViewSet(viewsets.ModelViewSet):
         return Response({'move': record.id, 'classes': len(s['classes']), 'slots_moved': len(s['slots_moved']),
                          'slots_kept': len(s['slots_kept'])}, status=status.HTTP_201_CREATED)
 
+    @action(detail=True, methods=['post'], url_path='teacher-kind')
+    def teacher_kind(self, request, pk=None):
+        """POST {teacher, kind}: the school's own teacher, or one Muhandis D
+        sends here — shown on the school page, the journal's teacher cards
+        and compared in the school's figures."""
+        school = self.get_object()
+        kind = request.data.get('kind')
+        if kind not in SchoolTeacher.Kind.values:
+            raise ValidationError({'kind': "Noma'lum tur."})
+        teacher = get_object_or_404(User.objects.exclude(role=User.Role.STUDENT), pk=request.data.get('teacher'))
+        member, _ = SchoolTeacher.objects.get_or_create(school=school, teacher=teacher)
+        if member.kind != kind:
+            member.kind = kind
+            member.save(update_fields=['kind'])
+            notify_admin_action(request.user, f"«{school.name}»: {teacher.name} — {member.get_kind_display()}")
+        return Response({'ok': True, 'kind': kind})
+
+    @action(detail=True, methods=['post'], url_path='add-manager')
+    def add_manager(self, request, pk=None):
+        """POST {user, position}: one of the school's ma'muriyat (role
+        "Maktab ma'muriyati") sees this school on the platform."""
+        from .models import SchoolManager
+
+        school = self.get_object()
+        position = request.data.get('position') or SchoolManager.Position.DIREKTOR
+        if position not in SchoolManager.Position.values:
+            raise ValidationError({'position': "Noma'lum lavozim."})
+        person = get_object_or_404(User.objects.filter(role=User.Role.MAKTAB), pk=request.data.get('user'))
+        row, created = SchoolManager.objects.get_or_create(school=school, user=person, defaults={'position': position})
+        if not created and row.position != position:
+            row.position = position
+            row.save(update_fields=['position'])
+        notify_admin_action(request.user, f"«{school.name}» ma'muriyati: {person.name} — {row.get_position_display()}")
+        return Response({'ok': True})
+
+    @action(detail=True, methods=['post'], url_path='remove-manager')
+    def remove_manager(self, request, pk=None):
+        from .models import SchoolManager
+
+        school = self.get_object()
+        deleted, _ = SchoolManager.objects.filter(school=school, user_id=request.data.get('user')).delete()
+        if deleted:
+            notify_admin_action(request.user, f"«{school.name}» ma'muriyatidan chiqardi")
+        return Response({'ok': True})
+
     @action(detail=True, methods=['post'], url_path='remove-teacher')
     def remove_teacher(self, request, pk=None):
         school = self.get_object()
@@ -196,6 +256,91 @@ class TeacherMoveUndoView(APIView):
         log_event('teacher_move_reverted', actor=request.user, request=request,
                   detail=f"{record.teacher.name}: «{record.from_school.name}» ga qaytarildi")
         return Response({'ok': True})
+
+
+class LicensesView(APIView):
+    """Boshqaruv → Litsenziyalar. GET: every partner school's licence state
+    (schools/licensing.py), seats taken, and whether enforcement is on.
+    POST: a new licence — administrators."""
+
+    permission_classes = [IsOversight]
+
+    def get(self, request):
+        from . import licensing
+
+        year = _year(request)
+        rows = []
+        for school in School.objects.order_by('-is_active', 'name'):
+            rows.append({'school': {'id': school.id, 'name': school.name, 'is_active': school.is_active,
+                                    'district': school.district},
+                         **licensing.status(school), 'usage': licensing.usage(school, year),
+                         'history': [licensing.licence_dict(x) for x in school.licenses.all()]})
+        return Response({'enforced': licensing.enforced(), 'schools': rows, 'ending_days': licensing.ENDING_DAYS,
+                         'plans': [{'value': v, 'label': lbl} for v, lbl in SchoolLicense.Plan.choices]})
+
+    def post(self, request):
+        from .serializers import SchoolLicenseSerializer
+
+        if not request.user.is_admin:
+            return Response({'detail': "Bu amal faqat administrator uchun."}, status=status.HTTP_403_FORBIDDEN)
+        serializer = SchoolLicenseSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        licence = serializer.save(created_by=request.user)
+        _log_licence(request, 'licence_added', licence)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+def _log_licence(request, action, licence):
+    detail = (f"«{licence.school.name}»: {licence.get_plan_display()} {licence.starts_on:%d.%m.%Y}–"
+              f"{licence.ends_on:%d.%m.%Y}" + (" · to'langan" if licence.paid else ''))
+    log_event(action, actor=request.user, request=request, detail=detail)
+    notify_admin_action(request.user, f"Litsenziya — {detail}")
+
+
+class LicenseView(APIView):
+    """PATCH / DELETE one licence — administrators."""
+
+    permission_classes = [IsAdminOrDevSuperuser]
+
+    def patch(self, request, pk):
+        from .serializers import SchoolLicenseSerializer
+
+        licence = get_object_or_404(SchoolLicense, pk=pk)
+        old_end = licence.ends_on
+        serializer = SchoolLicenseSerializer(licence, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        licence = serializer.save()
+        if licence.ends_on != old_end and licence.reminded:
+            licence.reminded = []  # a new end date: its reminders start over
+            licence.save(update_fields=['reminded'])
+        _log_licence(request, 'licence_changed', licence)
+        return Response(serializer.data)
+
+    def delete(self, request, pk):
+        licence = get_object_or_404(SchoolLicense, pk=pk)
+        _log_licence(request, 'licence_deleted', licence)
+        licence.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class LicenseEnforceView(APIView):
+    """POST {on}: whether a school not in force keeps its journal read-only."""
+
+    permission_classes = [IsAdminOrDevSuperuser]
+
+    def post(self, request):
+        from common.models import PlatformSettings
+
+        on = bool(request.data.get('on'))
+        settings = PlatformSettings.get()
+        if settings.license_enforced != on:
+            settings.license_enforced = on
+            settings.save(update_fields=['license_enforced', 'updated_at'])
+            word = 'yoqildi' if on else "o'chirildi"
+            log_event('licence_enforcement', actor=request.user, request=request, detail=f"Litsenziya talabi {word}")
+            notify_admin_action(request.user, f"Litsenziya talabini {word}: muddati o'tgan maktablar jurnali "
+                                              + ("faqat ko'rish rejimida" if on else "yana ochiq"))
+        return Response({'enforced': on})
 
 
 class UnlinkedView(APIView):
@@ -327,13 +472,32 @@ class StatsOverviewView(APIView):
 
 
 class StatsSchoolView(APIView):
-    """One school (or 'none' = classes not linked to any school)."""
+    """One school (or 'none' = classes not linked to any school) — for the
+    administration, and for the school's own ma'muriyat."""
 
-    permission_classes = [IsOversight]
+    permission_classes = [IsApproved]
 
     def get(self, request, school_id):
+        from .access import can_view_school
+
+        if not (request.user.is_oversight or (school_id != 'none' and can_view_school(request.user, school_id))):
+            return Response({'detail': "Bu maktab ma'lumotlari sizga ochiq emas."}, status=status.HTTP_403_FORBIDDEN)
         chorak = _chorak(request)
         school = None if school_id == 'none' else get_object_or_404(School, pk=school_id)
+
+        def by_kind(classes):
+            if school is None:
+                return []
+            kinds = dict(SchoolTeacher.objects.filter(school=school).values_list('teacher_id', 'kind'))
+            labels = dict(SchoolTeacher.Kind.choices)
+            rows = stats.grouped(classes, chorak, key=lambda c: kinds.get(c.teacher_id, SchoolTeacher.Kind.MAKTAB),
+                                 label=lambda c: labels[kinds.get(c.teacher_id, SchoolTeacher.Kind.MAKTAB)])
+            teachers = defaultdict(set)
+            for c in classes:
+                teachers[kinds.get(c.teacher_id, SchoolTeacher.Kind.MAKTAB)].add(c.teacher_id)
+            for r in rows:
+                r['teachers'] = len(teachers[r['id']])
+            return sorted(rows, key=lambda r: r['id'] != SchoolTeacher.Kind.MUHANDIS)
 
         def compute():
             classes = stats.classes_for(request.user, school_id='none' if school is None else school.id, year=_year(request))
@@ -341,6 +505,7 @@ class StatsSchoolView(APIView):
                 'school': SchoolBriefSerializer(school).data if school else None,
                 'totals': stats.derive(stats.pool(stats.class_raw(classes, chorak).values())),
                 'teachers': stats.grouped(classes, chorak, key=lambda c: c.teacher_id, label=lambda c: c.teacher.name),
+                'by_kind': by_kind(classes),
                 'classes': stats.class_rows(classes, chorak),
                 'trend': stats.trend(classes, chorak, _period(request)),
                 'composition': stats.composition(classes, chorak),

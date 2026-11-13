@@ -47,6 +47,10 @@ class PlatformSettings(models.Model):
     modules = models.JSONField(default=dict, blank=True)
     grade_palette = models.CharField(max_length=20, default='aralash')
     protection = models.JSONField(default=dict, blank=True)
+    # Litsenziyalar: when on, a school whose licence has run out (or that has
+    # none) keeps its journal read-only — schools/licensing.py. Off until
+    # the administration starts the subscriptions.
+    license_enforced = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
     @classmethod

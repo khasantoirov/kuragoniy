@@ -797,8 +797,18 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
             raise ValidationError(errors)
         name = full_name(first, last)
         role = request.data.get('role') or User.Role.TEACHER
-        if role not in (User.Role.TEACHER, User.Role.KUZATUVCHI):
-            raise ValidationError({'role': "Faqat o'qituvchi yoki kuzatuvchi yaratish mumkin."})
+        if role not in (User.Role.TEACHER, User.Role.KUZATUVCHI, User.Role.MAKTAB):
+            raise ValidationError({'role': "Faqat o'qituvchi, kuzatuvchi yoki maktab ma'muriyati yaratish mumkin."})
+        manager_school = None
+        if role == User.Role.MAKTAB:
+            from schools.models import School, SchoolManager
+
+            manager_school = School.objects.filter(pk=request.data.get('school')).first()
+            if manager_school is None:
+                raise ValidationError({'school': "Maktab ma'muriyati uchun maktabni tanlang."})
+            position = request.data.get('position') or SchoolManager.Position.DIREKTOR
+            if position not in SchoolManager.Position.values:
+                raise ValidationError({'position': "Noma'lum lavozim."})
         if role == User.Role.KUZATUVCHI and not request.user.is_dev_superuser:
             raise PermissionDenied("Kuzatuvchini faqat dasturchi yarata oladi.")
         email = str(request.data.get('email') or '').strip().lower() or None
@@ -815,6 +825,8 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
             username=unique_username(name), approved=True, must_change_password=True,
             phone=phone,
         )
+        if manager_school is not None:
+            SchoolManager.objects.create(school=manager_school, user=user, position=position)
         log_event('staff_created', actor=request.user, request=request, detail=f'{user.name} ({user.username})')
         notify_admin_action(request.user, f"Yangi xodim hisobini yaratdi: {self._label(user)}")
         admins = [u for u in User.objects.filter(is_active=True).exclude(pk__in=[request.user.pk, user.pk]) if u.is_admin]

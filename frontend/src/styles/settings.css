@@ -975,3 +975,18 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
 @media (max-width: 640px) { .assignrow { grid-template-columns: minmax(0, 1fr); } }
 .mvt__sum { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: var(--rule-2); font-size: 13px; color: var(--ink-2); }
 .mvt__sum.is-warn { background: color-mix(in srgb, var(--tone-mid, #e0a020) 14%, transparent); color: var(--ink); }
+
+/* Litsenziyalar / maktab sahifasi (features/schools/SchoolLicencePanels.tsx, admin/LicencesPanel.tsx) */
+.kv .is-bad, .dtable td.is-bad { color: var(--tone-bad); font-weight: 600; }
+.dtable tr.is-muted td { opacity: .6; }
+.kindcmp { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.kindcmp__c { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border: 1px solid var(--rule); border-radius: 12px; background: var(--surface); }
+.kindcmp__c.is-md { border-color: color-mix(in srgb, var(--pick) 45%, transparent); background: color-mix(in srgb, var(--pick) 6%, var(--surface)); }
+.kindcmp__c > small { color: var(--ink-3); font-size: 12px; }
+.kindcmp__m { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--ink-2); }
+.tcard__md {
+  margin-left: 6px; padding: 1px 7px; border-radius: 6px; font-size: 11px; font-weight: 600; vertical-align: 1px;
+  background: color-mix(in srgb, var(--pick) 14%, transparent); color: var(--pick);
+}
+.dtable td a { color: var(--pick); text-decoration: none; }
+.dtable td a:hover { text-decoration: underline; }

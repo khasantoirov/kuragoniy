@@ -304,11 +304,16 @@ def classes_for(viewer, *, school_id=None, teacher_id=None, year=None):
     """The classes in view: one o'quv yili's (the current one by default)."""
     from .models import AcademicYear
 
+    from .access import managed_school_ids
+
     qs = JournalClass.objects.select_related('teacher', 'partner_school').filter(year=year or AcademicYear.current())
-    if not viewer.is_oversight:
+    if viewer.is_oversight or viewer.is_school_admin:
+        if viewer.is_school_admin:  # a school's ma'muriyat: their school(s) only
+            qs = qs.filter(partner_school_id__in=managed_school_ids(viewer))
+        if teacher_id:
+            qs = qs.filter(teacher_id=teacher_id)
+    else:
         qs = qs.filter(teacher=viewer)
-    elif teacher_id:
-        qs = qs.filter(teacher_id=teacher_id)
     if school_id == 'none':
         qs = qs.filter(partner_school__isnull=True)
     elif school_id:

@@ -41,6 +41,8 @@ export interface GridLock {
   owner: boolean
   /** A past o'quv yili's journal: read-only but for opened days. */
   past_year?: boolean
+  /** the school's licence isn't in force: why the whole journal is read-only */
+  licence?: string | null
   can_grant: boolean
   /** The viewer grades nazorat ishi here (administrators). */
   can_control?: boolean
@@ -104,6 +106,8 @@ export interface EditGrant {
  *  (grade null — the class name has no leading number). */
 export interface TeacherSchool {
   name: string
+  /** a Muhandis D teacher at this school */
+  muhandis?: boolean
   classes: number
   students: number
   grades: { grade: number | null; classes: number; students: number }[]

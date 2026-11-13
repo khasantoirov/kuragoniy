@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { EmptyState } from '@/components/EmptyState'
 import { Skeleton } from '@/components/Skeleton'
 import { IC } from '@/icons'
-import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
+import { isAdminInView, isSchoolAdmin, useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore } from '@/store/uiStore'
 
 import { useClasses, useGrants, useGrantTeachers } from './api'
@@ -147,14 +147,16 @@ export function JournalPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const admin = isAdminInView(user, viewMode)
+  // a school's ma'muriyat: their school's teachers' journals, read-only
+  const schoolAdmin = isSchoolAdmin(user)
   const [params, setParams] = useSearchParams()
   // ?tab=access — where the "permission asked" notification points;
   // ?tab=teachers — the teachers' journals; ?teacher=<id> — an
   // administrator in that teacher's journal (grading nazorat ishi).
-  const viewing = admin ? params.get('teacher') : null
+  const viewing = admin || schoolAdmin ? params.get('teacher') : null
   const [adminMode, setAdminMode] = useState<AdminMode>(() => modeOf(params.get('tab')))
   const pendingGrants = useGrants('pending', admin)
-  const teachers = useGrantTeachers(!!viewing)
+  const teachers = useGrantTeachers(!!viewing && admin)
 
   const changeMode = (m: AdminMode) => {
     setAdminMode(m)
@@ -177,8 +179,10 @@ export function JournalPage() {
     </div>
   ) : null
 
+  if (schoolAdmin && !viewing) return <Navigate to="/my-school" replace />
+
   if (viewing) {
-    const name = teachers.data?.find((p) => p.id === viewing)?.name ?? ''
+    const name = teachers.data?.find((p) => p.id === viewing)?.name ?? params.get('name') ?? ''
     return (
       <JournalBody
         key={viewing}
@@ -187,8 +191,12 @@ export function JournalPage() {
           <>
             {ModeBar}
             <div className="jview">
-              <button type="button" className="btn btn--sm" onClick={() => { setAdminMode('teachers'); navigate('/journal?tab=teachers') }}>
-                {IC.back} {t("O'qituvchilar")}
+              <button type="button" className="btn btn--sm" onClick={() => {
+                if (schoolAdmin) return navigate(-1)
+                setAdminMode('teachers')
+                navigate('/journal?tab=teachers')
+              }}>
+                {IC.back} {schoolAdmin ? t('Orqaga') : t("O'qituvchilar")}
               </button>
               <span className="jview__t">{IC.eye} <b>{name}</b> {t('jurnali')}</span>
             </div>

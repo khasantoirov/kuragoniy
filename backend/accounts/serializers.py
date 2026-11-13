@@ -67,14 +67,24 @@ class MeSerializer(UserSerializer):
     that PATCH {telegram_linked: false} (see update())."""
 
     student = serializers.SerializerMethodField()
+    managed_schools = serializers.SerializerMethodField()
 
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + [
-            'telegram_chat_id', 'username', 'must_change_password', 'student',
+            'telegram_chat_id', 'username', 'must_change_password', 'student', 'managed_schools',
         ]
         read_only_fields = UserSerializer.Meta.read_only_fields + [
             'telegram_linked', 'telegram_chat_id', 'telegram_username', 'username', 'must_change_password',
         ]
+
+    def get_managed_schools(self, user):
+        """A school's ma'muriyat: which schools they see (schools.SchoolManager)."""
+        if not user.is_school_admin:
+            return None
+        from schools.models import SchoolManager
+
+        return [{'id': m.school_id, 'name': m.school.name, 'position': m.position}
+                for m in SchoolManager.objects.filter(user=user).select_related('school').order_by('school__name')]
 
     def get_student(self, user):
         if not user.is_student:

@@ -60,8 +60,18 @@ def past_year_open(user, journal_class) -> bool:
     return is_owner(user, journal_class) and active_grants(user, journal_class).exists()
 
 
+def licence_lock(journal_class):
+    """The school's licence isn't in force (schools/licensing.py) — the
+    reason, else None."""
+    from schools.licensing import licence_lock as lock
+
+    return lock(journal_class)
+
+
 def can_edit_day(user, journal_class, day) -> bool:
     if not is_owner(user, journal_class):
+        return False
+    if licence_lock(journal_class):
         return False
     if day == today() and not is_past_year(journal_class):
         return True
@@ -79,6 +89,8 @@ def lock_info(viewer, journal_class) -> dict:
         'today': today().isoformat(),
         'owner': is_owner(viewer, journal_class),
         'past_year': is_past_year(journal_class),
+        # the school's licence isn't in force: the whole journal read-only
+        'licence': licence_lock(journal_class),
         'can_grant': bool(viewer.is_admin),
         # Nazorat ishi: administrators grade it in any journal.
         'can_control': bool(viewer.is_admin),

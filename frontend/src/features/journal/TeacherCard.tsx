@@ -30,7 +30,7 @@ export function TeacherCard({ person, onOpen }: { person: GrantTeacher; onOpen: 
       {person.schools.map((s) => (
         <span key={s.name} className="tcard__sch">
           <span className="tcard__srow">
-            <b>{s.name || t("Maktab ko'rsatilmagan")}</b>
+            <b>{s.name || t("Maktab ko'rsatilmagan")}{s.muhandis && <span className="tcard__md">{t('Muhandis D')}</span>}</b>
             <small>{s.classes} {t('ta sinf')} · {s.students} {t("ta o'quvchi")}</small>
           </span>
           <span className="tcard__grades">

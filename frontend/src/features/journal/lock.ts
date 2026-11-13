@@ -22,7 +22,7 @@ export function isPending(lock: GridLock | undefined, date: string) {
  * past o'quv yili's journal has no lesson day, only opened ones. */
 export function canEditDay(lock: GridLock | undefined, date: string) {
   if (!lock) return true
-  if (!lock.owner) return false
+  if (!lock.owner || lock.licence) return false  // (the school's licence isn't in force)
   return (date === lock.today && !lock.past_year) || !!grantFor(lock, date)
 }
 

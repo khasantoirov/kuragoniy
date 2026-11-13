@@ -15,8 +15,8 @@ from common.security import log_event
 from schools.models import AcademicYear
 
 from .locks import (
-    ALL_PAST_DAYS, LOCKED_DETAIL, NOT_OWNER_DETAIL, PAST_YEAR_DETAIL, can_edit_day, is_owner, is_past_year, lock_info,
-    past_year_open, today,
+    ALL_PAST_DAYS, LOCKED_DETAIL, NOT_OWNER_DETAIL, PAST_YEAR_DETAIL, can_edit_day, is_owner, is_past_year, licence_lock,
+    lock_info, past_year_open, today,
 )
 from .models import (
     AttendanceEntry,
@@ -50,6 +50,8 @@ from .serializers import (
 def _locked(user, journal_class, day):
     if not is_owner(user, journal_class):
         return Response({'detail': NOT_OWNER_DETAIL, 'code': 'not_owner'}, status=status.HTTP_403_FORBIDDEN)
+    if (reason := licence_lock(journal_class)):
+        return Response({'detail': reason, 'code': 'licence'}, status=status.HTTP_403_FORBIDDEN)
     return Response({'detail': LOCKED_DETAIL, 'code': 'journal_locked', 'date': day},
                     status=status.HTTP_403_FORBIDDEN)
 
@@ -68,9 +70,14 @@ class JournalClassViewSet(viewsets.ModelViewSet):
         if self.action == 'list':  # one o'quv yili's classes; any class by id
             qs = qs.filter(year=AcademicYear.from_param(self.request.query_params.get('year')))
         # Administrators may look at any teacher's journal, never write to
-        # it — writes always resolve to the requester's own classes.
+        # it — writes always resolve to the requester's own classes. A
+        # school's ma'muriyat looks at its own school's classes the same way.
         if teacher_id and user.is_admin and self.request.method in permissions.SAFE_METHODS:
             return qs.filter(teacher_id=teacher_id)
+        if teacher_id and user.is_school_admin and self.request.method in permissions.SAFE_METHODS:
+            from schools.access import managed_school_ids
+
+            return qs.filter(teacher_id=teacher_id, partner_school_id__in=managed_school_ids(user))
         return qs.filter(teacher=user)
 
     def perform_create(self, serializer):
@@ -201,6 +208,8 @@ class JournalClassViewSet(viewsets.ModelViewSet):
         journal_class = self.get_object()
         if is_past_year(journal_class) and not past_year_open(request.user, journal_class):
             return Response({'detail': PAST_YEAR_DETAIL}, status=status.HTTP_403_FORBIDDEN)
+        if (reason := licence_lock(journal_class)):
+            return Response({'detail': reason, 'code': 'licence'}, status=status.HTTP_403_FORBIDDEN)
         student_id = request.data.get('student_id')
         chorak = request.data.get('chorak')
         mark = request.data.get('mark')
@@ -362,7 +371,11 @@ class ControlWorkViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         qs = ControlWork.objects.select_related('journal_class__teacher', 'created_by').prefetch_related('marks')
-        if not user.is_admin:
+        if user.is_school_admin:
+            from schools.access import managed_school_ids
+
+            qs = qs.filter(journal_class__partner_school_id__in=managed_school_ids(user))
+        elif not user.is_admin:
             qs = qs.filter(journal_class__teacher=user)
         class_id = self.request.query_params.get('journal_class')
         if class_id:
@@ -377,11 +390,15 @@ class ControlWorkViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         if is_past_year(serializer.validated_data['journal_class']):
             raise PermissionDenied(PAST_YEAR_DETAIL)
+        if (reason := licence_lock(serializer.validated_data['journal_class'])):
+            raise PermissionDenied(reason)
         self._tell_teacher(serializer.save(created_by=self.request.user), had_marks=False)
 
     def perform_update(self, serializer):
         if is_past_year(serializer.instance.journal_class):
             raise PermissionDenied(PAST_YEAR_DETAIL)
+        if (reason := licence_lock(serializer.instance.journal_class)):
+            raise PermissionDenied(reason)
         had_marks = ControlMark.objects.filter(work=serializer.instance).exists()
         self._tell_teacher(serializer.save(), had_marks)
 
@@ -625,7 +642,7 @@ class EditGrantViewSet(viewsets.GenericViewSet):
         if (denied := self._admin_only(request)):
             return denied
         people = [
-            u for u in User.objects.filter(is_active=True).exclude(role__in=[User.Role.STUDENT, User.Role.KUZATUVCHI])
+            u for u in User.objects.filter(is_active=True).exclude(role__in=[User.Role.STUDENT, User.Role.KUZATUVCHI, User.Role.MAKTAB])
             if u.is_approved_effective
         ]
 
@@ -652,7 +669,13 @@ class EditGrantViewSet(viewsets.GenericViewSet):
             g = row['grades'].setdefault(grade, {'grade': grade, 'classes': 0, 'students': 0})
             g['classes'] += 1
             g['students'] += c.pupils
+        # Muhandis D's own teachers at a school (schools.SchoolTeacher.kind)
+        from schools.models import SchoolTeacher
+
+        muhandis = set(SchoolTeacher.objects.filter(teacher_id__in=out, kind=SchoolTeacher.Kind.MUHANDIS)
+                       .values_list('teacher_id', 'school__name'))
         for (teacher_id, _), row in sorted(schools.items(), key=lambda kv: (kv[1]['name'] == '', kv[1]['name'].lower())):
+            row['muhandis'] = (teacher_id, row['name']) in muhandis
             row['grades'] = sorted(row['grades'].values(), key=lambda g: (g['grade'] is None, g['grade'] or 0))
             out[teacher_id]['schools'].append(row)
         for g in JournalEditGrant.objects.select_related('journal_class').filter(

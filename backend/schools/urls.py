@@ -10,6 +10,9 @@ router.register('', views.SchoolViewSet, basename='school')
 # "unlinked" etc. as a school pk.
 urlpatterns = [
     path('unlinked/', views.UnlinkedView.as_view(), name='schools-unlinked'),
+    path('licenses/', views.LicensesView.as_view(), name='schools-licenses'),
+    path('licenses/enforce/', views.LicenseEnforceView.as_view(), name='schools-licenses-enforce'),
+    path('licenses/<int:pk>/', views.LicenseView.as_view(), name='schools-license'),
     path('link/', views.LinkView.as_view(), name='schools-link'),
     path('directory/', views.DirectoryView.as_view(), name='schools-directory'),
     path('years/', views.AcademicYearsView.as_view(), name='schools-years'),

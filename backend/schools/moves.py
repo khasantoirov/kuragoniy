@@ -80,6 +80,7 @@ def move_teacher(teacher, from_school, *, to_school=None, successor=None, since=
         'slots_kept': [],
         'was_member': member is not None,
         'member_since': _since(member),
+        'member_kind': member.kind if member else SchoolTeacher.Kind.MAKTAB,
         'successor_was_member': successor_was_member,
         'target_was_member': target_member is not None,
     }
@@ -102,7 +103,9 @@ def move_teacher(teacher, from_school, *, to_school=None, successor=None, since=
 
     SchoolTeacher.objects.filter(school=from_school, teacher=teacher).delete()
     if to_school is not None and target_member is None:
-        SchoolTeacher.objects.create(school=to_school, teacher=teacher, since=since)
+        # a Muhandis D teacher stays one at the new school
+        SchoolTeacher.objects.create(school=to_school, teacher=teacher, since=since,
+                                     kind=member.kind if member else SchoolTeacher.Kind.MAKTAB)
 
     return TeacherMove.objects.create(teacher=teacher, from_school=from_school, to_school=to_school,
                                       successor=successor, state=state, actor=actor)
@@ -139,7 +142,8 @@ def undo_move(record: TeacherMove) -> None:
         slot.save(update_fields=['teacher'])
 
     if s['was_member']:
-        SchoolTeacher.objects.update_or_create(school=school, teacher=teacher, defaults={'since': s['member_since']})
+        SchoolTeacher.objects.update_or_create(school=school, teacher=teacher, defaults={
+            'since': s['member_since'], 'kind': s.get('member_kind', SchoolTeacher.Kind.MAKTAB)})
     elif not classes_at(teacher, school).exists():
         SchoolTeacher.objects.filter(school=school, teacher=teacher).delete()
     if successor is not None and not s['successor_was_member'] and not classes_at(successor, school).exists():

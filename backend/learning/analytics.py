@@ -209,7 +209,7 @@ def top_teachers(viewer, since, limit=20):
     if not viewer.is_oversight:
         teachers = User.objects.filter(pk=viewer.pk)
     else:
-        teachers = User.objects.filter(is_active=True).exclude(role__in=[User.Role.STUDENT, User.Role.KUZATUVCHI]).filter(
+        teachers = User.objects.filter(is_active=True).exclude(role__in=[User.Role.STUDENT, User.Role.KUZATUVCHI, User.Role.MAKTAB]).filter(
             Q(classes__isnull=False) | Q(lesson_reports__isnull=False)
         ).distinct()
     teachers = list(teachers)

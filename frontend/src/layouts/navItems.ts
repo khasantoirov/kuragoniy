@@ -1,5 +1,5 @@
 import type { IC } from '@/icons'
-import { isAdminInView, isObserver, useAuth } from '@/lib/auth/AuthContext'
+import { isAdminInView, isObserver, isSchoolAdmin, useAuth } from '@/lib/auth/AuthContext'
 import { routeOn, useModules } from '@/lib/modules'
 import { useUIStore } from '@/store/uiStore'
 
@@ -35,10 +35,19 @@ export const SETTINGS_PAGES: { to: string; label: string; icon: keyof typeof IC 
   { to: '/settings/integrations', label: 'Integratsiyalar', icon: 'plug' },
 ]
 
+/** A school's ma'muriyat: their school instead of the teacher's home,
+ *  and none of the teacher's own work pages. */
+const SCHOOL_ADMIN_HIDDEN = new Set(['/', '/journal', '/timetable'])
+const MY_SCHOOL: NavItem = { to: '/my-school', label: 'Maktabim', icon: 'home' }
+
 export function useVisibleNavItems(): NavItem[] {
   const { user } = useAuth()
   const viewMode = useUIStore((s) => s.viewMode)
   const { on } = useModules()
+  if (isSchoolAdmin(user)) {
+    return [MY_SCHOOL, ...NAV_ITEMS.filter((item) => !item.adminOnly && !SCHOOL_ADMIN_HIDDEN.has(item.to))
+      .map(({ to, label, icon }) => ({ to, label, icon }))].filter((item) => routeOn(item.to, on))
+  }
   return [
     ...NAV_ITEMS.filter((item) => (!item.adminOnly || isAdminInView(user, viewMode)) && !(isObserver(user) && OBSERVER_HIDDEN.has(item.to)))
       .map(({ to, label, icon }) => ({ to, label, icon })),

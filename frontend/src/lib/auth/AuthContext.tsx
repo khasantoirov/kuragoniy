@@ -216,6 +216,12 @@ export function isObserver(user: User | null): boolean {
   return !!user && user.role === 'kuzatuvchi' && !user.is_dev_superuser
 }
 
+/** A partner school's own ma'muriyat (direktor, zavuch): their school(s)
+ *  only, read-only — backend schools/access.py. */
+export function isSchoolAdmin(user: User | null): boolean {
+  return !!user && user.role === 'maktab' && !user.is_dev_superuser
+}
+
 /** May see every teacher's results/analytics (admin roles + Kuzatuvchi). */
 export function isOversight(user: User | null): boolean {
   return isAdmin(user) || isObserver(user)
@@ -223,7 +229,7 @@ export function isOversight(user: User | null): boolean {
 
 /** Runs classes: approved staff that isn't the read-only observer. */
 export function isTeacherLike(user: User | null): boolean {
-  return isApproved(user) && !isStudent(user) && !isObserver(user)
+  return isApproved(user) && !isStudent(user) && !isObserver(user) && !isSchoolAdmin(user)
 }
 
 /** Where a freshly logged-in user lands — each role has its own portal. */
@@ -233,6 +239,7 @@ export function homePathFor(user: User | null): string {
   if (isStudent(user)) return user.approved ? '/s' : '/pending-approval'
   if (!isApproved(user)) return '/pending-approval'
   if (isObserver(user)) return '/statistics'
+  if (isSchoolAdmin(user)) return '/my-school'
   return '/'
 }
 

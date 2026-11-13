@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .matching import norm, school_keys
-from .models import School
+from .models import School, SchoolLicense
 
 
 class SchoolBriefSerializer(serializers.ModelSerializer):
@@ -10,6 +10,36 @@ class SchoolBriefSerializer(serializers.ModelSerializer):
     class Meta:
         model = School
         fields = ['id', 'name', 'district', 'is_active']
+
+
+class SchoolLicenseSerializer(serializers.ModelSerializer):
+    """One licence (schools/licensing.py). A school's licences may not
+    overlap — the one covering a day must be unambiguous."""
+
+    class Meta:
+        model = SchoolLicense
+        fields = ['id', 'school', 'plan', 'starts_on', 'ends_on', 'teacher_seats', 'pupil_seats', 'amount',
+                  'paid', 'paid_on', 'note']
+
+    def validate(self, attrs):
+        from django.utils import timezone
+
+        get = lambda f: attrs.get(f, getattr(self.instance, f, None))  # noqa: E731
+        starts, ends, school = get('starts_on'), get('ends_on'), get('school')
+        if starts and ends and ends < starts:
+            raise serializers.ValidationError({'ends_on': "Tugash sanasi boshlanishidan oldin bo'lmasin."})
+        clash = SchoolLicense.objects.filter(school=school, starts_on__lte=ends, ends_on__gte=starts)
+        if self.instance:
+            clash = clash.exclude(pk=self.instance.pk)
+        if clash.exists():
+            other = clash.first()
+            raise serializers.ValidationError({'starts_on': (
+                f"Bu davrda maktabning boshqa litsenziyasi bor: {other.starts_on:%d.%m.%Y}–{other.ends_on:%d.%m.%Y}.")})
+        if get('paid') and not get('paid_on'):
+            attrs['paid_on'] = timezone.localdate()
+        if 'paid' in attrs and not attrs['paid']:
+            attrs['paid_on'] = None
+        return attrs
 
 
 class SchoolSerializer(serializers.ModelSerializer):

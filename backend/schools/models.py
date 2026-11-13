@@ -41,9 +41,15 @@ class SchoolTeacher(models.Model):
     several). Created by administration, or automatically when one of the
     teacher's journal classes / timetable slots is linked to the school."""
 
+    class Kind(models.TextChoices):
+        # the school's own teacher, or one Muhandis D sends there
+        MAKTAB = 'maktab', "Maktab o'qituvchisi"
+        MUHANDIS = 'muhandis', "Muhandis D o'qituvchisi"
+
     school = models.ForeignKey(School, related_name='memberships', on_delete=models.CASCADE)
     teacher = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='school_memberships', on_delete=models.CASCADE)
     since = models.DateField(null=True, blank=True)
+    kind = models.CharField(max_length=10, choices=Kind.choices, default=Kind.MAKTAB)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -170,3 +176,62 @@ class TeacherMove(models.Model):
 
     def __str__(self):
         return f'{self.teacher} {self.from_school} → {self.to_school or "-"}'
+
+
+class SchoolLicense(models.Model):
+    """A school's subscription for a period (schools/licensing.py): the plan,
+    its dates, how many teachers and pupils it covers, the price and whether
+    it has been paid. A school may have several over time; the one whose
+    dates cover today is in force."""
+
+    class Plan(models.TextChoices):
+        SINOV = 'sinov', 'Sinov'
+        STANDART = 'standart', 'Standart'
+        PREMIUM = 'premium', 'Premium'
+
+    school = models.ForeignKey(School, related_name='licenses', on_delete=models.CASCADE)
+    plan = models.CharField(max_length=10, choices=Plan.choices, default=Plan.STANDART)
+    starts_on = models.DateField()
+    ends_on = models.DateField()
+    teacher_seats = models.PositiveIntegerField(null=True, blank=True)  # empty: no limit
+    pupil_seats = models.PositiveIntegerField(null=True, blank=True)
+    amount = models.PositiveBigIntegerField(null=True, blank=True)  # so'm
+    paid = models.BooleanField(default=False)
+    paid_on = models.DateField(null=True, blank=True)
+    note = models.TextField(blank=True)
+    # days-before-end reminders already sent (licensing.REMIND_AT), so the
+    # bot's hourly check says each one once
+    reminded = models.JSONField(default=list, blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='+', null=True, blank=True,
+                                   on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-starts_on', '-id']
+
+    def __str__(self):
+        return f'{self.school} {self.get_plan_display()} {self.starts_on}–{self.ends_on}'
+
+
+class SchoolManager(models.Model):
+    """A school's own ma'muriyat on the platform (role User.Role.MAKTAB):
+    sees that school's figures, teachers and journals, read-only
+    (schools/access.py)."""
+
+    class Position(models.TextChoices):
+        DIREKTOR = 'direktor', 'Direktor'
+        ZAVUCH = 'zavuch', 'Zavuch'
+        BOSHQA = 'boshqa', 'Boshqa'
+
+    school = models.ForeignKey(School, related_name='managers', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='school_manager_roles', on_delete=models.CASCADE)
+    position = models.CharField(max_length=10, choices=Position.choices, default=Position.DIREKTOR)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('school', 'user')
+        ordering = ['school__name', 'position']
+
+    def __str__(self):
+        return f'{self.user} — {self.get_position_display()}, {self.school}'

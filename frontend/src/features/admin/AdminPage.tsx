@@ -21,6 +21,9 @@ import { Presence } from '@/features/portal/Presence'
 import { SystemStats } from '@/features/statistics/SystemStats'
 import { useUIStore } from '@/store/uiStore'
 
+import { useSchools } from '@/features/schools/api'
+import { POSITIONS } from '@/features/schools/licence'
+
 import { EditPersonModal } from './EditPersonModal'
 import { ImportLessonsModal } from './ImportLessonsModal'
 import { ImportTranslationsModal } from './ImportTranslationsModal'
@@ -71,6 +74,16 @@ const ROLE_CAPABILITIES: { user: Pick<User, 'is_dev_superuser' | 'role'>; label:
       "Barcha tahlil, reyting, natija va dars hisobotlarini ko'radi (barcha o'qituvchilar bo'yicha)",
       "Hech narsani o'zgartira olmaydi — server darajasida faqat o'qish huquqi",
       "Faqat dasturchi tayinlaydi",
+    ],
+  },
+  {
+    user: { is_dev_superuser: false, role: 'maktab' },
+    label: "Maktab ma'muriyati",
+    items: [
+      "Hamkor maktabning direktori yoki zavuchi — faqat o'z maktabini ko'radi",
+      "Maktab statistikasi, o'qituvchilari, sinflari va litsenziya holati",
+      "O'qituvchilar jurnallarini faqat ko'rish rejimida ochadi",
+      "Hech narsani o'zgartira olmaydi (o'z profilidan tashqari)",
     ],
   },
   {
@@ -170,10 +183,14 @@ function CreateStaffModal({ onClose, onCreated, canObserver }: {
   const [last, setLast] = useState('')
   const [phone, setPhone] = useState('')
   const [role, setRole] = useState('teacher')
+  // "Maktab ma'muriyati": which school and as whom
+  const [school, setSchool] = useState('')
+  const [position, setPosition] = useState('direktor')
+  const schools = useSchools()
   const [error, setError] = useState('')
   const create = useMutation({
     mutationFn: async () => (await api.post<{ login: string; password: string }>('/accounts/users/create-staff/',
-      { first_name: first.trim(), last_name: last.trim(), phone, role })).data,
+      { first_name: first.trim(), last_name: last.trim(), phone, role, ...(role === 'maktab' ? { school, position } : {}) })).data,
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
       onCreated(res.login, res.password)
@@ -191,7 +208,7 @@ function CreateStaffModal({ onClose, onCreated, canObserver }: {
       onClose={onClose}
       footer={<>
         <button className="btn" onClick={onClose}>{t('Bekor qilish')}</button>
-        <button className="btn btn--primary" disabled={create.isPending || !first.trim() || /\s/.test(first.trim())}
+        <button className="btn btn--primary" disabled={create.isPending || !first.trim() || /\s/.test(first.trim()) || (role === 'maktab' && !school)}
           onClick={() => { setError(''); create.mutate() }}>{t('Yaratish')}</button>
       </>}
     >
@@ -212,15 +229,32 @@ function CreateStaffModal({ onClose, onCreated, canObserver }: {
         <span className="field__label">{t('Telefon')} <small className="muted">({t('ixtiyoriy')})</small></span>
         <input className="input" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+998 90 123 45 67" />
       </label>
-      {canObserver && (
-        <label className="field">
-          <span className="field__label">{t('Rol')}</span>
-          <select className="input" value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="teacher">{t("O'qituvchi")}</option>
-            <option value="kuzatuvchi">{t('Kuzatuvchi')}</option>
-          </select>
-        </label>
+      <label className="field">
+        <span className="field__label">{t('Rol')}</span>
+        <select className="input" value={role} onChange={(e) => setRole(e.target.value)}>
+          <option value="teacher">{t("O'qituvchi")}</option>
+          <option value="maktab">{t("Maktab ma'muriyati (direktor, zavuch)")}</option>
+          {canObserver && <option value="kuzatuvchi">{t('Kuzatuvchi')}</option>}
+        </select>
+      </label>
+      {role === 'maktab' && (
+        <div className="row row--2">
+          <label className="field">
+            <span className="field__label">{t('Maktab')}</span>
+            <select className="input" value={school} onChange={(e) => setSchool(e.target.value)}>
+              <option value="">{t('Tanlang…')}</option>
+              {(schools.data ?? []).map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+            </select>
+          </label>
+          <label className="field">
+            <span className="field__label">{t('Lavozim')}</span>
+            <select className="input" value={position} onChange={(e) => setPosition(e.target.value)}>
+              {POSITIONS.map((x) => <option key={x.value} value={x.value}>{t(x.label)}</option>)}
+            </select>
+          </label>
+        </div>
       )}
+      {role === 'maktab' && <p className="prose prose--note">{t("Bu xodim platformada faqat tanlangan maktabning statistikasi, o'qituvchilari va jurnallarini ko'radi; hech narsani o'zgartira olmaydi.")}</p>}
       {error && <p className="form__note form__note--err" role="alert">{error}</p>}
     </Modal>
   )

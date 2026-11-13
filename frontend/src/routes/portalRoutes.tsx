@@ -6,17 +6,18 @@ import { Skeleton } from '@/components/Skeleton'
 import { AdminDataPanel, AdminPage } from '@/features/admin/AdminPage'
 import { ModulesPanel } from '@/features/admin/ModulesPanel'
 import { ProtectionPanel } from '@/features/admin/ProtectionPanel'
+import { LicencesPanel } from '@/features/admin/LicencesPanel'
 import { YearPicker } from '@/features/schools/YearPicker'
 import { JournalPage } from '@/features/journal/JournalPage'
 import { LessonsPage } from '@/features/lessons/LessonsPage'
 import { ChangePasswordPage } from '@/features/auth/ChangePasswordPage'
 import { StudentRegisterPage } from '@/features/auth/StudentRegisterPage'
 import { HomePage } from '@/features/home/HomePage'
-import { isAdminInView, isObserver, isOversight, isTeacherLike, useAuth } from '@/lib/auth/AuthContext'
+import { isAdminInView, isObserver, isOversight, isSchoolAdmin, isTeacherLike, useAuth } from '@/lib/auth/AuthContext'
 import { useModules } from '@/lib/modules'
 import { useUIStore, type ViewMode } from '@/store/uiStore'
 
-import { RequireAuth, RequireOversight, RequirePasswordChange, RequireModule, RequireStaff, RequireStudent, RequireTeacher } from './guards'
+import { RequireAuth, RequireOversight, RequirePasswordChange, RequireModule, RequireSchoolView, RequireStaff, RequireStudent, RequireTeacher } from './guards'
 
 // Every portal feature is its own lazy chunk: students never download the
 // staff pages (and vice versa), and the shop (administration only for
@@ -39,6 +40,7 @@ const ShopPage = named(() => import('@/features/shop/ShopPage'), 'ShopPage')
 const OrdersPage = named(() => import('@/features/shop/OrdersPage'), 'OrdersPage')
 const ShopAdminPage = named(() => import('@/features/shop/ShopAdminPage'), 'ShopAdminPage')
 const SchoolDetailPage = named(() => import('@/features/schools/SchoolDetailPage'), 'SchoolDetailPage')
+const MySchoolPage = named(() => import('@/features/schools/MySchoolPage'), 'MySchoolPage')
 const StatsHub = named(() => import('@/features/schools/StatsHub'), 'StatsHub')
 const MyClassesPage = named(() => import('@/features/schools/MyClassesPage'), 'MyClassesPage')
 
@@ -51,6 +53,7 @@ function Lazy({ children }: { children: ReactNode }) {
 export function StaffHome() {
   const { user } = useAuth()
   if (isObserver(user)) return <Navigate to="/statistics" replace />
+  if (isSchoolAdmin(user)) return <Navigate to="/my-school" replace />
   return <HomePage />
 }
 
@@ -93,6 +96,7 @@ export function AdminTabs() {
       { key: 'security', label: 'Xavfsizlik jurnali', element: <SecurityLogPage /> },
       { key: 'modules', label: 'Modullar', element: <ModulesPanel /> },
       { key: 'himoya', label: 'Himoya', element: <ProtectionPanel /> },
+      { key: 'litsenziya', label: 'Litsenziyalar', element: <LicencesPanel /> },
       { key: 'yillar', label: "O'quv yillari", element: <AcademicYearsPanel /> },
     ]} />
   )
@@ -159,7 +163,8 @@ export const staffPortalRoutes: RouteObject[] = [
   { path: '/manage/materials', element: <MovedTo to="/lessons" bolim="materiallar" /> },
   { path: '/manage/shop', element: <MovedTo to="/shop" bolim="sotuv" /> },
   { path: '/manage/schools', element: <MovedTo to="/statistics" bolim="jurnal" /> },
-  { path: '/manage/schools/:id', element: oversight(<SchoolDetailPage />) },
+  { path: '/manage/schools/:id', element: <RequireSchoolView><Lazy><SchoolDetailPage /></Lazy></RequireSchoolView> },
+  { path: '/my-school', element: <Lazy><MySchoolPage /></Lazy> },
   { path: '/manage/database', element: <MovedTo to="/statistics" bolim="baza" /> },
   { path: '/manage/security', element: <MovedTo to="/admin" bolim="security" /> },
 ]

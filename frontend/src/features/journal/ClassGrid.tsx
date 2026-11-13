@@ -60,9 +60,11 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
   const lock = grid.lock
   // a past o'quv yili's journal: looked at, not written (but for opened days)
   const past = !!lock?.past_year
-  const owner = (!lock || lock.owner) && !past
+  // the school's licence isn't in force (Litsenziyalar): nothing is written
+  const unlicensed = !!lock?.licence
+  const owner = (!lock || lock.owner) && !past && !unlicensed
   // its quarter grades open while an administrator's permission does
-  const finalsOpen = past ? !!lock?.owner && (lock?.grants.length ?? 0) > 0 : owner
+  const finalsOpen = unlicensed ? false : past ? !!lock?.owner && (lock?.grants.length ?? 0) > 0 : owner
 
   const students = grid.students
   const days = grid.days.filter((d) => d.chorak === chorak).sort((a, b) => a.date.localeCompare(b.date))
@@ -209,6 +211,7 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
             <span className="jscale" title={t('Baholash shkalasi')}>{t(SCALES.find((x) => x.v === scale)!.label)}</span>
           )}
           {past && <span className="jpast">{IC.lock} {cls.year_name} {t("o'quv yili — faqat ko'rish")}</span>}
+          {unlicensed && <span className="jpast" title={t(lock!.licence!)}>{IC.lock} {t("Litsenziya amalda emas — faqat ko'rish")}</span>}
           {lock && lock.pending.length > 0 && <span className="jpending">{IC.lock} {lock.pending.length} {t("ta so'rov ko'rib chiqilmoqda")}</span>}
           <GuideLink section="jurnal" />
         </div>

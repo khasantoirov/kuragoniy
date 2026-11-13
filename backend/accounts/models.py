@@ -83,6 +83,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         # results and report screen admins see, but every write is refused
         # server-side — see common/authentication.py and IsApproved.
         KUZATUVCHI = 'kuzatuvchi', 'Kuzatuvchi'
+        # A partner school's own ma'muriyat (direktor, zavuch): sees only
+        # their school(s) — schools.SchoolManager — and writes nothing.
+        MAKTAB = 'maktab', "Maktab ma'muriyati"
         # Only ever reaches the student portal (/api/student/, games) —
         # every staff endpoint refuses them (common/authentication.py).
         STUDENT = 'student', "O'quvchi"
@@ -194,6 +197,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_observer(self):
         return self.role == self.Role.KUZATUVCHI and not self.is_dev_superuser
+
+    @property
+    def is_school_admin(self):
+        return self.role == self.Role.MAKTAB and not self.is_dev_superuser
 
     @property
     def is_admin(self):

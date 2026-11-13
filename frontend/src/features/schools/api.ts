@@ -21,6 +21,58 @@ export interface School {
   /** A school's page: the o'quv yili in view, and the partnership year by year. */
   year?: number
   years?: SchoolYearRow[]
+  /** A school's page: its licence state (backend schools/licensing.py). */
+  licence?: LicenceStatus & { usage: { teachers: number; pupils: number }; enforced: boolean }
+  /** A school's page: its own ma'muriyat on the platform. */
+  managers?: { id: string; name: string; phone: string; position: ManagerPosition; position_label: string }[]
+}
+
+export type ManagerPosition = 'direktor' | 'zavuch' | 'boshqa'
+export type TeacherKind = 'maktab' | 'muhandis'
+export type LicenceState = 'none' | 'future' | 'expired' | 'ending' | 'trial' | 'unpaid' | 'active'
+export type LicencePlan = 'sinov' | 'standart' | 'premium'
+
+export interface Licence {
+  id: number
+  plan: LicencePlan
+  plan_label: string
+  starts_on: string
+  ends_on: string
+  teacher_seats: number | null
+  pupil_seats: number | null
+  amount: number | null
+  paid: boolean
+  paid_on: string | null
+  note: string
+}
+
+export interface LicenceStatus {
+  state: LicenceState
+  label: string
+  in_force: boolean
+  days_left: number | null
+  licence: Licence | null
+}
+
+export interface LicenceRow extends LicenceStatus {
+  school: { id: number; name: string; is_active: boolean; district: string }
+  usage: { teachers: number; pupils: number }
+  history: Licence[]
+}
+
+export interface LicencesOverview {
+  enforced: boolean
+  ending_days: number
+  plans: { value: LicencePlan; label: string }[]
+  schools: LicenceRow[]
+}
+
+export function useLicences(enabled = true) {
+  return useQuery({
+    queryKey: ['schools', 'licences'],
+    enabled,
+    queryFn: async () => (await api.get<LicencesOverview>('/schools/licenses/')).data,
+  })
 }
 
 export interface SchoolYearRow {
@@ -37,6 +89,8 @@ export interface SchoolTeacherRow {
   phone: string
   email: string | null
   assigned: boolean
+  /** the school's own teacher, or one Muhandis D sends */
+  kind: TeacherKind
   classes: number
   since: string | null
   online?: boolean
@@ -138,6 +192,8 @@ export interface SchoolStats {
   school: { id: number; name: string; district: string; is_active: boolean } | null
   totals: Metrics
   teachers: GroupRow[]
+  /** Muhandis D's teachers vs the school's own (id: TeacherKind) */
+  by_kind?: (GroupRow & { teachers: number })[]
   classes: ClassRow[]
   trend: TrendPoint[]
   composition?: Composition

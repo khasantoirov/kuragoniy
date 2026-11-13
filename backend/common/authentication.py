@@ -46,6 +46,12 @@ def enforce_portal(user, path: str, method: str) -> None:
         and not path.startswith(SELF_SERVICE_PREFIXES)
     ):
         raise PermissionDenied("Kuzatuvchi faqat ko'ra oladi.", code='read_only_role')
+    if (
+        getattr(user, 'is_school_admin', False)
+        and method not in SAFE_METHODS
+        and not path.startswith(SELF_SERVICE_PREFIXES)
+    ):
+        raise PermissionDenied("Maktab ma'muriyati faqat ko'ra oladi.", code='read_only_role')
 
 
 class RoleAwareJWTAuthentication(JWTAuthentication):
