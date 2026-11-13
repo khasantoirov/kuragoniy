@@ -14,6 +14,8 @@ import type { Paginated, User } from '@/lib/api/types'
 import { isAdmin, isOversight, isSchoolAdmin, useAuth } from '@/lib/auth/AuthContext'
 
 import { CHORAK_OPTIONS, useSchool, useSchoolsMutation, useSchoolStats, type TeacherKind } from './api'
+import { SchoolTrainingPanel } from '@/features/training/SchoolTrainingPanel'
+
 import { KindComparison, LicencePanel, ManagersPanel } from './SchoolLicencePanels'
 import { MoveTeacherModal } from './MoveTeacherModal'
 import { Presence } from '@/features/portal/Presence'
@@ -150,6 +152,7 @@ export function SchoolDetailPage() {
 
       {data && <TrendPanels trend={data.trend} composition={data.composition} view={view} />}
       {data?.by_kind && <KindComparison rows={data.by_kind} />}
+      {school && <SchoolTrainingPanel schoolId={school.id} />}
 
       {!isNone && (
         <section className="panel">

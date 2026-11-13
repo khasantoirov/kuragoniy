@@ -252,7 +252,13 @@ function correctText(item: ReviewItem): string | null {
 }
 
 /** Score header + per-question review after submission. */
-export function AttemptReview({ result, onClose }: { result: AttemptResult; onClose?: () => void }) {
+export function AttemptReview({ result, onClose, passLabel, revealNote }: {
+  result: AttemptResult
+  onClose?: () => void
+  /** what a pass is called here (default: the readiness check's words) */
+  passLabel?: string
+  revealNote?: string
+}) {
   const { t } = useTranslation()
   const correctCount = result.items.filter((i) => i.ok).length
   return (
@@ -265,13 +271,13 @@ export function AttemptReview({ result, onClose }: { result: AttemptResult; onCl
         </span>
         {result.passed !== undefined && (
           <span className={`pill ${result.passed ? 'pill--ok' : 'pill--bad'}`}>
-            {result.passed ? `✓ ${t('Darsga tayyorsiz')}` : `${t('Yana takrorlang')} (${result.pass_percent}%+)`}
+            {result.passed ? `✓ ${passLabel ?? t('Darsga tayyorsiz')}` : `${t('Yana takrorlang')} (${result.pass_percent}%+)`}
           </span>
         )}
         {result.is_late && <span className="pill pill--mid">{t('Kechikib topshirilgan')}</span>}
       </div>
       {result.revealed === false && (
-        <p className="form__note">{t("To'g'ri javoblar o'qituvchi belgilagan vaqtda ko'rsatiladi.")}</p>
+        <p className="form__note">{revealNote ?? t("To'g'ri javoblar o'qituvchi belgilagan vaqtda ko'rsatiladi.")}</p>
       )}
       <ol className="review__list">
         {result.items.map((item) => {

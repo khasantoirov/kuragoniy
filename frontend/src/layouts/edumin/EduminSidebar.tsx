@@ -18,7 +18,7 @@ export interface EduminNavItem {
  *  yangi marshrut yo'qolib qolmasligi uchun oxirgi bo'limga tushadi. */
 const GROUPS: { title: string; paths: string[] }[] = [
   { title: 'Asosiy', paths: ['/', '/my-school'] },
-  { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/assignments', '/reports', '/library'] },
+  { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/assignments', '/reports', '/training', '/library'] },
   { title: "Ma'muriyat", paths: ['/statistics', '/admin', '/equipment-sheet', '/shop', '/guide'] },
 ]
 

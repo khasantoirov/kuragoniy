@@ -31,6 +31,7 @@ export const DEFAULT_SOUNDS: Record<NotifyKind, SoundKey> = {
   jamoa: 'soft',
   jurnal: 'short',
   tizim: 'signal',
+  malaka: 'bell',
 }
 
 const DEFAULTS: DeviceSettings = { popup: false, sound: true, volume: 0.6, sounds: {}, custom: null, customName: null }

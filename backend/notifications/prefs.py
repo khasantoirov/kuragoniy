@@ -20,6 +20,7 @@ DEFAULTS = {
     Kind.JAMOA: {'app': True, 'telegram': False, 'email': False},
     Kind.JURNAL: {'app': True, 'telegram': True, 'email': False},
     Kind.TIZIM: {'app': True, 'telegram': True, 'email': False},
+    Kind.MALAKA: {'app': True, 'telegram': True, 'email': False},
 }
 
 DESCRIPTIONS = {
@@ -34,6 +35,7 @@ DESCRIPTIONS = {
     Kind.JAMOA: "Jamoaga yangi xodim qo'shilganda",
     Kind.JURNAL: "O'tgan kun jurnalini tahrirlash uchun ruxsat so'ralganda, berilganda yoki rad etilganda; nazorat ishi natijalari kiritilganda",
     Kind.TIZIM: 'Hisobingiz tasdiqlanganda va boshqa tizim xabarlari',
+    Kind.MALAKA: "Sizga malaka oshirish kursi biriktirilganda, muddati yaqinlashganda va sertifikat berilganda",
 }
 
 
@@ -44,6 +46,8 @@ def kinds_for(user) -> list[str]:
     out = [Kind.ELON, Kind.HISOBOT, Kind.RAGBAT, Kind.OQUVCHI, Kind.TUGILGAN, Kind.XAVFSIZLIK]
     if not user.is_observer:
         out.append(Kind.JURNAL)
+    if not user.is_observer and not user.is_school_admin:
+        out.append(Kind.MALAKA)
     if user.is_admin:
         out += [Kind.DOKON, Kind.JAMOA]
     out.append(Kind.TIZIM)

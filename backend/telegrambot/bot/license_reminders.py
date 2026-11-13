@@ -1,6 +1,7 @@
 """Hourly: tell the administration (and the school's ma'muriyat) when a
 school's licence is close to its end — schools/licensing.py send_reminders
-says each reminder (14, 7, 3, 1 days, the last day) once."""
+says each reminder (14, 7, 3, 1 days, the last day) once — and teachers
+when an assigned course is nearly due (training/services.py)."""
 
 import asyncio
 import logging
@@ -13,8 +14,10 @@ CHECK_EVERY_SECONDS = 3600
 
 def _send_sync() -> int:
     from schools.licensing import send_reminders
+    from training.services import send_due_reminders
 
-    return send_reminders()
+    # the same hourly check also reminds teachers of their courses' deadlines
+    return send_reminders() + send_due_reminders()
 
 
 async def watch_license_reminders(bot):  # noqa: ARG001 — kept for a consistent watcher signature

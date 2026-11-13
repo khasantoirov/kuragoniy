@@ -17,7 +17,7 @@ import { isAdminInView, isObserver, isOversight, isSchoolAdmin, isTeacherLike, u
 import { useModules } from '@/lib/modules'
 import { useUIStore, type ViewMode } from '@/store/uiStore'
 
-import { RequireAuth, RequireOversight, RequirePasswordChange, RequireModule, RequireSchoolView, RequireStaff, RequireStudent, RequireTeacher } from './guards'
+import { RequireAdmin, RequireAuth, RequireOversight, RequirePasswordChange, RequireModule, RequireSchoolView, RequireStaff, RequireStudent, RequireTeacher } from './guards'
 
 // Every portal feature is its own lazy chunk: students never download the
 // staff pages (and vice versa), and the shop (administration only for
@@ -41,6 +41,10 @@ const OrdersPage = named(() => import('@/features/shop/OrdersPage'), 'OrdersPage
 const ShopAdminPage = named(() => import('@/features/shop/ShopAdminPage'), 'ShopAdminPage')
 const SchoolDetailPage = named(() => import('@/features/schools/SchoolDetailPage'), 'SchoolDetailPage')
 const MySchoolPage = named(() => import('@/features/schools/MySchoolPage'), 'MySchoolPage')
+const TrainingPage = named(() => import('@/features/training/TrainingPage'), 'TrainingPage')
+const CoursePage = named(() => import('@/features/training/CoursePage'), 'CoursePage')
+const CourseEditor = named(() => import('@/features/training/CourseEditor'), 'CourseEditor')
+const VerifyPage = named(() => import('@/features/training/VerifyPage'), 'VerifyPage')
 const StatsHub = named(() => import('@/features/schools/StatsHub'), 'StatsHub')
 const MyClassesPage = named(() => import('@/features/schools/MyClassesPage'), 'MyClassesPage')
 
@@ -165,6 +169,9 @@ export const staffPortalRoutes: RouteObject[] = [
   { path: '/manage/schools', element: <MovedTo to="/statistics" bolim="jurnal" /> },
   { path: '/manage/schools/:id', element: <RequireSchoolView><Lazy><SchoolDetailPage /></Lazy></RequireSchoolView> },
   { path: '/my-school', element: <Lazy><MySchoolPage /></Lazy> },
+  { path: '/training', element: staff(<RequireModule keys={['training']}><TrainingPage /></RequireModule>) },
+  { path: '/training/:id', element: staff(<RequireModule keys={['training']}><CoursePage /></RequireModule>) },
+  { path: '/training/:id/edit', element: <RequireAdmin><RequireModule keys={['training']}><Lazy><CourseEditor /></Lazy></RequireModule></RequireAdmin> },
   { path: '/manage/database', element: <MovedTo to="/statistics" bolim="baza" /> },
   { path: '/manage/security', element: <MovedTo to="/admin" bolim="security" /> },
 ]
@@ -183,6 +190,8 @@ export const topLevelPortalRoutes: RouteObject[] = [
       </RequireAuth>
     ),
   },
+  // a certificate's public check — no sign-in, inside or outside
+  { path: '/verify/:code', element: <Lazy><VerifyPage /></Lazy> },
   {
     path: '/change-password',
     element: (

@@ -10,7 +10,7 @@ import { useAuth } from '@/lib/auth/AuthContext'
    home; its data stays. */
 
 export type ModuleKey = 'lab' | 'library' | 'timetable' | 'assignments' | 'games' | 'reports' | 'readiness' | 'shop' | 'equipment' | 'poster'
-  | 'materials'
+  | 'materials' | 'training'
 
 /** This platform's optional sections, in the order Modullar lists them. */
 export const MODULES: { key: ModuleKey; label: string; sub: string }[] = [
@@ -23,6 +23,7 @@ export const MODULES: { key: ModuleKey; label: string; sub: string }[] = [
   { key: 'shop', label: "Do'kon", sub: "Dars ishlanmalari va tajriba to'plamlari savdosi" },
   { key: 'equipment', label: "Jihozlar jadvali", sub: "Darslar uchun rasmli jihozlar ro'yxati" },
   { key: 'materials', label: "O'quv materiallari", sub: "Darslar bo'limida: o'quvchilar ko'radigan nazariya, formulalar va videolar" },
+  { key: 'training', label: "Malaka oshirish", sub: "O'qituvchilar uchun kurslar: modullar, testlar va sertifikat" },
 ]
 
 export interface ModulesState {
@@ -87,6 +88,7 @@ const ROUTE_MODULES: Record<string, ModuleKey[]> = {
   '/equipment-sheet': ['equipment'],
   '/s/homework': ['assignments'],
   '/s/games': ['games'],
+  '/training': ['training'],
 }
 
 export function routeOn(to: string, on: (key: ModuleKey) => boolean) {

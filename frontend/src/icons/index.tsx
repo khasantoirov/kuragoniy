@@ -69,6 +69,7 @@ export const IC = {
   gear: wrap(<><circle cx="12" cy="12" r="3.2" /><path d="M19.4 13a7.6 7.6 0 0 0 .1-2l2-1.5-2-3.4-2.4.6a7.6 7.6 0 0 0-1.7-1L15 3h-6l-.4 2.7a7.6 7.6 0 0 0-1.7 1l-2.4-.6-2 3.4L4.5 11a7.6 7.6 0 0 0 0 2l-2 1.5 2 3.4 2.4-.6a7.6 7.6 0 0 0 1.7 1L9 21h6l.4-2.7a7.6 7.6 0 0 0 1.7-1l2.4.6 2-3.4Z" /></>),
   telegram: wrap(<path d="M21 4.5 3 11.3l6 2.2m12-9-2.2 14c-.15.95-1.28 1.35-2.02.75L13 15.6l-3 2.9v-4.3l9.3-8.4c.4-.35-.1-.55-.6-.25L7 13.5" />),
   instagram: wrap(<><rect x="3" y="3" width="18" height="18" rx="5.5" /><circle cx="12" cy="12" r="4.2" /><circle cx="17.4" cy="6.6" r=".9" fill="currentColor" stroke="none" /></>),
+  cap: wrap(<><path d="M2 9.5 12 5l10 4.5-10 4.5Z" /><path d="M6 11.4v4.1c0 1.4 2.7 2.9 6 2.9s6-1.5 6-2.9v-4.1" /><path d="M22 9.5v5" /></>),
   youtube: wrap(<><rect x="2" y="5.5" width="20" height="13" rx="4" /><path d="M10 9.2v5.6l5-2.8Z" fill="currentColor" stroke="none" /></>),
 } as const
 

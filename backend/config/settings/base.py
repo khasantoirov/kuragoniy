@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'shop',
     'schools',
     'notifications',
+    'training',
 ]
 
 MIDDLEWARE = [
