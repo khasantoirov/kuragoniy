@@ -310,7 +310,8 @@ class AssignView(APIView):
         course = get_object_or_404(Course, pk=pk)
         if not course.is_published:
             raise ValidationError({'detail': "Avval kursni e'lon qiling."})
-        ids = {int(i) for i in (request.data.get('teachers') or []) if str(i).isdigit()}
+        # user ids are strings (accounts.User.id)
+        ids = {str(i) for i in (request.data.get('teachers') or []) if i}
         school = request.data.get('school')
         if school:
             ids |= set(SchoolTeacher.objects.filter(school_id=school).values_list('teacher_id', flat=True))

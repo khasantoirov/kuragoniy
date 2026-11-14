@@ -7,10 +7,12 @@ import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
 import { errText, StatusPill } from '@/features/portal/ui'
 import { useYears, type AcademicYear } from '@/features/schools/api'
+import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import { record } from '@/lib/history'
 import { useYearStore } from '@/lib/year'
 
+import { QuartersModal } from './QuartersModal'
 import { RolloverModal } from './RolloverModal'
 
 /** Boshqaruv → O'quv yillari: the years, which one is current (where new
@@ -23,6 +25,7 @@ export function AcademicYearsPanel() {
   const setYear = useYearStore((s) => s.setYear)
   const { data: years, isLoading } = useYears()
   const [rolling, setRolling] = useState<AcademicYear | null>(null)
+  const [quarters, setQuarters] = useState<AcademicYear | null>(null)
 
   const refresh = () => {
     setYear(null)
@@ -78,6 +81,9 @@ export function AcademicYearsPanel() {
                   <td data-label={t('Sinflar')}>{y.classes}</td>
                   <td>{y.is_current ? <StatusPill tone="ok">{t('Joriy')}</StatusPill> : null}</td>
                   <td className="dtable__acts">
+                    <button className="btn btn--sm" onClick={() => setQuarters(y)}>
+                      {IC.calendar} {t('Choraklar')}{!y.quarters_exact && <small className="muted"> · {t('taxminiy')}</small>}
+                    </button>
                     {y.classes > 0 && (
                       <button className="btn btn--sm btn--primary" onClick={() => setRolling(y)}>{t("Keyingi yilga o'tkazish")}…</button>
                     )}
@@ -102,6 +108,7 @@ export function AcademicYearsPanel() {
         </div>
       )}
       {rolling && <RolloverModal year={rolling} onClose={() => setRolling(null)} />}
+      {quarters && <QuartersModal year={quarters} onClose={() => setQuarters(null)} />}
     </section>
   )
 }

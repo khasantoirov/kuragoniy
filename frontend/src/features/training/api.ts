@@ -73,7 +73,7 @@ export interface ModuleView {
 
 export interface Certificate {
   id: number
-  user: number
+  user: string
   course: number | null
   course_title: string
   name: string
@@ -115,7 +115,7 @@ export interface EditorCourse extends CourseMeta {
 }
 
 export interface PersonRow extends Progress {
-  user: number
+  user: string
   name: string
   photo: string | null
   assigned: boolean
@@ -128,7 +128,7 @@ export interface PersonRow extends Progress {
 export interface SchoolTraining {
   certified: number
   teachers: {
-    id: number
+    id: string
     name: string
     courses: { course: number; title: string; percent: number; completed: boolean; due_on: string | null; overdue: boolean; certificate: { id: number; number: string } | null }[]
   }[]

@@ -73,6 +73,9 @@ class AcademicYear(models.Model):
 
     start_year = models.PositiveSmallIntegerField(unique=True)
     is_current = models.BooleanField(default=False)
+    # The four choraks' dates, [{"start": "2026-09-02", "end": "2026-11-01"}, …];
+    # empty: staffroom/calendar.py's usual dates for the year are used.
+    quarters = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

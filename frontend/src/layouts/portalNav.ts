@@ -16,6 +16,7 @@ interface PortalLink {
 /** Teacher-window and administration-window entries added on top of the
  * original staff navigation (AppShell NAV_ITEMS). */
 const PORTAL_LINKS: PortalLink[] = [
+  { to: '/staffroom', label: 'Ustozlar xonasi', sub: "Ertangi darslar, fayllar, mehmon ustoz", icon: 'users', audience: 'teacher' },
   { to: '/assignments', label: 'Vazifalar', sub: 'Darsni sinfga topshirish va natijalar', icon: 'list', audience: 'teacher' },
   { to: '/reports', label: 'Dars hisobotlari', sub: "O'tgan darsni ma'muriyatga topshirish", icon: 'file', audience: 'staff' },
   { to: '/training', label: 'Malaka oshirish', sub: "Kurslar, modul testlari va sertifikat", icon: 'cap', audience: 'staff' },

@@ -206,6 +206,15 @@ def test_assign_a_school_and_its_page(as_user, admin, teacher, course, make_user
     assert as_user(boss).post(f"/api/training/lessons/{m1.lessons.first().id}/done/").status_code == 403
 
 
+def test_assign_picked_teachers(as_user, admin, teacher, course, make_user):
+    other = make_user("other@example.com", approved=True)
+    observer = make_user("watch@example.com", role=User.Role.KUZATUVCHI, approved=True)
+    resp = as_user(admin).post(f"/api/training/courses/{course.id}/assign/",
+                               {"teachers": [teacher.id, other.id, observer.id]}, format="json")
+    assert resp.status_code == 200 and resp.data == {"assigned": 2, "updated": 0}
+    assert set(Enrollment.objects.filter(course=course).values_list("user_id", flat=True)) == {teacher.id, other.id}
+
+
 def test_due_reminders_once_per_mark(admin, teacher, course):
     today = timezone.localdate()
     services.assign(course, [teacher], admin, today + timedelta(days=3))

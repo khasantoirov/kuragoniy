@@ -1,0 +1,50 @@
+/* ══ Ustozlar xonasi (features/staffroom) ═══════════════════════ */
+
+.sroom__bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.sroom__bar .input[type=date] { width: auto; }
+.sroom__head { font-size: 14px; color: var(--ink-2); }
+
+.sroom__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.sroom__slot { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 14px; padding: 16px; border-radius: var(--r);
+  background: var(--surface); border: 1px solid var(--rule); }
+.sroom__slot.is-band { background: var(--paper); opacity: .8; }
+.sroom__when { display: grid; justify-items: center; align-content: start; gap: 4px; text-align: center; }
+.sroom__when small { font-size: 11.5px; color: var(--ink-3); line-height: 1.3; }
+.sroom__p { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 12px;
+  background: var(--tone-info-bg); color: var(--pick); font: 700 18px/1 var(--f-display, inherit); }
+.sroom__main { min-width: 0; display: grid; gap: 8px; }
+.sroom__where { margin: 0; font-size: 14px; color: var(--ink-2); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.sroom__where b { color: var(--ink); font-size: 15px; }
+.sroom__where .svic { width: 15px; height: 15px; }
+.sroom__lesson { display: grid; gap: 4px; padding: 12px; border-radius: var(--r); background: var(--paper); border: 1px solid var(--rule-2); }
+.sroom__meta { margin: 0; font-size: 12px; color: var(--ink-3); }
+.sroom__title { font-size: 16px; font-weight: 600; color: var(--ink); text-decoration: none; }
+.sroom__title:hover { color: var(--pick); }
+.sroom__goal { margin: 0; font-size: 13px; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.sroom__exps { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-2); display: flex; gap: 6px; align-items: flex-start; }
+.sroom__exps .svic { width: 14px; height: 14px; flex: none; margin-top: 2px; color: var(--pick); }
+.sroom__acts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; }
+.sroom__acts .svic { width: 15px; height: 15px; }
+.sroom__ready { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); }
+.sroom__none { margin: 0; padding: 10px 12px; border-radius: var(--r); background: var(--paper); font-size: 13px; color: var(--ink-3); }
+.sroom__tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.sroom__tools select { max-width: 340px; }
+.sroom__tools .svic { width: 15px; height: 15px; }
+
+.sroom__form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
+.sroom__lessonline { margin: 0 0 12px; font-size: 14px; }
+
+/* Boshqaruv → O'quv yillari: chorak dates */
+.qdates { display: grid; gap: 8px; }
+.qdates__row { display: grid; grid-template-columns: 90px minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: center; }
+.qdates__row b { font-size: 13.5px; }
+
+@media (max-width: 560px) {
+  .sroom__slot { grid-template-columns: 1fr; gap: 8px; padding: 12px; }
+  .sroom__when { grid-auto-flow: column; justify-content: start; align-items: center; gap: 8px; }
+  .sroom__p { width: 32px; height: 32px; font-size: 15px; border-radius: 10px; }
+  .sroom__form { grid-template-columns: 1fr; }
+  .sroom__tools select { max-width: 100%; width: 100%; }
+  .qdates__row { grid-template-columns: 1fr 1fr; }
+  .qdates__row b { grid-column: 1 / -1; }
+}

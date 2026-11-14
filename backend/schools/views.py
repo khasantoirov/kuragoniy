@@ -639,8 +639,13 @@ class DirectoryView(APIView):
 
 
 def _year_row(year, counts):
+    from staffroom.calendar import quarters_of
+
+    quarters, exact = quarters_of(year)
     return {'id': year.id, 'name': year.name, 'start_year': year.start_year,
-            'is_current': year.is_current, 'classes': counts.get(year.id, 0)}
+            'is_current': year.is_current, 'classes': counts.get(year.id, 0),
+            # the chorak dates the staffroom counts weeks by; exact: set by the administration
+            'quarters': [{'start': a, 'end': b} for a, b in quarters], 'quarters_exact': exact}
 
 
 class AcademicYearsView(APIView):
@@ -677,6 +682,21 @@ class AcademicYearView(APIView):
         year.make_current()
         bump_stats_cache()
         log_event('academic_year_current', actor=request.user, request=request, detail=year.name)
+        counts = dict(JournalClass.objects.values('year').annotate(n=Count('id')).values_list('year', 'n'))
+        return Response(_year_row(year, counts))
+
+    def patch(self, request, pk):
+        """{quarters: [{start, end}] × 4} — the year's chorak dates."""
+        from staffroom.calendar import validate_quarters
+
+        year = get_object_or_404(AcademicYear, pk=pk)
+        try:
+            year.quarters = validate_quarters(request.data.get('quarters'))
+        except ValueError as err:
+            return Response({'detail': str(err)}, status=status.HTTP_400_BAD_REQUEST)
+        year.save(update_fields=['quarters'])
+        log_event('academic_year_quarters', actor=request.user, request=request,
+                  detail=f"{year.name}: " + ', '.join(f"{q['start']}–{q['end']}" for q in year.quarters))
         counts = dict(JournalClass.objects.values('year').annotate(n=Count('id')).values_list('year', 'n'))
         return Response(_year_row(year, counts))
 

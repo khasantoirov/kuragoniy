@@ -28,6 +28,7 @@ class Kind(models.TextChoices):
     JURNAL = 'jurnal', 'Jurnal ruxsatlari'
     TIZIM = 'tizim', 'Tizim'
     MALAKA = 'malaka', 'Malaka oshirish'
+    USTOZ = 'ustoz', 'Mehmon ustoz'
 
 
 class Notification(models.Model):

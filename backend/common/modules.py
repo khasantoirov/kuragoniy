@@ -9,7 +9,7 @@ from django.apps import apps
 from .models import PlatformSettings
 
 MODULES = ('lab', 'library', 'timetable', 'assignments', 'games', 'reports', 'readiness', 'shop', 'equipment', 'poster',
-           'materials', 'training')
+           'materials', 'training', 'staffroom')
 
 
 def state() -> dict:
@@ -41,4 +41,5 @@ def usage() -> dict:
         'poster': _count('lessons.LessonPoster'),
         'materials': _count('learning.LessonMaterial'),
         'training': _count('training.Course'),
+        'staffroom': _count('staffroom.PlannedLesson') + _count('staffroom.GuestRequest'),
     }

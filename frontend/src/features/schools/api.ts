@@ -298,6 +298,10 @@ export interface AcademicYear {
   start_year: number
   is_current: boolean
   classes: number
+  /** the four choraks' dates (Ustozlar xonasi counts weeks by them) */
+  quarters: { start: string; end: string }[]
+  /** false: the usual dates, not set by the administration yet */
+  quarters_exact: boolean
 }
 
 export function useYears() {

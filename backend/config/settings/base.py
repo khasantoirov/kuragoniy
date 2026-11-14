@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'schools',
     'notifications',
     'training',
+    'staffroom',
 ]
 
 MIDDLEWARE = [

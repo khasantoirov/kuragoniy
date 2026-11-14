@@ -50,7 +50,7 @@ function AssignModal({ course, onClose }: { course: CourseDetail; onClose: () =>
     setBusy(true)
     try {
       const res = await api.post<{ assigned: number; updated: number }>(`/training/courses/${course.id}/assign/`, {
-        school: school || null, teachers: [...picked].map(Number), due_on: due || null,
+        school: school || null, teachers: [...picked], due_on: due || null,
       })
       qc.invalidateQueries({ queryKey: ['training'] })
       toast(`${t('Biriktirildi')}: ${res.data.assigned}${res.data.updated ? ` · ${t('yangilandi')}: ${res.data.updated}` : ''}`)
@@ -99,7 +99,7 @@ function PeopleTab({ course }: { course: CourseDetail }) {
   const { user } = useAuth()
   const { data, isLoading } = useCourseProgress(course.id)
   const [cert, setCert] = useState<number | null>(null)
-  const unassign = async (id: number, name: string) => {
+  const unassign = async (id: string, name: string) => {
     if (!(await confirm({ title: t('Kursdan chiqarish'), text: name }))) return
     try {
       await api.post(`/training/courses/${course.id}/unassign/`, { user: id })
