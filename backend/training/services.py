@@ -250,6 +250,9 @@ def complete_if_done(user, course) -> Certificate | None:
     Enrollment.objects.filter(user=user, course=course, completed_at__isnull=True).update(completed_at=cert.issued_at)
     if not Enrollment.objects.filter(user=user, course=course).exists():
         Enrollment.objects.create(user=user, course=course, completed_at=cert.issued_at)
+    from feed.services import auto_post
+
+    auto_post(user, f"🎓 {user.name} «{course.title}» malaka oshirish kursini tugatib, sertifikat oldi.", f'cert:{cert.id}')
     notify(
         user, NotifyKind.MALAKA, 'Sertifikat berildi',
         f"«{course.title}» kursini tugatdingiz — sertifikat №{cert.number}.", url=f'/training?cert={cert.id}',

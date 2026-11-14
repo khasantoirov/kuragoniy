@@ -10,7 +10,7 @@ import { useAuth } from '@/lib/auth/AuthContext'
    home; its data stays. */
 
 export type ModuleKey = 'lab' | 'library' | 'timetable' | 'assignments' | 'games' | 'reports' | 'readiness' | 'shop' | 'equipment' | 'poster'
-  | 'materials' | 'training' | 'staffroom' | 'help' | 'kits' | 'achievements'
+  | 'materials' | 'training' | 'staffroom' | 'help' | 'kits' | 'achievements' | 'feed'
 
 /** This platform's optional sections, in the order Modullar lists them. */
 export const MODULES: { key: ModuleKey; label: string; sub: string }[] = [
@@ -28,6 +28,7 @@ export const MODULES: { key: ModuleKey; label: string; sub: string }[] = [
   { key: 'help', label: "Yordam markazi", sub: "Ko'p beriladigan savollar va ma'muriyatga murojaat" },
   { key: 'kits', label: "STEM chamadonlar", sub: "Darsga kerakli chamadon, yo'riqnoma, maktabdagi chamadonlar va so'rovlar" },
   { key: 'achievements', label: "Reyting va nishonlar", sub: "Ustozlarning oylik faollik reytingi, ustoz va o'quvchilar nishonlari" },
+  { key: 'feed', label: "Ustozlar lentasi", sub: "O'qituvchilar post, havola va izoh bilan tajriba almashadi" },
 ]
 
 export interface ModulesState {
@@ -96,6 +97,7 @@ const ROUTE_MODULES: Record<string, ModuleKey[]> = {
   '/staffroom': ['staffroom'],
   '/help': ['help'],
   '/achievements': ['achievements'],
+  '/feed': ['feed'],
 }
 
 export function routeOn(to: string, on: (key: ModuleKey) => boolean) {

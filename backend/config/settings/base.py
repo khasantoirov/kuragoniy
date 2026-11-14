@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'helpdesk',
     'kits',
     'achievements',
+    'feed',
 ]
 
 MIDDLEWARE = [

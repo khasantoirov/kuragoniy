@@ -132,6 +132,11 @@ def sync(users) -> int:
                     row.save(update_fields=['tier', 'earned_at'])
                 else:
                     UserBadge.objects.create(user=u, key=badge['key'], tier=tier)
+                if u.id in counted and who == 'teacher' and tier >= 2:
+                    from feed.services import auto_post
+
+                    auto_post(u, f"🏅 {u.name} «{badge['label']}» nishonining {TIER_NAMES[tier]} darajasini oldi.",
+                              f"badge:{u.id}:{badge['key']}:{tier}")
                 if u.id in counted:
                     notify(u, NotifyKind.RAGBAT, f"Yangi nishon: «{badge['label']}» — {TIER_NAMES[tier]}",
                            f"{badge['tiers'][tier - 1]} {badge['unit']}",
