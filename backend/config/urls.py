@@ -29,6 +29,7 @@ urlpatterns = [
     path('api/schools/', include('schools.urls')),
     path('api/training/', include('training.urls')),
     path('api/staffroom/', include('staffroom.urls')),
+    path('api/help/', include('helpdesk.urls')),
     path('api/common/modules/', ModulesView.as_view(), name='platform-modules'),
     path('api/common/protection-event/', ProtectionEventView.as_view(), name='protection-event'),
     # Lesson files, books, sheets, posters: expiring links (common/protected_media.py).

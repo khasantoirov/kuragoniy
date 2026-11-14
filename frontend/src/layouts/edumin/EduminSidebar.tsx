@@ -17,7 +17,7 @@ export interface EduminNavItem {
  *  tekis ro'yxatdan asosiy tuzilmaviy farqi shu. Ro'yxatga kirmagan
  *  yangi marshrut yo'qolib qolmasligi uchun oxirgi bo'limga tushadi. */
 const GROUPS: { title: string; paths: string[] }[] = [
-  { title: 'Asosiy', paths: ['/', '/my-school'] },
+  { title: 'Asosiy', paths: ['/', '/my-school', '/help'] },
   { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/staffroom', '/assignments', '/reports', '/training', '/library'] },
   { title: "Ma'muriyat", paths: ['/statistics', '/admin', '/equipment-sheet', '/shop', '/guide'] },
 ]

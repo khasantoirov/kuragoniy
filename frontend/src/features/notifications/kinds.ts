@@ -17,6 +17,7 @@ export const KIND_META: Record<NotifyKind, { label: string; icon: keyof typeof I
   tizim: { label: 'Tizim', icon: 'info', tone: '#7a8194' },
   malaka: { label: 'Malaka oshirish', icon: 'cap', tone: '#3a7d44' },
   ustoz: { label: 'Mehmon ustoz', icon: 'users', tone: '#b0652a' },
+  yordam: { label: 'Yordam markazi', icon: 'help', tone: '#2f8f9d' },
 }
 
 export const ALL_KINDS = Object.keys(KIND_META) as NotifyKind[]

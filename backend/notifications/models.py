@@ -29,6 +29,7 @@ class Kind(models.TextChoices):
     TIZIM = 'tizim', 'Tizim'
     MALAKA = 'malaka', 'Malaka oshirish'
     USTOZ = 'ustoz', 'Mehmon ustoz'
+    YORDAM = 'yordam', 'Yordam markazi'
 
 
 class Notification(models.Model):

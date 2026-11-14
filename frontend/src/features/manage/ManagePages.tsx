@@ -242,6 +242,7 @@ const ACTION_LABELS: Record<string, string> = {
   guest_requested: "Mehmon ustoz so'raldi",
   guest_answered: "Mehmon ustoz so'roviga javob berildi",
   academic_year_quarters: "Chorak sanalari o'zgartirildi",
+  help_ticket: "Yordam markaziga murojaat",
   teacher_move_reverted: "O'qituvchini ko'chirish bekor qilindi",
   academic_year_added: "O'quv yili qo'shildi",
   academic_year_current: "Joriy o'quv yili o'zgardi",

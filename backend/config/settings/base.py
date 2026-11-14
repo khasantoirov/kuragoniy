@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'notifications',
     'training',
     'staffroom',
+    'helpdesk',
 ]
 
 MIDDLEWARE = [

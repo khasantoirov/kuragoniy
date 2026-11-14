@@ -43,6 +43,7 @@ const SchoolDetailPage = named(() => import('@/features/schools/SchoolDetailPage
 const MySchoolPage = named(() => import('@/features/schools/MySchoolPage'), 'MySchoolPage')
 const TrainingPage = named(() => import('@/features/training/TrainingPage'), 'TrainingPage')
 const StaffroomPage = named(() => import('@/features/staffroom/StaffroomPage'), 'StaffroomPage')
+const HelpPage = named(() => import('@/features/help/HelpPage'), 'HelpPage')
 const CoursePage = named(() => import('@/features/training/CoursePage'), 'CoursePage')
 const CourseEditor = named(() => import('@/features/training/CourseEditor'), 'CourseEditor')
 const VerifyPage = named(() => import('@/features/training/VerifyPage'), 'VerifyPage')
@@ -170,6 +171,7 @@ export const staffPortalRoutes: RouteObject[] = [
   { path: '/manage/schools', element: <MovedTo to="/statistics" bolim="jurnal" /> },
   { path: '/manage/schools/:id', element: <RequireSchoolView><Lazy><SchoolDetailPage /></Lazy></RequireSchoolView> },
   { path: '/my-school', element: <Lazy><MySchoolPage /></Lazy> },
+  { path: '/help', element: <RequireModule keys={['help']}><Lazy><HelpPage /></Lazy></RequireModule> },
   { path: '/staffroom', element: teacher(<RequireModule keys={['staffroom']}><StaffroomPage /></RequireModule>) },
   { path: '/training', element: staff(<RequireModule keys={['training']}><TrainingPage /></RequireModule>) },
   { path: '/training/:id', element: staff(<RequireModule keys={['training']}><CoursePage /></RequireModule>) },
