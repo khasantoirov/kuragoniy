@@ -26,7 +26,7 @@ from django.http import FileResponse, Http404, HttpResponse
 from rest_framework import permissions
 from rest_framework.views import APIView
 
-PROTECTED_PREFIXES = ('lesson-files/', 'library-files/', 'equipment-sheets/', 'lesson-posters/')
+PROTECTED_PREFIXES = ('lesson-files/', 'library-files/', 'equipment-sheets/', 'lesson-posters/', 'feed-images/')
 SALT = 'protected-media'
 STEP = 6 * 3600
 

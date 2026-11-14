@@ -13,10 +13,10 @@ from schools.models import AcademicYear, school_year_of
 def usual_quarters(start_year: int) -> list[tuple[date, date]]:
     y, n = start_year, start_year + 1
     return [
-        (date(y, 9, 2), date(y, 11, 1)),
+        (date(y, 9, 2), date(y, 11, 3)),
         (date(y, 11, 10), date(y, 12, 27)),
-        (date(n, 1, 8), date(n, 3, 20)),
-        (date(n, 3, 30), date(n, 5, 25)),
+        (date(n, 1, 11), date(n, 3, 20)),
+        (date(n, 3, 28), date(n, 5, 24)),
     ]
 
 
@@ -55,6 +55,14 @@ def _monday(d: date) -> date:
     return d - timedelta(days=d.weekday())
 
 
+def _first_week(start: date) -> date:
+    """The Monday of a chorak's first school week: a chorak that starts on
+    a Saturday or Sunday (after the holidays) begins with the next week."""
+    while start.weekday() > 4:
+        start += timedelta(days=1)
+    return _monday(start)
+
+
 def place(day: date) -> dict:
     """{chorak, week (1-based within the chorak), exact} — chorak None in
     the holidays between choraks or outside the school year."""
@@ -62,7 +70,7 @@ def place(day: date) -> dict:
     quarters, exact = quarters_of(year) if year else (usual_quarters(school_year_of(day)), False)
     for i, (a, b) in enumerate(quarters):
         if a <= day <= b:
-            return {'chorak': i + 1, 'week': (_monday(day) - _monday(a)).days // 7 + 1, 'exact': exact}
+            return {'chorak': i + 1, 'week': max(1, (_monday(day) - _first_week(a)).days // 7 + 1), 'exact': exact}
     return {'chorak': None, 'week': None, 'exact': exact}
 
 

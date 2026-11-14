@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Avatar } from '@/components/Avatar'
@@ -12,6 +12,7 @@ import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import { isAdmin, isObserver, useAuth } from '@/lib/auth/AuthContext'
 
+import { shrinkPicture } from './image'
 import './feed.css'
 
 interface Author { id: string; name: string; photo: string | null }
@@ -20,6 +21,7 @@ interface FeedPost {
   kind: 'post' | 'auto'
   body: string
   link_url: string
+  image: string | null
   is_pinned: boolean
   hidden: boolean
   created_at: string
@@ -53,14 +55,43 @@ function Composer() {
   const [body, setBody] = useState('')
   const [link, setLink] = useState('')
   const [withLink, setWithLink] = useState(false)
+  const [picture, setPicture] = useState<File | null>(null)
+  const [preview, setPreview] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview) }, [preview])
+
+  const pick = async (file: File | undefined) => {
+    if (!file) return
+    try {
+      const small = await shrinkPicture(file)
+      setPicture(small)
+      setPreview(URL.createObjectURL(small))
+    } catch {
+      toast(t("Rasmni o'qib bo'lmadi — boshqa rasm tanlang"), 'error')
+    }
+  }
+  const dropPicture = () => {
+    setPicture(null)
+    setPreview(null)
+    if (fileRef.current) fileRef.current.value = ''
+  }
   const send = async () => {
     setBusy(true)
     try {
-      await api.post('/feed/', { body, link_url: withLink ? link : '' })
+      if (picture) {
+        const form = new FormData()
+        form.append('body', body)
+        form.append('link_url', withLink ? link : '')
+        form.append('image', picture)
+        await api.post('/feed/', form)
+      } else {
+        await api.post('/feed/', { body, link_url: withLink ? link : '' })
+      }
       setBody('')
       setLink('')
       setWithLink(false)
+      dropPicture()
       qc.invalidateQueries({ queryKey: ['feed'] })
     } catch (err) {
       toast(t(errText(err)), 'error')
@@ -74,9 +105,17 @@ function Composer() {
         placeholder={t("Hamkasblar bilan bo'lishing: darsda nima yaxshi ishladi, foydali havola yoki savol…")}
         onChange={(e) => setBody(e.target.value)} />
       {withLink && <input className="input" placeholder="https://…" value={link} onChange={(e) => setLink(e.target.value)} />}
+      {preview && (
+        <div className="fcompose__pic">
+          <img src={preview} alt="" />
+          <button type="button" className="icon-btn" aria-label={t("Rasmni olib tashlash")} onClick={dropPicture}>{IC.close}</button>
+        </div>
+      )}
+      <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => pick(e.target.files?.[0])} />
       <div className="fcompose__acts">
+        {!picture && <button type="button" className="btn btn--sm btn--ghost" onClick={() => fileRef.current?.click()}>{IC.image} {t('Rasm')}</button>}
         {!withLink && <button type="button" className="btn btn--sm btn--ghost" onClick={() => setWithLink(true)}>{IC.external} {t('Havola')}</button>}
-        <button type="button" className="btn btn--primary" disabled={busy || !body.trim()} onClick={send}>{t('Joylash')}</button>
+        <button type="button" className="btn btn--primary" disabled={busy || (!body.trim() && !picture)} onClick={send}>{t('Joylash')}</button>
       </div>
     </section>
   )
@@ -191,7 +230,12 @@ function PostCard({ post }: { post: FeedPost }) {
           </div>
         </div>
       ) : (
-        <div className="fpost__body"><Paragraphs text={post.body} /></div>
+        post.body ? <div className="fpost__body"><Paragraphs text={post.body} /></div> : null
+      )}
+      {post.image && (
+        <a className="fpost__pic" href={post.image} target="_blank" rel="noreferrer noopener">
+          <img src={post.image} alt="" loading="lazy" />
+        </a>
       )}
       {post.link_url && <a className="fpost__link" href={post.link_url} target="_blank" rel="noreferrer noopener">{IC.external} {post.link_url.replace(/^https?:\/\//, '').slice(0, 80)}</a>}
       <div className="fpost__acts">

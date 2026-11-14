@@ -17,10 +17,13 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import SAFE_METHODS, BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from common.protected_media import protected_url
+from common.uploads import delete_file_field, validate_upload
 from notifications.models import Kind as NotifyKind
 from notifications.service import notify
 
@@ -28,6 +31,8 @@ from .models import Comment, Post, PostLike
 
 PAGE = 20
 DAILY_POSTS = 20
+IMAGE_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.webp')
+IMAGE_MAX_MB = 3  # the browser shrinks it first; this only stops a raw photo
 
 
 class CanReadFeed(BasePermission):
@@ -63,6 +68,7 @@ def _row(p: Post, user) -> dict:
     """One post as the page shows it — `p` comes from _annotated()."""
     return {
         'id': p.id, 'kind': p.kind, 'body': p.body, 'link_url': p.link_url, 'is_pinned': p.is_pinned,
+        'image': protected_url(p.image) if p.image else None,
         'hidden': p.hidden, 'created_at': p.created_at, 'edited_at': p.edited_at,
         'author': {'id': p.author_id, 'name': p.author.name, 'photo': p.author.photo.url if p.author.photo else None},
         'likes': p.n_likes, 'liked': p.i_liked, 'comments': p.n_comments,
@@ -79,6 +85,7 @@ def _annotated(user):
 
 class FeedView(APIView):
     permission_classes = [CanReadFeed]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get(self, request):
         user = request.user
@@ -102,8 +109,12 @@ class FeedView(APIView):
         if Post.objects.filter(author=user, kind=Post.Kind.POST,
                                created_at__gte=timezone.now() - timedelta(days=1)).count() >= DAILY_POSTS:
             raise ValidationError({'detail': "Bir kunda ko'pi bilan 20 ta post yozish mumkin."})
-        p = Post.objects.create(author=user, body=_text(request.data.get('body'), 3000, 'body', 'Post matnini'),
-                                link_url=_url(request.data.get('link_url')))
+        image = request.FILES.get('image')
+        if image:
+            validate_upload(image, IMAGE_EXTENSIONS, IMAGE_MAX_MB)
+        # a picture may go without words; words are needed otherwise
+        body = str(request.data.get('body') or '').strip()[:3000] if image else             _text(request.data.get('body'), 3000, 'body', 'Post matnini')
+        p = Post.objects.create(author=user, body=body, link_url=_url(request.data.get('link_url')), image=image)
         return Response(_row(_annotated(user).get(pk=p.pk), user), status=status.HTTP_201_CREATED)
 
 
@@ -134,6 +145,7 @@ class PostView(APIView):
         p = get_object_or_404(Post, pk=pk)
         if p.author_id != request.user.id and not request.user.is_admin:
             raise PermissionDenied("Faqat o'z postingizni o'chira olasiz.")
+        delete_file_field(p, 'image')
         p.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

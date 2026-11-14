@@ -1,7 +1,8 @@
 """Ustozlar lentasi — the teachers' own feed: what worked in class, a useful
 link, a question to colleagues; likes and comments. The platform adds a
 line when someone finishes a course or reaches a silver/gold badge.
-Text and links only — no files are uploaded here."""
+A post may carry one picture: shrunk in the browser, capped on the
+server, given out only as an expiring link (common/protected_media.py)."""
 
 from django.conf import settings
 from django.db import models
@@ -16,6 +17,7 @@ class Post(models.Model):
     kind = models.CharField(max_length=8, choices=Kind.choices, default=Kind.POST)
     body = models.TextField()
     link_url = models.URLField(max_length=500, blank=True)
+    image = models.FileField(upload_to='feed-images/', null=True, blank=True)
     # an automatic line is made once per event ("cert:12", "badge:<user>:hisobot:3")
     auto_key = models.CharField(max_length=80, blank=True, db_index=True)
     is_pinned = models.BooleanField(default=False)

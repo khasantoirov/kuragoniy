@@ -594,6 +594,8 @@ const ru: Record<string, string> = {
   "Maktab": "Школа",
   // Profil: ism va familiya alohida
   "Ism": "Имя",
+  "Rasmni o'qib bo'lmadi — boshqa rasm tanlang": "Не удалось прочитать фото — выберите другое",
+  "Rasmni olib tashlash": "Убрать фото",
   "Hamkasblar bilan bo'lishing: darsda nima yaxshi ishladi, foydali havola yoki savol…": "Поделитесь с коллегами: что удалось на уроке, полезная ссылка или вопрос…",
   "Joylash": "Опубликовать",
   "Izoh yozing…": "Напишите комментарий…",
@@ -1678,6 +1680,8 @@ const en: Record<string, string> = {
   "Maktab": "School",
   // Profil: ism va familiya alohida
   "Ism": "First name",
+  "Rasmni o'qib bo'lmadi — boshqa rasm tanlang": "Couldn't read the picture — choose another",
+  "Rasmni olib tashlash": "Remove the picture",
   "Hamkasblar bilan bo'lishing: darsda nima yaxshi ishladi, foydali havola yoki savol…": "Share with colleagues: what worked in class, a useful link or a question…",
   "Joylash": "Post",
   "Izoh yozing…": "Write a comment…",

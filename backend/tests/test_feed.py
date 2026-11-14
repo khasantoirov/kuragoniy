@@ -74,3 +74,32 @@ def test_platform_lines_once(teacher):
     badges.sync([teacher])
     lines = Post.objects.filter(kind='auto')
     assert lines.count() == 1 and 'kumush' in lines.get().body
+
+
+PNG = (b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89'
+       b'\x00\x00\x00\rIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82')
+
+
+def test_post_with_a_picture(as_user, teacher, settings, tmp_path):
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    c = as_user(teacher)
+    pic = SimpleUploadedFile('dars.png', PNG, content_type='image/png')
+    resp = c.post('/api/feed/', {'image': pic}, format='multipart')  # a picture needs no words
+    assert resp.status_code == 201, resp.data
+    url = resp.data['image']
+    assert url.startswith('/api/files/')  # an expiring link, never /media/
+    post = Post.objects.get(pk=resp.data['id'])
+    path = post.image.path
+    got = c.get(url)
+    assert got.status_code == 200 and b''.join(got.streaming_content) == PNG
+    got.close()  # Windows keeps an open file locked
+    fake = SimpleUploadedFile('virus.png', b'<html>no</html>', content_type='image/png')
+    assert c.post('/api/feed/', {'body': 'x', 'image': fake}, format='multipart').status_code == 400
+    doc = SimpleUploadedFile('a.pdf', b'%PDF-1.4', content_type='application/pdf')
+    assert c.post('/api/feed/', {'body': 'x', 'image': doc}, format='multipart').status_code == 400
+    # the picture goes with the post
+    import os
+    assert os.path.exists(path)
+    c.delete(f'/api/feed/{post.id}/')
+    assert not os.path.exists(path)

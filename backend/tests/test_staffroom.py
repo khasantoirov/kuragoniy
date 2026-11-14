@@ -141,3 +141,16 @@ def test_requester_cancels_a_fresh_request(as_user, teacher, make_user):
     assert as_user(other).patch(f'/api/staffroom/guests/{gid}/', {'status': 'bekor'}, format='json').status_code == 403
     assert as_user(teacher).patch(f'/api/staffroom/guests/{gid}/', {'status': 'bekor'}, format='json').status_code == 200
     assert GuestRequest.objects.get(pk=gid).status == 'bekor'
+
+
+def test_a_chorak_starting_on_a_weekend_counts_from_the_next_week():
+    from datetime import date
+
+    year, _ = AcademicYear.objects.get_or_create(start_year=2026)
+    year.quarters = calendar.validate_quarters([
+        {'start': '2026-09-02', 'end': '2026-11-03'}, {'start': '2026-11-10', 'end': '2026-12-27'},
+        {'start': '2027-01-11', 'end': '2027-03-20'}, {'start': '2027-03-28', 'end': '2027-05-24'},  # 28.03 is a Sunday
+    ])
+    year.save()
+    assert calendar.place(date(2027, 3, 29)) == {'chorak': 4, 'week': 1, 'exact': True}
+    assert calendar.place(date(2027, 4, 5))['week'] == 2

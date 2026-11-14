@@ -42,3 +42,10 @@
 .fcomment__new { display: flex; gap: 6px; }
 .fcomment__new .input { flex: 1; }
 .feed__more { display: block; margin: 0 auto 20px; }
+
+/* pictures */
+.fcompose__pic { position: relative; justify-self: start; }
+.fcompose__pic img { display: block; max-width: 220px; max-height: 160px; border-radius: var(--r); border: 1px solid var(--rule-2); object-fit: cover; }
+.fcompose__pic .icon-btn { position: absolute; top: 4px; right: 4px; background: var(--surface); }
+.fpost__pic { display: block; border-radius: var(--r); overflow: hidden; border: 1px solid var(--rule-2); background: var(--paper); }
+.fpost__pic img { display: block; width: 100%; max-height: 520px; object-fit: contain; }
