@@ -5,6 +5,7 @@ from django.urls import include, path
 
 from accounts import urls as accounts_urls
 from common.protected_media import ProtectedFileView
+from achievements.views import StudentBadgesView
 from common.views import ModulesView, ProtectionEventView
 
 urlpatterns = [
@@ -31,6 +32,8 @@ urlpatterns = [
     path('api/staffroom/', include('staffroom.urls')),
     path('api/help/', include('helpdesk.urls')),
     path('api/kits/', include('kits.urls')),
+    path('api/achievements/', include('achievements.urls')),
+    path('api/student/badges/', StudentBadgesView.as_view(), name='student-badges'),
     path('api/common/modules/', ModulesView.as_view(), name='platform-modules'),
     path('api/common/protection-event/', ProtectionEventView.as_view(), name='protection-event'),
     # Lesson files, books, sheets, posters: expiring links (common/protected_media.py).

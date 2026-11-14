@@ -13,11 +13,13 @@ CHECK_EVERY_SECONDS = 3600
 
 
 def _send_sync() -> int:
+    from achievements.badges import sync_all
     from schools.licensing import send_reminders
     from training.services import send_due_reminders
 
-    # the same hourly check also reminds teachers of their courses' deadlines
-    return send_reminders() + send_due_reminders()
+    # the same hourly check also reminds teachers of their courses'
+    # deadlines and hands out the badges people reached since
+    return send_reminders() + send_due_reminders() + sync_all()
 
 
 async def watch_license_reminders(bot):  # noqa: ARG001 — kept for a consistent watcher signature

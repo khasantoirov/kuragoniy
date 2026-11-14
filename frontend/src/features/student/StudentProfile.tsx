@@ -3,10 +3,12 @@ import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/components/Toast'
 import { ChangePasswordForm, LogoutEverywhereButton, TelegramLinkBox } from '@/features/portal/AccountSecurity'
+import { BadgeGrid } from '@/features/achievements/BadgeGrid'
 import { errText, PageHead } from '@/features/portal/ui'
 import { themeIconMoon, themeIconSun } from '@/icons'
 import { api } from '@/lib/api/client'
 import { useAuth } from '@/lib/auth/AuthContext'
+import { useModules } from '@/lib/modules'
 import { useUIStore, type Lang } from '@/store/uiStore'
 
 import { usePortalUser, useViewedPupil } from './portalUser'
@@ -23,6 +25,7 @@ export function StudentProfile() {
   const user = usePortalUser()
   // the view through a pupil: their details, none of their account settings
   const viewing = !!useViewedPupil()
+  const { on } = useModules()
   const { lang, setLang, theme, setTheme } = useUIStore()
   const toast = useToast()
   const [pwOpen, setPwOpen] = useState(false)
@@ -56,6 +59,13 @@ export function StudentProfile() {
         </ul>
         <p className="form__note">{t("Ismingizda xato bo'lsa, o'qituvchingizga ayting — u jurnalda tuzatadi.")}</p>
       </section>
+
+      {!viewing && on('achievements') && (
+        <section className="panel">
+          <h3 className="panel__title">{t('Nishonlarim')}</h3>
+          <BadgeGrid student />
+        </section>
+      )}
 
       {viewing ? (
         <p className="prose prose--note">{t("Ko'rish rejimida o'quvchining Telegram, parol va sinf kodi sozlamalari ko'rsatilmaydi.")}</p>
