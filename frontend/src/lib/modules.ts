@@ -10,7 +10,7 @@ import { useAuth } from '@/lib/auth/AuthContext'
    home; its data stays. */
 
 export type ModuleKey = 'lab' | 'library' | 'timetable' | 'assignments' | 'games' | 'reports' | 'readiness' | 'shop' | 'equipment' | 'poster'
-  | 'materials' | 'training' | 'staffroom' | 'help'
+  | 'materials' | 'training' | 'staffroom' | 'help' | 'kits'
 
 /** This platform's optional sections, in the order Modullar lists them. */
 export const MODULES: { key: ModuleKey; label: string; sub: string }[] = [
@@ -26,6 +26,7 @@ export const MODULES: { key: ModuleKey; label: string; sub: string }[] = [
   { key: 'training', label: "Malaka oshirish", sub: "O'qituvchilar uchun kurslar: modullar, testlar va sertifikat" },
   { key: 'staffroom', label: "Ustozlar xonasi", sub: "Jadvaldan ertangi darslar va ularning fayllari, mehmon ustoz chaqirish" },
   { key: 'help', label: "Yordam markazi", sub: "Ko'p beriladigan savollar va ma'muriyatga murojaat" },
+  { key: 'kits', label: "STEM chamadonlar", sub: "Darsga kerakli chamadon, yo'riqnoma, maktabdagi chamadonlar va so'rovlar" },
 ]
 
 export interface ModulesState {

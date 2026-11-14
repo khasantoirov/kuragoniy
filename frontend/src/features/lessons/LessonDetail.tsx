@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 
@@ -22,6 +22,9 @@ import { LessonFileModal } from './LessonFileModal'
 import { LessonMoveCopyModal } from './LessonMoveCopyModal'
 import { MoveCopyExperimentModal } from './MoveCopyExperimentModal'
 import type { Experiment, Lesson } from './types'
+
+// its own chunk: the lesson page itself stays as light as before
+const LessonKitPanel = lazy(() => import('@/features/kits/LessonKitPanel').then((m) => ({ default: m.LessonKitPanel })))
 
 export function LessonDetail() {
   const { t } = useTranslation()
@@ -206,6 +209,7 @@ export function LessonDetail() {
       </header>
 
       <LessonDocCard lesson={lesson} admin={admin} onDelete={onDeleteDoc} />
+      <Suspense fallback={null}><LessonKitPanel lessonId={lesson.id} lessonTitle={lesson.title} /></Suspense>
 
       <section className="tasksec">
         <h3 className="panel__title">{t('Amaliy topshiriq')}</h3>

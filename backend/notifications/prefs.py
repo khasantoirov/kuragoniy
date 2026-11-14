@@ -23,6 +23,7 @@ DEFAULTS = {
     Kind.MALAKA: {'app': True, 'telegram': True, 'email': False},
     Kind.USTOZ: {'app': True, 'telegram': True, 'email': False},
     Kind.YORDAM: {'app': True, 'telegram': True, 'email': False},
+    Kind.CHAMADON: {'app': True, 'telegram': True, 'email': False},
 }
 
 DESCRIPTIONS = {
@@ -41,6 +42,7 @@ DESCRIPTIONS = {
     Kind.USTOZ: "Mehmon ustoz so'rovingizga javob berilganda yoki sizni mehmon ustoz qilib taklif qilishganda "
                 "(ma'muriyatga — yangi so'rov kelganda)",
     Kind.YORDAM: "Murojaatingizga javob berilganda (ma'muriyatga — yangi murojaat yoki xabar kelganda)",
+    Kind.CHAMADON: "Chamadon so'rovingizga javob berilganda (ma'muriyatga — yangi so'rov kelganda)",
 }
 
 
@@ -55,6 +57,8 @@ def kinds_for(user) -> list[str]:
         out += [Kind.MALAKA, Kind.USTOZ]
     if user.is_admin:
         out += [Kind.DOKON, Kind.JAMOA]
+    if not user.is_observer:
+        out.append(Kind.CHAMADON)
     out += [Kind.YORDAM, Kind.TIZIM]
     return out
 

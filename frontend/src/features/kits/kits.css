@@ -1,0 +1,60 @@
+/* ══ STEM chamadonlar (features/kits) ═══════════════════════════ */
+
+.kbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+
+.kgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-bottom: 18px; }
+.kcard { display: flex; flex-direction: column; border-radius: var(--r); overflow: hidden; background: var(--surface);
+  border: 1px solid var(--rule); color: var(--ink); text-decoration: none; transition: border-color .15s, box-shadow .15s; }
+.kcard:hover { border-color: var(--pick); box-shadow: var(--shadow); }
+.kcard.is-off { opacity: .7; }
+.kcard__img { width: 100%; height: 140px; object-fit: cover; background: var(--paper); }
+.kcard__ph { display: grid; place-items: center; height: 96px; background: var(--tone-info-bg); color: var(--pick); }
+.kcard__ph .svic { width: 34px; height: 34px; }
+.kcard__body { display: grid; gap: 5px; padding: 14px; }
+.kcard__pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.kcard__title { margin: 2px 0 0; font-size: 16px; line-height: 1.3; }
+.kcard__sum { margin: 0; font-size: 13px; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.kcard__meta { margin: 0; font-size: 12.5px; color: var(--ink-3); }
+
+.kpills { display: flex; flex-wrap: wrap; gap: 6px; margin: -6px 0 14px; }
+.kacts { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.kitem__img { width: 52px; }
+.kitem__img img { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; display: block; }
+.klessons { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.klessons li { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  padding: 8px 12px; border: 1px solid var(--rule-2); border-radius: var(--r); background: var(--paper); font-size: 14px; }
+.klessons a { color: var(--ink); text-decoration: none; }
+.klessons a:hover { color: var(--pick); }
+.klessons span { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 13px; }
+
+.kform { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 0 12px; }
+.kcheck { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.kitems { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; max-height: 50vh; overflow: auto; }
+.kitems li { display: grid; grid-template-columns: minmax(0, 1fr) 90px auto; gap: 6px; align-items: center; }
+
+/* the lesson page panel */
+.kpanel { display: grid; gap: 10px; }
+.kpanel__head { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.kpanel__ic { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--tone-info-bg); color: var(--pick); flex: none; }
+.kpanel__ic .svic { width: 20px; height: 20px; }
+.kpanel__txt { flex: 1; min-width: 200px; }
+.kpanel__txt .panel__title { margin: 0 0 2px; }
+.kpanel__txt p { margin: 0; font-size: 14px; color: var(--ink-2); }
+.kpanel__txt a { color: var(--ink); }
+.kpanel__miss { padding: 10px 12px; border-radius: var(--r); background: var(--tone-mid-bg); font-size: 13.5px; }
+.kpanel__miss ul { margin: 4px 0 0; padding-left: 18px; }
+.kpanel__acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.kpanel__acts .svic { width: 15px; height: 15px; }
+.kpanel__needs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px 16px; font-size: 13.5px; }
+.kpanel__needs li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px dashed var(--rule-2); }
+
+.kreq__lesson { margin: 0 0 10px; font-size: 14px; }
+.kreq__items { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 6px; max-height: 40vh; overflow: auto; }
+.kreq__items li { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.kreq__items label { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.kreq__items .input { width: 80px; }
+
+@media (max-width: 560px) {
+  .kform { grid-template-columns: 1fr; }
+  .kitems li { grid-template-columns: minmax(0, 1fr) 70px auto; }
+}

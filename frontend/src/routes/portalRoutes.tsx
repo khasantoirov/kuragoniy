@@ -44,6 +44,8 @@ const MySchoolPage = named(() => import('@/features/schools/MySchoolPage'), 'MyS
 const TrainingPage = named(() => import('@/features/training/TrainingPage'), 'TrainingPage')
 const StaffroomPage = named(() => import('@/features/staffroom/StaffroomPage'), 'StaffroomPage')
 const HelpPage = named(() => import('@/features/help/HelpPage'), 'HelpPage')
+const KitsPage = named(() => import('@/features/kits/KitsPage'), 'KitsPage')
+const KitPage = named(() => import('@/features/kits/KitPage'), 'KitPage')
 const CoursePage = named(() => import('@/features/training/CoursePage'), 'CoursePage')
 const CourseEditor = named(() => import('@/features/training/CourseEditor'), 'CourseEditor')
 const VerifyPage = named(() => import('@/features/training/VerifyPage'), 'VerifyPage')
@@ -118,6 +120,7 @@ export function LessonsTabs() {
     <PageTabs tabs={[
       { key: 'darslar', label: 'Darslar', element: <LessonsPage /> },
       { key: 'tayyorgarlik', label: 'Darsga tayyorgarlik', element: <ReadinessPage />, show: isTeacherLike(user) && on('readiness') },
+      { key: 'chamadonlar', label: 'STEM chamadonlar', element: <KitsPage />, show: on('kits') },
       { key: 'materiallar', label: "O'quv materiallari", element: <MaterialsPage />, show: oversees(user, viewMode) && on('materials') },
     ]} />
   )
@@ -171,6 +174,7 @@ export const staffPortalRoutes: RouteObject[] = [
   { path: '/manage/schools', element: <MovedTo to="/statistics" bolim="jurnal" /> },
   { path: '/manage/schools/:id', element: <RequireSchoolView><Lazy><SchoolDetailPage /></Lazy></RequireSchoolView> },
   { path: '/my-school', element: <Lazy><MySchoolPage /></Lazy> },
+  { path: '/kits/:id', element: <RequireModule keys={['kits']}><Lazy><KitPage /></Lazy></RequireModule> },
   { path: '/help', element: <RequireModule keys={['help']}><Lazy><HelpPage /></Lazy></RequireModule> },
   { path: '/staffroom', element: teacher(<RequireModule keys={['staffroom']}><StaffroomPage /></RequireModule>) },
   { path: '/training', element: staff(<RequireModule keys={['training']}><TrainingPage /></RequireModule>) },

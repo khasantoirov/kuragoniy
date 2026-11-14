@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'training',
     'staffroom',
     'helpdesk',
+    'kits',
 ]
 
 MIDDLEWARE = [
