@@ -10,6 +10,14 @@ export const lessonLabel = (n: number, lang: Lang = 'uz') => {
   return `${n}-dars`
 }
 
+/** "1–9-dars" — the lessons a chorak holds (numbered through the band). */
+export const weeksLabel = (from: number, to: number, lang: Lang = 'uz') => {
+  if (from === to) return lessonLabel(from, lang)
+  if (lang === 'ru') return `Уроки ${from}–${to}`
+  if (lang === 'en') return `Lessons ${from}–${to}`
+  return `${from}–${to}-dars`
+}
+
 export const quarterLabel = (n: number | string, lang: Lang = 'uz') => {
   if (lang === 'ru') return `${n} четверть`
   if (lang === 'en') return `Quarter ${n}`

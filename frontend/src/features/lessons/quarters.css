@@ -1,0 +1,54 @@
+/* ══ Darslar: the four choraks as cards (LessonsPage) ═══════════ */
+
+.qtrs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 6px; }
+.qtr {
+  --qc: var(--pick);
+  position: relative; display: flex; align-items: center; gap: 18px; min-height: 150px; padding: 22px 24px;
+  border-radius: calc(var(--r) * 1.5); border: 1px solid var(--rule); background: var(--surface); color: var(--ink);
+  font: inherit; text-align: left; cursor: pointer; overflow: hidden; box-shadow: var(--shadow);
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+.qtr::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 5px; background: var(--qc); }
+.qtr:hover:not(:disabled) { border-color: var(--qc); box-shadow: 0 .5rem 1rem rgba(0,0,0,.12); transform: translateY(-2px); }
+.qtr:focus-visible { outline: 3px solid color-mix(in srgb, var(--qc) 45%, transparent); outline-offset: 2px; }
+.qtr--1 { --qc: #e07b2a; }  /* kuz */
+.qtr--2 { --qc: #c0603f; }
+.qtr--3 { --qc: #3d7fd6; }  /* qish */
+.qtr--4 { --qc: #2f9e62; }  /* bahor */
+.qtr.is-locked { cursor: default; opacity: .65; }
+.qtr.is-locked::before { background: var(--ink-3); }
+
+.qtr__n {
+  display: inline-grid; place-items: center; flex: none; width: 74px; height: 74px; border-radius: 22px;
+  background: color-mix(in srgb, var(--qc) 13%, transparent); color: var(--qc);
+  font: 800 40px/1 var(--f-display, inherit);
+}
+.qtr.is-locked .qtr__n { background: var(--paper); color: var(--ink-3); }
+.qtr__body { display: grid; gap: 5px; flex: 1; min-width: 0; }
+.qtr__title { font-size: 20px; line-height: 1.2; }
+.qtr__months { font-size: 13px; color: var(--ink-3); text-transform: capitalize; }
+.qtr__stats { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; font-size: 13.5px; color: var(--ink-2); }
+.qtr__stats b { color: var(--ink); font-size: 15px; }
+.qtr__empty, .qtr__lock { margin-top: 4px; font-size: 13.5px; color: var(--ink-3); display: inline-flex; align-items: center; gap: 6px; }
+.qtr__closed { display: inline-flex; align-items: center; gap: 5px; justify-self: start; margin-top: 4px; padding: 2px 9px; border-radius: 999px;
+  background: var(--tone-mid-bg); font-size: 12px; color: var(--ink-2); }
+.qtr__lock .svic, .qtr__closed .svic { width: 14px; height: 14px; }
+.qtr__go { flex: none; font-size: 30px; line-height: 1; color: var(--qc); }
+
+/* inside one chorak */
+.qtrnav { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 14px; }
+.qtrnav .btn .svic { width: 15px; height: 15px; }
+.qtrnav__tabs .seg__b { display: inline-flex; align-items: center; gap: 5px; }
+.qtrnav__tabs .seg__b .svic { width: 13px; height: 13px; }
+.qtrnav__tabs .seg__b.is-over { outline: 2px dashed var(--pick); outline-offset: 2px; }
+.qtrnav__hint { font-size: 12px; color: var(--ink-3); }
+
+@media (max-width: 700px) {
+  .qtrs { grid-template-columns: 1fr; gap: 10px; }
+  .qtr { min-height: 0; padding: 16px 18px; gap: 14px; }
+  .qtr__n { width: 56px; height: 56px; border-radius: 16px; font-size: 30px; }
+  .qtr__title { font-size: 17px; }
+  .qtrnav__tabs { width: 100%; }
+  .qtrnav__tabs .seg__b { flex: 1; justify-content: center; padding-inline: 4px; }
+  .qtrnav__hint { display: none; }
+}

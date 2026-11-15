@@ -19,7 +19,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { type CSSProperties, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { EmptyState } from '@/components/EmptyState'
 import { Skeleton } from '@/components/Skeleton'
@@ -32,13 +32,21 @@ import { type Lang, useUIStore } from '@/store/uiStore'
 import { useLessons, useQuarterLocks, useReorderLesson } from './api'
 import { ExperimentRow } from './ExperimentRow'
 import { LessonEditor } from './LessonEditor'
-import { GRADES, gradeLabel, lessonLabel, quarterLabel } from './labels'
+import { GRADES, gradeLabel, lessonLabel, quarterLabel, weeksLabel } from './labels'
 import type { Lesson } from './types'
+import './quarters.css'
 
 type ViewMode = 'grid' | 'list'
 
 const dndIdOf = (id: number) => `lesson-${id}`
 const chorakIdOf = (ch: number) => `ch-${ch}`
+// the chorak switcher's buttons are drop targets too: a lesson dropped on
+// one moves to the end of that chorak
+const tabIdOf = (ch: number) => `tab-ch-${ch}`
+const CHORAKS = [1, 2, 3, 4]
+const QUARTER_MONTHS = ['sentyabr – oktyabr', 'noyabr – dekabr', 'yanvar – mart', 'aprel – may']
+type Locks = Partial<Record<'1' | '2' | '3' | '4', boolean>> | undefined
+const isOpenFor = (locks: Locks, ch: number) => !!locks?.[String(ch) as '1' | '2' | '3' | '4']
 
 export function LessonsPage() {
   const { t } = useTranslation()
@@ -51,6 +59,19 @@ export function LessonsPage() {
   const { data: locks, isLoading: locksLoading } = useQuarterLocks()
   const reorder = useReorderLesson()
   const scrolled = usePageScrolled(4)
+  // ?chorak=N — the chorak opened from its card (none: the four cards)
+  const [params, setParams] = useSearchParams()
+  const openCh = (() => {
+    const n = Number(params.get('chorak'))
+    return n >= 1 && n <= 4 ? n : null
+  })()
+  const pickChorak = (ch: number | null) => {
+    const next = new URLSearchParams(params)
+    if (ch) next.set('chorak', String(ch))
+    else next.delete('chorak')
+    setParams(next)
+    window.scrollTo(0, 0)
+  }
 
   const [query, setQuery] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
@@ -88,7 +109,11 @@ export function LessonsPage() {
     const overIdStr = String(over.id)
     let toCh: number
     let index: number
-    if (overIdStr.startsWith('ch-')) {
+    if (overIdStr.startsWith('tab-ch-')) {
+      toCh = Number(overIdStr.replace('tab-ch-', ''))
+      if (toCh === moved.chorak) return
+      index = rowsByChorak(toCh).length
+    } else if (overIdStr.startsWith('ch-')) {
       toCh = Number(overIdStr.replace('ch-', ''))
       index = rowsByChorak(toCh).filter((l) => l.id !== activeId).length
     } else {
@@ -170,9 +195,27 @@ export function LessonsPage() {
           <h3 className="empty__title">{t('Hech narsa topilmadi')}</h3>
           <p className="empty__hint">{t("Qidiruv shartini o'zgartirib ko'ring.")}</p>
         </div>
+      ) : !searching && openCh ? (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+          <QuarterNav ch={openCh} locks={locks} admin={admin} canDrag={canDrag} lang={lang} onPick={pickChorak} />
+          <QuarterSection
+            ch={openCh}
+            rows={filtered.filter((l) => l.chorak === openCh)}
+            admin={admin}
+            canDrag={canDrag}
+            searching={false}
+            viewMode={viewMode}
+            lang={lang}
+            locked={!admin && !isOpenFor(locks, openCh)}
+            onOpen={(l) => navigate(`/lessons/${l.id}`)}
+            onAdd={() => setCreatingForQuarter(openCh)}
+          />
+        </DndContext>
+      ) : !searching ? (
+        <QuarterCards lessons={data} locks={locks} admin={admin} lang={lang} onOpen={pickChorak} />
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-          {[1, 2, 3, 4].map((ch) => {
+          {CHORAKS.map((ch) => {
             const rows = filtered.filter((l) => l.chorak === ch)
             const isOpen = !!locks?.[String(ch) as '1' | '2' | '3' | '4']
             const lockedForMe = !admin && !isOpen
@@ -201,6 +244,92 @@ export function LessonsPage() {
         <LessonEditor lesson={null} presetChorak={creatingForQuarter} onClose={() => setCreatingForQuarter(null)} />
       )}
     </div>
+  )
+}
+
+/** The four choraks as cards — a chorak opens on its own. */
+function QuarterCards({ lessons, locks, admin, lang, onOpen }: {
+  lessons: Lesson[]
+  locks: Locks
+  admin: boolean
+  lang: Lang
+  onOpen: (ch: number) => void
+}) {
+  const { t } = useTranslation()
+  return (
+    <div className="qtrs">
+      {CHORAKS.map((ch) => {
+        const rows = lessons.filter((l) => l.chorak === ch)
+        const open = isOpenFor(locks, ch)
+        const lockedForMe = !admin && !open
+        const exps = rows.reduce((n, l) => n + l.experiments.length, 0)
+        const weeks = rows.map((l) => l.hafta).filter(Boolean)
+        return (
+          <button key={ch} type="button" className={`qtr qtr--${ch} ${lockedForMe ? 'is-locked' : ''}`}
+            disabled={lockedForMe} onClick={() => onOpen(ch)}>
+            <span className="qtr__n" aria-hidden="true">{ch}</span>
+            <span className="qtr__body">
+              <b className="qtr__title">{quarterLabel(ch, lang)}</b>
+              <small className="qtr__months">{t(QUARTER_MONTHS[ch - 1])}</small>
+              {lockedForMe ? (
+                <span className="qtr__lock">{IC.lock} {t('Hali ochilmagan')}</span>
+              ) : rows.length ? (
+                <span className="qtr__stats">
+                  <span><b>{rows.length}</b> {t('ta dars')}</span>
+                  <span><b>{exps}</b> {t('ta tajriba')}</span>
+                  {weeks.length > 0 && <span>{weeksLabel(Math.min(...weeks), Math.max(...weeks), lang)}</span>}
+                </span>
+              ) : (
+                <span className="qtr__empty">{t("Hali dars yo'q")}</span>
+              )}
+              {admin && !open && <span className="qtr__closed">{IC.lock} {t("O'qituvchilarga yopiq")}</span>}
+            </span>
+            {!lockedForMe && <span className="qtr__go" aria-hidden="true">›</span>}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/** Inside a chorak: back to the four cards, or straight to another chorak. */
+function QuarterNav({ ch, locks, admin, canDrag, lang, onPick }: {
+  ch: number
+  locks: Locks
+  admin: boolean
+  canDrag: boolean
+  lang: Lang
+  onPick: (ch: number | null) => void
+}) {
+  const { t } = useTranslation()
+  return (
+    <div className="qtrnav">
+      <button type="button" className="btn btn--sm" onClick={() => onPick(null)}>{IC.back} {t('Choraklar')}</button>
+      <div className="seg qtrnav__tabs" role="group" aria-label={t('Chorak')}>
+        {CHORAKS.map((n) => (
+          <QuarterTab key={n} n={n} active={n === ch} locked={!admin && !isOpenFor(locks, n)} canDrag={canDrag}
+            label={quarterLabel(n, lang)} onPick={() => onPick(n)} />
+        ))}
+      </div>
+      {canDrag && <small className="qtrnav__hint">{t("Darsni boshqa chorakka o'tkazish uchun shu tugmalarga sudrang")}</small>}
+    </div>
+  )
+}
+
+function QuarterTab({ n, active, locked, canDrag, label, onPick }: {
+  n: number
+  active: boolean
+  locked: boolean
+  canDrag: boolean
+  label: string
+  onPick: () => void
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: tabIdOf(n), disabled: !canDrag || active })
+  return (
+    <button ref={setNodeRef} type="button" className={`seg__b ${active ? 'is-on' : ''} ${isOver ? 'is-over' : ''}`}
+      aria-pressed={active} disabled={locked} onClick={onPick}>
+      {locked && IC.lock} {label}
+    </button>
   )
 }
 

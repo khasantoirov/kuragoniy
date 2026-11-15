@@ -169,12 +169,12 @@ export function LessonDetail() {
       async () => { await del.mutateAsync(currentId) },
     )
     toast(t("O'chirildi"))
-    navigate('/lessons')
+    navigate(`/lessons?chorak=${lesson.chorak}`)
   }
 
   return (
     <div>
-      <button className="btn btn--sm" onClick={() => navigate('/lessons')}>
+      <button className="btn btn--sm" onClick={() => navigate(`/lessons?chorak=${lesson.chorak}`)}>
         {IC.back} {t('Barcha darslar')}
       </button>
 
