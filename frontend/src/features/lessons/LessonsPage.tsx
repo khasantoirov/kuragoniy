@@ -332,7 +332,8 @@ function QuarterNav({ ch, locks, admin, canDrag, lang, onPick }: {
   const { t } = useTranslation()
   return (
     <div className="qtrnav">
-      <button type="button" className="btn btn--sm" onClick={() => onPick(null)}>{IC.back} {t('Choraklar')}</button>
+      <button type="button" className="btn btn--sm qtrnav__back" title={t('Choraklar')} aria-label={t('Choraklar')}
+        onClick={() => onPick(null)}>{IC.back} <span className="qtrnav__backlbl">{t('Choraklar')}</span></button>
       <div className="seg qtrnav__tabs" role="group" aria-label={t('Chorak')}>
         {CHORAKS.map((n) => (
           <QuarterTab key={n} n={n} active={n === ch} locked={!admin && !isOpenFor(locks, n)} canDrag={canDrag}

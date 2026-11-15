@@ -963,12 +963,26 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
   .ltbar__view { order: 2; }
   .ltbar__search { order: 3; flex: 1 1 calc(100% - 152px); max-width: none; min-width: 0; }
   .ltbar__cats { display: none; }
-  .ltbar__catsel { order: 4; display: block; width: 136px; height: 36px; padding: 0 8px; border-radius: 10px; }
+  .ltbar__catsel { order: 4; display: block; width: 136px; height: 32px; padding: 0 8px; border-radius: 10px; }
+  /* shorter rows: the width stays, the height doesn't eat the screen */
+  .ltbar { gap: 6px; padding-top: 4px; padding-bottom: 6px; margin-bottom: 8px; }
+  .ltbar .seg { padding: 2px; }
+  .ltbar .seg__b { height: 28px; }
+  .ltbar__search .search__input { height: 32px; padding-top: 4px; padding-bottom: 4px; }
+  /* a page's tabs: one row that scrolls sideways, not three wrapped rows */
+  .settabs { display: flex; flex-wrap: nowrap; max-width: 100%; overflow-x: auto; scrollbar-width: none;
+    -webkit-overflow-scrolling: touch; margin-bottom: 10px; }
+  .settabs::-webkit-scrollbar { display: none; }
+  .settabs .seg__b { flex: none; }
 }
-/* Ko'ragoniy: no section chips — the search takes the spare width, and on
-   phones it shares the second row with nothing. */
+/* Ko'ragoniy: no section chips — the search takes the spare width. On
+   phones the five grades fill the first row; the view switch and the search
+   share the second (two rows, not three). */
 .ltbar--nocats .ltbar__search { flex: 1 1 auto; max-width: 420px; margin-right: auto; }
-@media (max-width: 760px) { .ltbar--nocats .ltbar__search { flex-basis: 100%; max-width: none; } }
+@media (max-width: 760px) {
+  .ltbar--nocats .ltbar__grades { flex-basis: 100%; }
+  .ltbar--nocats .ltbar__search { flex: 1 1 0; min-width: 0; max-width: none; margin-right: 0; }
+}
 
 /* Maktab sahifasi: biriktirish qatori va o'qituvchini ko'chirish (features/schools) */
 .assignrow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; margin-top: 12px; }

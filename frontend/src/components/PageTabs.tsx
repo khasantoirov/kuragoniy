@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
 
@@ -19,9 +19,19 @@ export function PageTabs({ tabs, keep = [], toolbar, aside }: { tabs: PageTab[];
   const [params, setParams] = useSearchParams()
   const shown = tabs.filter((x) => x.show !== false)
   const current = shown.find((x) => x.key === params.get('bolim')) ?? shown[0]
+  // On a phone the tabs are one row that scrolls sideways: bring the open
+  // one into view (sideways only — the page itself doesn't move).
+  const barRef = useRef<HTMLDivElement>(null)
+  const currentKey = current?.key
+  useEffect(() => {
+    const bar = barRef.current
+    const on = bar?.querySelector<HTMLElement>('.is-on')
+    if (!bar || !on || bar.scrollWidth <= bar.clientWidth) return
+    bar.scrollLeft = Math.max(0, on.offsetLeft - bar.offsetLeft - 8)
+  }, [currentKey])
   if (!current) return null
   const bar = shown.length > 1 && (
-    <div className="seg settabs" role="tablist">
+    <div ref={barRef} className="seg settabs" role="tablist">
       {shown.map((x) => (
         <button
           key={x.key}

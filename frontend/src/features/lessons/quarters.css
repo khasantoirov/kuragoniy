@@ -65,7 +65,12 @@
   .qtr__closed { font-size: 11px; padding: 2px 7px; }
   .qtr__empty, .qtr__lock { font-size: 12px; }
   .qtr__go { display: none; }
-  .qtrnav__tabs { width: 100%; }
-  .qtrnav__tabs .seg__b { flex: 1; justify-content: center; padding-inline: 4px; }
+  /* back and the four choraks in one row; the tab already names the chorak */
+  .qtrnav { flex-wrap: nowrap; gap: 6px; margin: 0 0 10px; }
+  .qtrnav .qtrnav__back { flex: none; width: 38px; height: 36px; padding: 0; justify-content: center; }
+  .qtrnav__backlbl { display: none; }
+  .qtrnav .qtrnav__tabs { flex: 1 1 0; min-width: 0; padding: 2px; }
+  .qtrnav .qtrnav__tabs .seg__b { flex: 1 1 0; min-width: 0; height: 30px; justify-content: center; padding-inline: 2px; font-size: 13px; }
   .qtrnav__hint { display: none; }
+  .qtrnav + .quarter .quarter__head { display: none; }
 }

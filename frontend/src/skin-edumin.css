@@ -860,3 +860,16 @@
 [data-skin="r2"] .stf__id > span { margin-left: 0 !important; }
 [data-skin="r2"] .stf__b { width: 100%; }
 [data-skin="r2"] .stf__row { margin-bottom: 5px; }
+
+/* ── Telefonda yuqori panel ixchamroq ───────────────────────
+   (min-height 4.5rem va 40px tugmalar telefonda ekranning katta qismini
+   olardi) — kenglik o'sha-o'sha, faqat balandlik qisqaradi. */
+@media (max-width: 760px) {
+  [data-skin="r2"] .edtop__inner { min-height: 0; padding-top: 6px; padding-bottom: 6px; gap: 8px; }
+  [data-skin="r2"] .edtop .iconbtn { width: 34px; height: 34px; }
+  [data-skin="r2"] .edtop .iconbtn .svic, [data-skin="r2"] .edtop .iconbtn svg { width: 17px; height: 17px; }
+  [data-skin="r2"] .edtop .iconbtn__dot { top: 6px; right: 6px; }
+  [data-skin="r2"] .edtop .gsearch__input { padding-top: 7px; padding-bottom: 7px; font-size: 13px; }
+  [data-skin="r2"] .edtop .acct__btn { padding: 2px; }
+  [data-skin="r2"] .edtop .acct__av, [data-skin="r2"] .edtop img.acct__av { width: 30px; height: 30px; max-width: 30px; max-height: 30px; }
+}
