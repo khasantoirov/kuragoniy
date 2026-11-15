@@ -23,10 +23,9 @@ export const NAV_ITEMS: (NavItem & { adminOnly?: boolean })[] = [
   { to: '/equipment-sheet', label: 'Jihozlar jadvali', icon: 'grid', adminOnly: true },
 ]
 
-/** Reached from the top bar — the bell, the account menu — and the menu
- * footer, so the side menu leaves them out; they stay pickable for the
- * phone's bottom bar (Ko'rinish). */
-export const TOPBAR_ONLY = new Set(['/notifications', '/settings', '/about'])
+/** Reached from the top bar's bell, so the side menu leaves it out; it
+ * stays pickable for the phone's bottom bar (Ko'rinish). */
+export const TOPBAR_ONLY = new Set(['/notifications'])
 
 /** Sozlamalar's own pages — the tabs on top of each (SettingsTabs). */
 export const SETTINGS_PAGES: { to: string; label: string; icon: keyof typeof IC }[] = [

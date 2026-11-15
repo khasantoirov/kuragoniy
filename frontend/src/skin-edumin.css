@@ -478,7 +478,7 @@
   :root[data-side-mini][data-skin="r2"] .edside .brandmark { transition: opacity .18s ease; }
 }
 @media (min-width: 761px) and (hover: hover) {
-  :root[data-side-mini][data-skin="r2"] .edside:not(:hover):not(:has(:focus-visible)) :is(.brandmark, .edside__lb, .edside__gt, .edside__foot) { opacity: 0; }
+  :root[data-side-mini][data-skin="r2"] .edside:not(:hover):not(:has(:focus-visible)) :is(.brandmark, .edside__lb, .edside__gt, .edside__foot, .edside__who, .edside__out) { opacity: 0; }
   :root[data-side-mini][data-skin="r2"] .edside:is(:hover, :has(:focus-visible)) {
     width: 264px; z-index: 110;
     box-shadow: 0 1rem 2.5rem rgba(17,19,24,.18);
@@ -487,7 +487,7 @@
   [data-skin="r2"][data-theme="dark"][data-side-mini] .edside:is(:hover, :has(:focus-visible)) { box-shadow: 0 1rem 2.5rem rgba(0,0,0,.55); }
 }
 @media (min-width: 761px) and (hover: none) {
-  :root[data-side-mini][data-skin="r2"] .edside :is(.brandmark, .edside__lb, .edside__gt, .edside__foot) { opacity: 0; }
+  :root[data-side-mini][data-skin="r2"] .edside :is(.brandmark, .edside__lb, .edside__gt, .edside__foot, .edside__who, .edside__out) { opacity: 0; }
 }
 
 @media (max-width: 760px) {
@@ -872,4 +872,41 @@
   [data-skin="r2"] .edtop .gsearch__input { padding-top: 7px; padding-bottom: 7px; font-size: 13px; }
   [data-skin="r2"] .edtop .acct__btn { padding: 2px; }
   [data-skin="r2"] .edtop .acct__av, [data-skin="r2"] .edtop img.acct__av { width: 30px; height: 30px; max-width: 30px; max-height: 30px; }
+}
+
+/* ── Yon menyuning pastki chap burchagi: kim kirgan + chiqish ──
+   (Sidebar.tsx `account`) — menyu aylanganda ham joyida turadi.
+   Ikonkalarga yig'ilgan menyuda faqat rasm qoladi (78px o'rtasida). */
+[data-skin="r2"] .edside__acct {
+  display: flex; align-items: center; gap: 6px; flex: none;
+  padding: 12px 12px 14px 19px; border-top: 1px solid var(--rule);
+  background: var(--surface);
+}
+[data-skin="r2"] .edside__me {
+  display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;
+  border-radius: 12px; color: inherit; text-decoration: none;
+}
+[data-skin="r2"] .edside__av {
+  display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 50%;
+  background: var(--solid); color: var(--on-solid); font: 600 14px/1 var(--f-mono, monospace); overflow: hidden;
+}
+[data-skin="r2"] img.edside__av { max-width: 40px; max-height: 40px; object-fit: cover; }
+[data-skin="r2"] .edside__who { display: grid; gap: 4px; min-width: 0; white-space: nowrap; transition: opacity .18s ease; }
+[data-skin="r2"] .edside__nm { overflow: hidden; text-overflow: ellipsis; font: 600 14.5px/1.2 var(--f-body); color: var(--ink); }
+[data-skin="r2"] .edside__role { overflow: hidden; text-overflow: ellipsis; font: 400 12.5px/1.2 var(--f-body); color: var(--ink-3); }
+[data-skin="r2"] .edside__me:hover .edside__nm { color: var(--pick); }
+[data-skin="r2"] .edside__me:focus-visible, [data-skin="r2"] .edside__out:focus-visible { outline: 2px solid var(--pick); outline-offset: 2px; }
+[data-skin="r2"] .edside__out {
+  display: grid; place-items: center; flex: none; width: 38px; height: 38px; padding: 0;
+  border: 0; border-radius: 10px; background: transparent; color: var(--ink-3); cursor: pointer;
+  transition: background .15s, color .15s, opacity .18s ease;
+}
+[data-skin="r2"] .edside__out:hover { background: color-mix(in srgb, var(--mark) 10%, transparent); color: var(--mark); }
+[data-skin="r2"] .edside__out .svic, [data-skin="r2"] .edside__out svg { width: 19px; height: 19px; }
+/* sensorli planshetda yig'ilgan menyu: ko'rinmas tugma bosilib ketmasin */
+@media (min-width: 761px) and (hover: none) {
+  :root[data-side-mini][data-skin="r2"] .edside__out { visibility: hidden; }
+}
+@media (max-width: 760px) {
+  [data-skin="r2"] .edside__acct { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
 }

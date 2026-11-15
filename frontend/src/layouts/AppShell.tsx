@@ -22,9 +22,13 @@ import { usePageScrolled, useScrollRestoration } from '@/lib/scroll'
 import { useUIStore } from '@/store/uiStore'
 
 import { BottomNav } from './BottomNav'
-import { TOPBAR_ONLY, useVisibleNavItems } from './navItems'
+import { useVisibleNavItems } from './navItems'
 import { EduminSidebar } from './edumin/EduminSidebar'
 import { EduminTopbar } from './edumin/EduminTopbar'
+
+/** 1-rejim (no side menu on a phone): these stay in the account menu,
+ * out of its side menu — as before. 2-rejim has them in the side menu. */
+const CLASSIC_TOPBAR_ONLY = new Set(['/notifications', '/settings', '/about'])
 
 export function AppShell() {
   const { t } = useTranslation()
@@ -165,9 +169,13 @@ export function AppShell() {
             {user?.name}
             {user && <RoleBadge user={user} />}
           </p>
-          <Link className="acct__item" to="/settings/profile" onClick={closeAll}>{IC.user} {t('Profil')}</Link>
-          <Link className="acct__item" to="/settings/appearance" onClick={closeAll}>{IC.gear} {t('Sozlamalar')}</Link>
-          <Link className="acct__item" to="/about" onClick={closeAll}>{IC.info} {t('Platforma haqida')}</Link>
+          {skin !== 'r2' && (
+            <>
+              <Link className="acct__item" to="/settings/profile" onClick={closeAll}>{IC.user} {t('Profil')}</Link>
+              <Link className="acct__item" to="/settings/appearance" onClick={closeAll}>{IC.gear} {t('Sozlamalar')}</Link>
+              <Link className="acct__item" to="/about" onClick={closeAll}>{IC.info} {t('Platforma haqida')}</Link>
+            </>
+          )}
           <button className="acct__item acct__item--out" onClick={() => logout()}>
             {IC.logout} {t('Chiqish')}
           </button>
@@ -264,7 +272,7 @@ export function AppShell() {
         </Link>
 
         <nav className="sidebar__nav" aria-label={t('Asosiy navigatsiya')}>
-          {visibleNavItems.filter((item) => !TOPBAR_ONLY.has(item.to)).map((item) => (
+          {visibleNavItems.filter((item) => !CLASSIC_TOPBAR_ONLY.has(item.to)).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

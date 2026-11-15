@@ -112,11 +112,12 @@ export function SidebarToggle() {
  * while the menu scrolls on its own (thin scrollbar, edge fades), the
  * current page is always scrolled into view, and on a
  * phone the whole thing becomes a slide-in drawer. */
-export function Sidebar({ home, groups, onNav, footer }: {
+export function Sidebar({ home, groups, onNav, account }: {
   home: string
   groups: SideGroup[]
   onNav?: () => void
-  footer?: ReactNode
+  /** Pinned to the bottom-left corner under the menu: who's signed in. */
+  account?: ReactNode
 }) {
   const { t } = useTranslation()
   const { pathname } = useLocation()
@@ -258,13 +259,15 @@ export function Sidebar({ home, groups, onNav, footer }: {
                   </div>
               ))}
 
-              <div className="edside__foot">
-                <p className="edside__copy"><strong>KO'RAGONIY EDU</strong> © {new Date().getFullYear()}</p>
-                {footer}
-              </div>
+              {!account && (
+                <div className="edside__foot">
+                  <p className="edside__copy"><strong>KO'RAGONIY EDU</strong> © {new Date().getFullYear()}</p>
+                </div>
+              )}
             </div>
           </nav>
         </div>
+        {account}
       </aside>
       {open && <div className="edside-backdrop" onClick={() => setOpen(false)} aria-hidden="true" />}
     </>
