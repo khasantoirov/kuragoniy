@@ -17,7 +17,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { type CSSProperties, useMemo, useState } from 'react'
+import { type CSSProperties, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
@@ -247,7 +247,33 @@ export function LessonsPage() {
   )
 }
 
-/** The four choraks as cards — a chorak opens on its own. */
+/** The grid's height: from where it starts to the bottom of the window
+ * (the phone's bottom bar left free). Measured in the page's CSS px —
+ * body has CSS zoom, so window rects are divided by it (as Bookcase does). */
+function useFillHeight(ref: React.RefObject<HTMLDivElement | null>) {
+  const [height, setHeight] = useState<number | null>(null)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const measure = () => {
+      const zoom = parseFloat(getComputedStyle(document.body).zoom || '1') || 1
+      // down to the page's own bottom padding (the shell's, the phone's
+      // bottom bar's room) — past it a scrollbar would appear
+      let bottom = 2
+      for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+        bottom += parseFloat(getComputedStyle(p).paddingBottom) || 0
+      }
+      const room = (window.innerHeight - el.getBoundingClientRect().top) / zoom - bottom
+      setHeight(Math.max(window.innerWidth <= 760 ? 300 : 380, Math.floor(room)))
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [ref])
+  return height
+}
+
+/** The window in four equal parts, 2x2 — a chorak in each; one opens on its own. */
 function QuarterCards({ lessons, locks, admin, lang, onOpen }: {
   lessons: Lesson[]
   locks: Locks
@@ -256,8 +282,10 @@ function QuarterCards({ lessons, locks, admin, lang, onOpen }: {
   onOpen: (ch: number) => void
 }) {
   const { t } = useTranslation()
+  const ref = useRef<HTMLDivElement>(null)
+  const height = useFillHeight(ref)
   return (
-    <div className="qtrs">
+    <div ref={ref} className="qtrs" style={height ? { height } : undefined}>
       {CHORAKS.map((ch) => {
         const rows = lessons.filter((l) => l.chorak === ch)
         const open = isOpenFor(locks, ch)
