@@ -684,6 +684,13 @@ const ru = {
   "Maktabingiz ro'yxatda yo'q bo'lsa, ma'muriyatga ayting — ular «Hamkor maktablar» bo'limiga qo'shadi.": 'Если вашей школы нет в списке, сообщите администрации — её добавят в раздел «Школы-партнёры».',
   "Maktabni ro'yxatdan tanlang": 'Выберите школу из списка',
   "Maktab ro'yxatdan tanlanmagan": 'Школа не выбрана из списка',
+  "Ko'rsatkichlar": 'Показатели',
+  "O'qituvchilar jurnali": 'Журналы учителей',
+  'Ruxsatlar': 'Разрешения',
+  "Maktabni o'chirish": 'Удалить школу',
+  "ro'yxatdan butunlay o'chiriladi.": 'будет полностью удалена из списка.',
+  "Jurnal va jadvalda shu nom ishlatiladi; nomni o'zgartirsangiz, hamma joyda o'zgaradi.": 'Это название используется в журнале и расписании; если изменить его, оно изменится везде.',
+  "O'qituvchilar jurnal va jadvalda maktab nomini turlicha yozgan. Har bir nomni to'g'ri hamkor maktabga biriktiring — jurnal va jadvaldagi bu yozuvlar maktabning rasmiy nomiga almashtiriladi, xato yozilishi saqlanmaydi.": 'Учителя по-разному написали название школы в журнале и расписании. Привяжите каждое к нужной школе — записи получат официальное название, ошибочное написание не сохраняется.',
 } as const
 
 const en = {
@@ -1344,6 +1351,13 @@ const en = {
   "Maktabingiz ro'yxatda yo'q bo'lsa, ma'muriyatga ayting — ular «Hamkor maktablar» bo'limiga qo'shadi.": 'If your school is not listed, tell the administration — they will add it under Partner schools.',
   "Maktabni ro'yxatdan tanlang": 'Pick the school from the list',
   "Maktab ro'yxatdan tanlanmagan": 'School not picked from the list',
+  "Ko'rsatkichlar": 'Figures',
+  "O'qituvchilar jurnali": "Teachers' journals",
+  'Ruxsatlar': 'Permissions',
+  "Maktabni o'chirish": 'Delete the school',
+  "ro'yxatdan butunlay o'chiriladi.": 'will be removed from the list for good.',
+  "Jurnal va jadvalda shu nom ishlatiladi; nomni o'zgartirsangiz, hamma joyda o'zgaradi.": 'The journal and timetable use this name; change it and it changes everywhere.',
+  "O'qituvchilar jurnal va jadvalda maktab nomini turlicha yozgan. Har bir nomni to'g'ri hamkor maktabga biriktiring — jurnal va jadvaldagi bu yozuvlar maktabning rasmiy nomiga almashtiriladi, xato yozilishi saqlanmaydi.": 'Teachers spelled the school differently in the journal and timetable. Link each spelling to the right school — the entries take its official name and the misspelling is not kept.',
 } as const
 
 const resources = {

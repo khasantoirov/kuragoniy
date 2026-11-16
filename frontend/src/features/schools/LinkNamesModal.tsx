@@ -32,7 +32,7 @@ export function LinkNamesModal({ rows, onClose }: { rows: UnlinkedName[]; onClos
     <Modal title={t('Maktab nomlarini moslashtirish')} onClose={onClose}
       footer={<button className="btn btn--primary" onClick={onClose}>{t('Tayyor')}</button>}>
       <p className="prose prose--note">
-        {t("O'qituvchilar jurnal va jadvalda maktab nomini turlicha yozgan. Har bir nomni to'g'ri hamkor maktabga biriktiring — u maktabning muqobil nomi sifatida eslab qolinadi va keyingi yozuvlar avtomatik biriktiriladi.")}
+        {t("O'qituvchilar jurnal va jadvalda maktab nomini turlicha yozgan. Har bir nomni to'g'ri hamkor maktabga biriktiring — jurnal va jadvaldagi bu yozuvlar maktabning rasmiy nomiga almashtiriladi, xato yozilishi saqlanmaydi.")}
       </p>
       {!rows.length && <p className="prose">✓ {t('Hamma nomlar biriktirilgan.')}</p>}
       <ul className="linklist">

@@ -32,20 +32,30 @@ def test_band_keeps_its_free_text_place(as_user, teacher):
 @pytest.mark.django_db
 def test_linking_a_spelling_attaches_old_cells(as_user, admin, teacher):
     school = School.objects.create(name='Sodiq school Istirohat filiali')
-    old = School.objects.create(name='Sodiq school (istirohat)', aliases=['Sodiq school'], is_active=False)
+    School.objects.create(name='Sodiq school (istirohat)', aliases=['Sodiq school'], is_active=False)
     TimetableSlot.objects.create(teacher=teacher, day_index=0, period_index=1, maktab='Sodiq school')
     TimetableSlot.objects.create(teacher=teacher, day_index=0, period_index=2, maktab='Universitet', band=True)
     names = [row['text'] for row in as_user(admin).get('/api/schools/unlinked/').data]
     assert 'Sodiq school' in names and 'Universitet' not in names
 
-    # the inactive duplicate gives the spelling up
     r = as_user(admin).post('/api/schools/link/', {'variants': ['Sodiq school'], 'school': school.id}, format='json')
     assert r.status_code == 200 and r.data['slots'] == 1
     slot = TimetableSlot.objects.get(period_index=1)
     assert slot.school == school and slot.maktab == school.name
-    old.refresh_from_db()
-    assert 'Sodiq school' not in old.aliases
+    school.refresh_from_db()
+    assert school.aliases == []
     assert TimetableSlot.objects.get(period_index=2).school is None
+
+
+@pytest.mark.django_db
+def test_only_an_unused_school_can_be_deleted(as_user, admin, teacher):
+    used = School.objects.create(name='Iftixor')
+    TimetableSlot.objects.create(teacher=teacher, day_index=0, period_index=1, school=used, maktab='Iftixor')
+    empty = School.objects.create(name='Eski nusxa', is_active=False)
+    client = as_user(admin)
+    assert client.delete(f'/api/schools/{used.id}/').status_code == 400
+    assert client.delete(f'/api/schools/{empty.id}/').status_code == 204
+    assert School.objects.filter(pk=used.pk).exists() and not School.objects.filter(pk=empty.pk).exists()
 
 
 @pytest.mark.django_db
@@ -55,3 +65,13 @@ def test_renaming_a_school_renames_its_cells(as_user, admin, teacher):
     r = as_user(admin).patch(f'/api/schools/{school.id}/', {'name': 'Iftixor maktabi'}, format='json')
     assert r.status_code == 200
     assert TimetableSlot.objects.get(teacher=teacher).maktab == 'Iftixor maktabi'
+
+
+@pytest.mark.django_db
+def test_renaming_a_school_renames_its_classes(as_user, admin, teacher):
+    from journal.models import JournalClass
+
+    school = School.objects.create(name='Iftixor')
+    JournalClass.objects.create(teacher=teacher, name='7-A', school='Iftixor', partner_school=school)
+    as_user(admin).patch(f'/api/schools/{school.id}/', {'name': 'Iftixor maktabi'}, format='json')
+    assert JournalClass.objects.get().school == 'Iftixor maktabi'

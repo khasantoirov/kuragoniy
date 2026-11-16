@@ -504,7 +504,7 @@ class EditGrantViewSet(viewsets.GenericViewSet):
         admins = [u for u in User.objects.filter(is_active=True).exclude(pk=user.pk) if u.is_admin]
         notify(
             admins, Kind.JURNAL, f"Jurnal ruxsati so'raldi: {user.name}",
-            f"{class_label(journal_class)} · {_dates(grant)}\nSabab: {grant.reason}", '/journal?tab=access',
+            f"{class_label(journal_class)} · {_dates(grant)}\nSabab: {grant.reason}", '/statistics?bolim=jurnal&qism=ruxsatlar',
             telegram_text=(
                 f"📒 {user.name} jurnalni tahrirlash uchun ruxsat so'radi.\n"
                 f"Sinf: {class_label(journal_class)}\nSana: {_dates(grant)}\nSabab: {grant.reason}\n\n"

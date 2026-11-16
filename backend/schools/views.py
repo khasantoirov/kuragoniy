@@ -24,7 +24,7 @@ from common.security import log_event
 from journal.models import AttendanceEntry, GradeEntry, JournalClass, Student
 
 from . import stats
-from .matching import link_school, norm, sync_slot_names, unlinked_names
+from .matching import adopt_names, link_school, sync_names, unlinked_names
 from .models import AcademicYear, School, SchoolLicense, SchoolTeacher, SchoolYear
 from .serializers import SchoolBriefSerializer, SchoolSerializer
 
@@ -79,11 +79,16 @@ class SchoolViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         school = serializer.save()
         link_school(school)
-        sync_slot_names(school)
+        sync_names(school)
         notify_admin_action(self.request.user, f"Hamkor maktabni tahrirladi: «{school.name}»")
 
     def perform_destroy(self, instance):
-        notify_admin_action(self.request.user, f"Hamkor maktabni o'chirdi: «{instance.name}» (sinflar maktabsiz qoldi)")
+        # only an empty one goes; a school with history is switched off instead
+        if (instance.classes.exists() or instance.memberships.exists() or instance.licenses.exists()
+                or instance.managers.exists() or instance.timetable_slots.exists()):
+            raise ValidationError({'detail': "Bu maktabga sinf, o'qituvchi, jadval yoki litsenziya bog'langan — "
+                                             "o'chirib bo'lmaydi. Uni «Faol emas» qiling."})
+        notify_admin_action(self.request.user, f"Hamkor maktabni o'chirdi: «{instance.name}»")
         instance.delete()
 
     def retrieve(self, request, *args, **kwargs):
@@ -355,8 +360,9 @@ class UnlinkedView(APIView):
 
 
 class LinkView(APIView):
-    """Attach a free-text spelling to an existing school (stored as an
-    alias) or to a newly created one, then link everything that matches."""
+    """Hand-typed spellings → an existing school or a newly created one:
+    the classes and timetable cells written so take the school and its
+    official name (the spelling is not kept as an alias)."""
 
     permission_classes = [IsAdminOrDevSuperuser]
 
@@ -369,22 +375,7 @@ class LinkView(APIView):
         else:
             name = ' '.join(str(request.data.get('new_name') or variants[0]).split())
             school = School.objects.filter(name__iexact=name).first() or School.objects.create(name=name)
-        keys = {norm(school.name)} | {norm(a) for a in school.aliases or []}
-        # an inactive (old, duplicate) school gives its spelling up; an active one keeps it
-        clash = School.objects.exclude(pk=school.pk)
-        for v in variants:
-            if norm(v) in keys:
-                continue
-            for other in clash:
-                if norm(v) == norm(other.name) or norm(v) in {norm(a) for a in other.aliases or []}:
-                    if other.is_active:
-                        raise ValidationError({'detail': f"«{v}» allaqachon «{other.name}» maktabiga tegishli."})
-                    other.aliases = [a for a in other.aliases or [] if norm(a) != norm(v)]
-                    other.save(update_fields=['aliases', 'updated_at'])
-            school.aliases = [*(school.aliases or []), v]
-            keys.add(norm(v))
-        school.save(update_fields=['aliases', 'updated_at'])
-        result = link_school(school)
+        result = adopt_names(school, variants)
         notify_admin_action(request.user, f"Maktab nomlarini moslashtirdi: {', '.join(variants)} → «{school.name}»")
         return Response({'school': SchoolBriefSerializer(school).data, **result}, status=status.HTTP_200_OK)
 

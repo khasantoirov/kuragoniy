@@ -77,9 +77,41 @@ def link_school(school: School) -> dict:
             'teachers_added': len(teacher_ids - existing)}
 
 
-def sync_slot_names(school: School) -> int:
-    """A renamed school: its timetable cells show the new name."""
-    return TimetableSlot.objects.filter(school=school).exclude(maktab=school.name).update(maktab=school.name)
+def sync_names(school: School) -> int:
+    """One name everywhere: the school's journal classes and timetable
+    cells carry its official name (after a rename, or old spellings)."""
+    n = JournalClass.objects.filter(partner_school=school).exclude(school=school.name).update(school=school.name)
+    return n + TimetableSlot.objects.filter(school=school).exclude(maktab=school.name).update(maktab=school.name)
+
+
+@transaction.atomic
+def adopt_names(school: School, variants) -> dict:
+    """Spellings typed by hand become `school`: the journal classes and
+    timetable cells written so are attached to it and renamed to its
+    official name. The spelling itself is kept nowhere."""
+    keys = {norm(v) for v in variants} - {''}
+    classes = [c for c in JournalClass.objects.filter(partner_school__isnull=True).exclude(school='').select_related('year')
+               if norm(c.school) in keys]
+    for c in classes:
+        c.partner_school, c.school = school, school.name
+    JournalClass.objects.bulk_update(classes, ['partner_school', 'school'])
+    slots = [s for s in TimetableSlot.objects.filter(school__isnull=True, band=False).exclude(maktab='') if norm(s.maktab) in keys]
+    for s in slots:
+        s.school, s.maktab = school, school.name
+    TimetableSlot.objects.bulk_update(slots, ['school', 'maktab'])
+
+    current = AcademicYear.current()
+    teacher_ids = {c.teacher_id for c in classes if c.year is None or c.year.start_year >= current.start_year}
+    teacher_ids |= {s.teacher_id for s in slots}
+    existing = set(SchoolTeacher.objects.filter(school=school).values_list('teacher_id', flat=True))
+    SchoolTeacher.objects.bulk_create(
+        [SchoolTeacher(school=school, teacher_id=t) for t in teacher_ids - existing], ignore_conflicts=True,
+    )
+    # bulk_update sends no signals: the statistics cache learns of it here
+    from .signals import bump_stats_cache
+
+    bump_stats_cache()
+    return {'classes': len(classes), 'slots': len(slots), 'teachers_added': len(teacher_ids - existing)}
 
 
 def unlinked_names() -> list[dict]:

@@ -39,15 +39,17 @@ def test_creating_school_links_matching_classes_and_teachers(as_user, admin, tea
     assert SchoolTeacher.objects.filter(school=school, teacher=teacher).exists()
 
 
-def test_link_tool_adds_alias_and_links(as_user, admin, teacher):
+def test_link_tool_renames_to_the_official_name(as_user, admin, teacher):
     school = School.objects.create(name="Iftixor school")
     JournalClass.objects.create(teacher=teacher, name="8-A", school="Iftixor")
     assert [r["text"] for r in unlinked_names()] == ["Iftixor"]
 
     resp = as_user(admin).post("/api/schools/link/", {"variants": ["Iftixor"], "school": school.id}, format="json")
     assert resp.status_code == 200 and resp.data["classes"] == 1
+    cls = JournalClass.objects.get()
+    assert cls.partner_school == school and cls.school == "Iftixor school"
     school.refresh_from_db()
-    assert "Iftixor" in school.aliases
+    assert school.aliases == []  # the misspelling is kept nowhere
     assert unlinked_names() == []
 
 

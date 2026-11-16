@@ -45,9 +45,10 @@ export function StatsHub() {
     return <Navigate to={`?${next}`} replace />
   }
   const open = bolim || tabs.find((x) => x.show !== false)!.key
+  const fields = open === 'jurnal' && params.get('qism') ? [] : (FIELDS[open] ?? [])
   return (
     <StatsFilterProvider>
-      <PageTabs tabs={tabs} keep={STATS_FILTER_PARAMS} toolbar={<StatsFilterBar fields={FIELDS[open] ?? []} />} aside={<YearPicker />} />
+      <PageTabs tabs={tabs} keep={STATS_FILTER_PARAMS} toolbar={<StatsFilterBar fields={fields} />} aside={<YearPicker />} />
     </StatsFilterProvider>
   )
 }

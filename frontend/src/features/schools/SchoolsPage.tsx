@@ -6,12 +6,57 @@ import { Skeleton } from '@/components/Skeleton'
 import { downloadCsv } from '@/features/portal/csv'
 import { PageHead, Segmented } from '@/features/portal/ui'
 import { IC } from '@/icons'
-import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
+import { EditGrantsPanel } from '@/features/journal/EditGrantsPanel'
+import { useGrants } from '@/features/journal/api'
+import { TeacherList } from '@/features/journal/TeacherList'
+import { isAdmin, isAdminInView, useAuth } from '@/lib/auth/AuthContext'
+import { useUIStore } from '@/store/uiStore'
 
 import { useSchoolsOverview, useUnlinked, type ClassRow, type GroupRow, type StatsGroup } from './api'
 import { LinkNamesModal } from './LinkNamesModal'
 import { METRIC_CSV_HEAD, METRIC_HELP, MetricCells, MetricHeads, metricCsv, SchoolFormModal } from './shared'
 import { useStatsHub } from './statsFilter'
+
+type Part = 'stats' | 'oqituvchilar' | 'ruxsatlar'
+
+/** Statistika › Jurnal: the figures, and — for the administration — every
+ * teacher's journal and the permissions for past days (moved here from
+ * the Jurnal page; ?qism= picks the part). */
+export function SchoolsPage() {
+  const { t } = useTranslation()
+  const { user } = useAuth()
+  const viewMode = useUIStore((s) => s.viewMode)
+  const admin = isAdminInView(user, viewMode)
+  const [params, setParams] = useSearchParams()
+  const raw = params.get('qism')
+  const part: Part = admin && (raw === 'oqituvchilar' || raw === 'ruxsatlar') ? raw : 'stats'
+  const waiting = useGrants('pending', admin).data?.length ?? 0
+  const pick = (p: Part) => setParams((prev) => {
+    const next = new URLSearchParams(prev)
+    if (p === 'stats') next.delete('qism')
+    else next.set('qism', p)
+    return next
+  }, { replace: true })
+
+  return (
+    <div>
+      {admin && (
+        <div className="chips" style={{ marginBottom: 14 }}>
+          <button className={`chip ${part === 'stats' ? 'is-on' : ''}`} onClick={() => pick('stats')}>
+            {IC.chart} {t("Ko'rsatkichlar")}
+          </button>
+          <button className={`chip ${part === 'oqituvchilar' ? 'is-on' : ''}`} onClick={() => pick('oqituvchilar')}>
+            {IC.users} {t("O'qituvchilar jurnali")}
+          </button>
+          <button className={`chip ${part === 'ruxsatlar' ? 'is-on' : ''}`} onClick={() => pick('ruxsatlar')}>
+            {IC.lock} {t('Ruxsatlar')} {waiting > 0 && <span className="chip__count">{waiting}</span>}
+          </button>
+        </div>
+      )}
+      {part === 'oqituvchilar' ? <TeacherList /> : part === 'ruxsatlar' ? <EditGrantsPanel /> : <JournalFigures />}
+    </div>
+  )
+}
 
 const GROUPS: { value: StatsGroup; label: string }[] = [
   { value: 'school', label: 'Maktab' },
@@ -26,7 +71,7 @@ const EMPTY_UNIT: Record<StatsGroup, string> = { school: 'ta maktabda', teacher:
  * teacher's row their classes — by narrowing the filter panel, so the rest
  * of Statistika follows — and a class row opens that class's journal. The
  * numbers are the ones Umumiy ko'rinish shows (schools/stats.py). */
-export function SchoolsPage() {
+function JournalFigures() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const admin = isAdmin(user)

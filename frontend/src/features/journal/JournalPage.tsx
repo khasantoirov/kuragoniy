@@ -8,17 +8,18 @@ import { IC } from '@/icons'
 import { isAdminInView, isSchoolAdmin, useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore } from '@/store/uiStore'
 
-import { useClasses, useGrants, useGrantTeachers } from './api'
+import { useClasses, useGrantTeachers } from './api'
 import { ClassGrid } from './ClassGrid'
 import { ClassPicker } from './ClassPicker'
 import { ClassModal } from './ClassModal'
 import { ClassSummary } from './ClassSummary'
-import { EditGrantsPanel } from './EditGrantsPanel'
 import { type ChorakView, readPick, rememberPick, shownChorak, useChorakNow } from './calendar'
 import { quarterLabel } from './labels'
-import { TeacherCard } from './TeacherCard'
 
 type Chorak = ChorakView
+
+/** Statistika › Jurnal — the teachers' journals and the permissions. */
+const TEACHERS_JOURNALS = '/statistics?bolim=jurnal'
 
 /** The chorak on view: the calendar's own (Boshqaruv → O'quv yillari →
  * Choraklar) unless one was picked by hand within the same chorak. */
@@ -104,40 +105,6 @@ function JournalBody({ teacherId, head }: { teacherId?: string; head?: React.Rea
   )
 }
 
-/** Administrators: every teacher with classes, to open their journal. */
-function TeacherList() {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
-  const { data, isLoading } = useGrantTeachers(true)
-  const [q, setQ] = useState('')
-  if (isLoading) return <Skeleton lines={4} />
-  const needle = q.trim().toLowerCase()
-  const list = (data ?? []).filter((p) => p.classes.length > 0 && (!needle || p.name.toLowerCase().includes(needle)
-    || p.classes.some((c) => c.label.toLowerCase().includes(needle))
-    || (p.schools ?? []).some((s) => s.name.toLowerCase().includes(needle))))
-  return (
-    <div className="jpick">
-      <input className="input jpick__q" type="search" value={q} onChange={(e) => setQ(e.target.value)}
-        placeholder={t("O'qituvchi, maktab yoki sinf")} aria-label={t('Qidirish')} />
-      {list.length ? (
-        <ul className="tcards">
-          {list.map((p) => (
-            <li key={p.id}>
-              <TeacherCard person={{ ...p, schools: p.schools ?? [] }}
-                onOpen={() => navigate(`/journal?teacher=${encodeURIComponent(p.id)}`)} />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <EmptyState title={t('Topilmadi')} hint={t("Sinf qo'shgan o'qituvchi topilmadi.")} />
-      )}
-    </div>
-  )
-}
-
-type AdminMode = 'mine' | 'teachers' | 'access'
-const modeOf = (tab: string | null): AdminMode => (tab === 'access' ? 'access' : tab === 'teachers' ? 'teachers' : 'mine')
-
 export function JournalPage() {
   const { t } = useTranslation()
   const viewMode = useUIStore((s) => s.viewMode)
@@ -146,36 +113,17 @@ export function JournalPage() {
   const admin = isAdminInView(user, viewMode)
   // a school's ma'muriyat: their school's teachers' journals, read-only
   const schoolAdmin = isSchoolAdmin(user)
-  const [params, setParams] = useSearchParams()
-  // ?tab=access — where the "permission asked" notification points;
-  // ?tab=teachers — the teachers' journals; ?teacher=<id> — an
-  // administrator in that teacher's journal (grading nazorat ishi).
+  const [params] = useSearchParams()
+  // ?teacher=<id> — an administrator in that teacher's journal (grading nazorat ishi)
   const viewing = admin || schoolAdmin ? params.get('teacher') : null
-  const [adminMode, setAdminMode] = useState<AdminMode>(() => modeOf(params.get('tab')))
-  const pendingGrants = useGrants('pending', admin)
   const teachers = useGrantTeachers(!!viewing && admin)
 
-  const changeMode = (m: AdminMode) => {
-    setAdminMode(m)
-    if (params.has('tab') || params.has('teacher')) setParams({}, { replace: true })
+  // The teachers' journals and the past-day permissions live in
+  // Statistika › Jurnal now; old links (notifications) land there.
+  const tab = params.get('tab')
+  if (admin && (tab === 'access' || tab === 'teachers')) {
+    return <Navigate to={`${TEACHERS_JOURNALS}&qism=${tab === 'access' ? 'ruxsatlar' : 'oqituvchilar'}`} replace />
   }
-  const waiting = pendingGrants.data?.length ?? 0
-
-  // Administrators: their own journal, the teachers' journals, or permissions for past days.
-  const ModeBar = admin ? (
-    <div className="chips" style={{ marginBottom: 14 }}>
-      <button className={`chip ${adminMode === 'mine' && !viewing ? 'is-on' : ''}`} onClick={() => changeMode('mine')}>
-        {IC.user} {t('Mening jurnalim')}
-      </button>
-      <button className={`chip ${adminMode === 'teachers' || viewing ? 'is-on' : ''}`} onClick={() => changeMode('teachers')}>
-        {IC.users} {t("O'qituvchilar jurnali")}
-      </button>
-      <button className={`chip ${adminMode === 'access' && !viewing ? 'is-on' : ''}`} onClick={() => changeMode('access')}>
-        {IC.lock} {t('Ruxsatlar')} {waiting > 0 && <span className="chip__count">{waiting}</span>}
-      </button>
-    </div>
-  ) : null
-
   if (schoolAdmin && !viewing) return <Navigate to="/my-school" replace />
 
   if (viewing) {
@@ -185,41 +133,19 @@ export function JournalPage() {
         key={viewing}
         teacherId={viewing}
         head={
-          <>
-            {ModeBar}
-            <div className="jview">
-              <button type="button" className="btn btn--sm" onClick={() => {
-                if (schoolAdmin) return navigate(-1)
-                setAdminMode('teachers')
-                navigate('/journal?tab=teachers')
-              }}>
-                {IC.back} {schoolAdmin ? t('Orqaga') : t("O'qituvchilar")}
-              </button>
-              <span className="jview__t">{IC.eye} <b>{name}</b> {t('jurnali')}</span>
-            </div>
-          </>
+          <div className="jview">
+            <button type="button" className="btn btn--sm" onClick={() => {
+              if (schoolAdmin) return navigate(-1)
+              navigate(`${TEACHERS_JOURNALS}&qism=oqituvchilar`)
+            }}>
+              {IC.back} {schoolAdmin ? t('Orqaga') : t("O'qituvchilar")}
+            </button>
+            <span className="jview__t">{IC.eye} <b>{name}</b> {t('jurnali')}</span>
+          </div>
         }
       />
     )
   }
 
-  if (admin && adminMode === 'teachers') {
-    return (
-      <div>
-        {ModeBar}
-        <TeacherList />
-      </div>
-    )
-  }
-
-  if (admin && adminMode === 'access') {
-    return (
-      <div>
-        {ModeBar}
-        <EditGrantsPanel />
-      </div>
-    )
-  }
-
-  return <JournalBody head={ModeBar} />
+  return <JournalBody />
 }

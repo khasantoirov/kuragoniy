@@ -15,8 +15,8 @@ import type { JournalClass } from './types'
 
 export function ClassModal({ cls, onClose, onCreated }: { cls: JournalClass | null; onClose: () => void; onCreated?: (id: number) => void }) {
   const { t } = useTranslation()
-  const [school, setSchool] = useState(cls?.school ?? '')
-  const [partner, setPartner] = useState<number | 'other' | ''>(cls?.partner_school ?? (cls ? 'other' : ''))
+  // picked from Hamkor maktablar only (the administration keeps the list)
+  const [partner, setPartner] = useState<number | ''>(cls?.partner_school ?? '')
   const [name, setName] = useState(cls?.name ?? '')
   // The school's grading scale; a new class starts on the one used last.
   const [scale, setScale] = useState<Scale>(() => {
@@ -35,17 +35,18 @@ export function ClassModal({ cls, onClose, onCreated }: { cls: JournalClass | nu
     queryKey: ['schools', 'brief'],
     queryFn: async () => (await api.get<Paginated<{ id: number; name: string }>>('/schools/')).data.results,
   })
-  const usingOther = partner === 'other' || !partners?.length
+  // an old class whose school was typed by hand and not matched yet
+  const typed = cls && !cls.partner_school ? cls.school : ''
   const create = useCreateClass()
   const update = useUpdateClass(cls?.id ?? 0)
   const toast = useToast()
 
   const submit = async () => {
-    const chosen = !usingOther && partner !== '' ? partners?.find((p) => p.id === partner) : undefined
-    const schoolName = chosen ? chosen.name : school.trim()
-    if (!schoolName) return toast(t('Maktabni tanlang yoki nomini kiriting'), 'error')
+    const chosen = partner !== '' ? partners?.find((p) => p.id === partner) : undefined
+    if (!chosen) return toast(t("Maktabni ro'yxatdan tanlang"), 'error')
     if (!name.trim()) return toast(t('Sinf nomini kiriting'), 'error')
-    const partnerId = chosen ? chosen.id : null
+    const schoolName = chosen.name
+    const partnerId = chosen.id
     if (cls && scale !== asScale(cls.scale) && !(await confirm({
       title: t('Baholash shkalasi'),
       text: t("Mavjud baholar yangi shkalaga o'tkaziladi — har birining rang toifasi saqlanadi."),
@@ -90,22 +91,15 @@ export function ClassModal({ cls, onClose, onCreated }: { cls: JournalClass | nu
         </>
       }
     >
-      {!!partners?.length && (
-        <label className="field">
-          <span className="field__label">{t('Maktab')}</span>
-          <select className="input" value={partner} onChange={(e) => setPartner(e.target.value === 'other' ? 'other' : e.target.value ? Number(e.target.value) : '')}>
-            <option value="">{t('Hamkor maktabni tanlang…')}</option>
-            {partners.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-            <option value="other">{t("Ro'yxatda yo'q (qo'lda yozish)")}</option>
-          </select>
-        </label>
-      )}
-      {usingOther && (
-        <label className="field">
-          <span className="field__label">{t('Maktab nomi')}</span>
-          <input className="input" value={school} onChange={(e) => setSchool(e.target.value)} placeholder={t('Masalan: 25-maktab')} />
-        </label>
-      )}
+      <label className="field">
+        <span className="field__label">{t('Maktab')}</span>
+        <select className="input" value={partner} onChange={(e) => setPartner(e.target.value ? Number(e.target.value) : '')}>
+          <option value="">{t('Hamkor maktabni tanlang…')}</option>
+          {partners?.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        {typed && partner === '' && <small className="field__warn">⚠ «{typed}» {t("qo'lda yozilgan — ro'yxatdan maktabni tanlang.")}</small>}
+        <small className="field__hint">{t("Maktabingiz ro'yxatda yo'q bo'lsa, ma'muriyatga ayting — ular «Hamkor maktablar» bo'limiga qo'shadi.")}</small>
+      </label>
       <label className="field">
         <span className="field__label">{t('Sinf nomi')}</span>
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Masalan: 7-A')} />

@@ -115,7 +115,4 @@
 /* ── a cell whose school was typed by hand, not picked from the list ── */
 .ttk__warn { margin-left: 4px; font-size: 11px; color: #b45309; cursor: help; }
 
-/* ── SlotEditor: under the school picker ── */
-.field__warn { display: block; margin-top: 5px; font-size: 12px; color: #b45309; }
-.field__hint { display: block; margin-top: 5px; font-size: 12px; color: var(--ink-3); }
-[data-theme="dark"] .field__warn, [data-theme="dark"] .ttk__warn { color: #f5b45a; }
+[data-theme="dark"] .ttk__warn { color: #f5b45a; }

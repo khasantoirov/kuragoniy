@@ -539,6 +539,12 @@ a.hwcard__title:hover { color: var(--pick); }
 .linklist__info { display: grid; gap: 2px; min-width: 0; }
 .linklist__info small { color: var(--ink-3); font-size: 12px; }
 .linklist__acts { display: flex; gap: 6px; align-items: center; }
+.linklist__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+.linklist__acts .input { width: 230px; }
+@media (max-width: 640px) {
+  .linklist__row { grid-template-columns: minmax(0, 1fr); }
+  .linklist__acts .input { flex: 1; width: auto; min-width: 0; }
+}
 .stf__id .presence { margin-top: 4px; }
 
 /* ══ Virtual kutubxona: kitob javoni (features/library/Bookcase.tsx) ═══

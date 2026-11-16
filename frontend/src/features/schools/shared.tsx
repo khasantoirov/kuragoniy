@@ -79,16 +79,16 @@ export function SchoolFormModal({ initial, onClose }: { initial: Partial<School>
   const { t } = useTranslation()
   const toast = useToast()
   const [s, setS] = useState<Partial<School>>(initial ?? EMPTY)
-  const [aliasText, setAliasText] = useState((initial?.aliases ?? []).join('\n'))
   const set = (patch: Partial<School>) => setS({ ...s, ...patch })
   const save = useSchoolsMutation(async (body: Partial<School>) =>
     s.id ? api.patch(`/schools/${s.id}/`, body) : api.post('/schools/', body))
 
   const submit = async () => {
     try {
+      // one official name: no other spellings are kept (Hamkor maktablar)
       await save.mutateAsync({
         ...s,
-        aliases: aliasText.split('\n').map((a) => a.trim()).filter(Boolean),
+        aliases: [],
         contract_start: s.contract_start || null,
         contract_end: s.contract_end || null,
       })
@@ -137,12 +137,7 @@ export function SchoolFormModal({ initial, onClose }: { initial: Partial<School>
           <input className="input" type="date" value={s.contract_end ?? ''} onChange={(e) => set({ contract_end: e.target.value || null })} />
         </label>
       </div>
-      <label className="field">
-        <span className="field__label">{t('Muqobil yozilishlari')} <span className="field__opt">({t('har biri yangi qatorda')})</span></span>
-        <textarea className="input" rows={3} value={aliasText} onChange={(e) => setAliasText(e.target.value)}
-          placeholder={'Sodiq school\nSodiq'} />
-      </label>
-      <p className="form__note">{t("Jurnal va jadvalda shu nomlardan biri yozilgan sinflar avtomatik shu maktabga biriktiriladi.")}</p>
+      <p className="form__note">{t("Jurnal va jadvalda shu nom ishlatiladi; nomni o'zgartirsangiz, hamma joyda o'zgaradi.")}</p>
       <label className="field">
         <span className="field__label">{t('Izoh')}</span>
         <textarea className="input" rows={2} value={s.notes} onChange={(e) => set({ notes: e.target.value })} />
