@@ -235,8 +235,8 @@ export function Sidebar({ home, groups, onNav, account }: {
           <nav className="edside__nav" ref={navRef} tabIndex={-1} aria-label={t('Asosiy navigatsiya')}>
             <div className="edside__list">
               {groups.map((g) => (
-                  <div className="edside__sec" key={g.title}>
-                    <p className="edside__gt"><span className="edside__gtt">{t(g.title)}</span></p>
+                  <div className={`edside__sec ${g.title ? '' : 'edside__sec--tail'}`} key={g.title || '_tail'}>
+                    {g.title && <p className="edside__gt"><span className="edside__gtt">{t(g.title)}</span></p>}
                     <div className="edside__items">
                       <div className="edside__itemsin">
                         {g.items.map((item) => item.children?.length ? (

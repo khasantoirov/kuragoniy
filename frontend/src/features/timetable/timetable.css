@@ -1,0 +1,113 @@
+/* ══ Jadval sahifasi (TimetablePage) ═════════════════════════════════
+   Sarlavha; oq kartochka ichida filtrlar, yorliqlar va jadval; jadval
+   kataklarida ixcham dars kartochkalari (holat belgisi bilan); pastda
+   ikki xulosa paneli. Eski .tt qoidalari (legacy.css) ustidan
+   `.ttpage .tt …` bilan yoziladi.
+   Jadval ichida color-mix() yo'q — JPG eksport (html2canvas) uni
+   tushunmaydi, shuning uchun ranglar oddiy rgba(). */
+
+.ttx-head { margin: 2px 0 14px; }
+.ttx-head__title { margin: 0; font: 700 22px/1.2 var(--f-display, inherit); color: var(--ink); }
+.ttx-head__sub { margin: 4px 0 0; font-size: 13px; color: var(--ink-3); }
+
+.ttx {
+  padding: 16px 18px 14px; border: 1px solid var(--rule); border-radius: 16px;
+  background: var(--surface); box-shadow: var(--shadow);
+}
+.ttx__bar { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 10px 14px; margin-bottom: 12px; }
+.ttx__f { display: grid; gap: 5px; min-width: 0; }
+.ttx__fl { font: 600 12px/1 var(--f-body, inherit); color: var(--ink-2); }
+.ttx__f .input { height: 36px; min-width: 180px; max-width: 260px; padding-top: 0; padding-bottom: 0; }
+.ttx__acts { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.ttx__acts .btn { height: 36px; }
+.ttx__tabs { margin-bottom: 8px; }
+.ttx__tabs .seg__b .svic, .ttx__tabs .seg__b svg { width: 15px; height: 15px; }
+.ttx__cap { margin: 0 0 10px; font-size: 12.5px; color: var(--ink-3); }
+
+/* ── the grid ── */
+.ttpage .ttx__grid { border: 0; border-radius: 10px; background: transparent; }
+.ttpage .tt { font-size: 12px; }
+.ttpage .tt th, .ttpage .tt td { border: 1px solid var(--rule); }
+.ttpage .tt .tt__h { padding: 9px 6px; font: 700 13px/1.2 var(--f-body, inherit); letter-spacing: 0; text-transform: none; color: #fff; }
+.ttpage .tt .tt__corner,
+.ttpage .tt .tt__soat { font: 600 12px/1.2 var(--f-body, inherit); letter-spacing: 0; color: var(--ink-2); text-align: center; }
+
+.ttpage .tt .tt__c { height: auto; min-width: 0; padding: 3px; vertical-align: top; text-align: left; background: var(--surface); }
+/* height:1px lets the card fill its cell, a several-soat (rowspan) one too */
+.ttpage .tt .tt__c--on { height: 1px; }
+.ttpage .tt .tt__c--on[tabindex] { cursor: pointer; }
+.ttpage .tt .tt__c--on:focus-visible { outline: 2px solid var(--pick); outline-offset: -2px; }
+.ttpage .tt .tt__c--empty,
+.ttpage .tt .tt__c--free { height: 38px; text-align: center; vertical-align: middle; background: rgba(15, 23, 42, .045); }
+.ttpage .tt .tt__c--empty { cursor: pointer; }
+.ttpage .tt .tt__c--empty:hover,
+.ttpage .tt .tt__c--empty:focus-visible { background: rgba(106, 115, 250, .1); outline: none; }
+.ttpage .tt .tt__plus { color: var(--ink-3); font: 400 18px/1 var(--f-body, inherit); opacity: .75; }
+.ttpage .tt .tt__c.is-dim .ttk { opacity: .28; }
+[data-theme="dark"] .ttpage .tt .tt__c { background: rgba(19, 30, 44, .66); }
+[data-theme="dark"] .ttpage .tt .tt__c--empty,
+[data-theme="dark"] .ttpage .tt .tt__c--free { background: rgba(255, 255, 255, .035); }
+
+/* ── a lesson ── */
+.ttk {
+  display: flex; flex-direction: column; gap: 3px; box-sizing: border-box;
+  height: 100%; min-height: 54px; padding: 6px 8px; border-radius: 8px;
+  border: 1px solid rgba(124, 135, 152, .32); background: rgba(124, 135, 152, .08);
+  transition: border-color .15s, box-shadow .15s, opacity .15s;
+}
+.ttk--nazariy { border-color: rgba(46, 91, 191, .32); background: rgba(46, 91, 191, .09); }
+.ttk--amaliy { border-color: rgba(179, 122, 15, .34); background: rgba(179, 122, 15, .1); }
+.ttk--band {
+  border-color: rgba(226, 70, 90, .3);
+  background: repeating-linear-gradient(135deg, rgba(226, 70, 90, .05) 0 8px, rgba(226, 70, 90, .11) 8px 16px);
+}
+.ttpage .tt__c--on:hover .ttk { border-color: rgba(124, 135, 152, .8); }
+.ttpage .tt__c--on:hover .ttk--nazariy { border-color: #2e5bbf; }
+.ttpage .tt__c--on:hover .ttk--amaliy { border-color: #b37a0f; }
+[data-theme="dark"] .ttk { border-color: rgba(160, 170, 190, .3); background: rgba(160, 170, 190, .08); }
+[data-theme="dark"] .ttk--nazariy { border-color: rgba(143, 176, 255, .38); background: rgba(143, 176, 255, .12); }
+[data-theme="dark"] .ttk--amaliy { border-color: rgba(242, 184, 99, .38); background: rgba(242, 184, 99, .12); }
+.ttk.is-now { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, .28); }
+
+.ttk__t { display: flex; align-items: flex-start; gap: 4px; font: 700 12.5px/1.25 var(--f-body, inherit); color: var(--ink); overflow-wrap: anywhere; }
+.ttk__t .svic, .ttk__t svg { flex: none; width: 12px; height: 12px; margin-top: 1px; color: var(--mark); }
+.ttk__m { overflow: hidden; font-size: 11.5px; line-height: 1.25; color: var(--ink-2); text-overflow: ellipsis; white-space: nowrap; }
+.ttk__f { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; margin-top: auto; padding-top: 1px; }
+.ttk__time { font: 600 10.5px/1.2 var(--f-mono, monospace); color: var(--ink-3); }
+.ttk__span { padding: 1px 4px; border: 1px solid var(--rule); border-radius: 4px; font: 600 9.5px/1.3 var(--f-mono, monospace); color: var(--ink-3); }
+.ttk__st { margin-left: auto; padding: 2px 7px; border-radius: 999px; font: 600 10px/1.35 var(--f-body, inherit); white-space: nowrap; }
+.ttk__st--done { background: #15803d; color: #fff; }
+.ttk__st--now { background: #2563eb; color: #fff; }
+.ttk__st--next { background: rgba(37, 99, 235, .12); color: #1d4ed8; }
+.ttk__st--today { background: rgba(100, 116, 139, .16); color: var(--ink-2); }
+.ttk__st--band { background: rgba(226, 70, 90, .13); color: #c22a43; }
+[data-theme="dark"] .ttk__st--next { background: rgba(120, 160, 255, .16); color: #a9c2ff; }
+[data-theme="dark"] .ttk__st--band { color: #ff8a9b; }
+
+.ttpage .tt__legend { margin-top: 10px; }
+
+/* ── under the table ── */
+.ttsum { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+.ttsum--one { grid-template-columns: minmax(0, 1fr); }
+.ttsum__p { min-width: 0; padding: 16px 18px; border: 1px solid var(--rule); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); }
+.ttsum__h { margin: 0 0 10px; font: 700 15px/1.3 var(--f-display, inherit); color: var(--ink); }
+.ttsum__list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 13.5px; color: var(--ink-2); }
+.ttsum__list b { font-weight: 600; color: var(--ink); }
+.ttsum__list .is-me b { color: var(--pick); }
+.ttsum__more { font-size: 12.5px; color: var(--ink-3); }
+.ttsum__dl { display: grid; gap: 6px; margin: 0; font-size: 13.5px; }
+.ttsum__row { display: flex; flex-wrap: wrap; gap: 6px; }
+.ttsum__row dt { color: var(--ink-2); }
+.ttsum__row dd { margin: 0; font-weight: 600; color: var(--ink); }
+
+@media (max-width: 760px) {
+  .ttx { padding: 12px; border-radius: 14px; }
+  .ttx-head__title { font-size: 19px; }
+  .ttx__f { flex: 1 1 140px; }
+  .ttx__f .input { width: 100%; min-width: 0; max-width: none; }
+  .ttx__acts { width: 100%; margin-left: 0; }
+  .ttx__acts .btn--primary { flex: 1; justify-content: center; }
+  .ttx__tabs { display: flex; flex-wrap: nowrap; width: 100%; }
+  .ttx__tabs .seg__b { flex: 1 1 0; min-width: 0; padding-inline: 6px; font-size: 12.5px; }
+  .ttsum { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+}

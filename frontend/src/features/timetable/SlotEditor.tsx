@@ -54,12 +54,15 @@ export function SlotEditor({
   onDelete,
   onMove,
   onClose,
+  choosePlace,
 }: {
   slot: TimetableSlot
   onSave: (slot: TimetableSlot) => void
   onDelete?: () => void
   onMove?: (target: { day_index: number; period_index: number }) => void
   onClose: () => void
+  /** A new lesson from "Yangi dars qo'shish": its day and soat are picked here. */
+  choosePlace?: boolean
 }) {
   const { t } = useTranslation()
   const { lang } = useUIStore()
@@ -67,12 +70,12 @@ export function SlotEditor({
   const [moveDay, setMoveDay] = useState(slot.day_index)
   const [movePeriod, setMovePeriod] = useState(slot.period_index)
   const hasLesson = !!(slot.sinf || slot.xona || slot.maktab || slot.band)
-  const maxSpan = SOATLAR - slot.period_index + 1
+  const maxSpan = SOATLAR - draft.period_index + 1
   const sameSlot = moveDay === slot.day_index && movePeriod === slot.period_index
 
   return (
     <Modal
-      title={`${t(DAYS[draft.day_index])} · ${hourLabel(draft.period_index, lang)}`}
+      title={choosePlace ? t('Yangi dars') : `${t(DAYS[draft.day_index])} · ${hourLabel(draft.period_index, lang)}`}
       onClose={onClose}
       footer={
         <>
@@ -81,6 +84,33 @@ export function SlotEditor({
         </>
       }
     >
+      {choosePlace && (
+        <div className="row row--2">
+          <label className="field">
+            <span className="field__label">{t('Kun')}</span>
+            <select className="input" value={draft.day_index} onChange={(e) => setDraft({ ...draft, day_index: Number(e.target.value) })}>
+              {DAYS.map((d, i) => (
+                <option key={d} value={i}>{t(d)}</option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            <span className="field__label">{t('Soat')}</span>
+            <select
+              className="input"
+              value={draft.period_index}
+              onChange={(e) => {
+                const p = Number(e.target.value)
+                setDraft({ ...draft, period_index: p, span: Math.min(draft.span, SOATLAR - p + 1) })
+              }}
+            >
+              {PERIODS.map((p) => (
+                <option key={p} value={p}>{hourLabel(p, lang)}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
       <div className="row row--2">
         <label className="field">
           <span className="field__label">{t('Boshlanish')}</span>
@@ -156,7 +186,7 @@ export function SlotEditor({
         <button className="btn btn--sm btn--ghost" type="button" onClick={() => { onDelete(); onClose() }}>
           {IC.trash} {t("Darsni o'chirish (jadval)")}
         </button>
-      ) : (
+      ) : !choosePlace && (
         <p className="prose prose--note">{t("Katakni bo'shatish uchun barcha maydonlarni tozalang.")}</p>
       )}
     </Modal>

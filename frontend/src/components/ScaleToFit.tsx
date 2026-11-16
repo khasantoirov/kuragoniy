@@ -1,5 +1,4 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { useTranslation } from 'react-i18next'
 
 /**
  * Shrinks content to fit a container narrower than its known natural width
@@ -35,9 +34,9 @@ import { useTranslation } from 'react-i18next'
  *
  * On a phone or tablet the fitted table is far too small to read (12
  * teachers on a 390px screen is ~1/5 scale), so there it renders inside
- * ZoomViewer instead: the same fitted overview to start with, plus pinch
- * and −/+ buttons that zoom up to past natural size, panned by ordinary
- * scrolling.
+ * ZoomViewer instead: the same fitted overview to start with, and a pinch
+ * zooms up to past natural size, panned by ordinary scrolling. (No −/+
+ * buttons: floating over the table they hid the cells under them.)
  */
 export function ScaleToFit({ naturalWidth, children }: { naturalWidth: number; children: ReactNode }) {
   const outerRef = useRef<HTMLDivElement>(null)
@@ -87,7 +86,6 @@ export function ScaleToFit({ naturalWidth, children }: { naturalWidth: number; c
 // Zoom is in units of the natural size: 1 = every column at its full
 // width. The bottom of the range is "fit the screen width".
 const MAX_ZOOM = 1.4
-const STEP = 1.8
 
 type Gesture = { d0: number; m0x: number; m0y: number; sL: number; sT: number; z0: number; s: number; mx: number; my: number }
 
@@ -99,7 +97,6 @@ type Gesture = { d0: number; m0x: number; m0y: number; sL: number; sT: number; z
  * real scroll container, so panning, momentum and the sticky header row /
  * day-hour columns all come from the browser. */
 function ZoomViewer({ naturalWidth, children }: { naturalWidth: number; children: ReactNode }) {
-  const { t } = useTranslation()
   const box = useRef<HTMLDivElement>(null)
   const stage = useRef<HTMLDivElement>(null)
   const inner = useRef<HTMLDivElement>(null)
@@ -107,7 +104,6 @@ function ZoomViewer({ naturalWidth, children }: { naturalWidth: number; children
   const zoom = useRef(1)
   const atFit = useRef(true)
   const gesture = useRef<Gesture | null>(null)
-  const [edge, setEdge] = useState<{ min: boolean; max: boolean }>({ min: true, max: false })
 
   // Commits a zoom level and the scroll offset (in the new zoom's px).
   const apply = (z: number, left: number, top: number) => {
@@ -125,7 +121,6 @@ function ZoomViewer({ naturalWidth, children }: { naturalWidth: number; children
     el.style.height = ''
     el.scrollLeft = left
     el.scrollTop = top
-    setEdge({ min: atFit.current, max: nz >= MAX_ZOOM * 0.99 })
     // Leaving the overview: bring the whole box on screen, just below the
     // topbar, so the zoomed table gets all the room there is.
     if (wasFit && !atFit.current) {
@@ -135,24 +130,6 @@ function ZoomViewer({ naturalWidth, children }: { naturalWidth: number; children
       const delta = r.top - (topbar + 8) * k
       if (Math.abs(delta) > 4) window.scrollBy({ top: delta, behavior: 'smooth' })
     }
-  }
-
-  // Zoom by a factor around a point of the box (box-local CSS px).
-  const zoomAround = (factor: number, cx: number, cy: number) => {
-    const el = box.current
-    if (!el) return
-    const z0 = zoom.current
-    const nz = Math.min(MAX_ZOOM, Math.max(fit.current, z0 * factor))
-    const s = nz / z0
-    apply(nz, (el.scrollLeft + cx) * s - cx, (el.scrollTop + cy) * s - cy)
-  }
-  const zoomCenter = (factor: number) => {
-    const el = box.current
-    if (el) zoomAround(factor, el.clientWidth / 2, el.clientHeight / 2)
-  }
-  const toFit = () => {
-    const el = box.current
-    if (el) apply(fit.current, 0, (el.scrollTop * fit.current) / zoom.current)
   }
 
   // Fit-to-width zoom and the box's height (the screen below the topbar,
@@ -255,15 +232,6 @@ function ZoomViewer({ naturalWidth, children }: { naturalWidth: number; children
             {children}
           </div>
         </div>
-      </div>
-      <div className="zoomview__ctl" role="group" aria-label={t('Masshtab')}>
-        <button type="button" onClick={() => zoomCenter(1 / STEP)} disabled={edge.min} aria-label={t('Kichraytirish')} title={t('Kichraytirish')}>−</button>
-        <button type="button" onClick={() => zoomCenter(STEP)} disabled={edge.max} aria-label={t('Kattalashtirish')} title={t('Kattalashtirish')}>+</button>
-        <button type="button" onClick={toFit} disabled={edge.min} aria-label={t('Ekranga moslash')} title={t('Ekranga moslash')}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M4 9V4h5" /><path d="M20 9V4h-5" /><path d="M4 15v5h5" /><path d="M20 15v5h-5" />
-          </svg>
-        </button>
       </div>
     </div>
   )
