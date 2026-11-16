@@ -937,8 +937,19 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
+        """Turn a sign-up down — the account is deleted. One with work on it
+        (a journal, pupils, a timetable, reports...) never is: a teacher who
+        left is blocked, and their classes go to a successor through the
+        school's page (accounts/keep.py)."""
+        from .keep import work_kept_by
+
         target = self.get_object()
         self._guard_target(request, target)
+        kept = work_kept_by(target)
+        if kept:
+            raise ValidationError({'detail': "Bu hisobda ma'lumotlar bor (" + ', '.join(kept) + ") — u o'chirilmaydi. "
+                                             "Ketgan o'qituvchini «Bloklash» bilan qoldiring; sinflarini maktab sahifasida "
+                                             "boshqa o'qituvchiga o'tkazish mumkin."})
         label = self._label(target)
         target.delete()
         notify_admin_action(request.user, f"Foydalanuvchini rad etdi: {label}")
