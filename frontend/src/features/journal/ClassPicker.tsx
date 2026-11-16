@@ -89,7 +89,10 @@ export function ClassPicker({ classes, value, onChange, onAdd }: {
                     onClick={() => pick(c.id)}
                   >
                     {c.name}
-                    <span className="cpick__cnt">{c.students.length}</span>
+                    {/* the pupils in the class now — not the ones taken off it (kept for their marks) */}
+                    <span className="cpick__cnt" title={`${c.students.filter((st) => st.active).length} ${t("ta o'quvchi")}`}>
+                      {c.students.filter((st) => st.active).length}
+                    </span>
                   </button>
                 ))}
               </div>
