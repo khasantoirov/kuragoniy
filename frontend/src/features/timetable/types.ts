@@ -6,6 +6,8 @@ export interface TimetableSlot {
   period_index: number
   time_from: string | null
   time_to: string | null
+  /** the partner school picked from the list; `maktab` is its name */
+  school?: number | null
   maktab: string
   xona: string
   sinf: string

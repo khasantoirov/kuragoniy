@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Modal } from '@/components/Modal'
+import { useToast } from '@/components/Toast'
 import { IC } from '@/icons'
 import { useUIStore } from '@/store/uiStore'
 
+import { usePartnerSchools } from './api'
 import { DAYS, hourLabel, PERIODS, SOATLAR, type TimetableSlot } from './types'
 
 const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/
@@ -67,6 +69,25 @@ export function SlotEditor({
   const { t } = useTranslation()
   const { lang } = useUIStore()
   const [draft, setDraft] = useState<TimetableSlot>(slot)
+  const toast = useToast()
+  const { data: schoolList } = usePartnerSchools()
+  // the active schools, and the cell's own one even if it was switched off since
+  const schools = (schoolList ?? []).filter((s) => s.is_active !== false || s.id === draft.school)
+  // an old cell whose name was typed by hand and not matched to a school yet
+  const unpicked = !draft.band && !draft.school && !!draft.maktab.trim()
+  const pickSchool = (raw: string) => {
+    const s = schools.find((x) => x.id === Number(raw))
+    setDraft({ ...draft, school: s?.id ?? null, maktab: s?.name ?? '' })
+  }
+  const save = () => {
+    const lesson = !!(draft.sinf.trim() || draft.xona.trim() || draft.maktab.trim())
+    if (!draft.band && lesson && !draft.school) {
+      toast(t("Maktabni ro'yxatdan tanlang"), 'error')
+      return
+    }
+    onSave(draft)
+    onClose()
+  }
   const [moveDay, setMoveDay] = useState(slot.day_index)
   const [movePeriod, setMovePeriod] = useState(slot.period_index)
   const hasLesson = !!(slot.sinf || slot.xona || slot.maktab || slot.band)
@@ -80,7 +101,7 @@ export function SlotEditor({
       footer={
         <>
           <button className="btn" onClick={onClose}>{t('Bekor qilish')}</button>
-          <button className="btn btn--primary" onClick={() => { onSave(draft); onClose() }}>{t('Saqlash')}</button>
+          <button className="btn btn--primary" onClick={save}>{t('Saqlash')}</button>
         </>
       }
     >
@@ -121,10 +142,24 @@ export function SlotEditor({
           <HhMmInput value={draft.time_to} onChange={(v) => setDraft((d) => ({ ...d, time_to: v }))} />
         </label>
       </div>
-      <label className="field">
-        <span className="field__label">{t('Maktab')}</span>
-        <input className="input" value={draft.maktab} onChange={(e) => setDraft({ ...draft, maktab: e.target.value })} placeholder={t('Masalan: Yuksalish maktabi')} />
-      </label>
+      {draft.band ? (
+        <label className="field">
+          <span className="field__label">{t('Qayerda band')}</span>
+          <input className="input" value={draft.maktab} onChange={(e) => setDraft({ ...draft, maktab: e.target.value })} placeholder={t('Masalan: universitet')} />
+        </label>
+      ) : (
+        <label className="field">
+          <span className="field__label">{t('Maktab')}</span>
+          <select className="input" value={draft.school ?? ''} onChange={(e) => pickSchool(e.target.value)}>
+            <option value="">{t('Maktabni tanlang…')}</option>
+            {schools.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}{s.is_active === false ? ` (${t('faol emas')})` : ''}</option>
+            ))}
+          </select>
+          {unpicked && <small className="field__warn">⚠ «{draft.maktab}» {t("qo'lda yozilgan — ro'yxatdan maktabni tanlang.")}</small>}
+          <small className="field__hint">{t("Maktabingiz ro'yxatda yo'q bo'lsa, ma'muriyatga ayting — ular «Hamkor maktablar» bo'limiga qo'shadi.")}</small>
+        </label>
+      )}
       <div className="row row--2">
         <label className="field">
           <span className="field__label">{t('Xona')}</span>
@@ -148,7 +183,7 @@ export function SlotEditor({
         </label>
         <label className="field">
           <span className="field__label">{t('Turi')}</span>
-          <select className="input" value={draft.band ? '1' : ''} onChange={(e) => setDraft({ ...draft, band: !!e.target.value })}>
+          <select className="input" value={draft.band ? '1' : ''} onChange={(e) => setDraft({ ...draft, band: !!e.target.value, school: e.target.value ? null : draft.school })}>
             <option value="">{t('Dars')}</option>
             <option value="1">{t('Band (boshqa joyda)')}</option>
           </select>

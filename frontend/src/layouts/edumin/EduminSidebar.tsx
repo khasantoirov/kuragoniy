@@ -22,7 +22,7 @@ export interface EduminNavItem {
 const GROUPS: { title: string; paths: string[]; rest?: boolean }[] = [
   { title: 'Asosiy', paths: ['/', '/my-school'] },
   { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/staffroom', '/assignments', '/reports', '/training', '/achievements', '/feed', '/library'] },
-  { title: "Ma'muriyat", paths: ['/statistics', '/admin', '/equipment-sheet', '/shop', '/guide'], rest: true },
+  { title: "Ma'muriyat", paths: ['/statistics', '/manage/schools', '/admin', '/equipment-sheet', '/shop', '/guide'], rest: true },
   // no heading: these simply close the menu, at its bottom
   { title: '', paths: ['/settings', '/about', '/help'] },
 ]

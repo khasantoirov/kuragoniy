@@ -114,7 +114,9 @@ class TimetableSlotViewSet(viewsets.ModelViewSet):
         TimetableSlot.objects.bulk_create(slots)
 
         if is_cross_teacher:
-            after = {(item['day_index'], item['period_index']): item for item in serializer.validated_data}
+            after = {(item['day_index'], item['period_index']): {k: item.get(k, before.get((item['day_index'], item['period_index']), {}).get(k))
+                                                                 for k in ('day_index', 'period_index', *_SLOT_FIELDS)}
+                     for item in serializer.validated_data}
             diff = _timetable_diff(before, after)
             if diff:
                 notify_admin_action(request.user, f"{teacher.name}ning dars jadvalini yangiladi:\n{diff}")

@@ -40,6 +40,7 @@ const ShopPage = named(() => import('@/features/shop/ShopPage'), 'ShopPage')
 const OrdersPage = named(() => import('@/features/shop/OrdersPage'), 'OrdersPage')
 const ShopAdminPage = named(() => import('@/features/shop/ShopAdminPage'), 'ShopAdminPage')
 const SchoolDetailPage = named(() => import('@/features/schools/SchoolDetailPage'), 'SchoolDetailPage')
+const PartnerSchoolsPage = named(() => import('@/features/schools/PartnerSchoolsPage'), 'PartnerSchoolsPage')
 const MySchoolPage = named(() => import('@/features/schools/MySchoolPage'), 'MySchoolPage')
 const TrainingPage = named(() => import('@/features/training/TrainingPage'), 'TrainingPage')
 const StaffroomPage = named(() => import('@/features/staffroom/StaffroomPage'), 'StaffroomPage')
@@ -173,7 +174,7 @@ export const staffPortalRoutes: RouteObject[] = [
   { path: '/manage/awards', element: <MovedTo to="/statistics" bolim="onlayn" /> },
   { path: '/manage/materials', element: <MovedTo to="/lessons" bolim="materiallar" /> },
   { path: '/manage/shop', element: <MovedTo to="/shop" bolim="sotuv" /> },
-  { path: '/manage/schools', element: <MovedTo to="/statistics" bolim="jurnal" /> },
+  { path: '/manage/schools', element: oversight(<Lazy><PartnerSchoolsPage /></Lazy>) },
   { path: '/manage/schools/:id', element: <RequireSchoolView><Lazy><SchoolDetailPage /></Lazy></RequireSchoolView> },
   { path: '/my-school', element: <Lazy><MySchoolPage /></Lazy> },
   { path: '/kits/:id', element: <RequireModule keys={['kits']}><Lazy><KitPage /></Lazy></RequireModule> },

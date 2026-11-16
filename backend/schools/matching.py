@@ -30,7 +30,9 @@ def school_keys(school: School) -> set[str]:
 
 def key_index(schools=None) -> dict[str, School]:
     index: dict[str, School] = {}
-    for school in schools if schools is not None else School.objects.all():
+    # an active school wins a spelling an inactive (old, duplicate) one also has
+    rows = schools if schools is not None else School.objects.order_by('-is_active', 'name')
+    for school in rows:
         for key in school_keys(school):
             index.setdefault(key, school)
     return index
@@ -56,16 +58,28 @@ def link_school(school: School) -> dict:
     # the staff now: teachers of this and coming years' classes, not a past year's
     current = AcademicYear.current()
     teacher_ids = {c.teacher_id for c in classes if c.year is None or c.year.start_year >= current.start_year}
-    teacher_ids |= {
-        s.teacher_id for s in TimetableSlot.objects.exclude(maktab='').only('teacher_id', 'maktab') if norm(s.maktab) in keys
-    }
+    # timetable cells written by hand: now picked from the list — this school
+    slots = [s for s in TimetableSlot.objects.filter(school__isnull=True, band=False).exclude(maktab='')
+             if norm(s.maktab) in keys]
+    if school.is_active:
+        for s in slots:
+            s.school, s.maktab = school, school.name
+        TimetableSlot.objects.bulk_update(slots, ['school', 'maktab'])
+    teacher_ids |= {s.teacher_id for s in slots}
+    teacher_ids |= set(TimetableSlot.objects.filter(school=school).values_list('teacher_id', flat=True))
     teacher_ids |= set(JournalClass.objects.filter(partner_school=school, year__start_year__gte=current.start_year)
                        .values_list('teacher_id', flat=True))
     existing = set(SchoolTeacher.objects.filter(school=school).values_list('teacher_id', flat=True))
     SchoolTeacher.objects.bulk_create(
         [SchoolTeacher(school=school, teacher_id=t) for t in teacher_ids - existing], ignore_conflicts=True,
     )
-    return {'classes': len(classes), 'teachers_added': len(teacher_ids - existing)}
+    return {'classes': len(classes), 'slots': len(slots) if school.is_active else 0,
+            'teachers_added': len(teacher_ids - existing)}
+
+
+def sync_slot_names(school: School) -> int:
+    """A renamed school: its timetable cells show the new name."""
+    return TimetableSlot.objects.filter(school=school).exclude(maktab=school.name).update(maktab=school.name)
 
 
 def unlinked_names() -> list[dict]:
@@ -84,9 +98,8 @@ def unlinked_names() -> list[dict]:
         g = bucket(c.school)
         g['classes'] += 1
         g['teachers'].add(c.teacher.name)
-    for s in TimetableSlot.objects.exclude(maktab='').select_related('teacher'):
-        if norm(s.maktab) in index:
-            continue
+    # a timetable cell counts once it points at a school; "band" names a place, not a school
+    for s in TimetableSlot.objects.filter(school__isnull=True, band=False).exclude(maktab='').select_related('teacher'):
         g = bucket(s.maktab)
         g['slots'] += 1
         g['teachers'].add(s.teacher.name)

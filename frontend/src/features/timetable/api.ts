@@ -40,6 +40,17 @@ interface TeacherRow {
   email: string
 }
 
+/** The partner schools to pick from (Hamkor maktablar, kept by the
+ * administration); a teacher sees the active ones. */
+export function usePartnerSchools() {
+  return useQuery({
+    queryKey: ['schools', 'pick'],
+    queryFn: async () =>
+      (await api.get<Paginated<{ id: number; name: string; is_active?: boolean }>>('/schools/', { params: { page_size: 500 } })).data.results,
+    staleTime: 5 * 60_000,
+  })
+}
+
 export function useAllTimetables() {
   return useQuery({
     queryKey: ['timetable', 'all'],

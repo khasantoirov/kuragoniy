@@ -23,6 +23,7 @@ export const IC = {
   globe: wrap(<><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18Z" /></>),
   download: wrap(<><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></>),
   upload: wrap(<><path d="M12 17V5" /><path d="m7 10 5-5 5 5" /><path d="M5 21h14" /></>),
+  school: wrap(<><path d="M3 21h18" /><path d="M5 21V10.5L12 6l7 4.5V21" /><path d="M12 6V3h3" /><path d="M10 21v-4.5h4V21" /><path d="M9 11.5h6" /></>),
   user: wrap(<><circle cx="12" cy="8" r="3.6" /><path d="M4.5 20a7.5 7.5 0 0 1 15 0" /></>),
   users: wrap(<><circle cx="9" cy="8" r="3.2" /><path d="M2.8 20a6.2 6.2 0 0 1 12.4 0" /><path d="M16 5.2a3.3 3.3 0 0 1 0 6.4" /><path d="M18.4 20a6.2 6.2 0 0 0-3-5.3" /></>),
   lock: wrap(<><rect x="4.5" y="11" width="15" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>),

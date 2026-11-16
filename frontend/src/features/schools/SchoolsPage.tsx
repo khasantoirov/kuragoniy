@@ -2,70 +2,16 @@ import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { Modal } from '@/components/Modal'
 import { Skeleton } from '@/components/Skeleton'
-import { useToast } from '@/components/Toast'
 import { downloadCsv } from '@/features/portal/csv'
-import { errText, PageHead, Segmented } from '@/features/portal/ui'
+import { PageHead, Segmented } from '@/features/portal/ui'
 import { IC } from '@/icons'
-import { api } from '@/lib/api/client'
 import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
 
-import {
-  useSchools, useSchoolsMutation, useSchoolsOverview, useUnlinked, type ClassRow, type GroupRow, type StatsGroup, type UnlinkedName,
-} from './api'
+import { useSchoolsOverview, useUnlinked, type ClassRow, type GroupRow, type StatsGroup } from './api'
+import { LinkNamesModal } from './LinkNamesModal'
 import { METRIC_CSV_HEAD, METRIC_HELP, MetricCells, MetricHeads, metricCsv, SchoolFormModal } from './shared'
 import { useStatsHub } from './statsFilter'
-
-/** Map free-text spellings (from journals/timetables) onto partner schools. */
-function LinkModal({ rows, onClose }: { rows: UnlinkedName[]; onClose: () => void }) {
-  const { t } = useTranslation()
-  const toast = useToast()
-  const { data: schools } = useSchools()
-  const [choice, setChoice] = useState<Record<string, string>>({})
-  const link = useSchoolsMutation(async (body: { variants: string[]; school?: number; new_name?: string }) =>
-    (await api.post<{ classes: number; teachers_added: number }>('/schools/link/', body)).data)
-
-  const apply = async (row: UnlinkedName) => {
-    const pick = choice[row.text] ?? ''
-    if (!pick) return toast(t('Maktabni tanlang'), 'error')
-    try {
-      const res = await link.mutateAsync(pick === 'new' ? { variants: row.variants } : { variants: row.variants, school: Number(pick) })
-      toast(`${t('Biriktirildi')}: ${res.classes} ${t('ta sinf')}, ${res.teachers_added} ${t("ta o'qituvchi")}`)
-    } catch (err) {
-      toast(t(errText(err)), 'error')
-    }
-  }
-
-  return (
-    <Modal title={t('Maktab nomlarini moslashtirish')} onClose={onClose}
-      footer={<button className="btn btn--primary" onClick={onClose}>{t('Tayyor')}</button>}>
-      <p className="prose prose--note">
-        {t("O'qituvchilar jurnal va jadvalda maktab nomini turlicha yozgan. Har bir nomni to'g'ri hamkor maktabga biriktiring — u maktabning muqobil nomi sifatida eslab qolinadi va keyingi yozuvlar avtomatik biriktiriladi.")}
-      </p>
-      {!rows.length && <p className="prose">✓ {t('Hamma nomlar biriktirilgan.')}</p>}
-      <ul className="linklist">
-        {rows.map((r) => (
-          <li key={r.text} className="linklist__row">
-            <div className="linklist__info">
-              <b>{r.text}</b>
-              {r.variants.length > 1 && <small>{t('yana')}: {r.variants.slice(1).join(' · ')}</small>}
-              <small>{r.classes} {t('ta sinf')} · {r.slots} {t('ta jadval katagi')} · {r.teachers.join(', ')}</small>
-            </div>
-            <div className="linklist__acts">
-              <select className="input input--sm" value={choice[r.text] ?? ''} onChange={(e) => setChoice({ ...choice, [r.text]: e.target.value })}>
-                <option value="">{t('Maktabni tanlang…')}</option>
-                {schools?.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                <option value="new">+ {t('Shu nom bilan yangi maktab')}</option>
-              </select>
-              <button className="btn btn--sm btn--primary" disabled={link.isPending} onClick={() => apply(r)}>{t('Biriktirish')}</button>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </Modal>
-  )
-}
 
 const GROUPS: { value: StatsGroup; label: string }[] = [
   { value: 'school', label: 'Maktab' },
@@ -220,7 +166,7 @@ export function SchoolsPage() {
       </section>
 
       {creating && <SchoolFormModal initial={null} onClose={() => setCreating(false)} />}
-      {linking && unlinked.data && <LinkModal rows={unlinked.data} onClose={() => setLinking(false)} />}
+      {linking && unlinked.data && <LinkNamesModal rows={unlinked.data} onClose={() => setLinking(false)} />}
     </div>
   )
 }

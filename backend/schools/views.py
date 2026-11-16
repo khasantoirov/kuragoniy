@@ -24,7 +24,7 @@ from common.security import log_event
 from journal.models import AttendanceEntry, GradeEntry, JournalClass, Student
 
 from . import stats
-from .matching import link_school, norm, unlinked_names
+from .matching import link_school, norm, sync_slot_names, unlinked_names
 from .models import AcademicYear, School, SchoolLicense, SchoolTeacher, SchoolYear
 from .serializers import SchoolBriefSerializer, SchoolSerializer
 
@@ -79,6 +79,7 @@ class SchoolViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         school = serializer.save()
         link_school(school)
+        sync_slot_names(school)
         notify_admin_action(self.request.user, f"Hamkor maktabni tahrirladi: «{school.name}»")
 
     def perform_destroy(self, instance):
@@ -369,13 +370,17 @@ class LinkView(APIView):
             name = ' '.join(str(request.data.get('new_name') or variants[0]).split())
             school = School.objects.filter(name__iexact=name).first() or School.objects.create(name=name)
         keys = {norm(school.name)} | {norm(a) for a in school.aliases or []}
+        # an inactive (old, duplicate) school gives its spelling up; an active one keeps it
         clash = School.objects.exclude(pk=school.pk)
         for v in variants:
             if norm(v) in keys:
                 continue
             for other in clash:
                 if norm(v) == norm(other.name) or norm(v) in {norm(a) for a in other.aliases or []}:
-                    raise ValidationError({'detail': f"«{v}» allaqachon «{other.name}» maktabiga tegishli."})
+                    if other.is_active:
+                        raise ValidationError({'detail': f"«{v}» allaqachon «{other.name}» maktabiga tegishli."})
+                    other.aliases = [a for a in other.aliases or [] if norm(a) != norm(v)]
+                    other.save(update_fields=['aliases', 'updated_at'])
             school.aliases = [*(school.aliases or []), v]
             keys.add(norm(v))
         school.save(update_fields=['aliases', 'updated_at'])

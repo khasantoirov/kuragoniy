@@ -1004,3 +1004,8 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
 }
 .dtable td a { color: var(--pick); text-decoration: none; }
 .dtable td a:hover { text-decoration: underline; }
+
+/* Hamkor maktablar (features/schools/PartnerSchoolsPage) */
+.psch__search { width: 260px; max-width: 100%; }
+.psch__off { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+.psch__aka { display: block; margin-top: 2px; font-size: 11.5px; color: var(--ink-3); }

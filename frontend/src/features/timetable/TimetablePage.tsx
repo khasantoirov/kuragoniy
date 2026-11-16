@@ -137,7 +137,10 @@ function LessonCard({ c, sp, now }: { c: TimetableSlot; sp: number; now: Date })
   const room = c.xona ? roomText(t, lang, c.xona) : ''
   return (
     <div className={`ttk ${c.band ? 'ttk--band' : ''} ${st ? `is-${st}` : ''}`}>
-      <b className="ttk__t">{c.band && IC.lock}{title}</b>
+      <b className="ttk__t">
+        {c.band && IC.lock}{title}
+        {!c.band && !!c.maktab && !c.school && <span className="ttk__warn" title={t("Maktab ro'yxatdan tanlanmagan")}>⚠</span>}
+      </b>
       {(sinf || room) && <span className="ttk__m">{sinf && room ? `${sinf} (${room})` : sinf || room}</span>}
       <span className="ttk__f">
         {timeOf(c) && <span className="ttk__time">{timeOf(c)}</span>}
@@ -237,7 +240,7 @@ async function runExport(
 }
 
 function emptySlot(day: number, period: number): TimetableSlot {
-  return { day_index: day, period_index: period, time_from: null, time_to: null, maktab: '', xona: '', sinf: '', span: 1, band: false }
+  return { day_index: day, period_index: period, time_from: null, time_to: null, maktab: '', xona: '', sinf: '', span: 1, band: false, school: null }
 }
 
 /** Cells covered by a lesson above them that lasts several soat. */

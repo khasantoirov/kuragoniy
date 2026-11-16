@@ -40,7 +40,8 @@ def classes_at(teacher, school):
 
 def slots_at(teacher, school):
     keys = school_keys(school)
-    return [s for s in TimetableSlot.objects.filter(teacher=teacher).exclude(maktab='') if norm(s.maktab) in keys]
+    return [s for s in TimetableSlot.objects.filter(teacher=teacher).exclude(maktab='')
+            if s.school_id == school.id or (s.school_id is None and norm(s.maktab) in keys)]
 
 
 def preview(teacher, school) -> dict:

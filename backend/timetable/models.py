@@ -9,7 +9,12 @@ class TimetableSlot(models.Model):
 
     time_from = models.TimeField(null=True, blank=True)
     time_to = models.TimeField(null=True, blank=True)
-    maktab = models.CharField(max_length=255, blank=True)  # school
+    # The partner school, picked from the list the administration keeps
+    # (Hamkor maktablar); `maktab` then carries its name. A "band" slot
+    # (busy elsewhere) and an old free-text one not yet matched have none.
+    school = models.ForeignKey('schools.School', related_name='timetable_slots', null=True, blank=True,
+                               on_delete=models.SET_NULL)
+    maktab = models.CharField(max_length=255, blank=True)  # school's name (free text only for "band")
     xona = models.CharField(max_length=64, blank=True)      # room
     sinf = models.CharField(max_length=64, blank=True)      # class
     span = models.PositiveSmallIntegerField(default=1)
