@@ -60,7 +60,7 @@ export function ClassSummary({ cls, teacherId }: { cls: JournalClass; teacherId?
   const rows = [1, 2, 3, 4].map((q) => {
     const days = grid.days.filter((d) => d.chorak === q)
     const s = computeStats(grid, days, scale)
-    return { q, days: days.length, avg: s.classAvg, pct: s.pct }
+    return { q, days: days.length, avg: s.classAvg, pct: s.pct, sifat: s.sifat, qn: s.qualityN, g: s.graded }
   })
   const tot = computeStats(grid, grid.days, scale)
   const controls = grid.controls ?? []
@@ -107,6 +107,15 @@ export function ClassSummary({ cls, teacherId }: { cls: JournalClass; teacherId?
               <td>{t("O'zlashtirish")}</td>
               {rows.map((r) => (<td key={r.q} className="table__q"><PercentPill value={r.pct} /></td>))}
               <td className="table__q"><PercentPill value={tot.pct} /></td>
+            </tr>
+            <tr>
+              <td>{t('Sifat')} <span className="field__opt">({t("«4» va «5»")})</span></td>
+              {rows.map((r) => (
+                <td key={r.q} className="table__q" title={r.g ? `${r.qn} / ${r.g}` : undefined}>{r.sifat != null ? `${r.sifat}%` : '—'}</td>
+              ))}
+              <td className="table__q" title={tot.graded ? `${tot.qualityN} / ${tot.graded}` : undefined}>
+                <b>{tot.sifat != null ? `${tot.sifat}%` : '—'}</b>
+              </td>
             </tr>
             {finalsTot !== null && (
               <tr>

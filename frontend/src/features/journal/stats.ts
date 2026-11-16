@@ -25,7 +25,11 @@ export function computeStats(grid: { students: { id: number }[] }, days: Grid['d
     }
   }
   const pct = n ? Math.round(sum / n) : null
-  return { perStudent, classAvg, pct }
+  // Sifat: the pupils whose average is "yaxshi" or "a'lo" — 3.5 and up on
+  // the 0-5 bands, as the statistics pages count them (schools/stats.py)
+  const qualityN = all.filter((s) => s.lvl >= 3.5).length
+  const sifat = all.length ? Math.round((100 * qualityN) / all.length) : null
+  return { perStudent, classAvg, pct, sifat, qualityN, graded: all.length }
 }
 
 /** The roster's mean of one set of marks — a lesson day's, or the

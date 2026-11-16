@@ -106,10 +106,11 @@ def test_stats_formulas(as_user, admin, teacher):
     row = next(r for r in data["schools"] if r["id"] == school.id)
     assert row["students"] == 4 and row["days"] == 2
     assert row["avg_mark"] == round((5 + 4 + 4 + 2 + 4 + 2) / 6, 2)
-    # O'zlashtirish: the mean mark 3.5 of 5 = 70%. There is no Sifat any more.
+    # O'zlashtirish: the mean mark 3.5 of 5 = 70%.
     assert row["uzlashtirish"] == 70.0
     assert row["attendance"] == 62.5
-    assert "sifat" not in row
+    # Sifat: pupils averaging 5 and 4 are "a'lo"/"yaxshi", 3 and 2 are not -> 2 of 4
+    assert (row["sifat"], row["sifat_n"], row["graded"]) == (50.0, 2, 4)
     assert (row["abs_s"], row["abs_n"], row["late"]) == (1, 2, 1)
     assert {t["month"] for t in data["trend"]} == {"2026-09", "2026-10"}
 

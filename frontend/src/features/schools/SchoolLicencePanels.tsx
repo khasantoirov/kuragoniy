@@ -58,6 +58,7 @@ export function KindComparison({ rows }: { rows: (GroupRow & { teachers: number 
             <small>{r.teachers} {t("ta o'qituvchi")} · {r.classes} {t('ta sinf')} · {r.students} {t("ta o'quvchi")}</small>
             <span className="kindcmp__m"><span>{t("O'rtacha baho")}</span><MetricPill value={r.avg_mark} band="mark" suffix="" digits={2} /></span>
             <span className="kindcmp__m"><span>{t("O'zlashtirish")}</span><MetricPill value={r.uzlashtirish} band="pct" /></span>
+            <span className="kindcmp__m"><span>{t('Sifat')}</span><MetricPill value={r.sifat ?? null} good={50} fair={30} /></span>
             <span className="kindcmp__m"><span>{t('Davomat')}</span><MetricPill value={r.attendance} good={95} fair={85} /></span>
           </div>
         ))}

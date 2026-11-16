@@ -128,6 +128,8 @@ export function StatisticsPage() {
         <StatCard label={t("O'quvchilar")} value={totals.students} hint={`${totals.classes} ${t('ta sinf')}`} icon="users" />
         <StatCard label={t("O'rtacha baho")} value={totals.avg_mark?.toFixed(2) ?? '—'} hint={`${totals.marks} ${t('ta baho')}`} icon="star" />
         <StatCard label={t("O'zlashtirish")} value={pct(totals.uzlashtirish)} progressPct={totals.uzlashtirish} icon="target" />
+        <StatCard label={t('Sifat')} value={pct(totals.sifat)} progressPct={totals.sifat} icon="star"
+          hint={totals.graded ? `${totals.sifat_n ?? 0} / ${totals.graded} ${t("o'quvchi «4» va «5»")}` : undefined} />
         <StatCard label={t('Davomat')} value={pct(totals.attendance)} progressPct={totals.attendance} icon="check2"
           hint={`${t('sababsiz')} ${totals.abs_n} · ${t('kech')} ${totals.late}`} />
       </div>

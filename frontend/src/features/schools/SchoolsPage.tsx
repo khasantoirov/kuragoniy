@@ -196,7 +196,7 @@ function JournalFigures() {
                 ))}
                 {emptyCount > 0 && (
                   <tr className="dtable__more">
-                    <td colSpan={9}>
+                    <td colSpan={10}>
                       <span className="muted">{emptyCount} {t(EMPTY_UNIT[group])} {t("hali dars ham, baho ham yo'q")}.</span>{' '}
                       <button type="button" className="linklike" onClick={() => setShowEmpty(!showEmpty)}>
                         {showEmpty ? t('Yashirish') : t('Ko‘rsatish')}

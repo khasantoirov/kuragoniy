@@ -708,6 +708,10 @@ const ru = {
   'sinfi ham berildi': 'класс тоже передан',
   "Sinfni berib bo'lmadi": 'Не удалось передать класс',
   'bloklangan': 'заблокирован',
+  'Sifat': 'Качество',
+  "o'quvchi «4» va «5»": 'учеников на «4» и «5»',
+  '«4» va «5»': '«4» и «5»',
+  "Bahosi bor o'quvchilardan o'rtacha bahosi «yaxshi» yoki «a'lo» (4 va 5) bo'lganlar ulushi: 20 o'quvchidan 12 tasi «4» va «5»ga o'qisa — 60%.": 'Доля учеников с оценками, чей средний балл «хорошо» или «отлично» (4 и 5): если из 20 учеников 12 учатся на «4» и «5» — 60%.',
 } as const
 
 const en = {
@@ -1392,6 +1396,10 @@ const en = {
   'sinfi ham berildi': 'class handed over too',
   "Sinfni berib bo'lmadi": 'Could not hand the class over',
   'bloklangan': 'blocked',
+  'Sifat': 'Quality',
+  "o'quvchi «4» va «5»": 'pupils on 4 and 5',
+  '«4» va «5»': '4 and 5',
+  "Bahosi bor o'quvchilardan o'rtacha bahosi «yaxshi» yoki «a'lo» (4 va 5) bo'lganlar ulushi: 20 o'quvchidan 12 tasi «4» va «5»ga o'qisa — 60%.": 'The share of graded pupils whose average is good or excellent (4 and 5): 12 of 20 pupils on 4 and 5 is 60%.',
 } as const
 
 const resources = {

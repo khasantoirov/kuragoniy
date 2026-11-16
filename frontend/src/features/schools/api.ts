@@ -104,6 +104,10 @@ export interface Metrics {
   marks: number
   avg_mark: number | null
   uzlashtirish: number | null
+  /** Sifat: % of graded pupils whose average is "yaxshi" or "a'lo" */
+  sifat: number | null
+  sifat_n?: number
+  graded?: number
   attendance: number | null
   abs_s: number
   abs_n: number

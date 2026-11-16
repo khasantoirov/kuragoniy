@@ -7,6 +7,10 @@ Definitions (shown to users as written here):
   O'zlashtirish  — the mean mark as a percent of the top mark: every mark
                    taken as mark / scale x 100 (4 of 5 = 80%, 78 of 100 =
                    78%) and averaged over all marks.
+  Sifat          — of the pupils with a mark in the period, the share whose
+                   average is "yaxshi" or "a'lo": 3.5 and up on the 0-5
+                   footing (the band the journal colours it, as
+                   pupil_bands counts them).
   Davomat        — 1 - (sababli + sababsiz absences) / (students x lesson
                    days). Late ("kech") is counted separately, not as an
                    absence.
@@ -30,7 +34,9 @@ ATTENTION_ABSENCES = 3
 RAW_KEYS = (
     'students', 'days', 'marks_n', 'marks_sum', 'marks_pct_sum',
     'abs_s', 'abs_n', 'late', 'student_days', 'accounts', 'attempts_n', 'attempts_pct_sum',
+    'graded', 'quality',
 )
+QUALITY_AVG = 3.5  # a pupil's average from here up is "yaxshi" (4) or "a'lo" (5)
 
 
 def _day_filter(chorak, prefix=''):
@@ -58,6 +64,14 @@ def class_raw(classes, chorak=None) -> dict[int, dict]:
         row['marks_n'] += r['n']
         row['marks_sum'] += r['s']
         row['marks_pct_sum'] += r['p'] or 0
+
+    # Sifat: each graded pupil, by the band their average falls in
+    for r in (GradeEntry.objects.filter(Q(day__journal_class_id__in=ids, student__active=True) & _day_filter(chorak, 'day__'))
+              .values('day__journal_class', 'student').annotate(n=Count('id'), s=Sum('level'))):
+        row = raw[r['day__journal_class']]
+        row['graded'] += 1
+        if r['s'] >= QUALITY_AVG * r['n']:
+            row['quality'] += 1
 
     att = (AttendanceEntry.objects.filter(Q(day__journal_class_id__in=ids, student__active=True) & _day_filter(chorak, 'day__'))
            .values('day__journal_class', 'status').annotate(n=Count('id')))
@@ -99,6 +113,9 @@ def derive(raw: dict) -> dict:
         'marks': raw['marks_n'],
         'avg_mark': round(raw['marks_sum'] / raw['marks_n'], 2) if raw['marks_n'] else None,
         'uzlashtirish': mastery,
+        'sifat': round(100 * raw['quality'] / raw['graded'], 1) if raw['graded'] else None,
+        'sifat_n': raw['quality'],
+        'graded': raw['graded'],
         'attendance': attendance,
         'abs_s': raw['abs_s'],
         'abs_n': raw['abs_n'],

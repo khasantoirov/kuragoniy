@@ -40,6 +40,7 @@ export function MetricPill({ value, good = 0, fair = 0, band, suffix = '%', digi
 
 export const METRIC_HELP =
   "O'zlashtirish — o'quvchilar olgan baholarning o'rtachasi, eng yuqori bahoga nisbatan foizda (5 ballikda o'rtacha 4,2 — 84%). " +
+  "Sifat — bahosi bor o'quvchilardan o'rtachasi «yaxshi» yoki «a'lo» (4 va 5) bo'lganlar ulushi. " +
   "Davomat — (sababli + sababsiz) qoldirilgan darslardan tashqari qatnashuv; kechikish alohida sanaladi."
 
 /** The three journal metric cells shared by every table on these pages. */
@@ -48,6 +49,7 @@ export function MetricCells({ m }: { m: Metrics }) {
     <>
       <td><MetricPill value={m.avg_mark} band="mark" suffix="" digits={2} /></td>
       <td><MetricPill value={m.uzlashtirish} band="pct" /></td>
+      <td title={m.graded ? `${m.sifat_n ?? 0} / ${m.graded}` : undefined}><MetricPill value={m.sifat} good={50} fair={30} /></td>
       <td><MetricPill value={m.attendance} good={95} fair={85} /></td>
     </>
   )
@@ -59,16 +61,17 @@ export function MetricHeads() {
     <>
       <th title={t(METRIC_HELP)}>{t("O'rtacha baho")}</th>
       <th title={t(METRIC_HELP)}>{t("O'zlashtirish")}</th>
+      <th title={t(METRIC_HELP)}>{t('Sifat')}</th>
       <th title={t(METRIC_HELP)}>{t('Davomat')}</th>
     </>
   )
 }
 
 export function metricCsv(m: Metrics) {
-  return [m.avg_mark ?? '', m.uzlashtirish ?? '', m.attendance ?? '', m.abs_s, m.abs_n, m.late]
+  return [m.avg_mark ?? '', m.uzlashtirish ?? '', m.sifat ?? '', m.attendance ?? '', m.abs_s, m.abs_n, m.late]
 }
 
-export const METRIC_CSV_HEAD = ["O'rtacha baho", "O'zlashtirish %", 'Davomat %', 'Sababli', 'Sababsiz', 'Kech']
+export const METRIC_CSV_HEAD = ["O'rtacha baho", "O'zlashtirish %", 'Sifat %', 'Davomat %', 'Sababli', 'Sababsiz', 'Kech']
 
 const EMPTY: Partial<School> = {
   name: '', district: '', address: '', director: '', phone: '', contract_start: null, contract_end: null,
