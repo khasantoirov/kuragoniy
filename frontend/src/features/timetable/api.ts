@@ -38,6 +38,8 @@ interface TeacherRow {
   id: string
   name: string
   email: string
+  /** blocked: left the platform, lessons not handed over yet */
+  blocked?: boolean
 }
 
 /** The partner schools to pick from (Hamkor maktablar, kept by the
@@ -51,22 +53,26 @@ export function usePartnerSchools() {
   })
 }
 
-export function useAllTimetables() {
+/** Everyone's week. `withBlocked`: the administration's picked view also
+ * lists a blocked teacher (one who left) while lessons are still theirs. */
+export function useAllTimetables(withBlocked = false) {
   return useQuery({
-    queryKey: ['timetable', 'all'],
+    queryKey: ['timetable', 'all', withBlocked ? 'with-blocked' : 'approved'],
     queryFn: async () => {
       // Boshliq doesn't teach (see accounts.models.User.Role.BOSHLIQ), so
       // they never get a column in the aggregated "Barcha o'qituvchilar"
       // timetable even if approved/admin-equivalent.
       const users = (await api.get<Paginated<{ id: string; name: string; email: string; approved: boolean; role: string }>>('/accounts/users/')).data.results
-        .filter((u) => (u.approved || u.role === 'admin') && u.role !== 'boshliq')
+        .filter((u) => (u.approved || u.role === 'admin' || (withBlocked && u.role === 'teacher')) && u.role !== 'boshliq')
         .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
 
       const tables: Record<string, TimetableSlot[]> = {}
       for (const u of users) {
         tables[u.id] = (await api.get<Paginated<TimetableSlot>>('/timetable/slots/', { params: { teacher: u.id } })).data.results
       }
-      const teachers: TeacherRow[] = users.map((u) => ({ id: u.id, name: u.name || u.email, email: u.email }))
+      const teachers: TeacherRow[] = users
+        .filter((u) => u.approved || u.role === 'admin' || tables[u.id].length)
+        .map((u) => ({ id: u.id, name: u.name || u.email, email: u.email, blocked: !u.approved && u.role !== 'admin' }))
       return { teachers, tables }
     },
   })

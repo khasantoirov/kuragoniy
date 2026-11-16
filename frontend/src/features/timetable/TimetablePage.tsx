@@ -1,3 +1,4 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -8,6 +9,8 @@ import { ScaleToFit } from '@/components/ScaleToFit'
 import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
 import { IC } from '@/icons'
+import { api } from '@/lib/api/client'
+import type { Paginated } from '@/lib/api/types'
 import { tableJpg, tableOffice } from '@/lib/export/tableExport'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { record } from '@/lib/history'
@@ -268,27 +271,51 @@ function useTeacherEdits(tables: Record<string, TimetableSlot[]> | undefined) {
         async () => { await saveTeacher.mutateAsync({ teacherId, slots: before }) },
         async () => { await saveTeacher.mutateAsync({ teacherId, slots: after }) },
       )
+      return true
     } catch {
       toast(t('Saqlashda xatolik'), 'error')
+      return false
     }
   }
-  const save = async (teacherId: string, slot: TimetableSlot) => {
+  const put = (teacherId: string, slot: TimetableSlot) => {
     const next = mapOf(teacherId)
     const k = key(slot.day_index, slot.period_index)
     for (let i = 1; i < spanOf(slot, slot.period_index); i++) next.delete(key(slot.day_index, slot.period_index + i))
     if (isEmpty(slot)) next.delete(k)
     else next.set(k, slot)
-    await persist(teacherId, next, slotLabel(slot))
-    toast(isEmpty(slot) ? t("Katak bo'shatildi") : t('Saqlandi'))
+    return persist(teacherId, next, slotLabel(slot))
   }
-  const remove = async (teacherId: string, slot: TimetableSlot) => {
+  const drop = (teacherId: string, slot: TimetableSlot) => {
     const next = mapOf(teacherId)
     for (let i = 1; i < spanOf(slot, slot.period_index); i++) next.delete(key(slot.day_index, slot.period_index + i))
     next.delete(key(slot.day_index, slot.period_index))
-    await persist(teacherId, next, slotLabel(slot))
-    toast(t("Dars o'chirildi"))
+    return persist(teacherId, next, slotLabel(slot))
   }
-  return { save, remove }
+  const save = async (teacherId: string, slot: TimetableSlot) => {
+    if (await put(teacherId, slot)) toast(isEmpty(slot) ? t("Katak bo'shatildi") : t('Saqlandi'))
+  }
+  const remove = async (teacherId: string, slot: TimetableSlot) => {
+    if (await drop(teacherId, slot)) toast(t("Dars o'chirildi"))
+  }
+  /** The lesson moves to `to`'s week, same day and soat — refused when
+   * they teach then (a cell with only its time set counts as free). */
+  const give = async (from: string, to: string, slot: TimetableSlot, toName: string) => {
+    const dest = mapOf(to)
+    const busy = coveredOf(dest.values())
+    for (let i = 0; i < spanOf(slot, slot.period_index); i++) {
+      const k = key(slot.day_index, slot.period_index + i)
+      const c = dest.get(k)
+      if (busy.has(k) || (c && (c.maktab || c.sinf || c.xona || c.band))) {
+        toast(`${toName}: ${t('bu soatda boshqa darsi bor')}`, 'error')
+        return false
+      }
+    }
+    if (!(await put(to, slot))) return false
+    if (!(await drop(from, slot))) return false
+    toast(`${t('Dars berildi')}: ${toName}`)
+    return true
+  }
+  return { save, remove, give }
 }
 
 function metaText(t: T, c: TimetableSlot) {
@@ -770,9 +797,10 @@ type Entry = { slot: TimetableSlot; teacherId: string }
 function PickView({ tabs, versions }: { tabs: ReactNode; versions: ReactNode }) {
   const { t } = useTranslation()
   const { lang } = useUIStore()
-  const { data, isLoading } = useAllTimetables()
+  const { data, isLoading } = useAllTimetables(true)
   const { data: schoolList } = usePartnerSchools()
   const edits = useTeacherEdits(data?.tables)
+  const queryClient = useQueryClient()
   const toast = useToast()
   const now = useNow()
   const tableRef = useRef<HTMLTableElement>(null)
@@ -781,6 +809,13 @@ function PickView({ tabs, versions }: { tabs: ReactNode; versions: ReactNode }) 
   const [schoolPick, setSchoolPick] = useState('')
   const [sinf, setSinf] = useState('')
   const [editing, setEditing] = useState<{ teacherId: string; slot: TimetableSlot; existing: boolean } | null>(null)
+  // the open lesson's teacher's journal classes: its class can go along with it
+  const fromClasses = useQuery({
+    queryKey: ['journal', 'classes', 'of', editing?.teacherId ?? ''],
+    enabled: !!editing?.existing,
+    queryFn: async () => (await api.get<Paginated<{ id: number; name: string; partner_school?: number | null }>>(
+      '/journal/classes/', { params: { teacher: editing!.teacherId } })).data.results,
+  })
 
   if (isLoading) return <Skeleton lines={6} />
   if (!data?.teachers.length) {
@@ -796,9 +831,27 @@ function PickView({ tabs, versions }: { tabs: ReactNode; versions: ReactNode }) 
 
   const { tables } = data
   const names = new Map(data.teachers.map((tc) => [tc.id, tc.name]))
+  const blocked = new Set(data.teachers.filter((tc) => tc.blocked).map((tc) => tc.id))
+  const flat = (v: string) => v.toLowerCase().replace(/[\s\-_.]+/g, '')
+  const classMatch = editing?.existing && editing.slot.sinf.trim()
+    ? (fromClasses.data ?? []).find((c) => flat(c.name) === flat(editing.slot.sinf)
+      && (!editing.slot.school || !c.partner_school || c.partner_school === editing.slot.school))
+    : undefined
+  const giveLesson = async (from: string, slot: TimetableSlot, to: string, cls?: { id: number; name: string }) => {
+    if (!(await edits.give(from, to, slot, names.get(to) ?? ''))) return
+    if (!cls) return
+    try {
+      await api.post(`/schools/classes/${cls.id}/teacher/`, { teacher: to })
+      queryClient.invalidateQueries({ queryKey: ['journal'] })
+      queryClient.invalidateQueries({ queryKey: ['schools'] })
+      toast(`«${cls.name}» ${t('sinfi ham berildi')}`)
+    } catch {
+      toast(t("Sinfni berib bo'lmadi"), 'error')
+    }
+  }
   const lessonsOf = (id: string) => (tables[id] ?? []).filter((s) => !isEmpty(s))
   // to start with: the first teacher / school that has lessons
-  const teacherId = teacherPick || data.teachers.find((tc) => lessonsOf(tc.id).length)?.id || data.teachers[0].id
+  const teacherId = teacherPick || data.teachers.find((tc) => !tc.blocked && lessonsOf(tc.id).length)?.id || data.teachers[0].id
   const schools = (schoolList ?? []).filter((s) => s.is_active !== false)
   const used = new Set(data.teachers.flatMap((tc) => lessonsOf(tc.id).map((s) => s.school)))
   const schoolId = Number(schoolPick) || schools.find((s) => used.has(s.id))?.id || schools[0]?.id || 0
@@ -837,7 +890,10 @@ function PickView({ tabs, versions }: { tabs: ReactNode; versions: ReactNode }) 
   return (
     <div className="ttpage">
       <header className="ttx-head">
-        <h2 className="ttx-head__title">{heading || t('Umumiy dars jadvali')}</h2>
+        <h2 className="ttx-head__title">
+          {heading || t('Umumiy dars jadvali')}
+          {!multi && blocked.has(teacherId) && <small className="ttx-head__flag">{t('bloklangan')}</small>}
+        </h2>
         <p className="ttx-head__sub">
           {t('Haftalik dars jadvali')} · {entries.filter((e) => !e.slot.band).length} {t('ta dars')}
           {multi && ` · ${teacherCount} ${t("ta o'qituvchi")}`}
@@ -862,7 +918,8 @@ function PickView({ tabs, versions }: { tabs: ReactNode; versions: ReactNode }) 
               options={schools.map((s) => ({ value: String(s.id), label: s.name }))} onChange={(v) => { setSchoolPick(v); setSinf('') }} />
           ) : (
             <Pick label={t("O'qituvchini tanlash")} value={teacherId}
-              options={data.teachers.map((tc) => ({ value: tc.id, label: tc.name }))} onChange={(v) => { setTeacherPick(v); setSinf('') }} />
+              options={data.teachers.map((tc) => ({ value: tc.id, label: tc.blocked ? `${tc.name} (${t('bloklangan')})` : tc.name }))}
+              onChange={(v) => { setTeacherPick(v); setSinf('') }} />
           )}
           {sinfs.length > 0 && (
             <Pick label={t('Sinfni tanlash')} value={sinf} all={t('Barcha sinflar')}
@@ -975,6 +1032,11 @@ function PickView({ tabs, versions }: { tabs: ReactNode; versions: ReactNode }) 
           slot={editing.slot}
           onSave={(slot) => edits.save(editing.teacherId, slot)}
           onDelete={editing.existing ? () => edits.remove(editing.teacherId, editing.slot) : undefined}
+          handover={editing.existing ? {
+            teachers: data.teachers.filter((tc) => !tc.blocked && tc.id !== editing.teacherId).map((tc) => ({ id: tc.id, name: tc.name })),
+            className: classMatch?.name,
+            onGive: (to, withClass) => giveLesson(editing.teacherId, editing.slot, to, withClass ? classMatch : undefined),
+          } : undefined}
           onClose={() => setEditing(null)}
         />
       )}

@@ -57,6 +57,7 @@ export function SlotEditor({
   onMove,
   onClose,
   choosePlace,
+  handover,
 }: {
   slot: TimetableSlot
   onSave: (slot: TimetableSlot) => void
@@ -65,10 +66,19 @@ export function SlotEditor({
   onClose: () => void
   /** A new lesson from "Yangi dars qo'shish": its day and soat are picked here. */
   choosePlace?: boolean
+  /** The administration: hand the lesson to another teacher (same day and
+   * soat), and the journal class of the same name with it. */
+  handover?: {
+    teachers: { id: string; name: string }[]
+    className?: string
+    onGive: (to: string, withClass: boolean) => void
+  }
 }) {
   const { t } = useTranslation()
   const { lang } = useUIStore()
   const [draft, setDraft] = useState<TimetableSlot>(slot)
+  const [giveTo, setGiveTo] = useState('')
+  const [withClass, setWithClass] = useState(true)
   const toast = useToast()
   const { data: schoolList } = usePartnerSchools()
   // the active schools, and the cell's own one even if it was switched off since
@@ -215,6 +225,27 @@ export function SlotEditor({
           >
             {IC.move} {t("Ko'chirish")}
           </button>
+        </div>
+      )}
+      {hasLesson && handover && (
+        <div className="field">
+          <span className="field__label">{t("Boshqa o'qituvchiga berish")}</span>
+          <div className="row row--2">
+            <select className="input" value={giveTo} onChange={(e) => setGiveTo(e.target.value)}>
+              <option value="">{t("O'qituvchini tanlang…")}</option>
+              {handover.teachers.map((tc) => <option key={tc.id} value={tc.id}>{tc.name}</option>)}
+            </select>
+            <button className="btn btn--sm" type="button" disabled={!giveTo}
+              onClick={() => { handover.onGive(giveTo, !!handover.className && withClass); onClose() }}>
+              {IC.move} {t('Berish')}
+            </button>
+          </div>
+          {handover.className && (
+            <label className="check">
+              <input type="checkbox" checked={withClass} onChange={(e) => setWithClass(e.target.checked)} />
+              <span>{t('Jurnaldagi sinfi ham')}: «{handover.className}»</span>
+            </label>
+          )}
         </div>
       )}
       {hasLesson && onDelete ? (

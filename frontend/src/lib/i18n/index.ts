@@ -699,6 +699,15 @@ const ru = {
   "Maktablar bo'yicha": 'По школам',
   "Shu maktabdagi barcha ustozlarning darslari; bir soatda bir nechta dars bo'lsa, ustma-ust turadi.": 'Уроки всех учителей этой школы; если в один урок их несколько, они идут друг под другом.',
   'Tanlangan ustozning haftasi — katakni bosib tahrirlash mumkin.': 'Неделя выбранного учителя — нажмите на ячейку, чтобы изменить.',
+  "Boshqa o'qituvchiga berish": 'Передать другому учителю',
+  "O'qituvchini tanlang…": 'Выберите учителя…',
+  'Berish': 'Передать',
+  'Jurnaldagi sinfi ham': 'И класс в журнале',
+  'bu soatda boshqa darsi bor': 'в этот урок уже занят',
+  'Dars berildi': 'Урок передан',
+  'sinfi ham berildi': 'класс тоже передан',
+  "Sinfni berib bo'lmadi": 'Не удалось передать класс',
+  'bloklangan': 'заблокирован',
 } as const
 
 const en = {
@@ -1374,6 +1383,15 @@ const en = {
   "Maktablar bo'yicha": 'By school',
   "Shu maktabdagi barcha ustozlarning darslari; bir soatda bir nechta dars bo'lsa, ustma-ust turadi.": "Every teacher's lessons at this school; several in one period stack in the cell.",
   'Tanlangan ustozning haftasi — katakni bosib tahrirlash mumkin.': "The picked teacher's week — click a cell to edit it.",
+  "Boshqa o'qituvchiga berish": 'Give to another teacher',
+  "O'qituvchini tanlang…": 'Choose a teacher…',
+  'Berish': 'Give',
+  'Jurnaldagi sinfi ham': 'Its journal class too',
+  'bu soatda boshqa darsi bor': 'already teaches then',
+  'Dars berildi': 'Lesson handed over',
+  'sinfi ham berildi': 'class handed over too',
+  "Sinfni berib bo'lmadi": 'Could not hand the class over',
+  'bloklangan': 'blocked',
 } as const
 
 const resources = {

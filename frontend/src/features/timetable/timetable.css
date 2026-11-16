@@ -127,3 +127,5 @@
 .ttstack .is-dim .ttk, .ttstack .ttk.is-dim { opacity: .28; }
 .ttk--cont { padding: 3px 8px; border-style: dashed; opacity: .75; }
 .ttx__by .seg__b .svic, .ttx__by .seg__b svg { width: 15px; height: 15px; }
+
+.ttx-head__flag { margin-left: 10px; padding: 2px 8px; border-radius: 999px; background: rgba(226, 70, 90, .12); color: #c22a43; font: 600 12px/1.4 var(--f-body, inherit); vertical-align: middle; }
