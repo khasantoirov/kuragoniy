@@ -911,6 +911,6 @@
   [data-skin="r2"] .edside__acct { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
 }
 
-/* Sarlavhasiz oxirgi guruh (Sozlamalar, Platforma haqida): menyu qisqa
-   bo'lsa ham ro'yxatning eng pastida turadi. */
-[data-skin="r2"] .edside__sec.edside__sec--tail { margin-top: auto; padding-top: 6px; }
+/* Sarlavhasiz oxirgi guruh (Sozlamalar, Platforma haqida): oxirgi
+   bo'limdan keyin darhol keladi, faqat ingichka chiziq bilan ajraladi. */
+[data-skin="r2"] .edside__sec.edside__sec--tail { padding-top: 6px; }
