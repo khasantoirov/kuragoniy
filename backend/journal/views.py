@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from common.permissions import IsApproved, IsTeacher
 from common.security import log_event
 from schools.models import AcademicYear
+from staffroom.calendar import chorak_of
 
 from .locks import (
     ALL_PAST_DAYS, LOCKED_DETAIL, NOT_OWNER_DETAIL, PAST_YEAR_DETAIL, can_edit_day, is_owner, is_past_year, licence_lock,
@@ -163,7 +164,8 @@ class JournalClassViewSet(viewsets.ModelViewSet):
             return Response({'detail': f"Baho 0 dan {scale} gacha bo'ladi."}, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
-            defaults = {'chorak': data['chorak'], 'topic': data.get('topic', '')}
+            # the school calendar files the day: 2-chorak starts, its days go there
+            defaults = {'chorak': chorak_of(data['date']), 'topic': data.get('topic', '')}
             if 'period' in data:
                 defaults['period'] = data['period']
             day, _ = ClassDay.objects.update_or_create(

@@ -20,11 +20,11 @@ export interface EduminNavItem {
  *  tekis ro'yxatdan asosiy tuzilmaviy farqi shu. Ro'yxatga kirmagan
  *  yangi marshrut yo'qolib qolmasligi uchun Ma'muriyat bo'limiga tushadi. */
 const GROUPS: { title: string; paths: string[]; rest?: boolean }[] = [
-  { title: 'Asosiy', paths: ['/', '/my-school', '/help'] },
+  { title: 'Asosiy', paths: ['/', '/my-school'] },
   { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/staffroom', '/assignments', '/reports', '/training', '/achievements', '/feed', '/library'] },
   { title: "Ma'muriyat", paths: ['/statistics', '/admin', '/equipment-sheet', '/shop', '/guide'], rest: true },
-  // no heading: these two simply close the menu, at its bottom
-  { title: '', paths: ['/settings', '/about'] },
+  // no heading: these simply close the menu, at its bottom
+  { title: '', paths: ['/settings', '/about', '/help'] },
 ]
 
 function groupItems(items: EduminNavItem[]) {

@@ -14,22 +14,19 @@ import { ClassPicker } from './ClassPicker'
 import { ClassModal } from './ClassModal'
 import { ClassSummary } from './ClassSummary'
 import { EditGrantsPanel } from './EditGrantsPanel'
+import { type ChorakView, readPick, rememberPick, shownChorak, useChorakNow } from './calendar'
 import { quarterLabel } from './labels'
 import { TeacherCard } from './TeacherCard'
 
-type Chorak = 1 | 2 | 3 | 4 | 'u'
+type Chorak = ChorakView
 
-
+/** The chorak on view: the calendar's own (Boshqaruv → O'quv yillari →
+ * Choraklar) unless one was picked by hand within the same chorak. */
 function useChorak() {
-  const [chorak, setChorak] = useState<Chorak>(() => {
-    const raw = localStorage.getItem('afmd.chorak')
-    return raw === 'u' ? 'u' : (Number(raw) as Chorak) || 1
-  })
-  const change = (q: Chorak) => {
-    setChorak(q)
-    localStorage.setItem('afmd.chorak', String(q))
-  }
-  return [chorak, change] as const
+  const now = useChorakNow()
+  const [pick, setPick] = useState(readPick)
+  const change = (q: Chorak) => setPick(rememberPick(q, now))
+  return [shownChorak(pick, now), change] as const
 }
 
 /** Class chips + quarter chips + the grid. With `teacherId` it shows that

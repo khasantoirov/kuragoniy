@@ -661,6 +661,7 @@ const ru = {
   'Boshqa joyda band': 'Занят в другом месте',
   'Bu soat boshqa darsning davomi bilan band': 'Этот урок занят продолжением другого',
   'Tanlangan katakda boshqa dars bor. Uni almashtirasizmi?': 'В выбранной ячейке уже есть урок. Заменить его?',
+  "Chorak sanaga qarab o'zi tanlandi.": 'Четверть выбрана по дате.',
 } as const
 
 const en = {
@@ -1298,6 +1299,7 @@ const en = {
   'Boshqa joyda band': 'Busy elsewhere',
   'Bu soat boshqa darsning davomi bilan band': 'This period is taken by a lesson that continues into it',
   'Tanlangan katakda boshqa dars bor. Uni almashtirasizmi?': 'The chosen cell already has a lesson. Replace it?',
+  "Chorak sanaga qarab o'zi tanlandi.": 'The term was picked from the date.',
 } as const
 
 const resources = {

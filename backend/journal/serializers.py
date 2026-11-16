@@ -82,10 +82,12 @@ class BulkAttendanceSerializer(serializers.Serializer):
 class BulkDaySerializer(serializers.Serializer):
     """Input shape for POST /journal/classes/{id}/bulk-marks/: save one
     class-day's topic + every student's mark/attendance in one request,
-    matching the old grade-grid UI's 'mark the whole day at once' flow."""
+    matching the old grade-grid UI's 'mark the whole day at once' flow.
+    `chorak` is no longer taken from the client: the date decides it
+    (staffroom.calendar.chorak_of); an old client may still send it."""
 
     date = serializers.DateField()
-    chorak = serializers.IntegerField(min_value=1, max_value=4)
+    chorak = serializers.IntegerField(min_value=1, max_value=4, required=False)
     topic = serializers.CharField(required=False, allow_blank=True, default='')
     period = serializers.IntegerField(min_value=1, max_value=12, required=False, allow_null=True)
     marks = BulkMarkSerializer(many=True, required=False, default=list)

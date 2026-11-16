@@ -7,7 +7,10 @@ import { Modal } from '@/components/Modal'
 import { useToast } from '@/components/Toast'
 import { useUIStore } from '@/store/uiStore'
 
+import { useYears } from '@/features/schools/api'
+
 import { useDeleteControl, useSaveControl } from './api'
+import { chorakOf } from './calendar'
 import { quarterLabel } from './labels'
 import { localToday } from './lock'
 import { levelOf, markLabel } from './scales'
@@ -31,8 +34,14 @@ export function ControlWorkModal({ classId, chorak, students, work, onClose }: {
   const confirm = useConfirm()
   const save = useSaveControl(classId)
   const remove = useDeleteControl(classId)
+  const { data: years } = useYears()
   const [date, setDate] = useState(work?.date ?? localToday())
-  const [quarter, setQuarter] = useState(work?.chorak ?? chorak)
+  // follows the date by the school calendar; still changeable by hand
+  const [quarter, setQuarter] = useState(() => work?.chorak ?? (years ? chorakOf(localToday(), years) : chorak))
+  const pickDate = (v: string) => {
+    setDate(v)
+    if (v && years) setQuarter(chorakOf(v, years))
+  }
   const [title, setTitle] = useState(work?.title ?? '')
   const [marks, setMarks] = useState<Record<number, string>>(() =>
     Object.fromEntries(students.map((s) => [s.id, work?.marks[s.id] != null ? String(work.marks[s.id]) : ''])))
@@ -91,7 +100,7 @@ export function ControlWorkModal({ classId, chorak, students, work, onClose }: {
       <div className="ctl__meta">
         <label className="field">
           <span className="field__label">{t('Sana')}</span>
-          <input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <input className="input" type="date" value={date} onChange={(e) => pickDate(e.target.value)} />
         </label>
         <label className="field">
           <span className="field__label">{t('Chorak')}</span>

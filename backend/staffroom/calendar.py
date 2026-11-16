@@ -74,6 +74,19 @@ def place(day: date) -> dict:
     return {'chorak': None, 'week': None, 'exact': exact}
 
 
+def chorak_of(day: date) -> int:
+    """The chorak a journal day is filed under: the one its date falls in;
+    in the holidays, the one that has just ended (a make-up lesson); before
+    the first chorak, the first; after the last, the last."""
+    year = AcademicYear.objects.filter(start_year=school_year_of(day)).first()
+    quarters, _ = quarters_of(year) if year else (usual_quarters(school_year_of(day)), False)
+    n = 1
+    for i, (start, _end) in enumerate(quarters):
+        if day >= start:
+            n = i + 1
+    return n
+
+
 def next_school_day(day: date) -> date:
     """The next Monday–Friday after `day`."""
     d = day + timedelta(days=1)

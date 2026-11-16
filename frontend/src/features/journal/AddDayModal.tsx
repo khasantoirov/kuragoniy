@@ -8,7 +8,10 @@ import { IC } from '@/icons'
 import { record } from '@/lib/history'
 import { useUIStore } from '@/store/uiStore'
 
+import { useYears } from '@/features/schools/api'
+
 import { useBulkMarks, useCreateGrant, useDropDay, useRequestGrant } from './api'
+import { chorakOf, rememberPick, useChorakNow } from './calendar'
 import { quarterLabel } from './labels'
 import { canEditDay, DURATIONS, isPending, localToday } from './lock'
 import type { GridLock } from './types'
@@ -19,6 +22,10 @@ export function AddDayModal({ classId, chorak, lock, onClose, onCreated }: {
   const { t } = useTranslation()
   const { lang } = useUIStore()
   const [date, setDate] = useState(() => lock?.today ?? localToday())
+  // the date decides the chorak (the backend files it the same way)
+  const { data: years } = useYears()
+  const now = useChorakNow()
+  const dayChorak = date && years ? chorakOf(date, years) : chorak
   const [topic, setTopic] = useState('')
   const [reason, setReason] = useState('')
   const bulkMarks = useBulkMarks(classId)
@@ -51,12 +58,14 @@ export function AddDayModal({ classId, chorak, lock, onClose, onCreated }: {
       if (locked && lock) {
         await createGrant.mutateAsync({ teacher: lock.teacher, journal_class: classId, date_from: date, date_to: date, hours })
       }
-      await bulkMarks.mutateAsync({ date, chorak, topic, marks: [], attendance: [] })
+      await bulkMarks.mutateAsync({ date, chorak: dayChorak, topic, marks: [], attendance: [] })
       record(
         t('Dars kuni'),
         async () => { await dropDay.mutateAsync(date) },
-        async () => { await bulkMarks.mutateAsync({ date, chorak, topic, marks: [], attendance: [] }) },
+        async () => { await bulkMarks.mutateAsync({ date, chorak: dayChorak, topic, marks: [], attendance: [] }) },
       )
+      // back on the journal, the day's chorak is the one on view
+      if (dayChorak !== chorak) rememberPick(dayChorak as 1 | 2 | 3 | 4, now)
       toast(t("Dars kuni qo'shildi"))
       onClose()
       onCreated?.(date)
@@ -116,7 +125,10 @@ export function AddDayModal({ classId, chorak, lock, onClose, onCreated }: {
             <span className="field__label">{t('Mavzu')} <span className="field__opt">({t('ixtiyoriy')})</span></span>
             <input className="input" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder={t('Dars mavzusi')} />
           </label>
-          <p className="prose prose--note">{quarterLabel(chorak, lang)} {t("jadvaliga qo'shiladi.")}</p>
+          <p className="prose prose--note">
+            {quarterLabel(dayChorak, lang)} {t("jadvaliga qo'shiladi.")}
+            {dayChorak !== chorak && <> {t("Chorak sanaga qarab o'zi tanlandi.")}</>}
+          </p>
         </>
       )}
     </Modal>

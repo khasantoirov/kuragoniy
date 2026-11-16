@@ -10,7 +10,10 @@ import { GuideLink } from '@/features/guide/GuideLink'
 import { IC } from '@/icons'
 import { record } from '@/lib/history'
 
+import { useYears } from '@/features/schools/api'
+
 import { useBulkMarks, useClasses, useDropDay, useGrid } from './api'
+import { chorakOf } from './calendar'
 import { isAbsent } from './attendance'
 import { EditRequestModal } from './EditRequestModal'
 import { DAY_ATT, dayTitle } from './grades'
@@ -23,8 +26,9 @@ const errDetail = (err: unknown) => (isAxiosError<{ detail?: string }>(err) ? er
 const PERIODS = [1, 2, 3, 4, 5, 6, 7, 8]
 
 /** /journal/:classId/day/:date — one lesson: attendance and marks for every
- * pupil, entered here and saved together. ?q= is the quarter for a new
- * day, ?teacher= an administrator looking at someone else's journal. */
+ * pupil, entered here and saved together. The chorak follows the date
+ * (the school calendar); ?teacher= an administrator looking at someone
+ * else's journal. */
 export function DayPage() {
   const { classId, date = '' } = useParams()
   const [params] = useSearchParams()
@@ -36,16 +40,15 @@ export function DayPage() {
 
   if (isLoading || !grid) return <div className="dpage"><Skeleton lines={6} /></div>
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return <p className="prose prose--note">—</p>
-  return <DayEditor key={`${id}-${date}`} grid={grid} cls={cls} classId={id} date={date} teacherId={teacherId} quarter={Number(params.get('q')) || 0} />
+  return <DayEditor key={`${id}-${date}`} grid={grid} cls={cls} classId={id} date={date} teacherId={teacherId} />
 }
 
-function DayEditor({ grid, cls, classId, date, teacherId, quarter }: {
+function DayEditor({ grid, cls, classId, date, teacherId }: {
   grid: Grid
   cls?: JournalClass
   classId: number
   date: string
   teacherId?: string
-  quarter: number
 }) {
   const { t } = useTranslation()
   const toast = useToast()
@@ -58,7 +61,8 @@ function DayEditor({ grid, cls, classId, date, teacherId, quarter }: {
   const students = grid.students
   const editable = canEditDay(lock, date)
   const scale = asScale(grid.scale ?? cls?.scale)
-  const chorak = day?.chorak ?? (quarter || Number(localStorage.getItem('afmd.chorak')) || 1)
+  const { data: years } = useYears()
+  const chorak = day?.chorak ?? chorakOf(date, years)
 
   const origAtt = (sid: number) => (day?.attendance[sid] ?? '') as AttendanceStatus | ''
   const origMark = (sid: number) => day?.marks[sid] ?? null
