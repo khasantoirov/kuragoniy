@@ -14,7 +14,7 @@ import { record } from '@/lib/history'
 import { tablePdf } from '@/lib/pdf'
 import { type Lang, useUIStore } from '@/store/uiStore'
 
-import { useAllTimetables, useSaveTeacherTimetable, useSaveTimetable, useTimetable } from './api'
+import { useAllTimetables, usePartnerSchools, useSaveTeacherTimetable, useSaveTimetable, useTimetable } from './api'
 import { SlotEditor } from './SlotEditor'
 import { DAYS, hourLabel, SOATLAR, type TimetableSlot } from './types'
 import './timetable.css'
@@ -93,7 +93,7 @@ const distinct = (slots: TimetableSlot[], pick: (s: TimetableSlot) => string) =>
 function Pick({ label, value, all, options, onChange }: {
   label: string
   value: string
-  all: string
+  all?: string
   options: { value: string; label: string }[]
   onChange: (v: string) => void
 }) {
@@ -101,7 +101,7 @@ function Pick({ label, value, all, options, onChange }: {
     <label className="ttx__f">
       <span className="ttx__fl">{label}</span>
       <select className="input" value={value} onChange={(e) => onChange(e.target.value)}>
-        <option value="">{all}</option>
+        {all !== undefined && <option value="">{all}</option>}
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </label>
@@ -128,18 +128,18 @@ function SlotFilters({ slots, f, onChange }: { slots: TimetableSlot[]; f: Filter
 }
 
 // ── one lesson in its cell ──────────────────────────────────────────
-function LessonCard({ c, sp, now }: { c: TimetableSlot; sp: number; now: Date }) {
+function LessonCard({ c, sp, now, heading }: { c: TimetableSlot; sp: number; now: Date; heading?: string }) {
   const { t } = useTranslation()
   const { lang } = useUIStore()
   const st = c.band ? null : statusOf(c, now)
-  const title = c.maktab || (c.band ? t('Boshqa joyda band') : c.sinf)
+  const title = heading ?? (c.maktab || (c.band ? t('Boshqa joyda band') : c.sinf))
   const sinf = c.sinf && c.sinf !== title ? c.sinf : ''
   const room = c.xona ? roomText(t, lang, c.xona) : ''
   return (
     <div className={`ttk ${c.band ? 'ttk--band' : ''} ${st ? `is-${st}` : ''}`}>
       <b className="ttk__t">
         {c.band && IC.lock}{title}
-        {!c.band && !!c.maktab && !c.school && <span className="ttk__warn" title={t("Maktab ro'yxatdan tanlanmagan")}>⚠</span>}
+        {!heading && !c.band && !!c.maktab && !c.school && <span className="ttk__warn" title={t("Maktab ro'yxatdan tanlanmagan")}>⚠</span>}
       </b>
       {(sinf || room) && <span className="ttk__m">{sinf && room ? `${sinf} (${room})` : sinf || room}</span>}
       <span className="ttk__f">
@@ -215,6 +215,80 @@ function StatsPanel({ slots, now, teachers }: { slots: TimetableSlot[]; now: Dat
       </dl>
     </section>
   )
+}
+
+/** Hours a week, by school (one teacher) or by teacher (one school). */
+function BreakdownPanel({ title, rows }: { title: string; rows: { key: string; name: string; hours: number }[] }) {
+  const { t } = useTranslation()
+  return (
+    <section className="ttsum__p">
+      <h3 className="ttsum__h">{title}</h3>
+      {rows.length ? (
+        <ul className="ttsum__list">
+          {rows.map((r) => <li key={r.key}><b>{r.name}</b>: {r.hours} {t('soat/hafta')}</li>)}
+        </ul>
+      ) : <p className="prose prose--note">—</p>}
+    </section>
+  )
+}
+
+const hoursBy = <E extends { slot: TimetableSlot }>(items: E[], keyOf: (e: E) => [string, string]) => {
+  const m = new Map<string, { key: string; name: string; hours: number }>()
+  for (const e of items) {
+    const s = e.slot
+    if (isEmpty(s) || s.band) continue
+    const [k, name] = keyOf(e)
+    const row = m.get(k) ?? { key: k, name, hours: 0 }
+    row.hours += hoursOf(s)
+    m.set(k, row)
+  }
+  return [...m.values()].sort((a, b) => b.hours - a.hours || a.name.localeCompare(b.name))
+}
+
+/** The administration writing into a teacher's week (both "Barcha
+ * o'qituvchilar" views): saves the whole week, with undo. */
+function useTeacherEdits(tables: Record<string, TimetableSlot[]> | undefined) {
+  const { t } = useTranslation()
+  const { lang } = useUIStore()
+  const saveTeacher = useSaveTeacherTimetable()
+  const toast = useToast()
+  const mapOf = (teacherId: string) => {
+    const m = new Map<string, TimetableSlot>()
+    ;(tables?.[teacherId] ?? []).forEach((s) => m.set(key(s.day_index, s.period_index), s))
+    return m
+  }
+  const slotLabel = (slot: TimetableSlot) => `${t(DAYS[slot.day_index])} ${hourLabel(slot.period_index, lang)}`
+  const persist = async (teacherId: string, next: Map<string, TimetableSlot>, label: string) => {
+    const before = Array.from(mapOf(teacherId).values())
+    const after = Array.from(next.values())
+    try {
+      await saveTeacher.mutateAsync({ teacherId, slots: after })
+      record(
+        label,
+        async () => { await saveTeacher.mutateAsync({ teacherId, slots: before }) },
+        async () => { await saveTeacher.mutateAsync({ teacherId, slots: after }) },
+      )
+    } catch {
+      toast(t('Saqlashda xatolik'), 'error')
+    }
+  }
+  const save = async (teacherId: string, slot: TimetableSlot) => {
+    const next = mapOf(teacherId)
+    const k = key(slot.day_index, slot.period_index)
+    for (let i = 1; i < spanOf(slot, slot.period_index); i++) next.delete(key(slot.day_index, slot.period_index + i))
+    if (isEmpty(slot)) next.delete(k)
+    else next.set(k, slot)
+    await persist(teacherId, next, slotLabel(slot))
+    toast(isEmpty(slot) ? t("Katak bo'shatildi") : t('Saqlandi'))
+  }
+  const remove = async (teacherId: string, slot: TimetableSlot) => {
+    const next = mapOf(teacherId)
+    for (let i = 1; i < spanOf(slot, slot.period_index); i++) next.delete(key(slot.day_index, slot.period_index + i))
+    next.delete(key(slot.day_index, slot.period_index))
+    await persist(teacherId, next, slotLabel(slot))
+    toast(t("Dars o'chirildi"))
+  }
+  return { save, remove }
 }
 
 function metaText(t: T, c: TimetableSlot) {
@@ -519,12 +593,12 @@ function MineView({ tabs }: { tabs: ReactNode }) {
   )
 }
 
-function AllView({ tabs, admin }: { tabs: ReactNode; admin: boolean }) {
+function AllView({ tabs, admin, versions }: { tabs: ReactNode; admin: boolean; versions?: ReactNode }) {
   const { t } = useTranslation()
   const { lang } = useUIStore()
   const { user } = useAuth()
   const { data, isLoading } = useAllTimetables()
-  const saveTeacher = useSaveTeacherTimetable()
+  const edits = useTeacherEdits(data?.tables)
   const toast = useToast()
   const now = useNow()
   const tableRef = useRef<HTMLTableElement>(null)
@@ -556,41 +630,6 @@ function AllView({ tabs, admin }: { tabs: ReactNode; admin: boolean }) {
   })
   const shownSlots = teachers.flatMap((tc) => tables[tc.id] ?? [])
   const filtering = !!(f.sinf || f.maktab)
-
-  const slotLabel = (slot: TimetableSlot) => `${t(DAYS[slot.day_index])} ${hourLabel(slot.period_index, lang)}`
-
-  const persistTeacher = async (teacherId: string, next: Map<string, TimetableSlot>, label: string) => {
-    const before = Array.from(byKey.get(teacherId)?.values() ?? [])
-    const after = Array.from(next.values())
-    try {
-      await saveTeacher.mutateAsync({ teacherId, slots: after })
-      record(
-        label,
-        async () => { await saveTeacher.mutateAsync({ teacherId, slots: before }) },
-        async () => { await saveTeacher.mutateAsync({ teacherId, slots: after }) },
-      )
-    } catch {
-      toast(t('Saqlashda xatolik'), 'error')
-    }
-  }
-
-  const onSaveSlot = async (teacherId: string, slot: TimetableSlot) => {
-    const next = new Map(byKey.get(teacherId))
-    const k = key(slot.day_index, slot.period_index)
-    for (let i = 1; i < spanOf(slot, slot.period_index); i++) next.delete(key(slot.day_index, slot.period_index + i))
-    if (isEmpty(slot)) next.delete(k)
-    else next.set(k, slot)
-    await persistTeacher(teacherId, next, slotLabel(slot))
-    toast(isEmpty(slot) ? t("Katak bo'shatildi") : t('Saqlandi'))
-  }
-
-  const onDeleteSlot = async (teacherId: string, slot: TimetableSlot) => {
-    const next = new Map(byKey.get(teacherId))
-    for (let i = 1; i < spanOf(slot, slot.period_index); i++) next.delete(key(slot.day_index, slot.period_index + i))
-    next.delete(key(slot.day_index, slot.period_index))
-    await persistTeacher(teacherId, next, slotLabel(slot))
-    toast(t("Dars o'chirildi"))
-  }
 
   const exportHead = [t('Kun'), t('Soat'), ...teachers.map((tc) => tc.name)]
   const exportRows = DAYS.flatMap((d, di) =>
@@ -625,6 +664,7 @@ function AllView({ tabs, admin }: { tabs: ReactNode; admin: boolean }) {
             options={data.teachers.map((tc) => ({ value: tc.id, label: tc.name }))} onChange={setOnly} />
           <SlotFilters slots={shownSlots} f={f} onChange={setF} />
           <div className="ttx__acts">
+            {versions}
             <ExportMenu
               formats={['jpg', 'pdf-portrait', 'pdf-landscape', 'xls', 'doc']}
               onExport={(fm) =>
@@ -713,8 +753,8 @@ function AllView({ tabs, admin }: { tabs: ReactNode; admin: boolean }) {
       {editing && (
         <SlotEditor
           slot={editing.slot}
-          onSave={(slot) => onSaveSlot(editing.teacherId, slot)}
-          onDelete={editing.existing ? () => onDeleteSlot(editing.teacherId, editing.slot) : undefined}
+          onSave={(slot) => edits.save(editing.teacherId, slot)}
+          onDelete={editing.existing ? () => edits.remove(editing.teacherId, editing.slot) : undefined}
           onClose={() => setEditing(null)}
         />
       )}
@@ -722,12 +762,262 @@ function AllView({ tabs, admin }: { tabs: ReactNode; admin: boolean }) {
   )
 }
 
+type Entry = { slot: TimetableSlot; teacherId: string }
+
+/** "Barcha o'qituvchilar", picked: one teacher's week, or one school's —
+ * every teacher's lessons there — in the "Mening jadvalim" layout. A school
+ * may hold several lessons in one soat: they stack in the cell. */
+function PickView({ tabs, versions }: { tabs: ReactNode; versions: ReactNode }) {
+  const { t } = useTranslation()
+  const { lang } = useUIStore()
+  const { data, isLoading } = useAllTimetables()
+  const { data: schoolList } = usePartnerSchools()
+  const edits = useTeacherEdits(data?.tables)
+  const toast = useToast()
+  const now = useNow()
+  const tableRef = useRef<HTMLTableElement>(null)
+  const [by, setBy] = useState<'teacher' | 'school'>('teacher')
+  const [teacherPick, setTeacherPick] = useState('')
+  const [schoolPick, setSchoolPick] = useState('')
+  const [sinf, setSinf] = useState('')
+  const [editing, setEditing] = useState<{ teacherId: string; slot: TimetableSlot; existing: boolean } | null>(null)
+
+  if (isLoading) return <Skeleton lines={6} />
+  if (!data?.teachers.length) {
+    return (
+      <div className="ttpage">
+        <section className="ttx">
+          {tabs}
+          <EmptyState title={t("O'qituvchi yo'q")} hint={t("Tasdiqlangan foydalanuvchilar paydo bo'lgach jadval shu yerda chiqadi.")} />
+        </section>
+      </div>
+    )
+  }
+
+  const { tables } = data
+  const names = new Map(data.teachers.map((tc) => [tc.id, tc.name]))
+  const lessonsOf = (id: string) => (tables[id] ?? []).filter((s) => !isEmpty(s))
+  // to start with: the first teacher / school that has lessons
+  const teacherId = teacherPick || data.teachers.find((tc) => lessonsOf(tc.id).length)?.id || data.teachers[0].id
+  const schools = (schoolList ?? []).filter((s) => s.is_active !== false)
+  const used = new Set(data.teachers.flatMap((tc) => lessonsOf(tc.id).map((s) => s.school)))
+  const schoolId = Number(schoolPick) || schools.find((s) => used.has(s.id))?.id || schools[0]?.id || 0
+  const schoolName = schools.find((s) => s.id === schoolId)?.name ?? ''
+  const multi = by === 'school'
+
+  const entries: Entry[] = multi
+    ? data.teachers.flatMap((tc) => lessonsOf(tc.id).filter((s) => !s.band && s.school === schoolId).map((slot) => ({ slot, teacherId: tc.id })))
+    : lessonsOf(teacherId).map((slot) => ({ slot, teacherId }))
+  const starts = new Map<string, Entry[]>()
+  const later = new Map<string, Entry[]>()
+  const push = (m: Map<string, Entry[]>, k: string, e: Entry) => m.set(k, [...(m.get(k) ?? []), e])
+  for (const e of entries) {
+    const s = e.slot
+    push(starts, key(s.day_index, s.period_index), e)
+    for (let i = 1; i < spanOf(s, s.period_index); i++) push(later, key(s.day_index, s.period_index + i), e)
+  }
+  const slots = entries.map((e) => e.slot)
+  const sinfs = distinct(slots, (s) => s.sinf)
+  const dim = (s: TimetableSlot) => !!sinf && s.sinf.trim() !== sinf
+  const heading = multi ? schoolName : names.get(teacherId) ?? ''
+  const teacherCount = new Set(entries.map((e) => e.teacherId)).size
+  const skip: Record<string, boolean> = {}
+
+  const cellText = (e: Entry) => {
+    const c = e.slot
+    return [multi ? names.get(e.teacherId) ?? '' : (c.band ? '[BAND] ' : '') + (c.maktab || ''), timeOf(c), metaText(t, c)].filter(Boolean).join(' ')
+  }
+  const exportHead = [t('Soat'), ...DAYS.map((d) => t(d))]
+  const exportRows = Array.from({ length: SOATLAR }, (_, i) => {
+    const p = i + 1
+    return [hourLabel(p, lang), ...DAYS.map((_, di) => (starts.get(key(di, p)) ?? []).map(cellText).join('; '))]
+  })
+  const exportTitle = `${heading} — ${t('haftalik jadval')}`
+
+  return (
+    <div className="ttpage">
+      <header className="ttx-head">
+        <h2 className="ttx-head__title">{heading || t('Umumiy dars jadvali')}</h2>
+        <p className="ttx-head__sub">
+          {t('Haftalik dars jadvali')} · {entries.filter((e) => !e.slot.band).length} {t('ta dars')}
+          {multi && ` · ${teacherCount} ${t("ta o'qituvchi")}`}
+        </p>
+      </header>
+
+      <section className="ttx">
+        <div className="ttx__bar">
+          <div className="ttx__f">
+            <span className="ttx__fl">{t("Ko'rish")}</span>
+            <div className="seg ttx__by" role="group" aria-label={t("Ko'rish")}>
+              <button type="button" className={`seg__b ${!multi ? 'is-on' : ''}`} aria-pressed={!multi} onClick={() => { setBy('teacher'); setSinf('') }}>
+                {IC.user} {t("O'qituvchi")}
+              </button>
+              <button type="button" className={`seg__b ${multi ? 'is-on' : ''}`} aria-pressed={multi} onClick={() => { setBy('school'); setSinf('') }}>
+                {IC.school} {t('Maktab')}
+              </button>
+            </div>
+          </div>
+          {multi ? (
+            <Pick label={t('Maktabni tanlash')} value={schoolId ? String(schoolId) : ''}
+              options={schools.map((s) => ({ value: String(s.id), label: s.name }))} onChange={(v) => { setSchoolPick(v); setSinf('') }} />
+          ) : (
+            <Pick label={t("O'qituvchini tanlash")} value={teacherId}
+              options={data.teachers.map((tc) => ({ value: tc.id, label: tc.name }))} onChange={(v) => { setTeacherPick(v); setSinf('') }} />
+          )}
+          {sinfs.length > 0 && (
+            <Pick label={t('Sinfni tanlash')} value={sinf} all={t('Barcha sinflar')}
+              options={sinfs.map((s) => ({ value: s, label: s }))} onChange={setSinf} />
+          )}
+          <div className="ttx__acts">
+            {versions}
+            <ExportMenu
+              formats={['jpg', 'pdf-portrait', 'pdf-landscape']}
+              onExport={(fm) =>
+                runExport(fm, exportTitle, tableRef.current, exportHead, exportRows).catch(() => toast(t('Yuklab olishda xatolik'), 'error'))
+              }
+            />
+          </div>
+        </div>
+        {tabs}
+        <p className="ttx__cap">
+          {multi ? t("Shu maktabdagi barcha ustozlarning darslari; bir soatda bir nechta dars bo'lsa, ustma-ust turadi.")
+            : t("Tanlangan ustozning haftasi — katakni bosib tahrirlash mumkin.")}
+        </p>
+
+        <div className="table-wrap ttx__grid">
+          <ScaleToFit naturalWidth={LABEL_COL + DAYS.length * DATA_COL_MIN}>
+            <table className="tt" ref={tableRef} style={{ minWidth: LABEL_COL + DAYS.length * DATA_COL_MIN }}>
+              <colgroup>
+                <col style={{ width: LABEL_COL }} />
+                {DAYS.map((d) => (
+                  <col key={d} />
+                ))}
+              </colgroup>
+              <thead>
+                <tr>
+                  <th className="tt__corner">{t('Soat')}</th>
+                  {DAYS.map((d, i) => (
+                    <th key={d} className={`tt__h tt__h--d${i}`}>{t(d)}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: SOATLAR }, (_, i) => {
+                  const p = i + 1
+                  return (
+                    <tr key={p}>
+                      <th className="tt__soat">{hourLabel(p, lang)}</th>
+                      {DAYS.map((_, di) => {
+                        const k = key(di, p)
+                        if (skip[k]) return null
+                        const here = starts.get(k) ?? []
+                        const cont = multi ? later.get(k) ?? [] : []
+                        if (!here.length && !cont.length) {
+                          return multi ? (
+                            <td key={di} className="tt__c tt__c--free" />
+                          ) : (
+                            <td key={di} className="tt__c tt__c--empty" tabIndex={0} title={t("Dars qo'shish")}
+                              onClick={() => setEditing({ teacherId, slot: emptySlot(di, p), existing: false })}>
+                              <span className="tt__plus">+</span>
+                            </td>
+                          )
+                        }
+                        if (!multi) {
+                          const e = here[0]
+                          const sp = spanOf(e.slot, p)
+                          for (let k2 = 1; k2 < sp; k2++) skip[key(di, p + k2)] = true
+                          return (
+                            <td key={di} className={`tt__c tt__c--on ${dim(e.slot) ? 'is-dim' : ''}`} tabIndex={0}
+                              rowSpan={sp > 1 ? sp : undefined} onClick={() => setEditing({ teacherId, slot: e.slot, existing: true })}>
+                              <LessonCard c={e.slot} sp={sp} now={now} />
+                            </td>
+                          )
+                        }
+                        return (
+                          <td key={di} className="tt__c tt__c--on tt__c--multi">
+                            <div className="ttstack">
+                              {here.map((e) => (
+                                <div key={`${e.teacherId}:${e.slot.day_index}:${e.slot.period_index}`} role="button" tabIndex={0}
+                                  className={dim(e.slot) ? 'is-dim' : ''}
+                                  onClick={() => setEditing({ teacherId: e.teacherId, slot: e.slot, existing: true })}
+                                  onKeyDown={(ev) => { if (ev.key === 'Enter') setEditing({ teacherId: e.teacherId, slot: e.slot, existing: true }) }}>
+                                  <LessonCard c={e.slot} sp={spanOf(e.slot, e.slot.period_index)} now={now} heading={names.get(e.teacherId)} />
+                                </div>
+                              ))}
+                              {cont.map((e) => (
+                                <div key={`c:${e.teacherId}:${e.slot.day_index}:${e.slot.period_index}`} className={`ttk ttk--cont ${dim(e.slot) ? 'is-dim' : ''}`}>
+                                  <b className="ttk__t">{names.get(e.teacherId)}</b>
+                                  <span className="ttk__m">↳ {t('davomi')}{e.slot.sinf ? ` · ${e.slot.sinf}` : ''}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </ScaleToFit>
+        </div>
+      </section>
+
+      <div className="ttsum">
+        {multi
+          ? <BreakdownPanel title={t("Ustozlar bo'yicha")} rows={hoursBy(entries, (e) => [e.teacherId, names.get(e.teacherId) ?? ''])} />
+          : <BreakdownPanel title={t("Maktablar bo'yicha")} rows={hoursBy(entries, (e) => [e.slot.maktab || '—', e.slot.maktab || '—'])} />}
+        <StatsPanel slots={multi ? slots : tables[teacherId] ?? []} now={now} teachers={multi ? teacherCount : undefined} />
+      </div>
+
+      {editing && (
+        <SlotEditor
+          slot={editing.slot}
+          onSave={(slot) => edits.save(editing.teacherId, slot)}
+          onDelete={editing.existing ? () => edits.remove(editing.teacherId, editing.slot) : undefined}
+          onClose={() => setEditing(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+type AllVersion = 'pick' | 'wide'
+const VERSION_KEY = 'af-tt-all-view'
+
 export function TimetablePage() {
   const { user } = useAuth()
   const viewMode = useUIStore((s) => s.viewMode)
   const admin = isAdminInView(user, viewMode)
   // Jadval always opens on one's own timetable; everyone's is a click away.
   const [mode, setMode] = useState<'mine' | 'all'>('mine')
+  const { t } = useTranslation()
+  // the administration's two ways through everyone's timetable
+  const [version, setVersion] = useState<AllVersion>(() => {
+    try {
+      return localStorage.getItem(VERSION_KEY) === 'wide' ? 'wide' : 'pick'
+    } catch {
+      return 'pick'
+    }
+  })
+  const pickVersion = (v: AllVersion) => {
+    setVersion(v)
+    try {
+      localStorage.setItem(VERSION_KEY, v)
+    } catch {
+      // remembered only for this visit
+    }
+  }
+  const versions = admin ? (
+    <div className="seg ttx__ver" role="group" aria-label={t("Ko'rinish")}>
+      <button type="button" className={`seg__b ${version === 'pick' ? 'is-on' : ''}`} aria-pressed={version === 'pick'} onClick={() => pickVersion('pick')}>
+        {t('Tanlab')}
+      </button>
+      <button type="button" className={`seg__b ${version === 'wide' ? 'is-on' : ''}`} aria-pressed={version === 'wide'} onClick={() => pickVersion('wide')}>
+        {t('Hammasi birga')}
+      </button>
+    </div>
+  ) : null
 
   // "Barcha o'qituvchilar" is visible to every approved user (read-only
   // for non-admins — AllView itself gates cell editing on `admin`), not
@@ -735,6 +1025,7 @@ export function TimetablePage() {
   // stays admin-only (see timetable/views.py's require_write_permission).
   const tabs = <ModeTabs mode={mode} onChange={setMode} />
 
-  if (mode === 'all') return <AllView tabs={tabs} admin={admin} />
+  if (mode === 'all' && admin && version === 'pick') return <PickView tabs={tabs} versions={versions} />
+  if (mode === 'all') return <AllView tabs={tabs} admin={admin} versions={versions} />
   return <MineView tabs={tabs} />
 }

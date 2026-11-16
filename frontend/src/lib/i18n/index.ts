@@ -691,6 +691,14 @@ const ru = {
   "ro'yxatdan butunlay o'chiriladi.": 'будет полностью удалена из списка.',
   "Jurnal va jadvalda shu nom ishlatiladi; nomni o'zgartirsangiz, hamma joyda o'zgaradi.": 'Это название используется в журнале и расписании; если изменить его, оно изменится везде.',
   "O'qituvchilar jurnal va jadvalda maktab nomini turlicha yozgan. Har bir nomni to'g'ri hamkor maktabga biriktiring — jurnal va jadvaldagi bu yozuvlar maktabning rasmiy nomiga almashtiriladi, xato yozilishi saqlanmaydi.": 'Учителя по-разному написали название школы в журнале и расписании. Привяжите каждое к нужной школе — записи получат официальное название, ошибочное написание не сохраняется.',
+  "Ko'rish": 'Просмотр',
+  'Tanlab': 'По выбору',
+  'Hammasi birga': 'Все вместе',
+  'davomi': 'продолжение',
+  "Ustozlar bo'yicha": 'По учителям',
+  "Maktablar bo'yicha": 'По школам',
+  "Shu maktabdagi barcha ustozlarning darslari; bir soatda bir nechta dars bo'lsa, ustma-ust turadi.": 'Уроки всех учителей этой школы; если в один урок их несколько, они идут друг под другом.',
+  'Tanlangan ustozning haftasi — katakni bosib tahrirlash mumkin.': 'Неделя выбранного учителя — нажмите на ячейку, чтобы изменить.',
 } as const
 
 const en = {
@@ -1358,6 +1366,14 @@ const en = {
   "ro'yxatdan butunlay o'chiriladi.": 'will be removed from the list for good.',
   "Jurnal va jadvalda shu nom ishlatiladi; nomni o'zgartirsangiz, hamma joyda o'zgaradi.": 'The journal and timetable use this name; change it and it changes everywhere.',
   "O'qituvchilar jurnal va jadvalda maktab nomini turlicha yozgan. Har bir nomni to'g'ri hamkor maktabga biriktiring — jurnal va jadvaldagi bu yozuvlar maktabning rasmiy nomiga almashtiriladi, xato yozilishi saqlanmaydi.": 'Teachers spelled the school differently in the journal and timetable. Link each spelling to the right school — the entries take its official name and the misspelling is not kept.',
+  "Ko'rish": 'View by',
+  'Tanlab': 'Picked',
+  'Hammasi birga': 'All together',
+  'davomi': 'continued',
+  "Ustozlar bo'yicha": 'By teacher',
+  "Maktablar bo'yicha": 'By school',
+  "Shu maktabdagi barcha ustozlarning darslari; bir soatda bir nechta dars bo'lsa, ustma-ust turadi.": "Every teacher's lessons at this school; several in one period stack in the cell.",
+  'Tanlangan ustozning haftasi — katakni bosib tahrirlash mumkin.': "The picked teacher's week — click a cell to edit it.",
 } as const
 
 const resources = {

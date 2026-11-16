@@ -116,3 +116,14 @@
 .ttk__warn { margin-left: 4px; font-size: 11px; color: #b45309; cursor: help; }
 
 [data-theme="dark"] .ttk__warn { color: #f5b45a; }
+
+/* ── "Barcha o'qituvchilar" · Tanlab: a school's week stacks the lessons of one soat ── */
+.ttpage .tt .tt__c--multi { height: auto; }
+.ttstack { display: grid; gap: 3px; }
+.ttstack .ttk { height: auto; min-height: 0; }
+.ttstack > [role="button"] { border-radius: 8px; cursor: pointer; }
+.ttstack > [role="button"]:hover .ttk { border-color: rgba(124, 135, 152, .8); }
+.ttstack > [role="button"]:focus-visible { outline: 2px solid var(--pick); outline-offset: 1px; }
+.ttstack .is-dim .ttk, .ttstack .ttk.is-dim { opacity: .28; }
+.ttk--cont { padding: 3px 8px; border-style: dashed; opacity: .75; }
+.ttx__by .seg__b .svic, .ttx__by .seg__b svg { width: 15px; height: 15px; }
