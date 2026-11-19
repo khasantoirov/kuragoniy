@@ -66,12 +66,11 @@ export function LessonDetail() {
   if (isLoading) return <Skeleton lines={5} />
   if (!lesson) return <Navigate to="/lessons" replace />
 
-  // Har bir darsda bittadan amaliy topshiriq bo'ladi — bu ro'yxat emas,
-  // shuning uchun har doim faqat birinchisi (yoki hech biri) ko'rsatiladi.
-  // `experiments` massiv sifatida qolishi backend modeliga mos (Experiment
-  // — Lesson'ga FK), lekin UI endi buni ko'p elementli ro'yxat sifatida
-  // taqdim etmaydi.
-  const task = lesson.experiments[0] ?? null
+  // STEAM: har bir darsda bittadan amaliy topshiriq — faqat birinchisi (yoki
+  // hech biri) ko'rsatiladi. Amaliy fizika: dars bir nechta tajribadan iborat
+  // (amaliyfizika.uz'dagidek) — hammasi ro'yxat bo'lib chiqadi.
+  const many = subjectOfGrade(lesson.grade) === 'fizika'
+  const tasks = many ? lesson.experiments : lesson.experiments.slice(0, 1)
 
   const saveExperiments = async (experiments: Experiment[], label?: string) => {
     const before = lesson.experiments
@@ -223,9 +222,13 @@ export function LessonDetail() {
       <Suspense fallback={null}><LessonKitPanel lessonId={lesson.id} lessonTitle={lesson.title} /></Suspense>
 
       <section className="tasksec">
-        <h3 className="panel__title">{t('Amaliy topshiriq')}</h3>
-        {task ? (
+        <h3 className="panel__title">
+          {many ? t('Tajribalar') : t('Amaliy topshiriq')}
+          {many && tasks.length > 0 && <span className="badge">{tasks.length}</span>}
+        </h3>
+        {tasks.map((task) => (
           <ExperimentCard
+            key={task.id ?? task.name}
             exp={task}
             admin={admin}
             onEdit={() => setEditingExp(task)}
@@ -233,15 +236,14 @@ export function LessonDetail() {
             onCopy={() => setMovingExp({ exp: task, mode: 'copy' })}
             onMove={() => setMovingExp({ exp: task, mode: 'move' })}
           />
-        ) : (
-          <>
-            <p className="prose">{t('Bu darsga hali amaliy topshiriq kiritilmagan.')}</p>
-            {admin && (
-              <button className="btn btn--sm btn--primary" onClick={() => setEditingExp('new')}>
-                {t("+ Amaliy topshiriq qo'shish")}
-              </button>
-            )}
-          </>
+        ))}
+        {!tasks.length && (
+          <p className="prose">{many ? t("Bu darsga hali tajriba kiritilmagan.") : t('Bu darsga hali amaliy topshiriq kiritilmagan.')}</p>
+        )}
+        {admin && (many || !tasks.length) && (
+          <button className="btn btn--sm btn--primary" onClick={() => setEditingExp('new')}>
+            {many ? t("+ Tajriba qo'shish") : t("+ Amaliy topshiriq qo'shish")}
+          </button>
         )}
       </section>
 

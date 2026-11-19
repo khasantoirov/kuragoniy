@@ -8,9 +8,7 @@
 .sitep__h { margin: 18px 0 10px; font-size: 14px; font-weight: 600; }
 .sitep__h:first-child { margin-top: 0; }
 .sitep__form .field { min-width: 0; }
-.sitep__stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 @media (max-width: 760px) {
-  .sitep__stats { grid-template-columns: 1fr 1fr; }
   .sitep__form .row--2 { grid-template-columns: 1fr; }
 }
 

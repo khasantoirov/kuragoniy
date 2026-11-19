@@ -5,7 +5,7 @@ import { Modal } from '@/components/Modal'
 import { useUIStore } from '@/store/uiStore'
 
 import { useLessons } from './api'
-import { type Grade, lessonLabel, quarterLabel } from './labels'
+import { type Grade, lessonLabel, quarterLabel, subjectOfGrade } from './labels'
 import { useGradeOptions } from '@/lib/subjects'
 import type { Experiment, Lesson } from './types'
 
@@ -38,7 +38,8 @@ export function MoveCopyExperimentModal({
   // o'zining topshirig'i bor darsga yana bittasini ko'chirish/nusxalash
   // shu qoidani buzardi, shuning uchun ular ro'yxatdan chiqarib tashlanadi.
   const others = (data ?? [])
-    .filter((l) => l.id !== sourceLesson.id && l.experiments.length === 0)
+    // STEAM lessons hold one task; a physics lesson any number of experiments
+    .filter((l) => l.id !== sourceLesson.id && (subjectOfGrade(l.grade) === 'fizika' || l.experiments.length === 0))
     .sort((a, b) => a.chorak - b.chorak || (a.hafta || 99) - (b.hafta || 99))
 
   const [targetId, setTargetId] = useState<number | ''>('')

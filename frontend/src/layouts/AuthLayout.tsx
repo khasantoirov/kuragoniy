@@ -77,13 +77,6 @@ export function useSocials() {
 /** Beside the form on a wide screen: what the platform is. */
 function BrandAside() {
   const { t } = useTranslation()
-  const { data } = useLanding()
-  const s = data?.stats
-  const figures = s ? [
-    { n: s.schools, label: t('hamkor maktab') },
-    { n: s.teachers, label: t("o'qituvchi") },
-    { n: s.pupils, label: t("o'quvchi") },
-  ].filter((f) => f.n > 0) : []
   return (
     <aside className="gx__aside">
       <span className="gx__kicker">Ko'ragoniy Education × Muhandis D</span>
@@ -93,13 +86,6 @@ function BrandAside() {
         <li>{IC.atom} {t('Amaliy fizika')}</li>
         <li>{IC.gear} {t('STEAM / Robototexnika')}</li>
       </ul>
-      {figures.length > 0 && (
-        <dl className="gx__figs">
-          {figures.map((f) => (
-            <div key={f.label}><dt>{f.n.toLocaleString('ru-RU')}</dt><dd>{f.label}</dd></div>
-          ))}
-        </dl>
-      )}
       <Link className="gx__home" to="/">{IC.back} {t('Bosh sahifa')}</Link>
     </aside>
   )

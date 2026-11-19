@@ -454,10 +454,6 @@
   background: var(--gx-glass); border: 1px solid var(--gx-line); font: 600 14px/1.2 var(--f-body);
 }
 .gx__chips .svic { width: 18px; height: 18px; }
-.gx__figs { display: flex; flex-wrap: wrap; gap: 26px; margin: 6px 0 0; }
-.gx__figs div { display: flex; flex-direction: column; gap: 2px; }
-.gx__figs dt { font: 700 28px/1 var(--f-display); color: #fff; font-variant-numeric: tabular-nums; }
-.gx__figs dd { margin: 0; font-size: 13px; color: var(--gx-ink-3); }
 .gx__home { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; color: #fff; font-weight: 600; font-size: 14px; text-decoration: none; opacity: .85; }
 .gx__home:hover { opacity: 1; text-decoration: underline; }
 .gx__home .svic { width: 16px; height: 16px; }

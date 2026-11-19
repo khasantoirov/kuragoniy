@@ -79,7 +79,7 @@ export function SitePanel() {
   const [tab, setTab] = useState<'leads' | 'contacts' | 'photos' | 'testimonials' | 'mentors'>('leads')
   const tabs = [
     { k: 'leads', label: t("So'rovlar") },
-    { k: 'contacts', label: t('Kontaktlar va raqamlar') },
+    { k: 'contacts', label: t('Kontaktlar') },
     { k: 'photos', label: t('Rasmlar') },
     { k: 'testimonials', label: t('Fikrlar') },
     { k: 'mentors', label: t('Ustozlar') },
@@ -91,7 +91,7 @@ export function SitePanel() {
         <a className="btn btn--sm" href="/sayt" target="_blank" rel="noreferrer">{IC.external} {t("Saytni ko'rish")}</a>
       </div>
       <p className="prose prose--note">
-        {t("Raqamlar (maktablar, o'qituvchilar, o'quvchilar, darslar) bazadan o'zi olinadi, hamkorlar — «Hamkor maktablar» ro'yxatidan. Rasm, fikr va ustozlarni shu yerda qo'shasiz; bo'sh bo'lim saytda ko'rinmaydi.")}
+        {t("Hamkorlar «Hamkor maktablar» ro'yxatidan o'zi olinadi. Rasm, fikr va ustozlarni shu yerda qo'shasiz; bo'sh bo'lim saytda ko'rinmaydi.")}
       </p>
       <div className="seg sitep__tabs" role="tablist">
         {tabs.map((x) => (
@@ -188,12 +188,6 @@ const TEXT_FIELDS: { k: keyof Settings; label: string; ph: string; type?: string
   { k: 'youtube', label: 'YouTube', ph: '@kanal yoki havola' },
   { k: 'facebook', label: 'Facebook', ph: 'sahifa yoki havola' },
 ]
-const STAT_FIELDS: { k: 'schools' | 'teachers' | 'pupils' | 'lessons'; label: string }[] = [
-  { k: 'schools', label: 'Hamkor maktablar' },
-  { k: 'teachers', label: "O'qituvchilar" },
-  { k: 'pupils', label: "O'quvchilar" },
-  { k: 'lessons', label: 'Dars ishlanmalari' },
-]
 
 function ContactsTab() {
   const { data, isLoading } = useQuery({
@@ -209,7 +203,6 @@ function formValues(data: Settings): Record<string, string> {
   for (const f of TEXT_FIELDS) next[f.k] = String(data[f.k] ?? '')
   next.address = data.address
   next.video_url = data.video_url
-  for (const s of STAT_FIELDS) next[`stat_${s.k}`] = data[`stat_${s.k}`] == null ? '' : String(data[`stat_${s.k}`])
   return next
 }
 
@@ -220,8 +213,8 @@ function ContactsForm({ data }: { data: Settings }) {
   const [v, setV] = useState(() => formValues(data))
   const save = useMutation({
     mutationFn: async () => {
-      const body: Record<string, string | number | null> = {}
-      for (const [k, val] of Object.entries(v)) body[k] = k.startsWith('stat_') ? (val.trim() === '' ? null : Number(val)) : val.trim()
+      const body: Record<string, string> = {}
+      for (const [k, val] of Object.entries(v)) body[k] = val.trim()
       return (await api.patch<Settings>(`${ADMIN}/settings/`, body)).data
     },
     onSuccess: (next) => {
@@ -257,16 +250,6 @@ function ContactsForm({ data }: { data: Settings }) {
         <span className="field__hint">{t("«Bizning maqsadimiz» bo'limida «Video» tugmasi chiqadi. Video serverga yuklanmaydi — faqat havola.")}</span>
       </label>
 
-      <h4 className="sitep__h">{t('Saytdagi raqamlar')}</h4>
-      <p className="prose prose--note">{t("Bo'sh qoldirilsa, bazadagi haqiqiy son ko'rsatiladi. 0 bo'lgan raqam saytda chiqmaydi.")}</p>
-      <div className="sitep__stats">
-        {STAT_FIELDS.map((s) => (
-          <label key={s.k} className="field">
-            <span className="field__label">{t(s.label)}</span>
-            <input className="input" type="number" min={0} inputMode="numeric" placeholder={`${data.live[s.k]} (${t('bazadan')})`} value={v[`stat_${s.k}`] ?? ''} onChange={set(`stat_${s.k}`)} />
-          </label>
-        ))}
-      </div>
       <div className="panel__acts">
         <button className="btn btn--primary" type="submit" disabled={save.isPending}>{save.isPending ? t('Saqlanmoqda…') : t('Saqlash')}</button>
       </div>

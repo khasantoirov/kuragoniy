@@ -1050,3 +1050,7 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
 [data-theme="dark"] .fanchip { --fan: #7b8cff; }
 [data-theme="dark"] .fanchip--steam, [data-theme="dark"] .fanbadge--steam { --fan: #3fd0c9; }
 [data-theme="dark"] .fanbadge { --fan: #7b8cff; }
+
+/* Amaliy fizika: a lesson holds several experiments (LessonDetail) */
+.tasksec .xcard + .xcard { margin-top: 12px; }
+.tasksec .xcard + .btn { margin-top: 12px; }
