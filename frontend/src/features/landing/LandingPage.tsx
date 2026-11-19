@@ -19,7 +19,6 @@ import './landing.css'
    them in (Boshqaruv → Sayt) — photos, testimonials, mentors and contacts.
    A section with nothing in it is not shown. "Kirish" opens the sign-in. */
 
-const nf = (n: number) => n.toLocaleString('ru-RU')
 
 function embedUrl(u: string): string | null {
   try {
@@ -104,14 +103,8 @@ function Header({ sections, scroller }: { sections: { id: string; label: string 
   )
 }
 
-function Hero({ stats }: { stats: LandingData['stats'] | undefined }) {
+function Hero() {
   const { t } = useTranslation()
-  const figures = stats ? [
-    { n: stats.schools, label: t('hamkor maktab') },
-    { n: stats.teachers, label: t("o'qituvchi") },
-    { n: stats.pupils, label: t("o'quvchi") },
-    { n: stats.lessons, label: t('dars ishlanmasi') },
-  ].filter((f) => f.n > 0) : []
   return (
     <section className="lp-hero">
       <div className="lp-hero__bg" aria-hidden="true"><span /><span /><span /></div>
@@ -146,18 +139,6 @@ function Hero({ stats }: { stats: LandingData['stats'] | undefined }) {
           <img className="lp-orbit__sign" src="/muhandis-d-on-dark.png" alt="" width={751} height={160} />
         </div>
       </div>
-      {figures.length > 0 && (
-        <div className="lp-wrap">
-          <dl className="lp-stats" style={{ ['--n' as string]: figures.length }}>
-            {figures.map((f) => (
-              <div key={f.label} className="lp-stats__i">
-                <dt>{nf(f.n)}</dt>
-                <dd>{f.label}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      )}
     </section>
   )
 }
@@ -591,7 +572,7 @@ export function LandingPage() {
     <div className="lp" ref={scroller}>
       <Header sections={sections} scroller={scroller} />
       <main>
-        <Hero stats={data?.stats} />
+        <Hero />
         <Subjects />
         <HowItWorks />
         <Mission videoUrl={data?.contacts.video_url ?? ''} onVideo={setVideo} />

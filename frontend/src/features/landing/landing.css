@@ -104,7 +104,6 @@
   padding: 120px 0 72px;
   background: linear-gradient(140deg, var(--lp-hero-a) 0%, var(--lp-hero-b) 50%, var(--lp-hero-c) 100%);
 }
-.lp-hero:has(.lp-stats) { padding-bottom: 0; }
 .lp-hero__bg { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
 .lp-hero__bg span { position: absolute; border-radius: 50%; background: rgba(255,255,255,.07); }
 .lp-hero__bg span:nth-child(1) { width: 620px; height: 620px; left: -220px; top: -260px; }
@@ -166,18 +165,6 @@
   .lp-orbit__sign { height: 16px; }
 }
 
-/* Raqamlar — hero ostidan chiqib turadigan oq karta */
-.lp-stats {
-  position: relative; z-index: 2;
-  display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px;
-  margin: 56px 0 -56px; overflow: hidden;
-  border-radius: 22px; background: var(--lp-line); box-shadow: var(--lp-shadow);
-}
-@media (min-width: 760px) { .lp-stats { grid-template-columns: repeat(var(--n, 4), 1fr); } }
-.lp-stats__i { display: flex; flex-direction: column; gap: 6px; padding: 24px 26px; background: var(--lp-surface); color: var(--lp-ink); }
-.lp-stats dt { font: 700 clamp(28px, 3.2vw, 40px)/1 var(--f-display); color: var(--lp-brand); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
-.lp-stats dd { margin: 0; font-size: 14.5px; color: var(--lp-ink-2); }
-.lp-hero:has(.lp-stats) + .lp-sec { padding-top: 136px; }
 
 /* ── Bo'limlar ───────────────────────────────────────────────── */
 .lp-sec { padding: 88px 0; scroll-margin-top: 64px; }
@@ -359,9 +346,7 @@
   .lp-head__go { height: 40px; padding: 0 14px; }
   .lp-hero { padding-top: 96px; }
   .lp-hero__cta .lp-btn { flex: 1 1 auto; }
-  .lp-stats__i { padding: 18px; }
   .lp-sec { padding: 64px 0; }
-  .lp-hero:has(.lp-stats) + .lp-sec { padding-top: 112px; }
   .lp-subject, .lp-lead__card { padding: 22px; }
   .lp-mission { padding: 64px 0; }
 }
