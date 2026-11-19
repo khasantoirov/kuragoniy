@@ -250,6 +250,8 @@ TELEGRAM_BOT_USERNAME = env('TELEGRAM_BOT_USERNAME', default='kuragoniybot')
 RECAPTCHA_SITE_KEY = env('RECAPTCHA_SITE_KEY', default='')
 RECAPTCHA_SECRET_KEY = env('RECAPTCHA_SECRET_KEY', default='')
 RECAPTCHA_MIN_SCORE = env.float('RECAPTCHA_MIN_SCORE', default=0.5)
+# 0 = trial run: checks are logged, nobody is refused (common/captcha.py)
+RECAPTCHA_ENFORCE = env.bool('RECAPTCHA_ENFORCE', default=True)
 FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
 
 # Password-reset codes go out by email too, but only when SMTP is actually

@@ -41,8 +41,13 @@ registerRoute(
   new NetworkOnly(),
   'GET',
 )
+// Our own files only. A request to another site (Google reCAPTCHA, Google
+// Fonts, an image linked from elsewhere) is left to the browser: fetched
+// from here it would fall under this worker's own CSP connect-src, which
+// lists only us — the reCAPTCHA script then never loaded at all.
 registerRoute(
-  ({ request }) => ['style', 'script', 'worker', 'image', 'font'].includes(request.destination),
+  ({ request, url }) => url.origin === self.location.origin
+    && ['style', 'script', 'worker', 'image', 'font'].includes(request.destination),
   new StaleWhileRevalidate({ cacheName: 'assets' }),
   'GET',
 )
