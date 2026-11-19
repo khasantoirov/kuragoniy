@@ -35,7 +35,7 @@ from django.core.files.storage import default_storage
 from django.core.management.base import BaseCommand, CommandError
 from django.db import models, transaction
 from django.utils import timezone
-from django.utils.dateparse import parse_date, parse_datetime
+from django.utils.dateparse import parse_date, parse_datetime, parse_time
 
 from accounts.models import User
 from learning.models import LessonMaterial, Question
@@ -69,6 +69,8 @@ def convert(field, value):
         return d
     if isinstance(field, models.DateField):
         return parse_date(value) if isinstance(value, str) else value
+    if isinstance(field, models.TimeField):
+        return parse_time(value) if isinstance(value, str) else value
     if isinstance(field, models.JSONField):
         return json.loads(value) if isinstance(value, (str, bytes)) else value
     return value
