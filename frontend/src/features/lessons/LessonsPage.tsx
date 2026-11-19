@@ -32,7 +32,10 @@ import { type Lang, useUIStore } from '@/store/uiStore'
 import { useLessons, useQuarterLocks, useReorderLesson } from './api'
 import { ExperimentRow } from './ExperimentRow'
 import { LessonEditor } from './LessonEditor'
-import { GRADES, gradeLabel, lessonLabel, quarterLabel, weeksLabel } from './labels'
+import { SubjectSwitch } from '@/components/SubjectSwitch'
+import { useSubjects } from '@/lib/subjects'
+
+import { gradeLabel, lessonLabel, quarterLabel, weeksLabel } from './labels'
 import type { Lesson } from './types'
 import './quarters.css'
 
@@ -53,7 +56,10 @@ export function LessonsPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const { user } = useAuth()
-  const { grade, setGrade, lang, viewMode: appViewMode } = useUIStore()
+  const { grade: storedGrade, setGrade, lang, viewMode: appViewMode } = useUIStore()
+  const fans = useSubjects()
+  // the stored grade, kept inside the fan on show (AppShell's guard fixes the store itself)
+  const grade = fans.grades.includes(storedGrade) ? storedGrade : fans.grades[0]
   const admin = isAdminInView(user, appViewMode)
   const { data, isLoading } = useLessons({ grade })
   const { data: locks, isLoading: locksLoading } = useQuarterLocks()
@@ -132,16 +138,20 @@ export function LessonsPage() {
     )
   }
 
-  // Sinf — a segmented control at the head of the one sticky bar.
+  // Fan (for whoever sees both) and Sinf — segmented controls at the head
+  // of the one sticky bar.
   const grades = (
-    <div className="seg ltbar__grades" role="group" aria-label={t('Sinf')}>
-      {GRADES.map((g) => (
-        <button key={g} type="button" className={`seg__b ${g === grade ? 'is-on' : ''}`} aria-pressed={g === grade}
-          onClick={() => setGrade(g)}>
-          {gradeLabel(g, lang)}
-        </button>
-      ))}
-    </div>
+    <>
+      <SubjectSwitch className="ltbar__subjects" />
+      <div className="seg ltbar__grades" role="group" aria-label={t('Sinf')}>
+        {fans.grades.map((g) => (
+          <button key={g} type="button" className={`seg__b ${g === grade ? 'is-on' : ''}`} aria-pressed={g === grade}
+            onClick={() => setGrade(g)}>
+            {gradeLabel(g, lang)}
+          </button>
+        ))}
+      </div>
+    </>
   )
 
   if (isLoading || locksLoading) return <><div className="ltbar">{grades}</div><Skeleton lines={4} /></>

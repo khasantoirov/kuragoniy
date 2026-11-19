@@ -8,6 +8,11 @@ class Lesson(models.Model):
         G5_6 = '5-6', "5-6-sinf"
         G7 = '7', "7-sinf"
         G8_9 = '8-9', "8-9-sinf"
+        # Amaliy fizika — one grade each, codes kept apart from STEAM's
+        # groups (common/subjects.py)
+        F7 = 'F7', "7-sinf (fizika)"
+        F8 = 'F8', "8-sinf (fizika)"
+        F9 = 'F9', "9-sinf (fizika)"
 
     title = models.CharField(max_length=255)
     title_ru = models.CharField(max_length=255, blank=True)
@@ -39,6 +44,12 @@ class Lesson(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def subject(self) -> str:
+        from common.subjects import subject_of_grade
+
+        return subject_of_grade(self.grade)
 
 
 class EquipmentSheet(models.Model):

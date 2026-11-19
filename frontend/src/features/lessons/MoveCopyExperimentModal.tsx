@@ -5,7 +5,8 @@ import { Modal } from '@/components/Modal'
 import { useUIStore } from '@/store/uiStore'
 
 import { useLessons } from './api'
-import { GRADES, type Grade, gradeLabel, lessonLabel, quarterLabel } from './labels'
+import { type Grade, lessonLabel, quarterLabel } from './labels'
+import { useGradeOptions } from '@/lib/subjects'
 import type { Experiment, Lesson } from './types'
 
 export function MoveCopyExperimentModal({
@@ -24,6 +25,7 @@ export function MoveCopyExperimentModal({
   const { t } = useTranslation()
   const { lang } = useUIStore()
   const isMove = mode === 'move'
+  const gradeOptions = useGradeOptions()
 
   const [grade, setGrade] = useState<Grade>(sourceLesson.grade)
   // Scoped to one grade at a time (rather than fetching every lesson
@@ -86,8 +88,8 @@ export function MoveCopyExperimentModal({
               setTargetId('')
             }}
           >
-            {GRADES.map((g) => (
-              <option key={g} value={g}>{gradeLabel(g, lang)}</option>
+            {gradeOptions.grades.map((g) => (
+              <option key={g} value={g}>{gradeOptions.label(g)}</option>
             ))}
           </select>
         </label>

@@ -102,16 +102,23 @@ def new_join_code() -> str:
             return code
 
 
-# Sinf raqami → Ko'ragoniy Edu'dagi darslar guruhi (Lesson.Grade).
-_GRADE_GROUP = {1: '1-2', 2: '1-2', 3: '3-4', 4: '3-4', 5: '5-6', 6: '5-6', 7: '7', 8: '8-9', 9: '8-9'}
+def grade_from_class_name(name: str, subject: str = 'steam'):
+    """Sinf raqami → the lesson grade code it learns from (common/subjects.py):
+    "7-A" → '7', "4 B" → '3-4', "9-sinf" → '8-9' (STEAM) or 'F9' (fizika);
+    None if there's no class number."""
+    from common.subjects import grade_for_class
 
-
-def grade_from_class_name(name: str):
-    """"7-A" → '7', "4 B" → '3-4', "9-sinf" → '8-9'; None if no class number."""
     m = re.match(r'\s*(\d{1,2})', str(name or ''))
-    if m:
-        return _GRADE_GROUP.get(int(m.group(1)))
-    return None
+    return grade_for_class(int(m.group(1)), subject) if m else None
+
+
+def grade_for_journal_class(journal_class):
+    """A journal class's lesson grade, read in its teacher's subject."""
+    from common.subjects import main_subject
+
+    if journal_class is None:
+        return None
+    return grade_from_class_name(journal_class.name, main_subject(journal_class.teacher))
 
 
 @transaction.atomic
@@ -135,7 +142,7 @@ def create_student_account(*, full_name: str, journal_class, roster_entry=None, 
         user=user,
         journal_class=journal_class,
         roster_entry=roster_entry,
-        grade=grade_from_class_name(journal_class.name) if journal_class else None,
+        grade=grade_for_journal_class(journal_class),
         created_by=created_by,
     )
     return user, plain

@@ -314,11 +314,11 @@ class StudentManageViewSet(viewsets.GenericViewSet):
         target = JournalClass.objects.filter(pk=request.data.get('class_id')).first()
         if not target or (target.teacher_id != request.user.id and not request.user.is_admin):
             raise ValidationError({'class_id': "Sinf topilmadi."})
-        from .student_accounts import grade_from_class_name
+        from .student_accounts import grade_for_journal_class
 
         profile.journal_class = target
         profile.roster_entry = None
-        profile.grade = grade_from_class_name(target.name) or profile.grade
+        profile.grade = grade_for_journal_class(target) or profile.grade
         profile.save(update_fields=['journal_class', 'roster_entry', 'grade'])
         log_event('student_moved', actor=request.user, request=request, detail=f'{profile.user.username} → {target.name}')
         return Response({'ok': True})

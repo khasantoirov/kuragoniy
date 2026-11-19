@@ -23,7 +23,7 @@ from rest_framework.views import APIView
 from accounts.models import User
 from common.security import log_event
 from lessons.models import Lesson
-from lessons.visibility import visible_chorak_set
+from lessons.visibility import visible_lessons
 from notifications.models import Kind as NotifyKind
 from notifications.service import notify
 
@@ -50,10 +50,8 @@ def _admins():
 
 
 def _visible_lessons(user):
-    qs = Lesson.objects.all()
-    if not user.is_admin:
-        qs = qs.filter(chorak__in=visible_chorak_set(user))
-    return qs
+    # the open quarters and the person's own fan(s) (lessons/visibility.py)
+    return visible_lessons(Lesson.objects.all(), user)
 
 
 def _my_schools(user) -> list[dict]:

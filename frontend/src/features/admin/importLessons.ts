@@ -1,4 +1,4 @@
-import { GRADES, type Grade } from '@/features/lessons/labels'
+import { ALL_GRADES, GRADES, type Grade } from '@/features/lessons/labels'
 import type { EquipmentItem, Experiment } from '@/features/lessons/types'
 
 export interface ImportLessonRow {
@@ -94,14 +94,14 @@ export function parseLessonsImport(text: string): ParseLessonsResult {
     }
 
     const reasons: ImportWarning['reasons'] = []
-    if (!GRADES.includes(l.grade as Grade)) reasons.push('grade_defaulted')
+    if (!ALL_GRADES.includes(l.grade as Grade)) reasons.push('grade_defaulted')
     if (![1, 2, 3, 4].includes(Number(l.chorak))) reasons.push('chorak_defaulted')
     if (!Number(l.hafta)) reasons.push('hafta_defaulted')
     if (reasons.length) warnings.push({ index, title, reasons })
 
     rows.push({
       title,
-      grade: GRADES.includes(l.grade as Grade) ? (l.grade as Grade) : GRADES[0],
+      grade: ALL_GRADES.includes(l.grade as Grade) ? (l.grade as Grade) : GRADES[0],
       chorak: ([1, 2, 3, 4].includes(Number(l.chorak)) ? Number(l.chorak) : 1) as 1 | 2 | 3 | 4,
       hafta: Number(l.hafta) || 1,
       goal: String(l.goal ?? l.maqsad ?? '').trim(),

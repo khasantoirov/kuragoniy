@@ -9,9 +9,11 @@ import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
 import type { Question } from '@/features/learning/api'
 import { QuestionEditor } from '@/features/learning/QuestionEditor'
+import { SUBJECTS, subjectLabel } from '@/features/lessons/labels'
 import { errText, PageHead } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
+import { useUIStore } from '@/store/uiStore'
 
 import {
   AUDIENCES, blankQuestion, useCourseEditor, useInvalidateTraining, useInvalidateTrainingViews,
@@ -34,9 +36,10 @@ function CourseForm({ course }: { course: EditorCourse }) {
   const navigate = useNavigate()
   const invalidate = useInvalidateTrainingViews()
   const invalidateAll = useInvalidateTraining()
+  const lang = useUIStore((s) => s.lang)
   const [base, setBase] = useState({
     title: course.title, summary: course.summary, hours: course.hours, audience: course.audience,
-    pass_percent: course.pass_percent, is_published: course.is_published,
+    subject: course.subject ?? '', pass_percent: course.pass_percent, is_published: course.is_published,
   })
   const [f, setF] = useState(base)
   const [busy, setBusy] = useState(false)
@@ -86,6 +89,13 @@ function CourseForm({ course }: { course: EditorCourse }) {
           <span className="field__label">{t('Kimlar uchun')}</span>
           <select className="input" value={f.audience} onChange={(e) => set({ audience: e.target.value as Audience })}>
             {AUDIENCES.map((a) => <option key={a.value} value={a.value}>{t(a.label)}</option>)}
+          </select>
+        </label>
+        <label className="field">
+          <span className="field__label">{t('Fan')}</span>
+          <select className="input" value={f.subject} onChange={(e) => set({ subject: e.target.value as typeof f.subject })}>
+            <option value="">{t('Ikkala fan uchun')}</option>
+            {SUBJECTS.map((s) => <option key={s} value={s}>{subjectLabel(s, lang)}</option>)}
           </select>
         </label>
         <label className="field">

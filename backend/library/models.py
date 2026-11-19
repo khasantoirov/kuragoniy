@@ -1,5 +1,7 @@
 from django.db import models
 
+from common.subjects import CHOICES as SUBJECT_CHOICES
+
 
 class LibraryItem(models.Model):
     class Kind(models.TextChoices):
@@ -20,6 +22,8 @@ class LibraryItem(models.Model):
     cover = models.FileField(upload_to='library-covers/', null=True, blank=True)
     kind = models.CharField(max_length=10, choices=Kind.choices)
     grade = models.PositiveSmallIntegerField(null=True, blank=True)
+    # the fan it belongs to; blank = both (common/subjects.py)
+    subject = models.CharField(max_length=10, choices=SUBJECT_CHOICES, blank=True)
     note = models.TextField(blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 

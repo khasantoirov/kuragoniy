@@ -5,7 +5,7 @@ import { StatCard } from '@/components/charts/StatCard'
 import { TrendLineChart } from '@/components/charts/TrendLineChart'
 import { Skeleton } from '@/components/Skeleton'
 import { quarterLabel } from '@/features/journal/labels'
-import { gradeLabel, type Grade } from '@/features/lessons/labels'
+import { gradeLabelFull, type Grade } from '@/features/lessons/labels'
 import { DAYS } from '@/features/timetable/types'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore } from '@/store/uiStore'
@@ -106,7 +106,7 @@ export function SystemStats() {
                 ariaLabel={t("Darslar sinf bandi bo'yicha taqsimoti")}
                 data={data.lessons.by_grade.map((g, i) => ({
                   key: g.grade,
-                  label: gradeLabel(g.grade as Grade, lang),
+                  label: gradeLabelFull(g.grade as Grade, lang),
                   value: g.count,
                   color: CATEGORICAL[i % CATEGORICAL.length],
                 }))}

@@ -12,12 +12,13 @@ import { AnnouncementsBell } from '@/features/announcements/AnnouncementsBell'
 import { NotificationsLive } from '@/features/notifications/live'
 import { NotifyPermissionPrompt } from '@/features/notifications/PermissionPrompt'
 import { usePrefsSync } from '@/features/settings/syncPrefs'
-import { GRADES, gradeLabel } from '@/features/lessons/labels'
+import { gradeLabel } from '@/features/lessons/labels'
 import { IC, themeIconMoon, themeIconSun } from '@/icons'
 import { useAuth } from '@/lib/auth/AuthContext'
 import { setupEnterKeyNav } from '@/lib/enterKeyNav'
 import { redoLast, undoLast } from '@/lib/history'
 import { useGradePalette } from '@/lib/modules'
+import { useSubjectGuard, useSubjects } from '@/lib/subjects'
 import { usePageScrolled, useScrollRestoration } from '@/lib/scroll'
 import { useUIStore } from '@/store/uiStore'
 
@@ -38,6 +39,8 @@ export function AppShell() {
   const navigate = useNavigate()
   const toast = useToast()
   useGradePalette()  // the platform's mark colours (the developer's pick)
+  useSubjectGuard()  // the Darslar fan/grade stay inside what this person sees
+  const lessonGrades = useSubjects().grades
 
   const [acctOpen, setAcctOpen] = useState(false)
   const topbarRef = useRef<HTMLElement>(null)
@@ -210,7 +213,7 @@ export function AppShell() {
           <div className="shell">
             {onLessons && (
               <div ref={gradesRef} className={`grades grades--lessons ${scrolled ? 'is-stuck' : ''}`}>
-                {GRADES.map((g) => (
+                {lessonGrades.map((g) => (
                   <button
                     key={g}
                     className={`grade ${g === grade ? 'is-on' : ''}`}
@@ -296,7 +299,7 @@ export function AppShell() {
         <div className="shell">
           {onLessons && (
             <div ref={gradesRef} className={`grades grades--lessons ${scrolled ? 'is-stuck' : ''}`}>
-              {GRADES.map((g) => (
+              {lessonGrades.map((g) => (
                 <button
                   key={g}
                   className={`grade ${g === grade ? 'is-on' : ''}`}

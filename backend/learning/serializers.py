@@ -350,6 +350,6 @@ class TeacherClassSerializer(serializers.ModelSerializer):
         return bool(inv and inv.auto_approve)
 
     def get_grade(self, obj):
-        from .student_accounts import grade_from_class_name
+        from .student_accounts import grade_for_journal_class
 
-        return grade_from_class_name(obj.name)
+        return grade_for_journal_class(obj)

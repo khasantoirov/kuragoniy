@@ -14,7 +14,8 @@ class LibraryItemSerializer(ProtectedFilesMixin, serializers.ModelSerializer):
 
     class Meta:
         model = LibraryItem
-        fields = ['id', 'title', 'url', 'file', 'file_name', 'file_size', 'cover', 'kind', 'grade', 'note', 'updated_at']
+        fields = ['id', 'title', 'url', 'file', 'file_name', 'file_size', 'cover', 'kind', 'grade', 'subject', 'note',
+                  'updated_at']
         # `file` and `cover` are written only via LibraryItemViewSet's
         # upload-file / upload-cover (dedicated multipart actions).
         read_only_fields = ['updated_at', 'file', 'file_name', 'file_size', 'cover']

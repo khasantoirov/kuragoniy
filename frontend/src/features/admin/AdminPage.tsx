@@ -24,7 +24,10 @@ import { useUIStore } from '@/store/uiStore'
 import { useSchools } from '@/features/schools/api'
 import { POSITIONS } from '@/features/schools/licence'
 
+import type { Subject } from '@/features/lessons/labels'
+
 import { EditPersonModal } from './EditPersonModal'
+import { SubjectBadges, SubjectChips, SubjectsModal, takesSubject } from './SubjectPicker'
 import { ImportLessonsModal } from './ImportLessonsModal'
 import { ImportTranslationsModal } from './ImportTranslationsModal'
 
@@ -186,11 +189,13 @@ function CreateStaffModal({ onClose, onCreated, canObserver }: {
   // "Maktab ma'muriyati": which school and as whom
   const [school, setSchool] = useState('')
   const [position, setPosition] = useState('direktor')
+  const [fans, setFans] = useState<Subject[]>([])
   const schools = useSchools()
   const [error, setError] = useState('')
   const create = useMutation({
     mutationFn: async () => (await api.post<{ login: string; password: string }>('/accounts/users/create-staff/',
-      { first_name: first.trim(), last_name: last.trim(), phone, role, ...(role === 'maktab' ? { school, position } : {}) })).data,
+      { first_name: first.trim(), last_name: last.trim(), phone, role, ...(role === 'maktab' ? { school, position } : {}),
+        ...(role === 'teacher' ? { subjects: fans } : {}) })).data,
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
       onCreated(res.login, res.password)
@@ -237,6 +242,12 @@ function CreateStaffModal({ onClose, onCreated, canObserver }: {
           {canObserver && <option value="kuzatuvchi">{t('Kuzatuvchi')}</option>}
         </select>
       </label>
+      {role === 'teacher' && (
+        <div className="field">
+          <span className="field__label">{t('Fan')} <small className="muted">({t('belgilanmasa, ikkalasi')})</small></span>
+          <SubjectChips value={fans} onChange={setFans} />
+        </div>
+      )}
       {role === 'maktab' && (
         <div className="row row--2">
           <label className="field">
@@ -408,6 +419,9 @@ export function AdminPage() {
   const manageable = (u: User) => u.id !== me?.id && !u.is_dev_superuser
     && (!!me?.is_dev_superuser || !(u.role === 'admin' || u.role === 'boshliq' || u.role === 'kuzatuvchi'))
   const [creatingStaff, setCreatingStaff] = useState(false)
+  const [editingFans, setEditingFans] = useState<User | null>(null)
+  // Tasdiq kutmoqda: the fan picked for each sign-up before approving it
+  const [pendingFans, setPendingFans] = useState<Record<string, Subject[]>>({})
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'users'],
@@ -428,7 +442,15 @@ export function AdminPage() {
   const pending = users.filter((u) => !u.approved && u.role !== 'admin' && u.role !== 'boshliq')
   const approved = users.filter((u) => u.approved || u.role === 'admin' || u.role === 'boshliq').sort(cmpUser)
 
-  const onApprove = (id: string) => act.mutate({ id, action: 'approve' }, { onSuccess: () => toast(t('Tasdiqlandi')) })
+  const onApprove = async (u: User) => {
+    try {
+      await api.post(`/accounts/users/${u.id}/approve/`, takesSubject(u) ? { subjects: pendingFans[u.id] ?? [] } : {})
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      toast(t('Tasdiqlandi'))
+    } catch {
+      toast(t("Amalni bajarib bo'lmadi"), 'error')
+    }
+  }
   const onReject = async (u: User) => {
     if (!(await confirm({ title: t('Arizani rad etish'), text: `${who(u)} — ${t("ariza o'chiriladi.")}`, danger: true }))) return
     act.mutate({ id: u.id, action: 'reject' }, { onSuccess: () => toast(t('Ariza rad etildi')) })
@@ -478,13 +500,19 @@ export function AdminPage() {
               <h3 className="panel__title">{t('Tasdiq kutmoqda')} <span className="badge">{pending.length}</span></h3>
               <ul className="people">
                 {pending.map((u) => (
-                  <li key={u.id} className="person">
+                  <li key={u.id} className="person person--pending">
                     <div>
                       <p className="person__name">{u.name || '—'}</p>
-                      <p className="person__mail">{u.username || ''}</p>
+                      <p className="person__mail">{[u.username, u.phone].filter(Boolean).join(' · ')}</p>
+                      {takesSubject(u) && (
+                        <div className="person__fans">
+                          <span className="muted">{t('Fan')}:</span>
+                          <SubjectChips value={pendingFans[u.id] ?? []} onChange={(v) => setPendingFans((p) => ({ ...p, [u.id]: v }))} />
+                        </div>
+                      )}
                     </div>
                     <div className="person__acts">
-                      <button className="btn btn--sm btn--primary" onClick={() => onApprove(u.id)}>{t('Tasdiqlash')}</button>
+                      <button className="btn btn--sm btn--primary" onClick={() => onApprove(u)}>{t('Tasdiqlash')}</button>
                       <button className="btn btn--sm btn--ghost" onClick={() => onReject(u)}>{t('Rad etish')}</button>
                     </div>
                   </li>
@@ -521,6 +549,18 @@ export function AdminPage() {
                       <p className="stf__row"><span>{t("Tug'ilgan sana")}</span><b>{fmtBday(u.bday)}</b></p>
                       <p className="stf__row"><span>{t('Telefon')}</span><b>{u.phone || '—'}</b></p>
                       <p className="stf__row"><span>{t('Login')}</span><b>{u.username || '—'}</b></p>
+                      {takesSubject(u) && (
+                        <p className="stf__row">
+                          <span>{t('Fan')}</span>
+                          <b className="stf__fans">
+                            <SubjectBadges user={u} />
+                            {manageable(u) && (
+                              <button type="button" className="stf__edit" onClick={() => setEditingFans(u)}
+                                title={t('Fan biriktirish')} aria-label={t('Fan biriktirish')}>{IC.edit}</button>
+                            )}
+                          </b>
+                        </p>
+                      )}
                       <p className="stf__row">
                         <span>Telegram</span>
                         <b>
@@ -576,6 +616,7 @@ export function AdminPage() {
                                 <button className="btn btn--sm btn--ghost" onClick={() => onSetKuzatuvchi(u)}>{t('Kuzatuvchi qilish')}</button>
                               </>
                             ))}
+                          {takesSubject(u) && <button className="btn btn--sm btn--ghost" onClick={() => setEditingFans(u)}>{t('Fan')}</button>}
                           {locked && <button className="btn btn--sm btn--primary" onClick={() => onUnlock(u)}>{t('Blokni ochish')}</button>}
                           <button className="btn btn--sm btn--ghost" onClick={() => onResetPassword(u)}>{t('Parolni tiklash')}</button>
                           {!me?.is_dev_superuser && <button className="btn btn--sm btn--ghost" onClick={() => setEditingLogin(u)}>{t("Loginni o'zgartirish")}</button>}
@@ -630,6 +671,7 @@ export function AdminPage() {
               onSaved={() => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })} onClose={() => setEditingLogin(null)} />
           )}
           {editingPerson && <EditPersonModal person={editingPerson} onClose={() => setEditingPerson(null)} />}
+          {editingFans && <SubjectsModal user={editingFans} onClose={() => setEditingFans(null)} />}
           {newPassword && (
             <NewPasswordModal email={newPassword.email} password={newPassword.password} title={newPassword.title}
               onClose={() => setNewPassword(null)} />

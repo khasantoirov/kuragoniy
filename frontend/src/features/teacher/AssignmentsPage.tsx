@@ -24,7 +24,8 @@ import { AttemptReview, type AttemptResult } from '@/features/portal/quiz'
 import { errText, fmtDateTime, fmtDuration, Meter, PageHead, PercentPill, StatusPill } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
-import { GRADES, type Grade } from '@/features/lessons/labels'
+import { type Grade } from '@/features/lessons/labels'
+import { useGradeOptions } from '@/lib/subjects'
 
 const toLocalInput = (iso: string | null) => {
   if (!iso) return ''
@@ -34,6 +35,7 @@ const toLocalInput = (iso: string | null) => {
 }
 
 function AssignmentEditor({ initial, onClose }: { initial: Assignment | null; onClose: () => void }) {
+  const gradeOptions = useGradeOptions()
   const { t } = useTranslation()
   const toast = useToast()
   const invalidate = useInvalidateLearning()
@@ -112,7 +114,7 @@ function AssignmentEditor({ initial, onClose }: { initial: Assignment | null; on
           <span className="field__label">{t('Sinf darajasi')}</span>
           <select className="input" value={effGrade ?? ''} onChange={(e) => { setGrade((e.target.value || null) as Grade | null); setLesson('') }}>
             <option value="">{t('Hammasi')}</option>
-            {GRADES.map((g) => <option key={g} value={g}>{g}-{t('sinf')}</option>)}
+            {gradeOptions.grades.map((g) => <option key={g} value={g}>{gradeOptions.label(g)}</option>)}
           </select>
         </label>
         <label className="field">

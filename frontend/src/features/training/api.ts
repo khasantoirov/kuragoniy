@@ -28,6 +28,8 @@ export interface CourseMeta {
   summary: string
   hours: number
   audience: Audience
+  /** the fan it is for; '' = both (backend common/subjects.py) */
+  subject?: '' | 'fizika' | 'steam'
   pass_percent: number
   is_published: boolean
   order: number

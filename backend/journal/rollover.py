@@ -64,7 +64,7 @@ def plan(source, target=None):
 @transaction.atomic
 def roll_over(source, target, exclude=()):
     from learning.models import StudentProfile
-    from learning.student_accounts import grade_from_class_name
+    from learning.student_accounts import grade_for_journal_class
 
     exclude = {int(i) for i in exclude}
     made = pupils = 0
@@ -83,6 +83,6 @@ def roll_over(source, target, exclude=()):
             for profile in StudentProfile.objects.filter(roster_entry=st):
                 profile.journal_class = new
                 profile.roster_entry = twin
-                profile.grade = grade_from_class_name(new.name) or profile.grade
+                profile.grade = grade_for_journal_class(new) or profile.grade
                 profile.save(update_fields=['journal_class', 'roster_entry', 'grade'])
     return {'classes': made, 'students': pupils}

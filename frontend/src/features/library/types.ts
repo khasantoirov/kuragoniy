@@ -10,6 +10,8 @@ export interface LibraryItem {
   cover: string | null
   kind: LibraryKind
   grade: number | null
+  /** the fan it belongs to; '' = both (backend common/subjects.py) */
+  subject?: '' | 'fizika' | 'steam'
   note: string
   updated_at: string
 }

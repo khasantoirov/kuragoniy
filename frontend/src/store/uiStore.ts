@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-import type { Grade } from '@/features/lessons/labels'
+import { SUBJECT_GRADES, type Grade, type Subject } from '@/features/lessons/labels'
 import i18n from '@/lib/i18n'
 
 export type Lang = 'uz' | 'ru' | 'en'
@@ -27,6 +27,8 @@ interface UIState {
   // "Menyu" (the side menu with everything) always comes last.
   navItems: string[]
   skin: Skin
+  // Darslar: the fan picked (when one sees both) and its grade
+  subject: Subject
   grade: Grade
   viewMode: ViewMode
   // Desktop side menu folded down to icons (the topbar's ≡ button).
@@ -38,6 +40,8 @@ interface UIState {
   toggleTheme: () => void
   setSkin: (skin: Skin) => void
   setGrade: (grade: Grade) => void
+  /** Switches the fan; a grade the new fan doesn't have moves to its first. */
+  setSubject: (subject: Subject) => void
   setViewMode: (mode: ViewMode) => void
   toggleSidebarMini: () => void
 }
@@ -102,10 +106,15 @@ export const useUIStore = create<UIState>()(
         set({ themeMode, theme })
       },
       skin: 'r2',
+      subject: 'steam',
       grade: '1-2',
       viewMode: 'admin',
       sidebarMini: false,
       setGrade: (grade) => set({ grade }),
+      setSubject: (subject) => set((s) => ({
+        subject,
+        grade: SUBJECT_GRADES[subject].includes(s.grade) ? s.grade : SUBJECT_GRADES[subject][0],
+      })),
       setViewMode: (viewMode) => set({ viewMode }),
       toggleSidebarMini: () => {
         const next = !get().sidebarMini

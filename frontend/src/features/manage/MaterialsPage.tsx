@@ -14,7 +14,10 @@ import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
 import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
-import { GRADES, type Grade } from '@/features/lessons/labels'
+import { gradeLabel, type Grade } from '@/features/lessons/labels'
+import { SubjectSwitch } from '@/components/SubjectSwitch'
+import { useSubjects } from '@/lib/subjects'
+import { useUIStore } from '@/store/uiStore'
 
 interface MaterialRow {
   lesson: number
@@ -184,7 +187,11 @@ function MaterialEditor({ lessonId, readOnly, onBack }: { lessonId: number; read
 export function MaterialsPage() {
   const { t } = useTranslation()
   const { user } = useAuth()
-  const [grade, setGrade] = useState<Grade>(GRADES[0])
+  const fans = useSubjects()
+  const lang = useUIStore((s) => s.lang)
+  const [picked, setGrade] = useState<Grade | null>(null)
+  // a grade of the fan on show (the fan switch, for whoever sees both)
+  const grade = picked && fans.grades.includes(picked) ? picked : fans.grades[0]
   const [open, setOpen] = useState<number | null>(null)
   const { data, isLoading } = useQuery({
     queryKey: ['learning', 'materials', grade],
@@ -197,7 +204,7 @@ export function MaterialsPage() {
   return (
     <div>
       <PageHead title={t("O'quv materiallari")} sub={`${t("O'quvchilar ko'radigan nazariya, formula, video va savollar.")} ${data ? `${ready}/${data.length} ${t("tayyor")}` : ''}`}
-        actions={<Segmented value={grade} onChange={setGrade} options={GRADES.map((g) => ({ value: g, label: `${g}-${t('sinf')}` }))} />} />
+        actions={<><SubjectSwitch /><Segmented value={grade} onChange={setGrade} options={fans.grades.map((g) => ({ value: g, label: gradeLabel(g, lang) }))} /></>} />
       {isLoading ? <Skeleton lines={8} /> : (
         <section className="panel">
           <div className="tablewrap">

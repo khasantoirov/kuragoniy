@@ -24,7 +24,7 @@ def _url(value, field):
 class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
-        fields = ['id', 'title', 'summary', 'hours', 'audience', 'pass_percent', 'is_published', 'order',
+        fields = ['id', 'title', 'summary', 'hours', 'audience', 'subject', 'pass_percent', 'is_published', 'order',
                   'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']
 

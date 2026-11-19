@@ -9,6 +9,7 @@ from datetime import date
 from django.db.models import Max
 
 from common.protected_media import protected_url
+from common.subjects import main_subject
 from journal.models import JournalClass
 from learning.models import Attempt
 from learning.readiness import PASS_PERCENT
@@ -68,7 +69,9 @@ def day_plan(user, day: date) -> dict:
     planned = {p.period_index: p for p in PlannedLesson.objects.filter(teacher=user, date=day).select_related('lesson')}
     classes = list(JournalClass.objects.filter(teacher=user, year=AcademicYear.current()).select_related('partner_school'))
 
-    grades = {lesson_grade(class_grade(s.sinf)) for s in slots if not s.band} - {None}
+    # the class number read in the teacher's subject ("8-A" → '8-9' or 'F8')
+    subject = main_subject(user)
+    grades = {lesson_grade(class_grade(s.sinf), subject) for s in slots if not s.band} - {None}
     by_grade = {
         g: list(Lesson.objects.filter(grade=g, chorak__in=visible).order_by('chorak', 'hafta')
                 .prefetch_related('experiments'))
@@ -92,7 +95,7 @@ def day_plan(user, day: date) -> dict:
             rows.append(row)
             continue
         g = class_grade(s.sinf)
-        lg = lesson_grade(g)
+        lg = lesson_grade(g, subject)
         guess = None
         if lg is not None and where['chorak']:
             in_quarter = [lesson for lesson in by_grade[lg] if lesson.chorak == where['chorak']]

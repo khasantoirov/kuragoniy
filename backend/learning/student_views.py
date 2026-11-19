@@ -356,14 +356,14 @@ class StudentJoinClassView(APIView):
         inv = _invite(request.data.get('code'))
         if not inv:
             raise ValidationError({'code': "Sinf kodi noto'g'ri yoki faol emas."})
-        from .student_accounts import grade_from_class_name
+        from .student_accounts import grade_for_journal_class
 
         profile = user.student_profile
         if profile.journal_class_id == inv.journal_class_id:
             return Response({'detail': "Siz allaqachon shu sinfdasiz."})
         profile.journal_class = inv.journal_class
         profile.roster_entry = None
-        profile.grade = grade_from_class_name(inv.journal_class.name) or profile.grade
+        profile.grade = grade_for_journal_class(inv.journal_class) or profile.grade
         profile.save(update_fields=['journal_class', 'roster_entry', 'grade'])
         if not inv.auto_approve:
             user.approved = False

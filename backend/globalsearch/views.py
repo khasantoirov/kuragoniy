@@ -27,8 +27,9 @@ from common.permissions import IsApproved
 from journal.models import Student
 from journal.scoping import scoped_class_ids
 from lessons.models import Lesson
-from lessons.visibility import visible_chorak_set
+from lessons.visibility import visible_lessons
 from library.models import LibraryItem
+from library.views import visible_items
 
 # Under two characters every query matches half the database, so the
 # result is noise and the scan is wasted work on every keystroke.
@@ -51,7 +52,7 @@ def _limit(request):
 
 
 def _lessons(user, q, limit):
-    qs = Lesson.objects.filter(chorak__in=visible_chorak_set(user)).filter(
+    qs = visible_lessons(Lesson.objects.all(), user).filter(
         Q(title__icontains=q)
         | Q(title_ru__icontains=q)
         | Q(title_en__icontains=q)
@@ -70,8 +71,8 @@ def _lessons(user, q, limit):
     ]
 
 
-def _library(q, limit):
-    qs = LibraryItem.objects.filter(Q(title__icontains=q) | Q(note__icontains=q))
+def _library(user, q, limit):
+    qs = visible_items(LibraryItem.objects.all(), user).filter(Q(title__icontains=q) | Q(note__icontains=q))
     return [
         {
             'id': str(item.id),
@@ -146,7 +147,7 @@ class GlobalSearchView(APIView):
 
         groups = [
             {'kind': 'lesson', 'label': 'Darslar', 'items': _lessons(user, q, limit)},
-            {'kind': 'library', 'label': 'Kutubxona', 'items': _library(q, limit)},
+            {'kind': 'library', 'label': 'Kutubxona', 'items': _library(user, q, limit)},
             {'kind': 'student', 'label': "O'quvchilar", 'items': _students(user, q, limit)},
             {'kind': 'staff', 'label': 'Xodimlar', 'items': _staff(q, limit) if user.is_admin else []},
         ]

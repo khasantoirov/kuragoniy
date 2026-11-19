@@ -827,11 +827,12 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
                 raise ValidationError({'email': "Email noto'g'ri."})
             if User.objects.filter(email__iexact=email).exists():
                 raise ValidationError({'email': "Bu email bilan hisob allaqachon bor."})
+        subjects = self._picked_subjects(request) if role == User.Role.TEACHER else []
         password = generate_readable_password()
         user = User.objects.create_user(
             email=email, password=password, name=name, first_name=first, last_name=last, role=role,
             username=unique_username(name), approved=True, must_change_password=True,
-            phone=phone,
+            phone=phone, subjects=subjects,
         )
         if manager_school is not None:
             SchoolManager.objects.create(school=manager_school, user=user, position=position)
@@ -921,13 +922,46 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
             notify_admin_action(request.user, f"Loginini o'zgartirdi: {target.name} ({old or '—'} → {login})")
         return Response(AdminUserSerializer(target).data)
 
+    def _picked_subjects(self, request):
+        from common.subjects import clean_subjects
+
+        try:
+            return clean_subjects(request.data.get('subjects'))
+        except ValueError as exc:
+            raise ValidationError({'subjects': [str(exc)]})
+
+    @action(detail=True, methods=['post'], url_path='set-subjects')
+    def set_subjects(self, request, pk=None):
+        """POST {subjects: ['fizika', 'steam']} — the fan(s) this person is
+        pointed to: their lessons, library and courses follow it. An empty
+        list clears it (they see both again)."""
+        from common.subjects import label
+
+        target = self.get_object()
+        self._guard_target(request, target)
+        picked = self._picked_subjects(request)
+        before = list(target.subjects or [])
+        if picked != before:
+            target.subjects = picked
+            target.save(update_fields=['subjects'])
+            notify_admin_action(request.user, f"Fanini belgiladi: {self._label(target)} — {label(before)} → {label(picked)}")
+            if picked:
+                notify(target, NotifyKind.TIZIM, 'Fan biriktirildi', f"Sizning faningiz: {label(picked)}.", '/lessons')
+        return Response(AdminUserSerializer(target).data)
+
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         target = self.get_object()
         self._guard_target(request, target)
+        # the fan(s) can be picked in the same step (Tasdiq kutmoqda)
+        if 'subjects' in request.data:
+            target.subjects = self._picked_subjects(request)
         target.approved = True
-        target.save(update_fields=['approved'])
-        notify_admin_action(request.user, f"Foydalanuvchini tasdiqladi: {self._label(target)}")
+        target.save(update_fields=['approved', 'subjects'])
+        from common.subjects import label
+
+        extra = f" — fan: {label(target.subjects)}" if target.subjects else ''
+        notify_admin_action(request.user, f"Foydalanuvchini tasdiqladi: {self._label(target)}{extra}")
         notify(target, NotifyKind.TIZIM, 'Hisobingiz tasdiqlandi', 'Endi platformaning barcha bo\'limlaridan foydalanishingiz mumkin.', '/')
         return Response(UserSerializer(target).data)
 

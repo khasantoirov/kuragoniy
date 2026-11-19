@@ -23,7 +23,8 @@ from django.db import models
 from django.utils import timezone
 
 # Ko'ragoniy Edu: sinf guruhlari darslar bilan bir xil (Lesson.Grade).
-GRADE_CHOICES = [('1-2', '1-2-sinf'), ('3-4', '3-4-sinf'), ('5-6', '5-6-sinf'), ('7', '7-sinf'), ('8-9', '8-9-sinf')]
+GRADE_CHOICES = [('1-2', '1-2-sinf'), ('3-4', '3-4-sinf'), ('5-6', '5-6-sinf'), ('7', '7-sinf'), ('8-9', '8-9-sinf'),
+                 ('F7', '7-sinf (fizika)'), ('F8', '8-sinf (fizika)'), ('F9', '9-sinf (fizika)')]
 
 
 class ClassInvite(models.Model):

@@ -6,11 +6,11 @@ import { ExportMenu, type ExportFormat } from '@/components/ExportMenu'
 import { Modal } from '@/components/Modal'
 import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
-import { GRADES, gradeLabel, type Grade } from '@/features/lessons/labels'
+import { type Grade } from '@/features/lessons/labels'
+import { useGradeOptions } from '@/lib/subjects'
 import { IC } from '@/icons'
 import { tableJpg, tableOffice } from '@/lib/export/tableExport'
 import { tablePdf } from '@/lib/pdf'
-import { useUIStore } from '@/store/uiStore'
 
 import {
   useCreateEquipmentSheet,
@@ -97,8 +97,8 @@ function sheetFilename(s: SavedEquipmentSheet): string {
 function EditSheetModal({ sheet, onClose }: { sheet: SavedEquipmentSheet; onClose: () => void }) {
   const { t } = useTranslation()
   const toast = useToast()
-  const { lang } = useUIStore()
   const update = useUpdateEquipmentSheet()
+  const gradeOptions = useGradeOptions()
   const [grade, setGrade] = useState(sheet.grade)
   const [hafta, setHafta] = useState(sheet.hafta)
   const [title, setTitle] = useState(sheet.title)
@@ -131,7 +131,7 @@ function EditSheetModal({ sheet, onClose }: { sheet: SavedEquipmentSheet; onClos
         <label className="field">
           <span className="field__label">{t('Sinf')}</span>
           <select className="input" value={grade} onChange={(e) => setGrade(e.target.value as Grade)}>
-            {GRADES.map((g) => <option key={g} value={g}>{gradeLabel(g, lang)}</option>)}
+            {gradeOptions.grades.map((g) => <option key={g} value={g}>{gradeOptions.label(g)}</option>)}
           </select>
         </label>
         <label className="field">
@@ -151,10 +151,10 @@ export function EquipmentSheetPage() {
   const { t } = useTranslation()
   const toast = useToast()
   const confirm = useConfirm()
-  const { lang } = useUIStore()
   const captureRef = useRef<HTMLDivElement>(null)
   const [sheetTitle, setSheetTitle] = useState('')
-  const [grade, setGrade] = useState<Grade>(GRADES[0])
+  const gradeOptions = useGradeOptions()
+  const [grade, setGrade] = useState<Grade>(gradeOptions.grades[0])
   const [hafta, setHafta] = useState(1)
   const [rows, setRows] = useState<SheetRow[]>([emptyRow()])
   const [exporting, setExporting] = useState(false)
@@ -253,7 +253,7 @@ export function EquipmentSheetPage() {
           <label className="field">
             <span className="field__label">{t('Sinf')}</span>
             <select className="input" value={grade} onChange={(e) => setGrade(e.target.value as Grade)}>
-              {GRADES.map((g) => <option key={g} value={g}>{gradeLabel(g, lang)}</option>)}
+              {gradeOptions.grades.map((g) => <option key={g} value={g}>{gradeOptions.label(g)}</option>)}
             </select>
           </label>
           <label className="field">
@@ -357,12 +357,12 @@ export function EquipmentSheetPage() {
         {savedLoading ? (
           <Skeleton lines={3} />
         ) : saved?.length ? (
-          GRADES.map((g) => {
+          gradeOptions.grades.map((g) => {
             const group = saved.filter((s) => s.grade === g)
             if (!group.length) return null
             return (
               <div key={g} className="poster-gallery__group">
-                <h4 className="poster-gallery__grade">{gradeLabel(g, lang)}</h4>
+                <h4 className="poster-gallery__grade">{gradeOptions.label(g)}</h4>
                 <div className="poster-gallery__grid">
                   {group.map((s) => (
                     <div key={s.id} className="poster-gallery__item">

@@ -19,6 +19,8 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+from common.subjects import CHOICES as SUBJECT_CHOICES
+
 
 class Course(models.Model):
     class Audience(models.TextChoices):
@@ -31,6 +33,8 @@ class Course(models.Model):
     # 0: not printed on the certificate
     hours = models.PositiveSmallIntegerField(default=0)
     audience = models.CharField(max_length=10, choices=Audience.choices, default=Audience.ALL)
+    # the fan it is for; blank = both (common/subjects.py)
+    subject = models.CharField(max_length=10, choices=SUBJECT_CHOICES, blank=True)
     pass_percent = models.PositiveSmallIntegerField(default=70)
     is_published = models.BooleanField(default=False)
     order = models.PositiveSmallIntegerField(default=0)

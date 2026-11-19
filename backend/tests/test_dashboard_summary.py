@@ -108,8 +108,10 @@ def test_lessons_by_grade_lists_every_band_including_empty_ones(as_user, admin):
 
     resp = as_user(admin).get(URL)
     rows = resp.data["lessons"]["by_grade"]
-    assert [r["grade"] for r in rows] == ["1-2", "3-4", "5-6", "7", "8-9"]
-    assert {r["grade"]: r["count"] for r in rows} == {"1-2": 0, "3-4": 0, "5-6": 0, "7": 1, "8-9": 0}
+    # both fanlar' bands: STEAM's groups, then physics' grades (common/subjects.py)
+    assert [r["grade"] for r in rows] == ["1-2", "3-4", "5-6", "7", "8-9", "F7", "F8", "F9"]
+    assert {r["grade"]: r["count"] for r in rows} == {"1-2": 0, "3-4": 0, "5-6": 0, "7": 1, "8-9": 0,
+                                                     "F7": 0, "F8": 0, "F9": 0}
 
 
 def test_lessons_by_chorak_is_zero_filled(as_user, admin):

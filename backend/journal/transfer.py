@@ -42,12 +42,12 @@ def _profiles(row):
 
 def _follow(old_row, new_row, target):
     """The platform account (if any) goes with the pupil."""
-    from learning.student_accounts import grade_from_class_name
+    from learning.student_accounts import grade_for_journal_class
 
     for profile in _profiles(old_row):
         profile.journal_class = target
         profile.roster_entry = new_row
-        profile.grade = grade_from_class_name(target.name) or profile.grade
+        profile.grade = grade_for_journal_class(target) or profile.grade
         profile.save(update_fields=['journal_class', 'roster_entry', 'grade'])
 
 

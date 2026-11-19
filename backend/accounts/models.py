@@ -117,6 +117,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_dev_superuser = models.BooleanField(default=False)
 
     approved = models.BooleanField(default=False)
+    # Fanlar the administration pointed this person to — codes from
+    # common/subjects.py ('fizika', 'steam'); empty = not set yet (sees both).
+    subjects = models.JSONField(default=list, blank=True)
 
     # Old Firestore field stored a base64 data-URL; this is now a real
     # uploaded file served from MEDIA_ROOT.

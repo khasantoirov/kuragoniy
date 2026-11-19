@@ -36,6 +36,9 @@ export interface User {
   is_dev_superuser: boolean
   created_at: string
   totp_enabled: boolean
+  /** Fanlar the administration pointed this person to ('fizika', 'steam');
+   *  empty = not set yet (sees both) — lib/subjects.ts. */
+  subjects?: ('fizika' | 'steam')[]
   // Self profile (/accounts/me/) only.
   username?: string | null
   must_change_password?: boolean

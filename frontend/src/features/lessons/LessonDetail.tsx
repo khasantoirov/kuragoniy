@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 
@@ -15,7 +15,7 @@ import { useDeleteLesson, useLesson, useMoveCopyLesson, useRemoveLessonFile, use
 import { ExperimentCard } from './ExperimentCard'
 import { ExperimentEditor } from './ExperimentEditor'
 import type { Grade } from './labels'
-import { lessonLabel, quarterLabel } from './labels'
+import { lessonLabel, quarterLabel, subjectOfGrade } from './labels'
 import { LessonDocCard } from './LessonDocCard'
 import { LessonEditor } from './LessonEditor'
 import { LessonFileModal } from './LessonFileModal'
@@ -50,6 +50,17 @@ export function LessonDetail() {
 
   const pending = !lesson?.translated_at || new Date(lesson.translated_at) < new Date(lesson.updated_at)
   useTranslationSocket(pending ? lessonId : null)
+
+  // A lesson opened from search or a link: the grade chips above follow its
+  // fan and grade, so "back to the list" lands where the lesson lives.
+  const lessonGrade = lesson?.grade
+  useEffect(() => {
+    if (!lessonGrade) return
+    const { subject, grade } = useUIStore.getState()
+    const s = subjectOfGrade(lessonGrade)
+    if (s !== subject) useUIStore.getState().setSubject(s)
+    if (grade !== lessonGrade) setGrade(lessonGrade)
+  }, [lessonGrade, setGrade])
 
   if (!id || Number.isNaN(lessonId)) return <Navigate to="/lessons" replace />
   if (isLoading) return <Skeleton lines={5} />

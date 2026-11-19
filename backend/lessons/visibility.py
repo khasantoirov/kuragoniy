@@ -19,3 +19,12 @@ def visible_chorak_set(user):
         return set(ALL_CHORAKS)
     locks = dict(QuarterLock.objects.filter(chorak__in=ALL_CHORAKS).values_list('chorak', 'is_open'))
     return {ch for ch in ALL_CHORAKS if locks.get(ch, ch == 1)}
+
+
+def visible_lessons(qs, user):
+    """`qs` narrowed to what this person may see: the open quarters (above)
+    and their own fan(s) — common/subjects.py. One place for both, used by
+    the lessons list, the global search, kits and the teacher's day plan."""
+    from common.subjects import grades_for
+
+    return qs.filter(chorak__in=visible_chorak_set(user), grade__in=grades_for(user))

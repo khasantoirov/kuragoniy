@@ -61,8 +61,13 @@ def visible_courses(user):
     qs = qs.filter(is_published=True)
     if user.is_oversight:
         return qs
+    from common.subjects import subjects_for
+
+    # courses for both fanlar (blank) or the teacher's own; one they were
+    # put on stays theirs whatever its fan
+    fan = Q(subject='') | Q(subject__in=subjects_for(user))
     return qs.filter(
-        Q(audience=Course.Audience.ALL) | Q(audience__in=teacher_kinds(user)) | Q(enrollments__user=user)
+        (fan & (Q(audience=Course.Audience.ALL) | Q(audience__in=teacher_kinds(user)))) | Q(enrollments__user=user)
     ).distinct()
 
 

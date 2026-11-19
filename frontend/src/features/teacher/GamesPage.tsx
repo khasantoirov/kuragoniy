@@ -16,7 +16,8 @@ import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import { useUpdateGuard } from '@/lib/updateGuard'
 import type { Paginated } from '@/lib/api/types'
-import { GRADES, type Grade } from '@/features/lessons/labels'
+import { type Grade } from '@/features/lessons/labels'
+import { useGradeOptions } from '@/lib/subjects'
 
 interface QuizQ {
   id?: number
@@ -56,6 +57,7 @@ interface HostState {
 const blankQ = (): QuizQ => ({ text: '', image_url: '', options: ['', '', '', ''], correct: 0, time_limit: 20, points: 1000 })
 
 function QuizEditor({ initial, onClose }: { initial: Quiz | null; onClose: () => void }) {
+  const gradeOptions = useGradeOptions()
   const { t } = useTranslation()
   const toast = useToast()
   const qc = useQueryClient()
@@ -101,7 +103,7 @@ function QuizEditor({ initial, onClose }: { initial: Quiz | null; onClose: () =>
           <span className="field__label">{t('Sinf darajasi')}</span>
           <select className="input" value={grade} onChange={(e) => setGrade(e.target.value as Grade | '')}>
             <option value="">—</option>
-            {GRADES.map((g) => <option key={g} value={g}>{g}-{t('sinf')}</option>)}
+            {gradeOptions.grades.map((g) => <option key={g} value={g}>{gradeOptions.label(g)}</option>)}
           </select>
         </label>
       </div>

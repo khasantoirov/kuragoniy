@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/Modal'
 import { useUIStore } from '@/store/uiStore'
 
-import { GRADES, type Grade, gradeLabel, quarterLabel } from './labels'
+import { type Grade, gradeLabel, quarterLabel, SUBJECT_GRADES, subjectOfGrade } from './labels'
 import type { Lesson } from './types'
 
 const CHORAKS = [1, 2, 3, 4]
@@ -60,7 +60,7 @@ export function LessonMoveCopyModal({
         <label className="field">
           <span className="field__label">{t('Sinf')}</span>
           <select className="input" value={grade} onChange={(e) => setGrade(e.target.value as Grade)}>
-            {GRADES.map((g) => (
+            {SUBJECT_GRADES[subjectOfGrade(lesson.grade)].map((g) => (
               <option key={g} value={g}>{gradeLabel(g, lang)}</option>
             ))}
           </select>

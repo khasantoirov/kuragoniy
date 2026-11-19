@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { Modal } from '@/components/Modal'
 import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
+import { SUBJECTS, subjectLabel } from '@/features/lessons/labels'
 import { IC } from '@/icons'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { record } from '@/lib/history'
@@ -35,7 +36,7 @@ function libraryGradeLabel(n: number, lang: Lang) {
 }
 
 function emptyItem(): Partial<LibraryItem> {
-  return { title: '', url: '', kind: 'havola', grade: null, note: '' }
+  return { title: '', url: '', kind: 'havola', grade: null, subject: '', note: '' }
 }
 
 function LibraryEditor({ item, onClose }: { item: LibraryItem | null; onClose: () => void }) {
@@ -181,6 +182,13 @@ function LibraryEditor({ item, onClose }: { item: LibraryItem | null; onClose: (
           </select>
         </label>
       </div>
+      <label className="field">
+        <span className="field__label">{t('Fan')}</span>
+        <select className="input" value={draft.subject ?? ''} onChange={(e) => setDraft({ ...draft, subject: e.target.value as LibraryItem['subject'] })}>
+          <option value="">{t('Ikkala fan uchun')}</option>
+          {SUBJECTS.map((s) => <option key={s} value={s}>{subjectLabel(s, lang)}</option>)}
+        </select>
+      </label>
 
       <div className="field">
         <span className="field__label">{canUpload ? t("Havola yoki fayl") : t('Havola')}</span>

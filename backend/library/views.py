@@ -16,15 +16,34 @@ LIBRARY_FILE_MAX_MB = 150
 COVER_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.webp')
 COVER_MAX_MB = 5
 
-LIBRARY_AUDIT_FIELDS = ['title', 'url', 'kind', 'grade', 'note']
+LIBRARY_AUDIT_FIELDS = ['title', 'url', 'kind', 'grade', 'subject', 'note']
 LIBRARY_AUDIT_LABELS = {
-    'title': 'Nomi', 'url': 'Havola', 'kind': 'Turi', 'grade': 'Sinf', 'note': 'Izoh',
+    'title': 'Nomi', 'url': 'Havola', 'kind': 'Turi', 'grade': 'Sinf', 'subject': 'Fan', 'note': 'Izoh',
 }
+
+
+def visible_items(qs, user):
+    """Books of both fanlar (blank subject) plus the person's own fan(s)."""
+    from django.db.models import Q
+
+    from common.subjects import CODES, subjects_for
+
+    mine = subjects_for(user)
+    if set(mine) >= set(CODES):
+        return qs
+    return qs.filter(Q(subject='') | Q(subject__in=mine))
 
 
 class LibraryItemViewSet(viewsets.ModelViewSet):
     queryset = LibraryItem.objects.all()
     serializer_class = LibraryItemSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        subject = self.request.query_params.get('subject')
+        if subject:
+            qs = qs.filter(subject__in=['', subject])
+        return visible_items(qs, self.request.user)
 
     def get_permissions(self):
         if self.request.method in SAFE_METHODS:

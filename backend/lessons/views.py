@@ -16,7 +16,10 @@ from common.uploads import delete_file_field, validate_upload
 from .models import EquipmentItem, EquipmentSheet, Experiment, Lesson, QuarterLock
 from .serializers import EquipmentItemSerializer, EquipmentSheetSerializer, LessonSerializer, QuarterLockSerializer
 from .signals import send_lessons_backup, suppress_lessons_backup
-from .visibility import visible_chorak_set
+from .visibility import visible_lessons
+
+from common.subjects import GRADES as SUBJECT_GRADES
+from common.subjects import subject_of_grade
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +39,13 @@ LESSON_AUDIT_LABELS = {
     'title': 'Nomi', 'grade': 'Sinf', 'chorak': 'Chorak', 'hafta': 'Hafta',
     'goal': 'Maqsad', 'file_url': 'Fayl havolasi',
 }
+GRADE_LABELS = dict(Lesson.Grade.choices)
+
+
+def grade_label(grade) -> str:
+    return GRADE_LABELS.get(grade, f'{grade}-sinf')
+
+
 # 'equipment_items' isn't diffable here — a related-manager, not a scalar
 # field snapshot/diff_fields can getattr-compare; equipment changes aren't
 # included in the audit-log line for now (same gap as 'experiments' itself,
@@ -124,16 +134,18 @@ class LessonViewSet(viewsets.ModelViewSet):
         qs = super().get_queryset()
         grade = self.request.query_params.get('grade')
         chorak = self.request.query_params.get('chorak')
+        subject = self.request.query_params.get('subject')
         if grade:
             qs = qs.filter(grade=grade)
         if chorak:
             qs = qs.filter(chorak=chorak)
-        if not self.request.user.is_admin:
-            qs = qs.filter(chorak__in=visible_chorak_set(self.request.user))
-        return qs
+        if subject in SUBJECT_GRADES:
+            qs = qs.filter(grade__in=SUBJECT_GRADES[subject])
+        # the open quarters and the person's own fan(s); the administration sees all
+        return visible_lessons(qs, self.request.user)
 
     def _label(self, lesson):
-        return f"«{lesson.title}» ({lesson.grade}-sinf, {lesson.chorak}-chorak)"
+        return f"«{lesson.title}» ({grade_label(lesson.grade)}, {lesson.chorak}-chorak)"
 
     def _experiment_diff_lines(self, before_exps: dict, lesson: Lesson) -> list[str]:
         # A fresh queryset, not lesson.experiments.all() — that manager may
@@ -295,6 +307,9 @@ class LessonViewSet(viewsets.ModelViewSet):
         if target_chorak not in (1, 2, 3, 4):
             return Response({'detail': 'chorak must be 1-4'}, status=400)
 
+        if subject_of_grade(target_grade) != subject_of_grade(source.grade):
+            return Response({'detail': "Dars faqat o'z fani ichida ko'chiriladi yoki nusxalanadi."}, status=400)
+
         original_grade = source.grade
         original_chorak = source.chorak
 
@@ -337,8 +352,8 @@ class LessonViewSet(viewsets.ModelViewSet):
         notify_admin_action(
             request.user,
             f"Darsni {verb}: «{result.title}»\n"
-            f"• Avval: {original_grade}-sinf, {original_chorak}-chorak\n"
-            f"• Endi: {target_grade}-sinf, {target_chorak}-chorak",
+            f"• Avval: {grade_label(original_grade)}, {original_chorak}-chorak\n"
+            f"• Endi: {grade_label(target_grade)}, {target_chorak}-chorak",
         )
         return Response(LessonSerializer(result, context={'request': request}).data)
 

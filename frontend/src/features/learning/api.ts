@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
-import { GRADES, type Grade } from '@/features/lessons/labels'
+import { ALL_GRADES, type Grade } from '@/features/lessons/labels'
 
 // ── Types (mirror backend/learning serializers) ─────────────────────
 
@@ -376,7 +376,7 @@ export function useLessonOptions(grade?: Grade | null) {
         url = res.data.next ? res.data.next.replace(/^.*\/api/, '') : null
         params = undefined
       }
-      return out.sort((a, b) => GRADES.indexOf(a.grade) - GRADES.indexOf(b.grade) || a.chorak - b.chorak || a.hafta - b.hafta)
+      return out.sort((a, b) => ALL_GRADES.indexOf(a.grade) - ALL_GRADES.indexOf(b.grade) || a.chorak - b.chorak || a.hafta - b.hafta)
     },
   })
 }

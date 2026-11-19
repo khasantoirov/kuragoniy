@@ -1014,3 +1014,39 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
 .field__warn { display: block; margin-top: 5px; font-size: 12px; color: #b45309; }
 .field__hint { display: block; margin-top: 5px; font-size: 12px; color: var(--ink-3); }
 [data-theme="dark"] .field__warn { color: #f5b45a; }
+
+/* Darslar: Fan tanlagichi — ikkala fanni ko'radiganlar uchun (ma'muriyat,
+   yoki hali fan biriktirilmagan o'qituvchi), sinflardan oldin turadi. */
+.ltbar__subjects .seg__b.is-on { background: var(--ink); color: var(--surface); box-shadow: none; }
+@media (max-width: 760px) {
+  .ltbar__subjects { order: 0; flex: 1 1 100%; }
+  .ltbar__subjects .seg__b { flex: 1 1 0; padding: 0 6px; font-size: 12.5px; }
+}
+
+/* Fanlar (features/admin/SubjectPicker.tsx): tanlash chiplari va belgilar.
+   Fizika — ko'k, STEAM — firuza; matn rangi har doim matn tokenida. */
+.fanchips { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.fanchip {
+  --fan: #2f6bff;
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px;
+  border: 1px solid var(--rule); border-radius: 999px; background: var(--surface); color: var(--ink-2);
+  font: 500 13px/1 var(--f-body, inherit); cursor: pointer; transition: background-color .15s, border-color .15s, color .15s;
+}
+.fanchip--steam { --fan: #0e9f9a; }
+.fanchip:hover { border-color: var(--fan); color: var(--ink); }
+.fanchip.is-on { border-color: var(--fan); background: color-mix(in srgb, var(--fan) 12%, var(--surface)); color: var(--ink); }
+.fanchip .svic { width: 14px; height: 14px; color: var(--fan); }
+.fanchip:disabled { opacity: .6; cursor: default; }
+.fanbadge {
+  --fan: #2f6bff;
+  display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px;
+  background: color-mix(in srgb, var(--fan) 12%, transparent); color: var(--ink);
+  font: 600 11.5px/1 var(--f-body, inherit); white-space: nowrap;
+}
+.fanbadge--steam { --fan: #0e9f9a; }
+.fanbadge--none { --fan: var(--ink-3, #8a94a8); font-weight: 500; color: var(--ink-2); }
+.stf__fans { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.person__fans { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; font-size: 13px; }
+[data-theme="dark"] .fanchip { --fan: #7b8cff; }
+[data-theme="dark"] .fanchip--steam, [data-theme="dark"] .fanbadge--steam { --fan: #3fd0c9; }
+[data-theme="dark"] .fanbadge { --fan: #7b8cff; }
