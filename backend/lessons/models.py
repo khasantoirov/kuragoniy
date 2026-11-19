@@ -72,19 +72,23 @@ class EquipmentSheet(models.Model):
 
 
 class QuarterLock(models.Model):
-    """Admin-controlled visibility gate for the Lessons page. All 4 quarters
+    """Admin-controlled visibility gate for the Lessons page, per fan
+    (common/subjects.py) — each fan opens its own quarters. All 4 quarters
     are lockable; a missing row means chorak 1 defaults open (its original
     behaviour before it became lockable too) and 2-4 default closed, until
     an admin explicitly sets each one here."""
 
-    chorak = models.PositiveSmallIntegerField(unique=True, choices=[(1, 1), (2, 2), (3, 3), (4, 4)])
+    subject = models.CharField(max_length=10, choices=[('fizika', 'Amaliy fizika'), ('steam', 'STEAM / Robototexnika')],
+                               default='steam')
+    chorak = models.PositiveSmallIntegerField(choices=[(1, 1), (2, 2), (3, 3), (4, 4)])
     is_open = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ['chorak']
+        ordering = ['subject', 'chorak']
+        constraints = [models.UniqueConstraint(fields=['subject', 'chorak'], name='quarterlock_one_per_subject')]
 
     def __str__(self):
-        return f'{self.chorak}-chorak: {"ochiq" if self.is_open else "yopiq"}'
+        return f'{self.subject} {self.chorak}-chorak: {"ochiq" if self.is_open else "yopiq"}'
 
 
 class Experiment(models.Model):

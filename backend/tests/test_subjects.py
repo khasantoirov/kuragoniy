@@ -99,3 +99,23 @@ def test_library_follows_the_subject(as_user, teacher):
     r = as_user(teacher).get('/api/library/')
     rows = r.data['results'] if isinstance(r.data, dict) else r.data
     assert {x['title'] for x in rows} == {'Umumiy', 'Fizika masalalari'}
+
+
+@pytest.mark.django_db
+def test_each_subject_opens_its_own_quarters(as_user, make_user, admin):
+    QuarterLock.objects.create(subject='fizika', chorak=1, is_open=False)
+    QuarterLock.objects.create(subject='fizika', chorak=2, is_open=True)
+    Lesson.objects.create(title='Robot 2', grade='7', chorak=2, hafta=3)
+    Lesson.objects.create(title='Bosim 2', grade='F8', chorak=2, hafta=1)
+    Lesson.objects.create(title='Bosim 1', grade='F8', chorak=1, hafta=1)
+    Lesson.objects.create(title='Robot 1', grade='7', chorak=1, hafta=1)
+    t = make_user('both@test.uz', role=User.Role.TEACHER, approved=True)
+    # STEAM: chorak 1 (no rows, the default); fizika: only chorak 2
+    assert _titles(as_user(t)) == {'Robot 1', 'Bosim 2'}
+    c = as_user(admin)
+    assert c.get('/api/lessons/quarter-locks/', {'subject': 'fizika'}).data == {'1': False, '2': True, '3': False, '4': False}
+    assert c.get('/api/lessons/quarter-locks/').data == {'1': True, '2': False, '3': False, '4': False}
+    r = c.post('/api/lessons/quarter-locks/', {'subject': 'steam', 'chorak': 2, 'is_open': True}, format='json')
+    assert r.status_code == 200 and r.data['subject'] == 'steam'
+    assert QuarterLock.objects.get(subject='fizika', chorak=2).is_open  # untouched
+    assert _titles(as_user(t)) == {'Robot 1', 'Robot 2', 'Bosim 2'}

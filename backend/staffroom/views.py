@@ -20,7 +20,7 @@ from accounts.models import User
 from common.permissions import IsApproved
 from common.security import log_event
 from lessons.models import Lesson
-from lessons.visibility import visible_chorak_set
+from lessons.visibility import visible_lessons
 from notifications.models import Kind as NotifyKind
 from notifications.service import notify
 
@@ -73,7 +73,7 @@ class PlanView(APIView):
             return Response({'ok': True})
         lesson = None
         if request.data.get('lesson'):
-            lesson = get_object_or_404(Lesson, pk=request.data['lesson'], chorak__in=visible_chorak_set(request.user))
+            lesson = get_object_or_404(visible_lessons(Lesson.objects.all(), request.user), pk=request.data['lesson'])
         PlannedLesson.objects.update_or_create(teacher=request.user, date=day, period_index=period,
                                                defaults={'lesson': lesson})
         return Response({'ok': True})

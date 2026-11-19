@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
 
-import type { Grade } from './labels'
+import type { Grade, Subject } from './labels'
 import type { EquipmentItem, Lesson } from './types'
 
 export function useLessons(filters: { grade?: Grade; chorak?: number } = {}) {
@@ -96,17 +96,18 @@ export function useDeleteLesson() {
 
 export type QuarterLocks = Record<'1' | '2' | '3' | '4', boolean>
 
-export function useQuarterLocks() {
+/** Which quarters a fan has opened to teachers — each fan opens its own. */
+export function useQuarterLocks(subject: Subject = 'steam') {
   return useQuery({
-    queryKey: ['lessons', 'quarter-locks'],
-    queryFn: async () => (await api.get<QuarterLocks>('/lessons/quarter-locks/')).data,
+    queryKey: ['lessons', 'quarter-locks', subject],
+    queryFn: async () => (await api.get<QuarterLocks>('/lessons/quarter-locks/', { params: { subject } })).data,
   })
 }
 
 export function useSetQuarterLock() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (payload: { chorak: number; is_open: boolean }) =>
+    mutationFn: async (payload: { subject: Subject; chorak: number; is_open: boolean }) =>
       (await api.post('/lessons/quarter-locks/', payload)).data,
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['lessons'] }) },
   })

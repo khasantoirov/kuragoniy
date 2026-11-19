@@ -8,7 +8,8 @@ media folder; amaliyfizika.uz itself is never changed and keeps running.
 What comes over
   * lessons — grade 7/8/9 becomes F7/F8/F9 (common/subjects.py) — with their
     experiments, equipment and files; equipment sheets; lesson materials and
-    lesson-bank questions; library items (fan: fizika);
+    lesson-bank questions; library items (fan: fizika); which quarters are
+    open to teachers (they become the fizika fan's QuarterLocks);
   * staff accounts: approved, active teachers, admins and boshliqlar, with
     their login, password hash, name, phone, birth date and photo, pointed to
     the fizika fan. Anyone already here (same email or login) keeps their
@@ -38,7 +39,7 @@ from django.utils.dateparse import parse_date, parse_datetime
 
 from accounts.models import User
 from learning.models import LessonMaterial, Question
-from lessons.models import EquipmentItem, EquipmentSheet, Experiment, Lesson
+from lessons.models import EquipmentItem, EquipmentSheet, Experiment, Lesson, QuarterLock
 from lessons.signals import send_lessons_backup, suppress_lessons_backup
 from library.models import LibraryItem
 from migration_tools.models import ImportedRow
@@ -218,6 +219,11 @@ class Command(BaseCommand):
         questions = self._rows(f"select * from learning_question where assignment_id is null and lesson_id in "
                                f"({','.join('?' * len(lesson_ids)) or 'null'}) order by id", *lesson_ids) \
             if lesson_ids and self._has('learning_question') else []
+        # which quarters amaliyfizika.uz has open become the fizika fan's here
+        done_locks = self._done('lessons_quarterlock')
+        locks = [r for r in self._rows('select * from lessons_quarterlock order by chorak')
+                 if str(r['id']) not in done_locks and r['chorak'] in (1, 2, 3, 4)] \
+            if self._has('lessons_quarterlock') else []
 
         # ── the report ──
         for r in lessons:
@@ -236,6 +242,8 @@ class Command(BaseCommand):
             by_grade[GRADE[r['grade']]] = by_grade.get(GRADE[r['grade']], 0) + 1
         out(f"Darslar: {len(lessons)} {by_grade} · tajribalar: {len(exps)} · jihozlar: {len(items)}")
         out(f"Jihozlar varag'i: {len(sheets)} · kutubxona: {len(books)} · materiallar: {len(materials)} · savollar: {len(questions)}")
+        if locks:
+            out("Choraklar (fizika): " + ', '.join(f"{r['chorak']}-{'ochiq' if r['is_open'] else 'yopiq'}" for r in locks))
         out(f"Fayllar: {files.count} ta, {files.bytes / 1024 / 1024:.1f} MB" + (f" · topilmadi: {len(files.missing)}" if files.missing else ''))
         for name in files.missing:
             out(f"  ! fayl yo'q: {name}")
@@ -256,7 +264,7 @@ class Command(BaseCommand):
         files = Files(media)
         try:
             with suppress_lessons_backup(), transaction.atomic():
-                counts = self._copy(files, staff, lessons, exps, items, sheets, books, materials, questions)
+                counts = self._copy(files, staff, lessons, exps, items, sheets, books, materials, questions, locks)
         except Exception:
             files.rollback()
             raise
@@ -269,8 +277,14 @@ class Command(BaseCommand):
                                   f"{counts['users']} hisob")
         out(f"Tayyor: {counts}")
 
-    def _copy(self, files, staff, lessons, exps, items, sheets, books, materials, questions):
-        counts = dict(users=0, lessons=0, exps=0, items=0, sheets=0, books=0, materials=0, questions=0, files=0)
+    def _copy(self, files, staff, lessons, exps, items, sheets, books, materials, questions, locks=()):
+        counts = dict(users=0, lessons=0, exps=0, items=0, sheets=0, books=0, materials=0, questions=0, locks=0, files=0)
+
+        for r in locks:
+            lock, _ = QuarterLock.objects.update_or_create(subject='fizika', chorak=r['chorak'],
+                                                           defaults={'is_open': bool(r['is_open'])})
+            self._mark('lessons_quarterlock', r['id'], lock.pk)
+            counts['locks'] += 1
         user_map = self._done('accounts_user')
 
         for r in staff:

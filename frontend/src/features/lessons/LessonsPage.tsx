@@ -62,7 +62,7 @@ export function LessonsPage() {
   const grade = fans.grades.includes(storedGrade) ? storedGrade : fans.grades[0]
   const admin = isAdminInView(user, appViewMode)
   const { data, isLoading } = useLessons({ grade })
-  const { data: locks, isLoading: locksLoading } = useQuarterLocks()
+  const { data: locks, isLoading: locksLoading } = useQuarterLocks(fans.current)
   const reorder = useReorderLesson()
   const scrolled = usePageScrolled(4)
   // ?chorak=N — the chorak opened from its card (none: the four cards)

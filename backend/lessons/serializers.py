@@ -58,7 +58,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
 class QuarterLockSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuarterLock
-        fields = ['chorak', 'is_open']
+        fields = ['subject', 'chorak', 'is_open']
 
 
 class EquipmentSheetSerializer(ProtectedFilesMixin, serializers.ModelSerializer):

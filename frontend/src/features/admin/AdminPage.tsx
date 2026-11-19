@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
 import { useCreateAnnouncement } from '@/features/announcements/api'
 import { useQuarterLocks, useSetQuarterLock } from '@/features/lessons/api'
-import { quarterLabel } from '@/features/lessons/labels'
+import { quarterLabel, SUBJECTS, subjectLabel } from '@/features/lessons/labels'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import type { Paginated, User } from '@/lib/api/types'
@@ -317,15 +317,45 @@ function AnnounceModal({ onClose }: { onClose: () => void }) {
 
 /** Boshqaruv → Ma'lumot: lessons in and out as JSON, translations, an
  * announcement to everyone, and which quarters teachers may open. */
-export function AdminDataPanel() {
+/** One fan's four quarter switches — each fan opens its own quarters. */
+function QuarterToggles({ subject }: { subject: Subject }) {
   const { t } = useTranslation()
   const { lang } = useUIStore()
+  const { data: locks } = useQuarterLocks(subject)
+  const setLock = useSetQuarterLock()
+  return (
+    <>
+      <p className="qtoggles__label">{t("Choraklarni o'qituvchilarga ochish")} — {subjectLabel(subject, lang)}</p>
+      <div className="qtoggles">
+        {([1, 2, 3, 4] as const).map((ch) => {
+          const isOpen = !!locks?.[String(ch) as '1' | '2' | '3' | '4']
+          return (
+            <div className="qtoggle-row" key={ch}>
+              <span className="qtoggle-row__name">{quarterLabel(ch, lang)}</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isOpen}
+                className={`qswitch ${isOpen ? 'is-on' : ''}`}
+                onClick={() => setLock.mutate({ subject, chorak: ch, is_open: !isOpen })}
+                title={isOpen ? t("O'qituvchilar uchun yopish") : t("O'qituvchilar uchun ochish")}
+              >
+                <span className="qswitch__dot" />
+              </button>
+            </div>
+          )
+        })}
+      </div>
+    </>
+  )
+}
+
+export function AdminDataPanel() {
+  const { t } = useTranslation()
   const toast = useToast()
   const [announcing, setAnnouncing] = useState(false)
   const [importingLessons, setImportingLessons] = useState(false)
   const [importingTranslations, setImportingTranslations] = useState(false)
-  const { data: locks } = useQuarterLocks()
-  const setLock = useSetQuarterLock()
 
   const exportLessons = async () => {
     try {
@@ -371,27 +401,7 @@ export function AdminDataPanel() {
           <button className="btn" onClick={() => setAnnouncing(true)}>{IC.megaphone} {t("E'lon yuborish")}</button>
         </div>
 
-        <p className="qtoggles__label">{t("Choraklarni o'qituvchilarga ochish")}</p>
-        <div className="qtoggles">
-          {([1, 2, 3, 4] as const).map((ch) => {
-            const isOpen = !!locks?.[String(ch) as '1' | '2' | '3' | '4']
-            return (
-              <div className="qtoggle-row" key={ch}>
-                <span className="qtoggle-row__name">{quarterLabel(ch, lang)}</span>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={isOpen}
-                  className={`qswitch ${isOpen ? 'is-on' : ''}`}
-                  onClick={() => setLock.mutate({ chorak: ch, is_open: !isOpen })}
-                  title={isOpen ? t("O'qituvchilar uchun yopish") : t("O'qituvchilar uchun ochish")}
-                >
-                  <span className="qswitch__dot" />
-                </button>
-              </div>
-            )
-          })}
-        </div>
+        {SUBJECTS.map((s) => <QuarterToggles key={s} subject={s} />)}
       </section>
 
       <SystemStats />

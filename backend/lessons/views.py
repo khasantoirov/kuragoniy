@@ -237,24 +237,32 @@ class LessonViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get', 'post'], url_path='quarter-locks')
     def quarter_locks(self, request):
-        """GET: {"1": bool, "2": bool, "3": bool, "4": bool} open-state per
-        quarter (missing row = open for chorak 1, closed for 2-4). POST
-        (admin-only, enforced by get_permissions since it's a non-safe
-        method): {chorak, is_open} upserts one quarter's lock."""
+        """GET ?subject=: {"1": bool, "2": bool, "3": bool, "4": bool} open-
+        state per quarter of that fan (default STEAM; missing row = open for
+        chorak 1, closed for 2-4). POST (admin-only, enforced by
+        get_permissions since it's a non-safe method): {subject, chorak,
+        is_open} upserts one quarter's lock of one fan."""
+        from common.subjects import CODES, LABELS, STEAM
+
+        source = request.query_params if request.method == 'GET' else request.data
+        subject = source.get('subject') or STEAM
+        if subject not in CODES:
+            return Response({'detail': "subject must be one of: " + ', '.join(CODES)}, status=400)
         if request.method == 'GET':
-            rows = {r.chorak: r.is_open for r in QuarterLock.objects.all()}
+            rows = {r.chorak: r.is_open for r in QuarterLock.objects.filter(subject=subject)}
             return Response({str(c): rows.get(c, c == 1) for c in (1, 2, 3, 4)})
 
         chorak = request.data.get('chorak')
         if chorak not in (1, 2, 3, 4):
             return Response({'detail': 'chorak must be 1-4'}, status=400)
         is_open = bool(request.data.get('is_open'))
-        existing = QuarterLock.objects.filter(chorak=chorak).first()
+        existing = QuarterLock.objects.filter(subject=subject, chorak=chorak).first()
         was_open = existing.is_open if existing else chorak == 1
-        lock, _ = QuarterLock.objects.update_or_create(chorak=chorak, defaults={'is_open': is_open})
+        lock, _ = QuarterLock.objects.update_or_create(subject=subject, chorak=chorak, defaults={'is_open': is_open})
         if was_open != is_open:
             state_label = {True: 'ochiq', False: 'yopiq'}
-            notify_admin_action(request.user, f"{chorak}-chorak holati: {state_label[was_open]} → {state_label[is_open]}")
+            notify_admin_action(request.user, f"{LABELS[subject]}: {chorak}-chorak holati: "
+                                              f"{state_label[was_open]} → {state_label[is_open]}")
         return Response(QuarterLockSerializer(lock).data)
 
     @action(detail=False, methods=['post'])

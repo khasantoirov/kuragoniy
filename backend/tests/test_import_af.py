@@ -9,6 +9,7 @@ from django.core.management import call_command
 
 from accounts.models import User
 from lessons.models import EquipmentItem, Experiment, Lesson
+from lessons.visibility import open_quarters
 from library.models import LibraryItem
 
 HASH = make_password('Af-parol-2026')
@@ -32,6 +33,8 @@ def _af_db(path, media):
         create table lessons_equipmentsheet (id int, grade int, hafta int, title text, image text, created_at text);
         create table library_libraryitem (id int, title text, url text, file text, cover text, kind text, grade int,
             note text, updated_at text);
+        create table lessons_quarterlock (id int, chorak int, is_open bool);
+        insert into lessons_quarterlock values (1, 1, 0), (2, 2, 1);
     ''')
     users = [
         ('u-teacher', 'gulirano', 'g@af.uz', 'Guliraʼno Rahmatova', 'teacher', 0, 1, '+998901110001'),
@@ -79,6 +82,8 @@ def test_amaliy_fizika_comes_over_once(tmp_path, make_user, api_client):
     assert lesson.translated_at and lesson.translated_at >= lesson.updated_at  # translated there: no new job
     book = LibraryItem.objects.get()
     assert book.subject == 'fizika' and book.grade == 8
+    # its open quarters become the fizika fan's; STEAM's stay as they were
+    assert open_quarters('fizika') == {2} and open_quarters('steam') == {1}
 
     t = User.objects.get(username='gulirano')
     assert t.pk == 'u-teacher' and t.subjects == ['fizika'] and t.role == 'teacher' and t.approved

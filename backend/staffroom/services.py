@@ -14,7 +14,7 @@ from journal.models import JournalClass
 from learning.models import Attempt
 from learning.readiness import PASS_PERCENT
 from lessons.models import EquipmentSheet, Lesson
-from lessons.visibility import visible_chorak_set
+from lessons.visibility import visible_lessons
 from schools.models import AcademicYear
 from timetable.models import TimetableSlot
 
@@ -65,7 +65,7 @@ def day_plan(user, day: date) -> dict:
     slots = list(TimetableSlot.objects.filter(teacher=user, day_index=weekday).order_by('period_index')) \
         if weekday <= 4 else []
     where = place(day)
-    visible = visible_chorak_set(user)
+
     planned = {p.period_index: p for p in PlannedLesson.objects.filter(teacher=user, date=day).select_related('lesson')}
     classes = list(JournalClass.objects.filter(teacher=user, year=AcademicYear.current()).select_related('partner_school'))
 
@@ -73,12 +73,12 @@ def day_plan(user, day: date) -> dict:
     subject = main_subject(user)
     grades = {lesson_grade(class_grade(s.sinf), subject) for s in slots if not s.band} - {None}
     by_grade = {
-        g: list(Lesson.objects.filter(grade=g, chorak__in=visible).order_by('chorak', 'hafta')
+        g: list(visible_lessons(Lesson.objects.filter(grade=g), user).order_by('chorak', 'hafta')
                 .prefetch_related('experiments'))
         for g in grades
     }
     picked_ids = [p.lesson_id for p in planned.values() if p.lesson_id]
-    extra = {lesson.id: lesson for lesson in Lesson.objects.filter(id__in=picked_ids, chorak__in=visible)
+    extra = {lesson.id: lesson for lesson in visible_lessons(Lesson.objects.filter(id__in=picked_ids), user)
              .prefetch_related('experiments')}
     readiness = dict(
         Attempt.objects.filter(user=user, kind=Attempt.Kind.READINESS, submitted_at__isnull=False, lesson__isnull=False)
