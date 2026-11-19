@@ -34,6 +34,7 @@ urlpatterns = [
     path('api/kits/', include('kits.urls')),
     path('api/achievements/', include('achievements.urls')),
     path('api/feed/', include('feed.urls')),
+    path('api/public/', include('website.urls')),
     path('api/student/badges/', StudentBadgesView.as_view(), name='student-badges'),
     path('api/common/modules/', ModulesView.as_view(), name='platform-modules'),
     path('api/common/protection-event/', ProtectionEventView.as_view(), name='protection-event'),

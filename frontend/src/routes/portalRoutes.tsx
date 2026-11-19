@@ -28,6 +28,7 @@ const named = <T extends Record<string, unknown>>(loader: () => Promise<T>, key:
 
 const StudentsPage = named(() => import('@/features/teacher/StudentsPage'), 'StudentsPage')
 const AcademicYearsPanel = named(() => import('@/features/admin/AcademicYearsPanel'), 'AcademicYearsPanel')
+const SitePanel = named(() => import('@/features/admin/SitePanel'), 'SitePanel')
 const AssignmentsPage = named(() => import('@/features/teacher/AssignmentsPage'), 'AssignmentsPage')
 const AssignmentResultsPage = named(() => import('@/features/teacher/AssignmentsPage'), 'AssignmentResultsPage')
 const ReportsPage = named(() => import('@/features/teacher/ReportsPage'), 'ReportsPage')
@@ -109,6 +110,7 @@ export function AdminTabs() {
       { key: 'himoya', label: 'Himoya', element: <ProtectionPanel /> },
       { key: 'litsenziya', label: 'Litsenziyalar', element: <LicencesPanel /> },
       { key: 'yillar', label: "O'quv yillari", element: <AcademicYearsPanel /> },
+      { key: 'sayt', label: 'Sayt', element: <SitePanel /> },
     ]} />
   )
 }

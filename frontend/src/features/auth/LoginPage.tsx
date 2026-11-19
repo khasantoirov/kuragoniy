@@ -1,23 +1,51 @@
 import { isAxiosError } from 'axios'
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
+import { errText } from '@/features/portal/ui'
 import { IC } from '@/icons'
+import { api } from '@/lib/api/client'
 import { homePathFor, LOGOUT_REASON_KEY, useAuth } from '@/lib/auth/AuthContext'
+import { useCaptcha } from '@/lib/publicSite'
 
-// One form for everyone — students, teachers and administration all sign
-// in with a login (or email) and password; where they land afterwards is
-// decided by their role (homePathFor). The last login is remembered only
-// when "Eslab qolish" is ticked, so a shared school computer forgets it.
+import { CaptchaNote, fullPhone, HelpLink, localDigits, PhoneField, PhoneVerify, type VerifyDone, type VerifyStart } from './phone'
+
+// Two ways in, one screen: a phone number proven through our Telegram bot,
+// or the login and password everyone already has (pupils mostly have no
+// phone on their account). Where people land afterwards is decided by their
+// role (homePathFor). The last login is remembered only when "Eslab qolish"
+// is ticked, so a shared school computer forgets it.
 const LAST_LOGIN_KEY = 'af-last-login'
+const MODE_KEY = 'ke-login-mode'
 export const RENAMED_LOGIN_KEY = 'af-renamed-login'
+
+type Mode = 'phone' | 'password'
 
 function readLastLogin() {
   try {
     return localStorage.getItem(LAST_LOGIN_KEY) || ''
   } catch {
     return ''
+  }
+}
+
+function readMode(): Mode {
+  try {
+    const m = localStorage.getItem(MODE_KEY)
+    if (m === 'phone' || m === 'password') return m
+  } catch {
+    // storage blocked
+  }
+  // someone who signed in with a login before keeps that form
+  return readLastLogin() ? 'password' : 'phone'
+}
+
+function saveMode(m: Mode) {
+  try {
+    localStorage.setItem(MODE_KEY, m)
+  } catch {
+    // storage blocked — the default comes back next time
   }
 }
 
@@ -48,19 +76,32 @@ function takeLogoutReason() {
   }
 }
 
+type NavState = { phone?: string; note?: string } | null
+
 export function LoginPage() {
   const { t } = useTranslation()
-  const { login, verifyTotp } = useAuth()
+  const { login, verifyTotp, applySession } = useAuth()
   const navigate = useNavigate()
+  const navState = useLocation().state as NavState
+  const captcha = useCaptcha()
+  const [mode, setModeState] = useState<Mode>(() => (navState?.phone ? 'phone' : readMode()))
   const [loginName, setLoginName] = useState(readLastLogin)
   const [password, setPassword] = useState('')
+  const [phone, setPhone] = useState(() => localDigits(navState?.phone ?? ''))
+  const [verify, setVerify] = useState<VerifyStart | null>(null)
   const [remember, setRemember] = useState(true)
   const [showPw, setShowPw] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [note, setNote] = useState('')
+  const [note, setNote] = useState(navState?.note ?? '')
   const [reason, setReason] = useState(takeLogoutReason)
   const [challenge, setChallenge] = useState<string | null>(null)
   const [totpCode, setTotpCode] = useState('')
+
+  const setMode = (m: Mode) => {
+    setModeState(m)
+    saveMode(m)
+    setNote('')
+  }
 
   const failMessage = (err: unknown) => {
     if (isAxiosError(err)) {
@@ -68,17 +109,18 @@ export function LoginPage() {
       const detail = (err.response.data as { detail?: string })?.detail
       if (err.response.status === 429 && detail) return t(detail)
       if (err.response.status === 429) return t("Juda ko'p urinish. Biroz kutib qayta urining")
+      if (err.response.status === 400 && detail) return t(detail)
     }
     return t("Login yoki parol noto'g'ri")
   }
 
-  const onSubmit = async (e: FormEvent) => {
+  const onPassword = async (e: FormEvent) => {
     e.preventDefault()
     setBusy(true)
     setNote('')
     setReason('')
     try {
-      const result = await login(loginName.trim(), password, remember)
+      const result = await login(loginName.trim(), password, remember, await captcha.token('login'))
       if (result.totpRequired) {
         setChallenge(result.challenge)
         return
@@ -99,6 +141,47 @@ export function LoginPage() {
     }
   }
 
+  const onPhone = async (e: FormEvent) => {
+    e.preventDefault()
+    if (phone.length !== 9) return setNote(t("Telefon raqamni to'liq kiriting: +998 90 123 45 67."))
+    setBusy(true)
+    setNote('')
+    setReason('')
+    try {
+      const r = await api.post<VerifyStart | { step: 'register'; phone: string }>('/auth/phone/start/', {
+        phone: fullPhone(phone),
+        captcha: await captcha.token('phone_start'),
+      })
+      if (r.data.step === 'register') {
+        navigate('/register', { state: { phone, note: t("Bu raqam hali ro'yxatdan o'tmagan. Ma'lumotlaringizni kiriting.") } })
+        return
+      }
+      setVerify(r.data as VerifyStart)
+    } catch (err) {
+      const data = isAxiosError(err) ? (err.response?.data as { step?: string; detail?: string } | undefined) : undefined
+      if (data?.step === 'password') {
+        setModeState('password')
+        setNote(t(data.detail ?? ''))
+      } else {
+        setNote(t(errText(err)))
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const onVerified = (data: VerifyDone) => {
+    if ('totp_required' in data) {
+      setVerify(null)
+      setChallenge(data.challenge)
+      return
+    }
+    if ('access' in data) {
+      applySession(data.access, data.user)
+      navigate(homePathFor(data.user))
+    }
+  }
+
   const onVerifyTotp = async (e: FormEvent) => {
     e.preventDefault()
     if (!challenge) return
@@ -106,7 +189,7 @@ export function LoginPage() {
     setNote('')
     try {
       const user = await verifyTotp(challenge, totpCode)
-      rememberLogin(remember ? loginName.trim() : null)
+      if (mode === 'password') rememberLogin(remember ? loginName.trim() : null)
       navigate(homePathFor(user))
     } catch (err) {
       setNote(isAxiosError(err) && err.response?.status === 429 ? failMessage(err) : t("Kod noto'g'ri"))
@@ -148,11 +231,68 @@ export function LoginPage() {
     )
   }
 
-  return (
-    <form className="form gx-form" onSubmit={onSubmit}>
-      <h1 className="gx-form__title">{t('Tizimga kirish')}</h1>
-      <p className="gx-form__sub gx-form__sub--opt">{t('Login va parolingiz bilan kiring.')}</p>
+  if (verify) {
+    return <PhoneVerify phone={fullPhone(phone)} start={verify} remember={remember} onDone={onVerified} onBack={() => setVerify(null)} />
+  }
 
+  const tabs = (
+    <div className="gx-tabs" role="tablist" aria-label={t('Kirish usuli')}>
+      <button type="button" role="tab" aria-selected={mode === 'phone'} className={mode === 'phone' ? 'is-on' : ''} onClick={() => setMode('phone')}>
+        {IC.smartphone} {t('Telefon raqam')}
+      </button>
+      <button type="button" role="tab" aria-selected={mode === 'password'} className={mode === 'password' ? 'is-on' : ''} onClick={() => setMode('password')}>
+        {IC.lock} {t('Login va parol')}
+      </button>
+    </div>
+  )
+
+  const rememberRow = (
+    <div className="gx-form__row">
+      <label className="gx-check">
+        <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+        <span>{t('Eslab qolish')}</span>
+      </label>
+      {mode === 'password' && <Link className="gx-form__link" to="/forgot-password">{t('Parolni unutdingizmi?')}</Link>}
+    </div>
+  )
+
+  const notes = (
+    <>
+      {note && <p className="form__note form__note--err" role="alert">{note}</p>}
+      {!note && reason && <p className="form__note form__note--info" role="status">{IC.lock} {t(reason)}</p>}
+    </>
+  )
+
+  const signUp = (
+    <p className="gx-form__foot">
+      {t("Hisobingiz yo'qmi?")} <Link className="gx-form__link" to="/register">{t("Ro'yxatdan o'tish")}</Link>
+    </p>
+  )
+
+  if (mode === 'phone') {
+    return (
+      <form className="form gx-form" onSubmit={onPhone}>
+        <h1 className="gx-form__title">{t('Hisobingizga kiring')}</h1>
+        <p className="gx-form__sub gx-form__sub--opt">{t('Telefon raqamingizni kiriting — kod Telegram orqali keladi.')}</p>
+        {tabs}
+        <PhoneField value={phone} onChange={setPhone} autoFocus />
+        {rememberRow}
+        <button className="btn btn--primary btn--block gx-form__go" type="submit" disabled={busy}>
+          {busy ? t('Tekshirilmoqda…') : t('Davom etish')}
+        </button>
+        {notes}
+        {signUp}
+        <HelpLink />
+        <CaptchaNote on={captcha.enabled} />
+      </form>
+    )
+  }
+
+  return (
+    <form className="form gx-form" onSubmit={onPassword}>
+      <h1 className="gx-form__title">{t('Hisobingizga kiring')}</h1>
+      <p className="gx-form__sub gx-form__sub--opt">{t('Login va parolingiz bilan kiring.')}</p>
+      {tabs}
       <label className="field">
         <span className="field__label">{t('Login')}</span>
         <span className="ifield">
@@ -196,20 +336,13 @@ export function LoginPage() {
           </button>
         </span>
       </label>
-
-      <div className="gx-form__row">
-        <label className="gx-check">
-          <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
-          <span>{t('Eslab qolish')}</span>
-        </label>
-        <Link className="gx-form__link" to="/forgot-password">{t('Parolni unutdingizmi?')}</Link>
-      </div>
-
+      {rememberRow}
       <button className="btn btn--primary btn--block gx-form__go" type="submit" disabled={busy}>
         {busy ? t('Tekshirilmoqda…') : t('Kirish')}
       </button>
-      {note && <p className="form__note form__note--err" role="alert">{note}</p>}
-      {!note && reason && <p className="form__note form__note--info" role="status">{IC.lock} {t(reason)}</p>}
+      {notes}
+      {signUp}
+      <CaptchaNote on={captcha.enabled} />
     </form>
   )
 }

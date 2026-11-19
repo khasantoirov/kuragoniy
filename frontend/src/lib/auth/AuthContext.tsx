@@ -30,9 +30,8 @@ interface AuthState {
   user: User | null
   loading: boolean
   /** `login` is an email (staff) or a username (student). */
-  login: (login: string, password: string, remember?: boolean) => Promise<LoginResult>
+  login: (login: string, password: string, remember?: boolean, captcha?: string) => Promise<LoginResult>
   verifyTotp: (challenge: string, code: string) => Promise<User>
-  register: (email: string, name: string, password: string) => Promise<void>
   logout: () => Promise<void>
   refreshMe: () => Promise<void>
   /** Applies the fresh session the change-password endpoint hands back
@@ -135,8 +134,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [userId])
 
-  const login = useCallback(async (loginName: string, password: string, remember = true): Promise<LoginResult> => {
-    const res = await api.post('/auth/login/', { login: loginName, password, remember })
+  const login = useCallback(async (loginName: string, password: string, remember = true, captcha = ''): Promise<LoginResult> => {
+    const res = await api.post('/auth/login/', { login: loginName, password, remember, captcha })
     if (res.data.totp_required) return { totpRequired: true, challenge: res.data.challenge }
     markActive(true)
     setAccessToken(res.data.access)
@@ -152,11 +151,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return res.data.user as User
   }, [])
 
-  const register = useCallback(async (email: string, name: string, password: string) => {
-    await api.post('/auth/register/', { email, name, password })
-    await login(email, password)
-  }, [login])
-
   const logout = useCallback(async () => {
     await api.post('/auth/logout/').catch(() => {})
     setAccessToken(null)
@@ -171,7 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, verifyTotp, register, logout, refreshMe, applySession }}>
+    <AuthContext.Provider value={{ user, loading, login, verifyTotp, logout, refreshMe, applySession }}>
       {children}
       {user && idleLeft !== null && (
         <div className="idlewarn" role="alertdialog" aria-live="assertive">

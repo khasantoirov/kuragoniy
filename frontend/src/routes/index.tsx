@@ -30,6 +30,8 @@ const InboxPage = lazy(() => import('@/features/notifications/InboxPage').then((
 const DayPage = lazy(() => import('@/features/journal/DayPage').then((m) => ({ default: m.DayPage })))
 const BookReaderPage = lazy(() => import('@/features/library/reader/BookReaderPage').then((m) => ({ default: m.BookReaderPage })))
 
+// the public front page, also for a signed-in administrator checking it
+const LandingPage = lazy(() => import('@/features/landing/LandingPage').then((m) => ({ default: m.LandingPage })))
 const GuidePage = lazy(() => import('@/features/guide/GuidePage').then((m) => ({ default: m.GuidePage })))
 const page = (el: React.ReactNode) => <Suspense fallback={<Skeleton lines={5} />}>{el}</Suspense>
 const settings = (el: React.ReactNode) => page(<><SettingsTabs />{el}</>)
@@ -88,6 +90,7 @@ export const router = createBrowserRouter([
     ],
   },
   ...topLevelPortalRoutes,
+  { path: '/sayt', element: page(<LandingPage />) },
   {
     path: '/pending-approval',
     element: (

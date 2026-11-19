@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'kits',
     'achievements',
     'feed',
+    'website',
 ]
 
 MIDDLEWARE = [
@@ -191,6 +192,9 @@ REST_FRAMEWORK = {
         'register': '5/hour',
         'student_register': '200/hour',
         'password_reset': '30/hour',
+        'phone_start': '30/hour',
+        'phone_verify': '120/hour',
+        'lead': '10/hour',
         'password_reset_confirm': '60/hour',
         'game_answer': '120/min',
         'protection_event': '20/hour',
@@ -240,6 +244,12 @@ LOGIN_LOCKOUT_MINUTES = env.int('LOGIN_LOCKOUT_MINUTES', default=15)
 # Public bot username (no @) for the Telegram link deep link, and the
 # frontend origin used in password-reset messages.
 TELEGRAM_BOT_USERNAME = env('TELEGRAM_BOT_USERNAME', default='kuragoniybot')
+
+# Google reCAPTCHA v3 on the public forms (common/captcha.py) — off until
+# both keys are in .env.
+RECAPTCHA_SITE_KEY = env('RECAPTCHA_SITE_KEY', default='')
+RECAPTCHA_SECRET_KEY = env('RECAPTCHA_SECRET_KEY', default='')
+RECAPTCHA_MIN_SCORE = env.float('RECAPTCHA_MIN_SCORE', default=0.5)
 FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
 
 # Password-reset codes go out by email too, but only when SMTP is actually

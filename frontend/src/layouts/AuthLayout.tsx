@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, Outlet } from 'react-router-dom'
 
 import { IC, themeIconMoon, themeIconSun } from '@/icons'
+import { socialUrl, telegramUrl, useLanding } from '@/lib/publicSite'
 import { useUIStore, type Lang } from '@/store/uiStore'
 
 const LANGS: { k: Lang; code: string; label: string }[] = [
@@ -11,13 +12,14 @@ const LANGS: { k: Lang; code: string; label: string }[] = [
   { k: 'en', code: 'EN', label: 'English' },
 ]
 
+// used until the administration fills in Sayt → Kontaktlar
 const SOCIALS: { ic: keyof typeof IC; label: string; url: string }[] = [
   { ic: 'telegram', label: 'Telegram', url: 'https://t.me/Muhandis_D' },
   { ic: 'instagram', label: 'Instagram', url: 'https://instagram.com/Muhandis_D' },
   { ic: 'youtube', label: 'YouTube', url: 'https://youtube.com/@Muhandis_D' },
 ]
 
-function LangMenu() {
+export function LangMenu() {
   const { lang, setLang } = useUIStore()
   const [open, setOpen] = useState(false)
   const box = useRef<HTMLDivElement>(null)
@@ -60,9 +62,53 @@ function LangMenu() {
   )
 }
 
+/** The sign-in screens' social links: the ones set in Sayt, else ours. */
+export function useSocials() {
+  const { data } = useLanding()
+  const c = data?.contacts
+  const set = c ? [
+    { ic: 'telegram' as const, label: 'Telegram', url: telegramUrl(c.telegram) },
+    { ic: 'instagram' as const, label: 'Instagram', url: socialUrl(c.instagram, 'https://instagram.com/') },
+    { ic: 'youtube' as const, label: 'YouTube', url: socialUrl(c.youtube, 'https://youtube.com/@') },
+  ].filter((s) => s.url) : []
+  return set.length ? set : SOCIALS
+}
+
+/** Beside the form on a wide screen: what the platform is. */
+function BrandAside() {
+  const { t } = useTranslation()
+  const { data } = useLanding()
+  const s = data?.stats
+  const figures = s ? [
+    { n: s.schools, label: t('hamkor maktab') },
+    { n: s.teachers, label: t("o'qituvchi") },
+    { n: s.pupils, label: t("o'quvchi") },
+  ].filter((f) => f.n > 0) : []
+  return (
+    <aside className="gx__aside">
+      <span className="gx__kicker">Ko'ragoniy Education × Muhandis D</span>
+      <h2 className="gx__headline">{t('Kelajak muhandislari maktab partasidan boshlanadi')}</h2>
+      <p className="gx__lead">{t("Fizika (nazariy va amaliy), STEAM va robototexnika — o'qituvchi va o'quvchi uchun bitta platformada.")}</p>
+      <ul className="gx__chips">
+        <li>{IC.atom} {t('Amaliy fizika')}</li>
+        <li>{IC.gear} {t('STEAM / Robototexnika')}</li>
+      </ul>
+      {figures.length > 0 && (
+        <dl className="gx__figs">
+          {figures.map((f) => (
+            <div key={f.label}><dt>{f.n.toLocaleString('ru-RU')}</dt><dd>{f.label}</dd></div>
+          ))}
+        </dl>
+      )}
+      <Link className="gx__home" to="/">{IC.back} {t('Bosh sahifa')}</Link>
+    </aside>
+  )
+}
+
 export function AuthLayout() {
   const { t } = useTranslation()
   const { theme, toggleTheme } = useUIStore()
+  const socials = useSocials()
 
   return (
     <div className="gx">
@@ -78,7 +124,7 @@ export function AuthLayout() {
       </div>
 
       <header className="gx__top">
-        <Link className="gx__brand" to="/login">
+        <Link className="gx__brand" to="/">
           <img src="/logo.png" alt="" width={40} height={40} />
           <span>KO'RAGONIY EDU</span>
         </Link>
@@ -91,7 +137,7 @@ export function AuthLayout() {
       </header>
 
       <main className="gx__stage">
-        <div className="gx__panel">
+        <div className="gx__panel gx__panel--split">
           <div className="gx__card">
             <div className="gx__mark">
               <img src="/logo.png" alt="KO'RAGONIY EDU" width={64} height={64} />
@@ -99,14 +145,14 @@ export function AuthLayout() {
             </div>
             <Outlet />
           </div>
-
+          <BrandAside />
         </div>
 
       </main>
 
       <footer className="gx__foot">
         <nav className="gx__social" aria-label={t('Ijtimoiy tarmoqlar')}>
-          {SOCIALS.map((s) => (
+          {socials.map((s) => (
             <a key={s.ic} href={s.url} target="_blank" rel="noreferrer" aria-label={s.label} title={s.label}>{IC[s.ic]}</a>
           ))}
         </nav>

@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { Navigate } from 'react-router-dom'
+import { lazy, Suspense, type ReactNode } from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
 
 import {
   homePathFor,
@@ -17,6 +17,9 @@ import { useModules, type ModuleKey } from '@/lib/modules'
 import { useViewAs } from '@/lib/viewAs'
 import { useUIStore } from '@/store/uiStore'
 
+// kuragoniy.uz for a guest — its own chunk, never loaded once signed in
+const LandingPage = lazy(() => import('@/features/landing/LandingPage').then((m) => ({ default: m.LandingPage })))
+
 function FullScreenSpinner() {
   return (
     <div style={{ display: 'flex', minHeight: '100dvh', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
@@ -27,7 +30,10 @@ function FullScreenSpinner() {
 
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
+  const { pathname } = useLocation()
   if (loading) return <FullScreenSpinner />
+  // the site's front page for a guest; every other page asks to sign in
+  if (!user && pathname === '/') return <Suspense fallback={<FullScreenSpinner />}><LandingPage /></Suspense>
   if (!user) return <Navigate to="/login" replace />
   // A teacher/admin-generated password must be replaced before anything
   // else — the backend refuses every other call until it is.

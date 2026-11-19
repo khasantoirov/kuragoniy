@@ -2,7 +2,7 @@ from rest_framework.routers import DefaultRouter
 
 from django.urls import include, path
 
-from . import sessions, views
+from . import phone_views, sessions, views
 
 router = DefaultRouter()
 router.register('users', views.UserAdminViewSet, basename='user-admin')
@@ -10,6 +10,12 @@ router.register('users', views.UserAdminViewSet, basename='user-admin')
 auth_urlpatterns = [
     path('register/', views.RegisterView.as_view(), name='auth-register'),
     path('login/', views.LoginView.as_view(), name='auth-login'),
+    path('phone/start/', phone_views.PhoneStartView.as_view(), name='auth-phone-start'),
+    path('phone/register/', phone_views.PhoneRegisterStartView.as_view(), name='auth-phone-register'),
+    path('phone/status/', phone_views.PhoneStatusView.as_view(), name='auth-phone-status'),
+    path('phone/resend/', phone_views.PhoneResendView.as_view(), name='auth-phone-resend'),
+    path('phone/verify/', phone_views.PhoneVerifyView.as_view(), name='auth-phone-verify'),
+    path('phone/complete/', phone_views.PhoneCompleteView.as_view(), name='auth-phone-complete'),
     path('2fa/verify/', views.TwoFactorVerifyView.as_view(), name='auth-2fa-verify'),
     path('refresh/', views.RefreshView.as_view(), name='auth-refresh'),
     path('logout/', views.LogoutView.as_view(), name='auth-logout'),

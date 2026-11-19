@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './lib/i18n'
 import './lib/i18n/portal'
+import './lib/i18n/site'
 import './legacy.css'
 // 2-rejim ("ta'lim paneli" ko'rinishi) — legacy.css'dan KEYIN, chunki
 // hamma qoidasi [data-skin="r2"] ostida va teng specifikatsiyada

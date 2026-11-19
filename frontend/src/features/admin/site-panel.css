@@ -1,0 +1,46 @@
+/* Boshqaruv → Sayt (SitePanel) */
+.sitep__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.sitep__head .panel__title { margin-bottom: 0; }
+.sitep__tabs { margin: 4px 0 16px; }
+.sitep__filter { margin-bottom: 12px; }
+.sitep__bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.sitep__msg { max-width: 320px; white-space: pre-wrap; }
+.sitep__h { margin: 18px 0 10px; font-size: 14px; font-weight: 600; }
+.sitep__h:first-child { margin-top: 0; }
+.sitep__form .field { min-width: 0; }
+.sitep__stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) {
+  .sitep__stats { grid-template-columns: 1fr 1fr; }
+  .sitep__form .row--2 { grid-template-columns: 1fr; }
+}
+
+.sitep__photos { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.sitep__photo { margin: 0; overflow: hidden; border-radius: 12px; border: 1px solid var(--rule); background: var(--surface); }
+.sitep__photo img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: var(--rule-2); }
+.sitep__photo figcaption { display: flex; gap: 6px; align-items: center; padding: 8px; }
+.sitep__photo figcaption .input { flex: 1; min-width: 0; }
+
+.sitep__people { display: grid; gap: 10px; }
+.sitep__person {
+  display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 14px; align-items: center;
+  padding: 12px; border-radius: 12px; border: 1px solid var(--rule); background: var(--surface);
+}
+.sitep__person.is-off { opacity: .6; }
+.sitep__person > img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
+.sitep__ava { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--rule-2); color: var(--ink-2); font-weight: 700; font-size: 20px; }
+.sitep__ava--lg { width: 88px; height: 88px; font-size: 30px; }
+.sitep__pbody { display: grid; gap: 2px; min-width: 0; }
+.sitep__pbody p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.sitep__pacts { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.sitep__pub { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; margin-right: 4px; }
+@media (max-width: 640px) {
+  .sitep__person { grid-template-columns: 48px minmax(0, 1fr); }
+  .sitep__person > img, .sitep__person > .sitep__ava { width: 48px; height: 48px; }
+  .sitep__pacts { grid-column: 1 / -1; justify-content: flex-start; }
+}
+
+.sitep__photoedit { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+.sitep__photoedit img { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; }
+.sitep__photoedit .btn { margin-right: 6px; }
+.sitep__note { margin: 6px 0 0; font-size: 12.5px; }
+.sitep__pubfield { display: flex; flex-direction: row; align-items: center; gap: 8px; align-self: end; padding-bottom: 10px; cursor: pointer; }

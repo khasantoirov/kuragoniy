@@ -194,6 +194,10 @@ class LoginView(generics.GenericAPIView):
     throttle_classes = [LoginRateThrottle]
 
     def post(self, request, *args, **kwargs):
+        from common.captcha import FAILED, captcha_ok
+
+        if not captcha_ok(request, 'login'):
+            return Response({'detail': FAILED}, status=status.HTTP_400_BAD_REQUEST)
         login = str(request.data.get('login') or request.data.get('email') or '').strip()
         password = str(request.data.get('password') or '')
         if not login or not password:
@@ -523,6 +527,10 @@ class PasswordResetRequestView(generics.GenericAPIView):
     throttle_classes = [PasswordResetRateThrottle]
 
     def post(self, request, *args, **kwargs):
+        from common.captcha import FAILED, captcha_ok
+
+        if not captcha_ok(request, 'password_reset'):
+            return Response({'detail': FAILED}, status=status.HTTP_400_BAD_REQUEST)
         login = str(request.data.get('login') or request.data.get('email') or '').strip()
         user = User.objects.find_by_login(login)
         if not user or not user.is_active:
