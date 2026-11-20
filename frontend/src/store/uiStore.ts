@@ -50,6 +50,11 @@ function applySidebarMini(mini: boolean) {
   document.documentElement.toggleAttribute('data-side-mini', mini)
 }
 
+/** Which fan window the page is in — its accent colour (components/fan.css). */
+function applyFan(subject: Subject) {
+  document.documentElement.setAttribute('data-fan', subject)
+}
+
 // Brauzer UI rangi (Android manzil paneli, PWA) — har bir rejimning o'z
 // topbar foniga mos keladi, shuning uchun mavzu va uslub birga o'qiladi.
 const THEME_COLOR: Record<Skin, Record<Theme, string>> = {
@@ -111,10 +116,13 @@ export const useUIStore = create<UIState>()(
       viewMode: 'admin',
       sidebarMini: false,
       setGrade: (grade) => set({ grade }),
-      setSubject: (subject) => set((s) => ({
-        subject,
-        grade: SUBJECT_GRADES[subject].includes(s.grade) ? s.grade : SUBJECT_GRADES[subject][0],
-      })),
+      setSubject: (subject) => set((s) => {
+        applyFan(subject)
+        return {
+          subject,
+          grade: SUBJECT_GRADES[subject].includes(s.grade) ? s.grade : SUBJECT_GRADES[subject][0],
+        }
+      }),
       setViewMode: (viewMode) => set({ viewMode }),
       toggleSidebarMini: () => {
         const next = !get().sidebarMini
@@ -201,6 +209,7 @@ export const useUIStore = create<UIState>()(
         if (state.themeMode === 'system') state.theme = resolveTheme('system')
         applyTheme(state.theme, state.skin)
         applySidebarMini(state.sidebarMini)
+        applyFan(state.subject ?? 'steam')
         i18n.changeLanguage(state.lang)
         document.documentElement.lang = state.lang
       },
@@ -210,7 +219,8 @@ export const useUIStore = create<UIState>()(
 
 // Apply immediately on load too (before any React render / rehydration callback).
 if (typeof document !== 'undefined') {
-  const { theme, skin, sidebarMini } = useUIStore.getState()
+  const { theme, skin, sidebarMini, subject } = useUIStore.getState()
+  applyFan(subject)
   applySkin(skin)
   applyTheme(theme, skin)
   applySidebarMini(sidebarMini)

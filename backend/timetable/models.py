@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from common.subjects import CHOICES as SUBJECT_CHOICES
+
 
 class TimetableSlot(models.Model):
     teacher = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='timetable_slots', on_delete=models.CASCADE)
@@ -19,6 +21,9 @@ class TimetableSlot(models.Model):
     sinf = models.CharField(max_length=64, blank=True)      # class
     span = models.PositiveSmallIntegerField(default=1)
     band = models.BooleanField(default=False)  # "busy elsewhere" placeholder, not a real lesson
+    # the fan window it belongs to (common/subjects.py) — Fizika and STEAM
+    # keep their journals apart
+    subject = models.CharField(max_length=10, choices=SUBJECT_CHOICES, default='steam', db_index=True)
 
     class Meta:
         unique_together = ('teacher', 'day_index', 'period_index')

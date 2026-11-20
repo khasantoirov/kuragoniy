@@ -90,6 +90,10 @@ def _timetable_section(request):
     slots = TimetableSlot.objects.filter(band=False).filter(
         Q(maktab__gt='') | Q(xona__gt='') | Q(sinf__gt='') | Q(time_from__isnull=False)
     )
+    from common.subjects import window
+
+    if (fan := window(request)):  # the Fizika or STEAM window's week
+        slots = slots.filter(subject=fan)
     teacher_id = request.query_params.get('teacher')
     if user.is_admin:
         if teacher_id:

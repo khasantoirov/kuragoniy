@@ -113,12 +113,10 @@ def grade_from_class_name(name: str, subject: str = 'steam'):
 
 
 def grade_for_journal_class(journal_class):
-    """A journal class's lesson grade, read in its teacher's subject."""
-    from common.subjects import main_subject
-
+    """A journal class's lesson grade, read in the class's own fan."""
     if journal_class is None:
         return None
-    return grade_from_class_name(journal_class.name, main_subject(journal_class.teacher))
+    return grade_from_class_name(journal_class.name, journal_class.subject)
 
 
 @transaction.atomic

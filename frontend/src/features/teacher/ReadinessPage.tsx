@@ -9,7 +9,6 @@ import { AttemptReview, QuizRunner, type AttemptPayload, type AttemptResult } fr
 import { errText, PageHead, PercentPill, Segmented } from '@/features/portal/ui'
 import { api } from '@/lib/api/client'
 import { gradeLabel, type Grade } from '@/features/lessons/labels'
-import { SubjectSwitch } from '@/components/SubjectSwitch'
 import { useSubjects } from '@/lib/subjects'
 import { useUIStore } from '@/store/uiStore'
 
@@ -65,7 +64,7 @@ export function ReadinessPage() {
     <div>
       <PageHead title={t('Darsga tayyorgarlik')}
         sub={t("Darsdan oldin o'zingizni tekshiring: platforma darsning nazariyasi, formulalari va tajribasini o'tkazish bo'yicha savollar tuzadi. 70% va undan yuqori — «tayyor».")}
-        actions={<><SubjectSwitch /><Segmented value={grade} onChange={setGrade} options={fans.grades.map((g) => ({ value: g, label: gradeLabel(g, lang) }))} /></>} />
+        actions={<Segmented value={grade} onChange={setGrade} options={fans.grades.map((g) => ({ value: g, label: gradeLabel(g, lang) }))} />} />
       {isLoading ? <Skeleton lines={6} /> : (
         <section className="panel">
           <ul className="people">

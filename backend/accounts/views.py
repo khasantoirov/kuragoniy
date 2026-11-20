@@ -706,6 +706,10 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
         q = (self.request.query_params.get('q') or '').strip()
         if q:
             qs = qs.filter(Q(name__icontains=q) | Q(username__icontains=q) | Q(email__icontains=q))
+        if self.action == 'list':
+            from common.subjects import window, window_people
+
+            qs = window_people(qs, window(self.request))  # the Fizika or STEAM window's staff
         return qs
 
     def get_serializer_context(self):

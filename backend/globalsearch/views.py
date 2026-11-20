@@ -30,6 +30,7 @@ from lessons.models import Lesson
 from lessons.visibility import visible_lessons
 from library.models import LibraryItem
 from library.views import visible_items
+from common.subjects import window
 
 # Under two characters every query matches half the database, so the
 # result is noise and the scan is wasted work on every keystroke.
@@ -51,8 +52,8 @@ def _limit(request):
     return max(1, min(value, MAX_LIMIT))
 
 
-def _lessons(user, q, limit):
-    qs = visible_lessons(Lesson.objects.all(), user).filter(
+def _lessons(user, q, limit, fan=None):
+    qs = visible_lessons(Lesson.objects.all(), user, fan).filter(
         Q(title__icontains=q)
         | Q(title_ru__icontains=q)
         | Q(title_en__icontains=q)
@@ -71,8 +72,8 @@ def _lessons(user, q, limit):
     ]
 
 
-def _library(user, q, limit):
-    qs = visible_items(LibraryItem.objects.all(), user).filter(Q(title__icontains=q) | Q(note__icontains=q))
+def _library(user, q, limit, fan=None):
+    qs = visible_items(LibraryItem.objects.all(), user, fan).filter(Q(title__icontains=q) | Q(note__icontains=q))
     return [
         {
             'id': str(item.id),
@@ -85,12 +86,12 @@ def _library(user, q, limit):
     ]
 
 
-def _students(user, q, limit):
+def _students(user, q, limit, fan=None):
     qs = (
         Student.objects.filter(
             full_name__icontains=q,
             active=True,
-            journal_class_id__in=scoped_class_ids(user),
+            journal_class_id__in=scoped_class_ids(user, fan=fan),
         )
         .select_related('journal_class')
         .order_by('full_name')
@@ -135,6 +136,7 @@ class GlobalSearchView(APIView):
         q = (request.query_params.get('q') or '').strip()
         limit = _limit(request)
         user = request.user
+        fan = window(request)  # the Fizika or STEAM window searched from
 
         if len(q) < MIN_QUERY_LEN:
             groups = [
@@ -146,9 +148,9 @@ class GlobalSearchView(APIView):
             return Response({'q': q, 'total': 0, 'groups': groups})
 
         groups = [
-            {'kind': 'lesson', 'label': 'Darslar', 'items': _lessons(user, q, limit)},
-            {'kind': 'library', 'label': 'Kutubxona', 'items': _library(user, q, limit)},
-            {'kind': 'student', 'label': "O'quvchilar", 'items': _students(user, q, limit)},
+            {'kind': 'lesson', 'label': 'Darslar', 'items': _lessons(user, q, limit, fan)},
+            {'kind': 'library', 'label': 'Kutubxona', 'items': _library(user, q, limit, fan)},
+            {'kind': 'student', 'label': "O'quvchilar", 'items': _students(user, q, limit, fan)},
             {'kind': 'staff', 'label': 'Xodimlar', 'items': _staff(q, limit) if user.is_admin else []},
         ]
         return Response({'q': q, 'total': sum(len(g['items']) for g in groups), 'groups': groups})

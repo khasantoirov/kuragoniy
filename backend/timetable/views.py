@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from accounts.models import User
 from common.audit import notify_admin_action
 from common.permissions import IsApproved
+from common.subjects import LABELS, main_subject, window
 
 from .models import TimetableSlot
 from .serializers import TimetableSlotSerializer
@@ -71,10 +72,13 @@ class TimetableSlotViewSet(viewsets.ModelViewSet):
         return get_object_or_404(User, id=teacher_id)
 
     def get_queryset(self):
-        return TimetableSlot.objects.filter(teacher=self._target_teacher(self.request))
+        qs = TimetableSlot.objects.filter(teacher=self._target_teacher(self.request))
+        fan = window(self.request)  # the Fizika or STEAM window's lessons only
+        return qs.filter(subject=fan) if fan else qs
 
     def perform_create(self, serializer):
-        serializer.save(teacher=self._target_teacher(self.request, require_write_permission=True))
+        teacher = self._target_teacher(self.request, require_write_permission=True)
+        serializer.save(teacher=teacher, subject=window(self.request) or main_subject(teacher))
 
     def perform_update(self, serializer):
         # get_object() (used to fetch `serializer.instance`) resolves its
@@ -103,12 +107,22 @@ class TimetableSlotViewSet(viewsets.ModelViewSet):
         if is_cross_teacher:
             before = {
                 (row['day_index'], row['period_index']): row
-                for row in TimetableSlot.objects.filter(teacher=teacher).values('day_index', 'period_index', *_SLOT_FIELDS)
+                for row in TimetableSlot.objects.filter(teacher=teacher, subject=window(request) or main_subject(teacher))
+                .values('day_index', 'period_index', *_SLOT_FIELDS)
             }
 
-        TimetableSlot.objects.filter(teacher=teacher).delete()
+        # Only this window's week is replaced — the other fan's lessons stay,
+        # and the new week can't sit on top of them.
+        fan = window(request) or main_subject(teacher)
+        others = {(s.day_index, s.period_index): s for s in TimetableSlot.objects.filter(teacher=teacher).exclude(subject=fan)}
+        clash = [item for item in serializer.validated_data if (item['day_index'], item['period_index']) in others]
+        if clash:
+            other = others[(clash[0]['day_index'], clash[0]['period_index'])]
+            return Response({'detail': f"{_slot_label(clash[0]['day_index'], clash[0]['period_index'])} — bu vaqtda "
+                                       f"{LABELS[other.subject]} darsi bor."}, status=400)
+        TimetableSlot.objects.filter(teacher=teacher, subject=fan).delete()
         slots = [
-            TimetableSlot(teacher=teacher, **item)
+            TimetableSlot(teacher=teacher, subject=fan, **item)
             for item in serializer.validated_data
         ]
         TimetableSlot.objects.bulk_create(slots)

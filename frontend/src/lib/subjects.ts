@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-import { gradeLabel, gradeLabelFull, SUBJECT_GRADES, SUBJECTS, type Grade, type Subject } from '@/features/lessons/labels'
+import { gradeLabel, SUBJECT_GRADES, SUBJECTS, type Grade, type Subject } from '@/features/lessons/labels'
 import type { User } from '@/lib/api/types'
 import { isOversight, useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore } from '@/store/uiStore'
@@ -34,14 +34,14 @@ export function useSubjects() {
   }
 }
 
-/** A grade picker's options: every grade this person sees, labelled with
- *  its fan when they see both ("7-sinf · Fizika"). */
+/** A grade picker's options: the grades of the fan window this tab is in
+ *  (Fizika and STEAM are separate windows — components/FanWindow.tsx). */
 export function useGradeOptions() {
-  const { allGrades, mixed } = useSubjects()
+  const { grades } = useSubjects()
   const lang = useUIStore((s) => s.lang)
   return {
-    grades: allGrades,
-    label: (g: Grade) => (mixed ? gradeLabelFull(g, lang) : gradeLabel(g, lang)),
+    grades: [...grades],
+    label: (g: Grade) => gradeLabel(g, lang),
   }
 }
 

@@ -21,6 +21,7 @@ from common.permissions import IsApproved
 from common.security import log_event
 from lessons.models import Lesson
 from lessons.visibility import visible_lessons
+from common.subjects import window
 from notifications.models import Kind as NotifyKind
 from notifications.service import notify
 
@@ -52,7 +53,7 @@ class DayView(APIView):
     def get(self, request):
         _teacher(request)
         day = _day(request.query_params.get('date'))
-        return Response({**day_plan(request.user, day), 'today': timezone.localdate()})
+        return Response({**day_plan(request.user, day, window(request)), 'today': timezone.localdate()})
 
 
 class PlanView(APIView):

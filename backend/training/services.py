@@ -54,8 +54,12 @@ def teacher_kinds(user) -> set[str]:
     return set(SchoolTeacher.objects.filter(teacher=user).values_list('kind', flat=True))
 
 
-def visible_courses(user):
+def visible_courses(user, fan=None):
+    """`fan`: the window asked from (common/subjects.window) — that fan's
+    courses and those for both."""
     qs = Course.objects.all()
+    if fan:
+        qs = qs.filter(Q(subject='') | Q(subject=fan))
     if can_edit(user):
         return qs
     qs = qs.filter(is_published=True)

@@ -86,8 +86,11 @@ class TeacherClassViewSet(viewsets.ReadOnlyModelViewSet):
             pending_count=Count('student_profiles', filter=Q(student_profiles__user__approved=False), distinct=True),
         )
         if self.action == 'list':  # one o'quv yili's classes; any class by id
+            from common.subjects import window
             from schools.models import AcademicYear
             qs = qs.filter(year=AcademicYear.from_param(self.request.query_params.get('year')))
+            if (fan := window(self.request)):  # the Fizika or STEAM window's classes
+                qs = qs.filter(subject=fan)
         teacher_id = self.request.query_params.get('teacher')
         if user.is_oversight:
             return qs.filter(teacher_id=teacher_id) if teacher_id else qs

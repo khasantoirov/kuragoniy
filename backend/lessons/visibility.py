@@ -32,12 +32,15 @@ def visible_chorak_set(user, subject: str = STEAM):
     return open_quarters(subject)
 
 
-def visible_lessons(qs, user):
-    """`qs` narrowed to what this person may see: their own fan(s), each
-    within the quarters that fan has opened (the administration: every
-    quarter). Used by the lessons list, the global search, kits and the
-    teacher's day plan."""
+def visible_lessons(qs, user, fan=None):
+    """`qs` narrowed to what this person may see: their own fan(s) — only
+    `fan` when a window is given (common/subjects.window) — each within the
+    quarters that fan has opened (the administration: every quarter). Used
+    by the lessons list, the global search, kits and the teacher's day
+    plan."""
     subjects = subjects_for(user)
+    if fan in subjects:
+        subjects = [fan]
     if user.is_admin:
         return qs.filter(grade__in=[g for s in subjects for g in GRADES[s]])
     allowed = Q(pk__in=[])

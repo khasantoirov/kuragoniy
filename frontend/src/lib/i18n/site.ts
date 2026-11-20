@@ -64,6 +64,14 @@ const ru: Record<string, string> = {
   'Amaliy fizika': 'Прикладная физика',
   'STEAM / Robototexnika': 'STEAM / Робототехника',
   'Bosh sahifa': 'Главная',
+  'Oyna': 'Окно',
+  'Qaysi oynaga kirasiz?': 'В какое окно войти?',
+  'Har bir fan alohida oynada. Keyin yuqoridagi tugma bilan almashtirasiz.':
+    'У каждого предмета своё окно. Переключиться можно кнопкой вверху.',
+  "Nazariya va tajriba: darslar, laboratoriya, kutubxona, jurnallar — fizika o'qituvchilari va sinflari":
+    'Теория и опыт: уроки, лаборатория, библиотека, журналы — учителя и классы физики',
+  "Robototexnika, STEAM loyihalar, STEM chamadonlar — o'z o'qituvchilari, sinflari va jurnallari bilan":
+    'Робототехника, STEAM-проекты, STEM-чемоданы — со своими учителями, классами и журналами',
   'Fan': 'Предмет',
   'Fan biriktirish': 'Назначить предмет',
   'Fan biriktirilmagan': 'Предмет не назначен',
@@ -132,6 +140,14 @@ const en: Record<string, string> = {
   'Amaliy fizika': 'Applied physics',
   'STEAM / Robototexnika': 'STEAM / Robotics',
   'Bosh sahifa': 'Home',
+  'Oyna': 'Window',
+  'Qaysi oynaga kirasiz?': 'Which window do you enter?',
+  'Har bir fan alohida oynada. Keyin yuqoridagi tugma bilan almashtirasiz.':
+    'Each subject has its own window. Switch later with the button at the top.',
+  "Nazariya va tajriba: darslar, laboratoriya, kutubxona, jurnallar — fizika o'qituvchilari va sinflari":
+    'Theory and experiment: lessons, lab, library, journals — physics teachers and classes',
+  "Robototexnika, STEAM loyihalar, STEM chamadonlar — o'z o'qituvchilari, sinflari va jurnallari bilan":
+    'Robotics, STEAM projects, STEM kits — with their own teachers, classes and journals',
   'Fan': 'Subject',
   'Fan biriktirish': 'Assign a subject',
   'Fan biriktirilmagan': 'No subject yet',

@@ -15,7 +15,6 @@ import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
 import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
 import { gradeLabel, type Grade } from '@/features/lessons/labels'
-import { SubjectSwitch } from '@/components/SubjectSwitch'
 import { useSubjects } from '@/lib/subjects'
 import { useUIStore } from '@/store/uiStore'
 
@@ -204,7 +203,7 @@ export function MaterialsPage() {
   return (
     <div>
       <PageHead title={t("O'quv materiallari")} sub={`${t("O'quvchilar ko'radigan nazariya, formula, video va savollar.")} ${data ? `${ready}/${data.length} ${t("tayyor")}` : ''}`}
-        actions={<><SubjectSwitch /><Segmented value={grade} onChange={setGrade} options={fans.grades.map((g) => ({ value: g, label: gradeLabel(g, lang) }))} /></>} />
+        actions={<Segmented value={grade} onChange={setGrade} options={fans.grades.map((g) => ({ value: g, label: gradeLabel(g, lang) }))} />} />
       {isLoading ? <Skeleton lines={8} /> : (
         <section className="panel">
           <div className="tablewrap">

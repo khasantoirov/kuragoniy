@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from common.subjects import CHOICES as SUBJECT_CHOICES
+
 from .scales import level as level_of
 
 
@@ -20,6 +22,9 @@ class JournalClass(models.Model):
     # O'quv yili: a class is one school year's — next year's 8-A is a new
     # class. Set to the current year when left empty.
     year = models.ForeignKey('schools.AcademicYear', related_name='classes', null=True, blank=True, on_delete=models.PROTECT)
+    # the fan window it belongs to (common/subjects.py) — Fizika and STEAM
+    # keep their journals apart
+    subject = models.CharField(max_length=10, choices=SUBJECT_CHOICES, default='steam', db_index=True)
     # Made by "Yangi yilga o'tish" from last year's class (journal/rollover.py):
     # 7-A of 2026-2027 → this 8-A of 2027-2028, so a second run skips it.
     rolled_from = models.ForeignKey('self', related_name='rolled_to', null=True, blank=True, on_delete=models.SET_NULL)

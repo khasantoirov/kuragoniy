@@ -60,25 +60,32 @@ def lesson_card(lesson: Lesson, readiness: dict) -> dict:
     }
 
 
-def day_plan(user, day: date) -> dict:
+def day_plan(user, day: date, fan=None) -> dict:
+    """`fan`: the window asked from (common/subjects.window) — its slots,
+    classes and lessons only."""
     weekday = day.weekday()
-    slots = list(TimetableSlot.objects.filter(teacher=user, day_index=weekday).order_by('period_index')) \
-        if weekday <= 4 else []
+    slot_qs = TimetableSlot.objects.filter(teacher=user, day_index=weekday)
+    if fan:
+        slot_qs = slot_qs.filter(subject=fan)
+    slots = list(slot_qs.order_by('period_index')) if weekday <= 4 else []
     where = place(day)
 
     planned = {p.period_index: p for p in PlannedLesson.objects.filter(teacher=user, date=day).select_related('lesson')}
-    classes = list(JournalClass.objects.filter(teacher=user, year=AcademicYear.current()).select_related('partner_school'))
+    class_qs = JournalClass.objects.filter(teacher=user, year=AcademicYear.current())
+    if fan:
+        class_qs = class_qs.filter(subject=fan)
+    classes = list(class_qs.select_related('partner_school'))
 
     # the class number read in the teacher's subject ("8-A" → '8-9' or 'F8')
-    subject = main_subject(user)
+    subject = fan or main_subject(user)
     grades = {lesson_grade(class_grade(s.sinf), subject) for s in slots if not s.band} - {None}
     by_grade = {
-        g: list(visible_lessons(Lesson.objects.filter(grade=g), user).order_by('chorak', 'hafta')
+        g: list(visible_lessons(Lesson.objects.filter(grade=g), user, fan).order_by('chorak', 'hafta')
                 .prefetch_related('experiments'))
         for g in grades
     }
     picked_ids = [p.lesson_id for p in planned.values() if p.lesson_id]
-    extra = {lesson.id: lesson for lesson in visible_lessons(Lesson.objects.filter(id__in=picked_ids), user)
+    extra = {lesson.id: lesson for lesson in visible_lessons(Lesson.objects.filter(id__in=picked_ids), user, fan)
              .prefetch_related('experiments')}
     readiness = dict(
         Attempt.objects.filter(user=user, kind=Attempt.Kind.READINESS, submitted_at__isnull=False, lesson__isnull=False)

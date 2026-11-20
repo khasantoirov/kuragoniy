@@ -22,13 +22,16 @@ LIBRARY_AUDIT_LABELS = {
 }
 
 
-def visible_items(qs, user):
-    """Books of both fanlar (blank subject) plus the person's own fan(s)."""
+def visible_items(qs, user, fan=None):
+    """Books of both fanlar (blank subject) plus the person's own fan(s) —
+    only `fan`'s when a window is given (common/subjects.window)."""
     from django.db.models import Q
 
     from common.subjects import CODES, subjects_for
 
     mine = subjects_for(user)
+    if fan in mine:
+        mine = [fan]
     if set(mine) >= set(CODES):
         return qs
     return qs.filter(Q(subject='') | Q(subject__in=mine))
@@ -43,7 +46,9 @@ class LibraryItemViewSet(viewsets.ModelViewSet):
         subject = self.request.query_params.get('subject')
         if subject:
             qs = qs.filter(subject__in=['', subject])
-        return visible_items(qs, self.request.user)
+        from common.subjects import window
+
+        return visible_items(qs, self.request.user, window(self.request))
 
     def get_permissions(self):
         if self.request.method in SAFE_METHODS:
@@ -51,7 +56,12 @@ class LibraryItemViewSet(viewsets.ModelViewSet):
         return [IsApproved(), IsAdminOrDevSuperuser()]
 
     def perform_create(self, serializer):
-        item = serializer.save()
+        from common.subjects import window
+
+        # added in a fan's window, it is that fan's unless said otherwise
+        fan = window(self.request)
+        extra = {'subject': fan} if fan and not serializer.validated_data.get('subject') else {}
+        item = serializer.save(**extra)
         lines = [f"Kutubxonaga qo'shdi: «{item.title}»"]
         for f in ('kind', 'grade', 'url', 'note'):
             v = getattr(item, f)

@@ -74,7 +74,7 @@ def roll_over(source, target, exclude=()):
         old = JournalClass.objects.get(pk=row['id'])
         new = JournalClass.objects.create(
             teacher=old.teacher, school=old.school, partner_school=old.partner_school,
-            name=row['new_name'], scale=old.scale, year=target, rolled_from=old,
+            name=row['new_name'], scale=old.scale, year=target, rolled_from=old, subject=old.subject,
         )
         made += 1
         for st in old.students.filter(active=True).order_by('order'):

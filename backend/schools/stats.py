@@ -317,8 +317,9 @@ def attention(classes, chorak=None, limit=100) -> list[dict]:
     return rows[:limit]
 
 
-def classes_for(viewer, *, school_id=None, teacher_id=None, year=None):
-    """The classes in view: one o'quv yili's (the current one by default)."""
+def classes_for(viewer, *, school_id=None, teacher_id=None, year=None, fan=None):
+    """The classes in view: one o'quv yili's (the current one by default),
+    only the `fan` window's when given (common/subjects.window)."""
     from .models import AcademicYear
 
     from .access import managed_school_ids
@@ -331,6 +332,8 @@ def classes_for(viewer, *, school_id=None, teacher_id=None, year=None):
             qs = qs.filter(teacher_id=teacher_id)
     else:
         qs = qs.filter(teacher=viewer)
+    if fan:
+        qs = qs.filter(subject=fan)
     if school_id == 'none':
         qs = qs.filter(partner_school__isnull=True)
     elif school_id:

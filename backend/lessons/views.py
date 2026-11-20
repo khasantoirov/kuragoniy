@@ -19,7 +19,7 @@ from .signals import send_lessons_backup, suppress_lessons_backup
 from .visibility import visible_lessons
 
 from common.subjects import GRADES as SUBJECT_GRADES
-from common.subjects import subject_of_grade
+from common.subjects import subject_of_grade, window
 
 logger = logging.getLogger(__name__)
 
@@ -142,7 +142,7 @@ class LessonViewSet(viewsets.ModelViewSet):
         if subject in SUBJECT_GRADES:
             qs = qs.filter(grade__in=SUBJECT_GRADES[subject])
         # the open quarters and the person's own fan(s); the administration sees all
-        return visible_lessons(qs, self.request.user)
+        return visible_lessons(qs, self.request.user, fan=window(self.request))
 
     def _label(self, lesson):
         return f"«{lesson.title}» ({grade_label(lesson.grade)}, {lesson.chorak}-chorak)"

@@ -1,0 +1,67 @@
+/* Fan oynalari (components/FanWindow.tsx). Har bir oyna o'z urg'u rangida:
+   STEAM — platformaning odatiy binafsharang-ko'k rangi, Amaliy fizika —
+   firuza. html[data-fan] uiStore.subject'dan o'rnatiladi. */
+
+[data-skin="r2"][data-fan="fizika"] {
+  --pick: #0B7C74; --pick-2: #14968D; --solid: #0B7C74;
+  --navacc: #0B7C74; --navacc-2: #14968D; --navglow: rgba(11,124,116,.45);
+}
+[data-skin="r2"][data-fan="fizika"][data-theme="dark"] {
+  --pick: #2CC4B8; --pick-2: #52D3C9; --solid: #1FA79D;
+  --navacc: #2CC4B8; --navacc-2: #52D3C9; --navglow: rgba(44,196,184,.45);
+}
+
+.fanswitch {
+  display: inline-flex; align-items: center; gap: 2px; padding: 3px; flex: none;
+  border-radius: 12px; background: var(--rule-2); border: 1px solid var(--rule);
+}
+.fanswitch__b {
+  display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px;
+  border: 0; border-radius: 9px; background: transparent; color: var(--ink-2);
+  font: 600 13px/1 var(--f-body, inherit); white-space: nowrap; cursor: pointer;
+  transition: background-color .15s, color .15s;
+}
+.fanswitch__b .svic { width: 16px; height: 16px; }
+.fanswitch__b:hover { color: var(--ink); }
+.fanswitch__b.is-on { color: #fff; }
+.fanswitch__b--steam.is-on { background: #6A73FA; }
+.fanswitch__b--fizika.is-on { background: #0B7C74; }
+[data-theme="dark"] .fanswitch__b--fizika.is-on { background: #1FA79D; }
+.fanpill {
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; flex: none;
+  border-radius: 999px; font: 600 13px/1 var(--f-body, inherit); white-space: nowrap;
+  color: var(--pick); background: color-mix(in srgb, var(--pick) 12%, transparent);
+}
+.fanpill .svic { width: 16px; height: 16px; }
+@media (max-width: 640px) {
+  .fanswitch__b { padding: 0 9px; }
+  .fanswitch__b span { display: none; }
+  .fanpill { padding: 0 9px; }
+}
+
+/* Kirishdagi tanlash ekrani */
+.fanpick {
+  min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px;
+  background: linear-gradient(140deg, #2f7bff 0%, #4f63f0 48%, #2c3a9e 100%); color: #fff;
+}
+[data-theme="dark"] .fanpick { background: linear-gradient(140deg, #18224d 0%, #232a6b 48%, #0f1430 100%); }
+.fanpick__in { width: min(880px, 100%); text-align: center; }
+.fanpick__logo { width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 16px; background: #fff; padding: 3px; }
+.fanpick__title { margin: 0; font: 700 clamp(24px, 3.4vw, 34px)/1.2 var(--f-display, inherit); }
+.fanpick__sub { margin: 8px 0 26px; color: rgba(255,255,255,.85); font-size: 15px; }
+.fanpick__cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.fanpick__card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 26px; text-align: left;
+  border: 0; border-radius: 22px; background: #fff; color: #0f1b3d; cursor: pointer;
+  box-shadow: 0 18px 40px rgba(8,20,60,.28); transition: transform .15s, box-shadow .15s;
+}
+.fanpick__card:hover { transform: translateY(-3px); box-shadow: 0 24px 48px rgba(8,20,60,.34); }
+.fanpick__card:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.fanpick__ic { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; color: #fff; }
+.fanpick__ic .svic { width: 28px; height: 28px; }
+.fanpick__card--fizika .fanpick__ic { background: #0B7C74; }
+.fanpick__card--steam .fanpick__ic { background: #6A73FA; }
+.fanpick__name { font: 700 22px/1.2 var(--f-display, inherit); }
+.fanpick__blurb { font-size: 14.5px; line-height: 1.5; color: #45506a; }
+[data-theme="dark"] .fanpick__card { background: #141a30; color: #e8ecf7; }
+[data-theme="dark"] .fanpick__blurb { color: #b6bfd6; }

@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 
 from common.permissions import IsApproved, IsTeacher
 from common.security import log_event
+from common.subjects import main_subject, window
 from schools.models import AcademicYear
 from staffroom.calendar import chorak_of
 
@@ -70,6 +71,10 @@ class JournalClassViewSet(viewsets.ModelViewSet):
         qs = JournalClass.objects.prefetch_related('students').select_related('year')
         if self.action == 'list':  # one o'quv yili's classes; any class by id
             qs = qs.filter(year=AcademicYear.from_param(self.request.query_params.get('year')))
+            # the Fizika or STEAM window's classes only
+            fan = window(self.request)
+            if fan:
+                qs = qs.filter(subject=fan)
         # Administrators may look at any teacher's journal, never write to
         # it — writes always resolve to the requester's own classes. A
         # school's ma'muriyat looks at its own school's classes the same way.
@@ -82,7 +87,9 @@ class JournalClassViewSet(viewsets.ModelViewSet):
         return qs.filter(teacher=user)
 
     def perform_create(self, serializer):
-        serializer.save(teacher=self.request.user)
+        # a class belongs to the window it was made in
+        serializer.save(teacher=self.request.user,
+                        subject=window(self.request) or main_subject(self.request.user))
 
     def perform_update(self, serializer):
         """Changing a class's scale carries every mark already given over
@@ -283,7 +290,8 @@ class StudentTransferView(APIView):
     def get(self, request, pk):
         student = self._student(request, pk)
         source = student.journal_class
-        targets = (JournalClass.objects.filter(year=source.year_id).exclude(pk=source.pk)
+        # a pupil moves within the class's own fan
+        targets = (JournalClass.objects.filter(year=source.year_id, subject=source.subject).exclude(pk=source.pk)
                    .select_related('teacher', 'partner_school').order_by('partner_school__name', 'school', 'name'))
         return Response([
             {'id': c.id, 'name': c.name, 'scale': c.scale, 'mine': c.teacher_id == request.user.pk,
@@ -643,9 +651,12 @@ class EditGrantViewSet(viewsets.GenericViewSet):
 
         if (denied := self._admin_only(request)):
             return denied
+        from common.subjects import in_window
+
+        fan = window(request)  # the Fizika or STEAM window's teachers and classes
         people = [
             u for u in User.objects.filter(is_active=True).exclude(role__in=[User.Role.STUDENT, User.Role.KUZATUVCHI, User.Role.MAKTAB])
-            if u.is_approved_effective
+            if u.is_approved_effective and in_window(u, fan)
         ]
 
         def shown_name(u):
@@ -658,7 +669,8 @@ class EditGrantViewSet(viewsets.GenericViewSet):
                for u in people}
         year = AcademicYear.from_param(request.query_params.get('year'))
         schools = {}  # (teacher, school) -> {name, classes, students, grades: {grade: {classes, students}}}
-        classes = (JournalClass.objects.filter(teacher_id__in=out, year=year).select_related('partner_school')
+        classes = (JournalClass.objects.filter(teacher_id__in=out, year=year, **({'subject': fan} if fan else {}))
+                   .select_related('partner_school')
                    .annotate(pupils=Count('students', filter=Q(students__active=True))).order_by('name'))
         for c in classes:
             out[c.teacher_id]['classes'].append({'id': c.id, 'label': class_label(c), 'students': c.pupils})

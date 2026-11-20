@@ -121,11 +121,13 @@ export function LessonsTabs() {
   const { user } = useAuth()
   const viewMode = useUIStore((s) => s.viewMode)
   const { on } = useModules()
+  const fan = useUIStore((s) => s.subject)
   return (
     <PageTabs tabs={[
       { key: 'darslar', label: 'Darslar', element: <LessonsPage /> },
       { key: 'tayyorgarlik', label: 'Darsga tayyorgarlik', element: <ReadinessPage />, show: isTeacherLike(user) && on('readiness') },
-      { key: 'chamadonlar', label: 'STEM chamadonlar', element: <KitsPage />, show: on('kits') },
+      // STEM chamadonlar belong to the STEAM window
+      { key: 'chamadonlar', label: 'STEM chamadonlar', element: <KitsPage />, show: on('kits') && fan === 'steam' },
       { key: 'materiallar', label: "O'quv materiallari", element: <MaterialsPage />, show: oversees(user, viewMode) && on('materials') },
     ]} />
   )

@@ -17,6 +17,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import User
+from common.subjects import window
 from common.audit import notify_admin_action
 from common.permissions import IsAdminOrDevSuperuser, IsApproved, IsOversight
 from common.presence import presence_for
@@ -385,7 +386,8 @@ def _cached(request, name, compute):
 
     generation = cache.get(STATS_GENERATION_KEY, 0)
     key = 'schools:' + hashlib.sha256(json.dumps(
-        [name, generation, request.user.id, request.user.is_oversight, sorted(request.query_params.items())]).encode()).hexdigest()
+        [name, generation, request.user.id, request.user.is_oversight, window(request),
+         sorted(request.query_params.items())]).encode()).hexdigest()
     data = cache.get(key)
     if data is None:
         data = compute()
@@ -424,7 +426,7 @@ class StatsOverviewView(APIView):
 
         def compute():
             year = _year(request)
-            classes = stats.classes_for(request.user, school_id=school_id, teacher_id=teacher_id, year=year)
+            classes = stats.classes_for(request.user, fan=window(request), school_id=school_id, teacher_id=teacher_id, year=year)
             if class_id:
                 classes = [c for c in classes if str(c.id) == class_id]
             schools = stats.grouped(classes, chorak, key=lambda c: c.partner_school_id or 'none',
@@ -496,7 +498,7 @@ class StatsSchoolView(APIView):
             return sorted(rows, key=lambda r: r['id'] != SchoolTeacher.Kind.MUHANDIS)
 
         def compute():
-            classes = stats.classes_for(request.user, school_id='none' if school is None else school.id, year=_year(request))
+            classes = stats.classes_for(request.user, fan=window(request), school_id='none' if school is None else school.id, year=_year(request))
             return {
                 'school': SchoolBriefSerializer(school).data if school else None,
                 'totals': stats.derive(stats.pool(stats.class_raw(classes, chorak).values())),
@@ -520,7 +522,7 @@ class StatsClassesView(APIView):
 
     def get(self, request):
         chorak = _chorak(request)
-        classes = stats.classes_for(request.user, school_id=request.query_params.get('school') or None,
+        classes = stats.classes_for(request.user, fan=window(request), school_id=request.query_params.get('school') or None,
                                     teacher_id=request.query_params.get('teacher') or None, year=_year(request))
         return Response(_cached(request, 'classes', lambda: stats.class_rows(classes, chorak)))
 
@@ -530,7 +532,7 @@ class StatsAttentionView(APIView):
 
     def get(self, request):
         chorak = _chorak(request)
-        classes = stats.classes_for(request.user, school_id=request.query_params.get('school') or None, year=_year(request))
+        classes = stats.classes_for(request.user, fan=window(request), school_id=request.query_params.get('school') or None, year=_year(request))
         return Response(_cached(request, 'attention', lambda: stats.attention(classes, chorak)))
 
 
@@ -545,7 +547,7 @@ class StatsMineView(APIView):
         chorak = _chorak(request)
 
         def compute():
-            classes = stats.classes_for(request.user, teacher_id=request.user.id, year=_year(request))
+            classes = stats.classes_for(request.user, fan=window(request), teacher_id=request.user.id, year=_year(request))
             return {
                 'totals': stats.derive(stats.pool(stats.class_raw(classes, chorak).values())),
                 'schools': stats.grouped(classes, chorak, key=lambda c: c.partner_school_id or 'none',

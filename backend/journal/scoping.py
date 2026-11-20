@@ -10,9 +10,12 @@ JournalClassViewSet.get_queryset()'s scoping in journal/views.py.
 from .models import JournalClass
 
 
-def scoped_class_ids(user, teacher_id=None):
+def scoped_class_ids(user, teacher_id=None, fan=None):
+    """`fan`: only that window's classes (common/subjects.window)."""
     if user.is_admin:
         qs = JournalClass.objects.filter(teacher_id=teacher_id) if teacher_id else JournalClass.objects.all()
     else:
         qs = JournalClass.objects.filter(teacher=user)
+    if fan:
+        qs = qs.filter(subject=fan)
     return list(qs.values_list('id', flat=True))

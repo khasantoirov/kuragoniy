@@ -102,7 +102,7 @@ class Command(BaseCommand):
         return people
 
     # ── one table ────────────────────────────────────────────────────────
-    def _copy(self, table, model, fks, *, match=None, self_fks=()):
+    def _copy(self, table, model, fks, *, match=None, self_fks=(), extra=None):
         """Copies `table` into `model`. `fks`: {column: (map name, required)}.
         `match(kw)` may return an existing row to reuse instead of creating.
         Columns in `self_fks` point into the same table and are set after."""
@@ -134,6 +134,7 @@ class Command(BaseCommand):
                 continue
             for col in self_fks:
                 kw.pop(col, None)
+            kw.update(extra or {})
             obj = match(kw) if match else None
             if obj is None:
                 obj = model.objects.create(**kw)
@@ -229,7 +230,8 @@ class Command(BaseCommand):
 
         self._copy('journal_journalclass', JournalClass,
                    {'teacher_id': ('people', True), 'partner_school_id': ('schools_school', False),
-                    'year_id': ('schools_academicyear', False)}, self_fks=('rolled_from_id',))
+                    'year_id': ('schools_academicyear', False)}, self_fks=('rolled_from_id',),
+                   extra={'subject': 'fizika'})  # amaliyfizika.uz's journals are the Fizika window's
         self._copy('journal_student', Student, {'journal_class_id': ('journal_journalclass', True)},
                    self_fks=('moved_to_id',))
         self._copy('journal_classday', ClassDay, {'journal_class_id': ('journal_journalclass', True)})
@@ -254,7 +256,8 @@ class Command(BaseCommand):
             return TimetableSlot.objects.filter(teacher_id=kw['teacher_id'], day_index=kw['day_index'],
                                                 period_index=kw['period_index']).first()
         self._copy('timetable_timetableslot', TimetableSlot,
-                   {'teacher_id': ('people', True), 'school_id': ('schools_school', False)}, match=free_slot)
+                   {'teacher_id': ('people', True), 'school_id': ('schools_school', False)}, match=free_slot,
+                   extra={'subject': 'fizika'})
 
         def free_plan(kw):
             return PlannedLesson.objects.filter(teacher_id=kw['teacher_id'], date=kw['date'],

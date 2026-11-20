@@ -3,6 +3,7 @@ import axios, { isAxiosError, type AxiosError, type InternalAxiosRequestConfig }
 import { idleMs } from '@/lib/auth/idle'
 import { deviceHeader, deviceReady } from '@/lib/device'
 import { viewAsHeaderFor } from '@/lib/viewAs'
+import { useUIStore } from '@/store/uiStore'
 import { yearParamFor } from '@/lib/year'
 
 /**
@@ -41,6 +42,8 @@ api.interceptors.request.use(async (config) => {
   // Ko'rish rejimi → O'quvchi: the student portal's calls run as that pupil (reads only)
   const pupil = viewAsHeaderFor(config.url)
   if (pupil) config.headers['X-View-As-Student'] = pupil
+  // Fizika or STEAM — the window this tab is in (backend common/subjects.window)
+  config.headers['X-Fan'] = useUIStore.getState().subject
   // Sign-in and refresh carry the device details for the sessions list;
   // the hints resolve in milliseconds, but never hold a request for long.
   if (config.url?.includes('/auth/') || config.url?.includes('change-password')) {

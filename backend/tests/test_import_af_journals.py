@@ -90,6 +90,7 @@ def test_journals_come_over_after_the_teachers(tmp_path, make_user):
     slot = TimetableSlot.objects.get(teacher=t)
     assert slot.school_id == school.id and str(slot.time_from) == '08:30:00' and slot.sinf == '8-A'
     assert not JournalClass.objects.filter(name='7-V').exists()
+    assert a.subject == 'fizika' and slot.subject == 'fizika'  # the Fizika window's
 
     # a second run adds nothing; the blocked teacher's class comes with --with-blocked
     call_command('import_af_journals', source=str(db), apply=True, with_blocked=True, stdout=StringIO())

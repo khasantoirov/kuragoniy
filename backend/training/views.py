@@ -20,6 +20,7 @@ from rest_framework.views import APIView
 
 from accounts.models import User
 from common.permissions import IsAdminOrDevSuperuser, IsApproved
+from common.subjects import window
 from common.security import log_event
 from learning.grading import public_item, review_items
 
@@ -31,7 +32,7 @@ from .serializers import (
 
 
 def _course_or_404(request, pk) -> Course:
-    return get_object_or_404(services.visible_courses(request.user), pk=pk)
+    return get_object_or_404(services.visible_courses(request.user, window(request)), pk=pk)
 
 
 def _learner(request):
@@ -53,7 +54,7 @@ class CoursesView(APIView):
 
     def get(self, request):
         user = request.user
-        courses = list(services.visible_courses(user))
+        courses = list(services.visible_courses(user, window(request)))
         progress = services.progress_for(user, courses)
         enrollments = {e.course_id: e for e in Enrollment.objects.filter(user=user, course__in=courses)}
         certs = {c.course_id: c for c in Certificate.objects.filter(user=user, course__in=courses)}
@@ -85,7 +86,10 @@ class CoursesView(APIView):
             raise PermissionDenied('Bu amal faqat administrator uchun.')
         s = CourseSerializer(data=request.data)
         s.is_valid(raise_exception=True)
-        course = s.save(created_by=request.user)
+        # made in a fan's window, it is that fan's course unless said otherwise
+        fan = window(request)
+        extra = {'subject': fan} if fan and not s.validated_data.get('subject') else {}
+        course = s.save(created_by=request.user, **extra)
         log_event('training_course_added', actor=request.user, request=request, detail=course.title)
         return Response(CourseSerializer(course).data, status=status.HTTP_201_CREATED)
 

@@ -81,6 +81,63 @@ def grades_for(user) -> list[str]:
     return [g for s in subjects_for(user) for g in GRADES[s]]
 
 
+def window(request):
+    """The fan window a request comes from — Fizika and STEAM are separate
+    windows; nothing of one shows in the other. The browser sends its
+    window as the X-Fan header; it counts only if this person may see that
+    fan. Someone with one fan is always in it. None = no window asked for
+    (an older client, a tool): everything this person may see."""
+    if request is None:
+        return None
+    user = getattr(request, 'user', None)
+    if getattr(user, 'role', None) == 'student' and not assigned(user):
+        # a pupil is in the window of the class they belong to
+        profile = getattr(user, 'student_profile', None)
+        cls = getattr(profile, 'journal_class', None) if profile else None
+        if cls is not None:
+            return cls.subject
+    mine = subjects_for(user)
+    asked = (request.headers.get('X-Fan') or '').strip()
+    if asked in mine:
+        return asked
+    if len(mine) == 1:
+        return mine[0]
+    return None
+
+
+def in_window(person, fan) -> bool:
+    """Whether a staff member belongs on a fan window's lists: that fan's
+    teachers, anyone not pointed to a fan yet, and the administration
+    (it runs both)."""
+    if not fan:
+        return True
+    if getattr(person, 'is_dev_superuser', False) or getattr(person, 'is_oversight', False):
+        return True
+    mine = assigned(person)
+    return not mine or fan in mine
+
+
+def window_people(qs, fan):
+    """A User queryset narrowed like in_window(): the fan's teachers, those
+    not pointed to a fan yet, and the administration."""
+    if not fan:
+        return qs
+    from django.db.models import Q
+
+    from accounts.models import User
+
+    shared = [User.Role.ADMIN, User.Role.BOSHLIQ, User.Role.KUZATUVCHI, User.Role.MAKTAB]
+    return qs.filter(Q(is_dev_superuser=True) | Q(role__in=shared) | Q(subjects=[])
+                     | Q(subjects__0=fan) | Q(subjects__1=fan))
+
+
+def window_grades(request, user=None) -> list[str]:
+    """The lesson grade codes of the request's window (all the person's
+    grades when there is no window)."""
+    fan = window(request)
+    return list(GRADES[fan]) if fan else grades_for(user or getattr(request, 'user', None))
+
+
 def main_subject(user) -> str:
     """The one subject to read a class number with ("8-A" → '8-9' or 'F8')
     when only one can be used: STEAM unless the person teaches physics only."""

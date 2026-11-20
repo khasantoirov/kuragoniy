@@ -36,7 +36,8 @@ function libraryGradeLabel(n: number, lang: Lang) {
 }
 
 function emptyItem(): Partial<LibraryItem> {
-  return { title: '', url: '', kind: 'havola', grade: null, subject: '', note: '' }
+  // a new book belongs to the fan window it is added in
+  return { title: '', url: '', kind: 'havola', grade: null, subject: useUIStore.getState().subject, note: '' }
 }
 
 function LibraryEditor({ item, onClose }: { item: LibraryItem | null; onClose: () => void }) {
