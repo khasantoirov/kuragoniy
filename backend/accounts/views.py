@@ -441,6 +441,48 @@ class LogoutAllView(generics.GenericAPIView):
         return response
 
 
+class ViewAsView(generics.GenericAPIView):
+    """Dasturchi → Rol (common/viewas.py). GET ?role=teacher|admin|boshliq|
+    kuzatuvchi|maktab: the people of that role the developer may look
+    through (teachers of the fan window the request is in). POST {key}:
+    checks the view and writes it to the security log; the app then sends
+    the key as X-View-As-User. Always runs as the developer
+    (viewas.EXEMPT_PREFIXES)."""
+
+    permission_classes = [IsDevSuperuser]
+
+    def get(self, request):
+        from common.subjects import window, window_people
+        from common.viewas import PERSON_ROLES
+
+        role = request.query_params.get('role', '')
+        if role not in PERSON_ROLES:
+            raise ValidationError({'role': "Noma'lum rol."})
+        qs = (User.objects.filter(role=role, is_active=True, is_dev_superuser=False)
+              .exclude(pk=request.user.pk).order_by('first_name', 'last_name', 'name'))
+        if role == 'teacher':
+            qs = window_people(qs.filter(approved=True), window(request))
+        people = list(qs[:500])
+        schools = {}
+        if role == 'maktab':
+            from schools.models import SchoolManager
+
+            for m in SchoolManager.objects.filter(user__in=people).select_related('school').order_by('school__name'):
+                schools.setdefault(m.user_id, []).append(m.school.name)
+        return Response([{'id': u.pk, 'name': u.name, 'role': u.role, 'subjects': u.subjects or [],
+                          'schools': schools.get(u.pk, [])} for u in people])
+
+    def post(self, request):
+        from common.viewas import label, resolve
+
+        key = str(request.data.get('key') or '')
+        viewed = resolve(request.user, key)
+        if viewed is None:
+            raise ValidationError({'detail': "Bu hisobni ko'rib bo'lmaydi (bloklangan, o'chirilgan yoki o'quvchi)."})
+        log_event('view_as_user', actor=request.user, request=request, detail=label(viewed))
+        return Response({'key': key, 'label': label(viewed)})
+
+
 class MeView(generics.RetrieveUpdateAPIView):
     serializer_class = MeSerializer
     permission_classes = [permissions.IsAuthenticated]

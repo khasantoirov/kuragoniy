@@ -45,6 +45,9 @@ export interface User {
   student?: StudentInfo | null
   /** Maktab ma'muriyati (role 'maktab'): the schools they see — /accounts/me/ only. */
   managed_schools?: { id: number; name: string; position: 'direktor' | 'zavuch' | 'boshqa' }[] | null
+  /** Dasturchi → Rol: set while the developer looks through this account
+   *  (/accounts/me/ only; components/RoleSwitch.tsx). */
+  viewing?: { key: string; label: string; by: string } | null
   // Admin view only.
   online?: boolean
   last_seen?: string | null

@@ -2,7 +2,7 @@ import axios, { isAxiosError, type AxiosError, type InternalAxiosRequestConfig }
 
 import { idleMs } from '@/lib/auth/idle'
 import { deviceHeader, deviceReady } from '@/lib/device'
-import { viewAsHeaderFor } from '@/lib/viewAs'
+import { useViewAsUser, viewAsHeaderFor, viewAsUserHeaderFor } from '@/lib/viewAs'
 import { useUIStore } from '@/store/uiStore'
 import { yearParamFor } from '@/lib/year'
 
@@ -42,6 +42,9 @@ api.interceptors.request.use(async (config) => {
   // Ko'rish rejimi → O'quvchi: the student portal's calls run as that pupil (reads only)
   const pupil = viewAsHeaderFor(config.url)
   if (pupil) config.headers['X-View-As-Student'] = pupil
+  // Dasturchi → Rol: the whole app runs as the viewed account (reads only)
+  const viewed = viewAsUserHeaderFor(config.url)
+  if (viewed) config.headers['X-View-As-User'] = viewed
   // Fizika or STEAM — the window this tab is in (backend common/subjects.window)
   config.headers['X-Fan'] = useUIStore.getState().subject
   // Sign-in and refresh carry the device details for the sessions list;
@@ -91,6 +94,13 @@ api.interceptors.response.use(
         original.headers.Authorization = `Bearer ${token}`
         return api(original)
       }
+    }
+    // the viewed account is gone (blocked, deleted): back to the developer's own
+    const detail = (error.response?.data as { detail?: unknown } | undefined)?.detail
+    if (error.response?.status === 403 && original?.headers?.['X-View-As-User']
+        && typeof detail === 'string' && detail.startsWith("Bu ko'rinish endi yo'q")) {
+      useViewAsUser.getState().clear()
+      window.location.assign('/')
     }
     return Promise.reject(error)
   },

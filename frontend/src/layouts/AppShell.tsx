@@ -5,6 +5,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { Avatar } from '@/components/Avatar'
 import { ContentGuard } from '@/components/ContentGuard'
 import { FanSwitch } from '@/components/FanWindow'
+import { RoleSwitch } from '@/components/RoleSwitch'
 import { isAnyModalOpen } from '@/components/Modal'
 import { RoleBadge } from '@/components/RoleBadge'
 import { ScrollTopButton } from '@/components/ScrollTopButton'
@@ -190,6 +191,7 @@ export function AppShell() {
 
   const utils = (
     <>
+      <RoleSwitch />
       <FanSwitch />
       <button className="iconbtn" onClick={toggleTheme} title={t('Rejimni almashtirish')} aria-label={t('Rejim')}>
         {theme === 'dark' ? themeIconMoon() : themeIconSun()}

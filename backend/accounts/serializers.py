@@ -67,14 +67,32 @@ class MeSerializer(UserSerializer):
 
     student = serializers.SerializerMethodField()
     managed_schools = serializers.SerializerMethodField()
+    # Dasturchi → Rol: who is looking through this account (common/viewas.py)
+    viewing = serializers.SerializerMethodField()
 
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + [
-            'telegram_chat_id', 'username', 'must_change_password', 'student', 'managed_schools',
+            'telegram_chat_id', 'username', 'must_change_password', 'student', 'managed_schools', 'viewing',
         ]
         read_only_fields = UserSerializer.Meta.read_only_fields + [
             'telegram_linked', 'telegram_chat_id', 'telegram_username', 'username', 'must_change_password',
         ]
+
+    def get_viewing(self, user):
+        by = getattr(user, 'viewed_by', None)
+        if by is None:
+            return None
+        from common.viewas import label
+
+        return {'key': getattr(user, 'view_key', ''), 'label': label(user), 'by': by.name}
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if getattr(instance, 'viewed_by', None) is not None:
+            # the developer sees the window, not the person's private bits
+            data['must_change_password'] = False
+            data['telegram_chat_id'] = None
+        return data
 
     def get_managed_schools(self, user):
         """A school's ma'muriyat: which schools they see (schools.SchoolManager)."""

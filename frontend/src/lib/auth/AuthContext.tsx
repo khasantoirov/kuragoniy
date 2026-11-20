@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { useViewAs, useViewAsUser } from '@/lib/viewAs'
 import { api, refreshAccessToken, SESSION_ENDED_EVENT, setAccessToken } from '@/lib/api/client'
 import type { User } from '@/lib/api/types'
 import { clearHistory } from '@/lib/history'
@@ -33,7 +34,7 @@ interface AuthState {
   login: (login: string, password: string, remember?: boolean, captcha?: string) => Promise<LoginResult>
   verifyTotp: (challenge: string, code: string) => Promise<User>
   logout: () => Promise<void>
-  refreshMe: () => Promise<void>
+  refreshMe: () => Promise<User>
   /** Applies the fresh session the change-password endpoint hands back
    * (every other session of the account is revoked by that call). */
   applySession: (access: string, user: User) => void
@@ -50,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshMe = useCallback(async () => {
     const res = await api.get<User>('/accounts/me/')
     setUser(res.data)
+    return res.data
   }, [])
 
   useEffect(() => {
@@ -96,6 +98,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null)
       setIdleLeft(null)
       clearHistory()
+      useViewAsUser.getState().clear()
+      useViewAs.getState().stop()
     }
     window.addEventListener(SESSION_ENDED_EVENT, onEnded)
     return () => window.removeEventListener(SESSION_ENDED_EVENT, onEnded)
@@ -120,6 +124,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(null)
           setIdleLeft(null)
           clearHistory()
+          useViewAsUser.getState().clear()
+          useViewAs.getState().stop()
         })
         return
       }
@@ -156,6 +162,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAccessToken(null)
     setUser(null)
     clearHistory()
+    // nobody's view outlives the session
+    useViewAsUser.getState().clear()
+    useViewAs.getState().stop()
   }, [])
 
   const applySession = useCallback((access: string, next: User) => {

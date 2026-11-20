@@ -26,6 +26,7 @@ auth_urlpatterns = [
 
 account_urlpatterns = [
     path('me/', views.MeView.as_view(), name='account-me'),
+    path('view-as/', views.ViewAsView.as_view(), name='account-view-as'),
     path('me/change-password/', views.ChangePasswordView.as_view(), name='account-change-password'),
     path('me/logout-all/', views.LogoutAllView.as_view(), name='account-logout-all'),
     path('me/heartbeat/', views.HeartbeatView.as_view(), name='account-heartbeat'),

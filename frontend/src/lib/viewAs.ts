@@ -22,6 +22,33 @@ export const useViewAs = create<{ pupil: ViewedPupil | null; start: (p: ViewedPu
   ),
 )
 
+/** Dasturchi → Rol (components/RoleSwitch.tsx, backend common/viewas.py):
+ * the developer looks through another account — their own as Admin or
+ * Boshliq (key 'role:admin'), or a chosen person (key = their id). Every
+ * request then carries X-View-As-User and the server answers as that
+ * account, read-only. This tab only, like the pupil view. */
+export interface ViewedUser {
+  key: string
+  label: string
+}
+
+export const useViewAsUser = create<{ view: ViewedUser | null; set: (v: ViewedUser) => void; clear: () => void }>()(
+  persist(
+    (set) => ({ view: null, set: (view) => set({ view }), clear: () => set({ view: null }) }),
+    { name: 'ke-view-as-user', storage: createJSONStorage(() => sessionStorage) },
+  ),
+)
+
+/** run as the developer even while viewing (backend viewas.EXEMPT_PREFIXES) */
+const VIEW_EXEMPT = ['/auth/', '/accounts/view-as/', '/accounts/me/heartbeat/']
+
+/** The X-View-As-User header for a request, while the developer views as someone. */
+export function viewAsUserHeaderFor(url: string | undefined): string | null {
+  const view = useViewAsUser.getState().view
+  if (!view || !url || VIEW_EXEMPT.some((p) => url.startsWith(p))) return null
+  return view.key
+}
+
 /** The X-View-As-Student header for a request, while looking through a pupil. */
 export function viewAsHeaderFor(url: string | undefined): string | null {
   const pupil = useViewAs.getState().pupil
