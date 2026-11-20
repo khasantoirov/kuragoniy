@@ -326,13 +326,14 @@ class LessonViewSet(viewsets.ModelViewSet):
                 result = Lesson.objects.create(
                     title=source.title,
                     grade=target_grade, chorak=target_chorak, hafta=0,
+                    cat=source.cat, sim_id=source.sim_id,
                     goal=source.goal,
                     file_url=source.file_url,
                 )
                 for exp in source.experiments.all():
                     new_exp = Experiment.objects.create(
                         lesson=result, order=exp.order,
-                        name=exp.name, desc=exp.desc,
+                        name=exp.name, type=exp.type, desc=exp.desc,
                         steps=exp.steps, concepts=exp.concepts,
                         minutes=exp.minutes, safety=exp.safety,
                         image=exp.image, video=exp.video,

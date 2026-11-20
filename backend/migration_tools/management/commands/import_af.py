@@ -16,8 +16,10 @@ What comes over
     account here as it is, and isn't copied.
 What doesn't
   journals, classes, pupils and the timetable (they stay on amaliyfizika.uz),
-  Telegram links (another bot — they link here through the phone sign-in),
-  2FA secrets, the virtual-lab link (sim_id) and the lesson category (cat).
+  Telegram links (another bot — they link here through the phone sign-in)
+  and 2FA secrets. (The lesson category, the virtual-lab link and the
+  experiment type come with new lessons; for lessons copied before KE had
+  them, see import_af_fields.)
 
 Every copied row is listed in migration_tools.ImportedRow, so a second run
 copies only what is new. Everything goes in one transaction; on any error

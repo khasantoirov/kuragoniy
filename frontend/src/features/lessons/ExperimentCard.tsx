@@ -4,13 +4,14 @@ import { useTranslation } from 'react-i18next'
 import { ImageLightbox } from '@/components/ImageLightbox'
 import { IC } from '@/icons'
 
-import type { Experiment } from './types'
+import { EXP_TYPES, type Experiment } from './types'
 
 /** The lesson's one practical task — not a repeatable, reorderable list
  * item (a lesson has exactly one, see LessonDetail.tsx), so this renders
  * as a single standalone panel with no drag handle and no sibling grid. */
 export function ExperimentCard({
   exp,
+  typed = false,
   admin,
   onEdit,
   onDelete,
@@ -18,6 +19,8 @@ export function ExperimentCard({
   onMove,
 }: {
   exp: Experiment
+  /** Amaliy fizika: the Oddiy / WOW / O'yin badge */
+  typed?: boolean
   admin: boolean
   onEdit: () => void
   onDelete: () => void
@@ -36,6 +39,12 @@ export function ExperimentCard({
         <div className="xcard__main">
           <div className="xcard__head">
             <div className="xcard__meta">
+              {typed && (
+                <span className={`exp__type exp__type--${exp.type ?? 'oddiy'}`}>
+                  {(EXP_TYPES[exp.type ?? 'oddiy'] ?? EXP_TYPES.oddiy).icon}
+                  <span>{t((EXP_TYPES[exp.type ?? 'oddiy'] ?? EXP_TYPES.oddiy).label)}</span>
+                </span>
+              )}
               {exp.minutes ? <span className="xcard__min">{exp.minutes} {t('daqiqa')}</span> : null}
               {admin && (
                 <span className="xcard__tools">

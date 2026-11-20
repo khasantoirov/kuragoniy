@@ -979,6 +979,13 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
    phones the five grades fill the first row; the view switch and the search
    share the second (two rows, not three). */
 .ltbar--nocats .ltbar__search { flex: 1 1 auto; max-width: 420px; margin-right: auto; }
+/* Fizika window: the bo'lim chips (Mexanika, Optika, ...) get a row of
+   their own unless the screen is wide enough for all of it in one. */
+@media (min-width: 761px) and (max-width: 1680px) {
+  .ltbar:not(.ltbar--nocats) { flex-wrap: wrap; row-gap: 6px; }
+  .ltbar:not(.ltbar--nocats) .ltbar__search { flex: 1 1 auto; max-width: 420px; margin-right: auto; }
+  .ltbar:not(.ltbar--nocats) .ltbar__cats { order: 5; flex: 1 1 100%; }
+}
 @media (max-width: 760px) {
   .ltbar--nocats .ltbar__grades { flex-basis: 100%; }
   .ltbar--nocats .ltbar__search { flex: 1 1 0; min-width: 0; max-width: none; margin-right: 0; }

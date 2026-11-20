@@ -14,6 +14,15 @@ class Lesson(models.Model):
         F8 = 'F8', "8-sinf (fizika)"
         F9 = 'F9', "9-sinf (fizika)"
 
+    class Category(models.TextChoices):
+        """Amaliy fizika's bo'limlar (as on amaliyfizika.uz); STEAM lessons
+        leave it blank."""
+        MEXANIKA = 'mexanika', 'Mexanika'
+        TERMODINAMIKA = 'termodinamika', 'Termodinamika'
+        ELEKTR = 'elektr', 'Elektr'
+        OPTIKA = 'optika', 'Optika'
+        BOSHQA = 'boshqa', 'Boshqa'
+
     title = models.CharField(max_length=255)
     title_ru = models.CharField(max_length=255, blank=True)
     title_en = models.CharField(max_length=255, blank=True)
@@ -21,6 +30,7 @@ class Lesson(models.Model):
     grade = models.CharField(max_length=5, choices=Grade.choices)
     chorak = models.PositiveSmallIntegerField(choices=[(1, 1), (2, 2), (3, 3), (4, 4)])
     hafta = models.PositiveSmallIntegerField()
+    cat = models.CharField(max_length=20, choices=Category.choices, blank=True, default='')
 
     goal = models.TextField(blank=True)
     goal_ru = models.TextField(blank=True)
@@ -35,6 +45,8 @@ class Lesson(models.Model):
     # are set.
     file_url = models.URLField(blank=True)
     file = models.FileField(upload_to='lesson-files/', null=True, blank=True)
+    # the Fizika window's virtual lab (frontend features/lab SIMS[id]), not an FK
+    sim_id = models.CharField(max_length=64, blank=True)
 
     updated_at = models.DateTimeField(auto_now=True)
     translated_at = models.DateTimeField(null=True, blank=True)
@@ -92,12 +104,21 @@ class QuarterLock(models.Model):
 
 
 class Experiment(models.Model):
+    class Type(models.TextChoices):
+        """Amaliy fizika's experiment kinds; STEAM's practical tasks keep the
+        default and the frontend doesn't show it for them."""
+        ODDIY = 'oddiy', 'Oddiy'
+        WOW = 'wow', 'Wow'
+        OYIN = 'oyin', "O'yin"
+
     lesson = models.ForeignKey(Lesson, related_name='experiments', on_delete=models.CASCADE)
     order = models.PositiveSmallIntegerField(default=0)
 
     name = models.CharField(max_length=255)
     name_ru = models.CharField(max_length=255, blank=True)
     name_en = models.CharField(max_length=255, blank=True)
+
+    type = models.CharField(max_length=10, choices=Type.choices, default=Type.ODDIY)
 
     desc = models.TextField(blank=True)
     desc_ru = models.TextField(blank=True)

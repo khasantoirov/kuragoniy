@@ -34,8 +34,8 @@ import { ExperimentRow } from './ExperimentRow'
 import { LessonEditor } from './LessonEditor'
 import { useSubjects } from '@/lib/subjects'
 
-import { gradeLabel, lessonLabel, quarterLabel, weeksLabel } from './labels'
-import type { Lesson } from './types'
+import { gradeLabel, numberLabel, quarterLabel, subjectOfGrade, weeksLabel } from './labels'
+import { CATEGORY_LABELS, type Lesson, type LessonCategory } from './types'
 import './quarters.css'
 
 type ViewMode = 'grid' | 'list'
@@ -79,20 +79,33 @@ export function LessonsPage() {
   }
 
   const [query, setQuery] = useState('')
+  // Amaliy fizika: lessons by bo'lim (Mexanika, Optika, ...), as on amaliyfizika.uz
+  const fizika = fans.current === 'fizika'
+  const [catPick, setCatFilter] = useState<LessonCategory | null>(null)
+  const catFilter = fizika ? catPick : null
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [creatingForQuarter, setCreatingForQuarter] = useState<number | null>(null)
 
+  const counts = useMemo(() => {
+    const c: Record<string, number> = {}
+    data?.forEach((l) => { if (l.cat) c[l.cat] = (c[l.cat] ?? 0) + 1 })
+    return c
+  }, [data])
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return data ?? []
-    return (data ?? []).filter((l) =>
-      l.title.toLowerCase().includes(q) ||
-      l.goal.toLowerCase().includes(q) ||
-      l.experiments.some((e) => e.name.toLowerCase().includes(q) || e.desc.toLowerCase().includes(q)),
-    )
-  }, [data, query])
+    return (data ?? []).filter((l) => {
+      if (catFilter && l.cat !== catFilter) return false
+      if (!q) return true
+      return (
+        l.title.toLowerCase().includes(q) ||
+        l.goal.toLowerCase().includes(q) ||
+        l.experiments.some((e) => e.name.toLowerCase().includes(q) || e.desc.toLowerCase().includes(q))
+      )
+    })
+  }, [data, query, catFilter])
 
-  const searching = !!query.trim()
+  const searching = !!(query.trim() || catFilter)
   const canDrag = admin && !searching
 
   const sensors = useSensors(
@@ -170,9 +183,11 @@ export function LessonsPage() {
     )
   }
 
+  const cats = fizika ? (Object.keys(CATEGORY_LABELS) as LessonCategory[]).filter((c) => counts[c]) : []
+
   return (
     <div>
-      <div className={`ltbar ltbar--nocats ${scrolled ? 'is-stuck' : ''}`}>
+      <div className={`ltbar ${cats.length ? '' : 'ltbar--nocats'} ${scrolled ? 'is-stuck' : ''}`}>
         {grades}
         <div className="search ltbar__search">
           <span className="search__ic" aria-hidden="true">{IC.search}</span>
@@ -180,7 +195,7 @@ export function LessonsPage() {
             className="search__input"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={t("Mavzu yoki amaliy topshiriq bo'yicha qidirish…")}
+            placeholder={fizika ? t("Mavzu yoki tajriba bo'yicha qidirish…") : t("Mavzu yoki amaliy topshiriq bo'yicha qidirish…")}
             autoComplete="off"
           />
           {query && (
@@ -189,6 +204,26 @@ export function LessonsPage() {
             </button>
           )}
         </div>
+        {cats.length > 0 && (
+          <>
+            <div className="ltbar__cats" role="group" aria-label={t("Bo'lim")}>
+              <button type="button" className={`lcat ${!catFilter ? 'is-on' : ''}`} aria-pressed={!catFilter} onClick={() => setCatFilter(null)}>
+                {t('Hammasi')} <span className="lcat__n">{data.length}</span>
+              </button>
+              {cats.map((c) => (
+                <button key={c} type="button" className={`lcat ${catFilter === c ? 'is-on' : ''}`} aria-pressed={catFilter === c}
+                  onClick={() => setCatFilter(catFilter === c ? null : c)}>
+                  {t(CATEGORY_LABELS[c])} <span className="lcat__n">{counts[c]}</span>
+                </button>
+              ))}
+            </div>
+            <select className="input ltbar__catsel" value={catFilter ?? ''} aria-label={t("Bo'lim")}
+              onChange={(e) => setCatFilter((e.target.value || null) as LessonCategory | null)}>
+              <option value="">{t('Hammasi')} ({data.length})</option>
+              {cats.map((c) => <option key={c} value={c}>{t(CATEGORY_LABELS[c])} ({counts[c]})</option>)}
+            </select>
+          </>
+        )}
         <div className="seg ltbar__view" role="group" aria-label={t("Ko'rinish")}>
           <button type="button" className={`seg__b ${viewMode === 'grid' ? 'is-on' : ''}`} aria-pressed={viewMode === 'grid'}
             onClick={() => setViewMode('grid')} title={t('Katak')} aria-label={t('Katak')}>{IC.grid}</button>
@@ -313,7 +348,7 @@ function QuarterCards({ lessons, locks, admin, lang, onOpen }: {
                 <span className="qtr__stats">
                   <span><b>{rows.length}</b> {t('ta dars')}</span>
                   <span><b>{exps}</b> {t('ta tajriba')}</span>
-                  {weeks.length > 0 && <span>{weeksLabel(Math.min(...weeks), Math.max(...weeks), lang)}</span>}
+                  {weeks.length > 0 && <span>{weeksLabel(Math.min(...weeks), Math.max(...weeks), lang, subjectOfGrade(lessons[0]?.grade ?? '') === 'fizika')}</span>}
                 </span>
               ) : (
                 <span className="qtr__empty">{t("Hali dars yo'q")}</span>
@@ -447,6 +482,7 @@ function LessonCard({ lesson, onOpen, canDrag = false }: { lesson: Lesson; onOpe
     opacity: isDragging ? 0.4 : 1,
   }
 
+  const fizika = subjectOfGrade(lesson.grade) === 'fizika'
   return (
     <article ref={setNodeRef} style={style} className="card card--click" onClick={onOpen} tabIndex={0} role="button">
       <div className="card__meta">
@@ -462,16 +498,26 @@ function LessonCard({ lesson, onOpen, canDrag = false }: { lesson: Lesson; onOpe
             {IC.grip}
           </button>
         )}
-        <span className="card__week">{lesson.hafta ? lessonLabel(lesson.hafta, lang) : ''}</span>
+        <span className="card__week">{lesson.hafta ? numberLabel(lesson.hafta, lesson.grade, lang) : ''}</span>
+        {lesson.cat ? <span className="tag">{t(CATEGORY_LABELS[lesson.cat])}</span> : null}
       </div>
       <h4 className="card__title">
         {lesson.title}
         {lesson.file_url && <span className="card__file" title={t('Dars fayli biriktirilgan')}>{IC.file}</span>}
       </h4>
       {lesson.goal && <p className="card__goal">{lesson.goal}</p>}
-      {/* Har bir darsda bittadan amaliy topshiriq bo'ladi — ro'yxat emas,
-          shuning uchun bor-yo'g'i shu bitta qatorcha ko'rsatiladi. */}
-      {lesson.experiments[0] ? (
+      {/* STEAM: har bir darsda bittadan amaliy topshiriq — bitta qatorcha.
+          Amaliy fizika: darsning hamma tajribalari, turi bilan
+          (amaliyfizika.uz'dagidek). */}
+      {fizika ? (
+        lesson.experiments.length ? (
+          <ul className="exps">
+            {lesson.experiments.map((e, i) => <ExperimentRow key={e.id ?? i} exp={e} typed />)}
+          </ul>
+        ) : (
+          <p className="card__none">{t('Tajriba kiritilmagan')}</p>
+        )
+      ) : lesson.experiments[0] ? (
         <ul className="exps">
           <ExperimentRow exp={lesson.experiments[0]} />
         </ul>
@@ -509,14 +555,21 @@ function LessonRow({ lesson, onOpen, canDrag = false }: { lesson: Lesson; onOpen
           {IC.grip}
         </button>
       )}
-      <span className="lrow__week">{lesson.hafta ? lessonLabel(lesson.hafta, lang) : ''}</span>
+      <span className="lrow__week">{lesson.hafta ? numberLabel(lesson.hafta, lesson.grade, lang) : ''}</span>
       <h4 className="lrow__title">
         {lesson.title}
         {lesson.file_url && <span className="lrow__file" title={t('Dars fayli biriktirilgan')}>{IC.file}</span>}
       </h4>
-      <span className="lrow__x">
-        {lesson.experiments.length > 0 ? t('Amaliy topshiriq bor') : t("Amaliy topshiriq yo'q")}
-      </span>
+      {subjectOfGrade(lesson.grade) === 'fizika' ? (
+        <>
+          <span className="lrow__x">{lesson.experiments.length} {t('ta tajriba')}</span>
+          {lesson.cat ? <span className="tag">{t(CATEGORY_LABELS[lesson.cat])}</span> : null}
+        </>
+      ) : (
+        <span className="lrow__x">
+          {lesson.experiments.length > 0 ? t('Amaliy topshiriq bor') : t("Amaliy topshiriq yo'q")}
+        </span>
+      )}
     </article>
   )
 }

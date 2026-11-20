@@ -6,7 +6,7 @@ import { useToast } from '@/components/Toast'
 import { IC } from '@/icons'
 
 import { useRemoveEquipmentImage, useUploadEquipmentImage } from './api'
-import type { EquipmentItem, Experiment } from './types'
+import { EXP_TYPES, type EquipmentItem, type Experiment, type ExperimentType } from './types'
 
 function emptyExperiment(): Experiment {
   return { order: 0, name: '', desc: '', equipment_items: [], steps: [], concepts: [], minutes: null, safety: '' }
@@ -24,10 +24,13 @@ function toUrl(v: string) {
 
 export function ExperimentEditor({
   exp,
+  typed = false,
   onClose,
   onSave,
 }: {
   exp: Experiment | null
+  /** Amaliy fizika: the experiment's Turi (Oddiy / WOW / O'yin) */
+  typed?: boolean
   onClose: () => void
   onSave: (exp: Experiment) => Promise<Experiment>
 }) {
@@ -106,14 +109,26 @@ export function ExperimentEditor({
       }
     >
       <label className="field">
-        <span className="field__label">{t('Amaliy topshiriq nomi')}</span>
+        <span className="field__label">{typed ? t('Tajriba nomi') : t('Amaliy topshiriq nomi')}</span>
         <input className="input" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder={t("Masalan: Chizg'ich orqali reaksiya vaqti")} />
       </label>
 
-      <label className="field">
-        <span className="field__label">{t('Vaqti')} <span className="field__opt">{t('(daqiqa)')}</span></span>
-        <input className="input" type="number" min={1} max={120} value={draft.minutes ?? ''} onChange={(e) => setDraft({ ...draft, minutes: e.target.value ? Number(e.target.value) : null })} placeholder="10" />
-      </label>
+      <div className={typed ? 'row row--2' : undefined}>
+        {typed && (
+          <label className="field">
+            <span className="field__label">{t('Turi')}</span>
+            <select className="input" value={draft.type ?? 'oddiy'} onChange={(e) => setDraft({ ...draft, type: e.target.value as ExperimentType })}>
+              {(Object.keys(EXP_TYPES) as ExperimentType[]).map((k) => (
+                <option key={k} value={k}>{t(EXP_TYPES[k].label)}</option>
+              ))}
+            </select>
+          </label>
+        )}
+        <label className="field">
+          <span className="field__label">{t('Vaqti')} <span className="field__opt">{t('(daqiqa)')}</span></span>
+          <input className="input" type="number" min={1} max={120} value={draft.minutes ?? ''} onChange={(e) => setDraft({ ...draft, minutes: e.target.value ? Number(e.target.value) : null })} placeholder="10" />
+        </label>
+      </div>
 
       <label className="field">
         <span className="field__label">{t('Tavsif')} <span className="field__opt">({t("nima ko'rsatiladi")})</span></span>

@@ -10,8 +10,26 @@ export const lessonLabel = (n: number, lang: Lang = 'uz') => {
   return `${n}-dars`
 }
 
-/** "1–9-dars" — the lessons a chorak holds (numbered through the band). */
-export const weeksLabel = (from: number, to: number, lang: Lang = 'uz') => {
+/** Amaliy fizika's lessons go by week ("10-hafta"), as on amaliyfizika.uz. */
+export const weekLabel = (n: number, lang: Lang = 'uz') => {
+  if (lang === 'ru') return `${n}-я неделя`
+  if (lang === 'en') return `Week ${n}`
+  return `${n}-hafta`
+}
+
+/** A lesson's number as its fan shows it: "10-hafta" (fizika), "3-dars" (STEAM). */
+export const numberLabel = (n: number, grade: string, lang: Lang = 'uz') =>
+  subjectOfGrade(grade) === 'fizika' ? weekLabel(n, lang) : lessonLabel(n, lang)
+
+/** "1–9-dars" — the lessons a chorak holds (numbered through the band);
+ *  "1–9-hafta" in the Fizika window. */
+export const weeksLabel = (from: number, to: number, lang: Lang = 'uz', weeks = false) => {
+  if (weeks) {
+    if (from === to) return weekLabel(from, lang)
+    if (lang === 'ru') return `${from}–${to} недели`
+    if (lang === 'en') return `Weeks ${from}–${to}`
+    return `${from}–${to}-hafta`
+  }
   if (from === to) return lessonLabel(from, lang)
   if (lang === 'ru') return `Уроки ${from}–${to}`
   if (lang === 'en') return `Lessons ${from}–${to}`

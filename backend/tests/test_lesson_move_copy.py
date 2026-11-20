@@ -98,3 +98,29 @@ def test_move_copy_rejects_invalid_input(as_user, admin, payload):
     lesson = make_lesson("7", 1, 1)
     resp = as_user(admin).post(f"/api/lessons/{lesson.id}/move-copy/", payload, format="json")
     assert resp.status_code == 400
+
+
+def test_copy_keeps_fizika_section_lab_link_and_experiment_type(as_user, admin):
+    source = Lesson.objects.create(title="Bosim", grade="F7", chorak=2, hafta=10, cat="mexanika", sim_id="pressure")
+    Experiment.objects.create(lesson=source, order=0, name="Geron fontani", type="wow")
+
+    resp = as_user(admin).post(
+        f"/api/lessons/{source.id}/move-copy/", {"mode": "copy", "grade": "F8", "chorak": 1}, format="json"
+    )
+    assert resp.status_code == 200
+    assert (resp.data["cat"], resp.data["sim_id"]) == ("mexanika", "pressure")
+    assert resp.data["experiments"][0]["type"] == "wow"
+
+
+def test_lesson_api_saves_section_and_experiment_type(as_user, admin):
+    resp = as_user(admin).post("/api/lessons/", {
+        "title": "Linzalar", "grade": "F9", "chorak": 3, "hafta": 20, "cat": "optika",
+        "experiments": [{"order": 0, "name": "Suv tomchisi lupa", "type": "oyin", "desc": "",
+                         "steps": [], "concepts": [], "minutes": None, "safety": ""}],
+    }, format="json")
+    assert resp.status_code == 201, resp.data
+    lesson = Lesson.objects.get(pk=resp.data["id"])
+    assert lesson.cat == "optika" and lesson.experiments.get().type == "oyin"
+    # a STEAM lesson simply has no section
+    resp = as_user(admin).post("/api/lessons/", {"title": "Robot", "grade": "5-6", "chorak": 1, "hafta": 1}, format="json")
+    assert resp.status_code == 201 and resp.data["cat"] == ""

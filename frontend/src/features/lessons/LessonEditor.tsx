@@ -9,12 +9,13 @@ import { useUIStore } from '@/store/uiStore'
 
 import { useDeleteLesson, useSaveLesson, useUploadLessonFile } from './api'
 import type { Grade } from './labels'
-import { quarterLabel } from './labels'
+import { quarterLabel, subjectOfGrade } from './labels'
 import { LessonFileField, useLessonFileField } from './LessonFileField'
-import type { Lesson } from './types'
+import { CATEGORY_LABELS, type Lesson, type LessonCategory } from './types'
 
 function emptyLesson(grade: Grade, chorak: number): Partial<Lesson> {
-  return { title: '', grade, chorak: chorak as Lesson['chorak'], hafta: 1, goal: '', file_url: '', experiments: [] }
+  const cat: Lesson['cat'] = subjectOfGrade(grade) === 'fizika' ? 'boshqa' : ''
+  return { title: '', grade, chorak: chorak as Lesson['chorak'], hafta: 1, cat, goal: '', file_url: '', experiments: [] }
 }
 
 export function LessonEditor({
@@ -34,6 +35,7 @@ export function LessonEditor({
   const del = useDeleteLesson()
   const upload = useUploadLessonFile()
   const toast = useToast()
+  const fizika = subjectOfGrade(lesson ? lesson.grade : grade) === 'fizika'
 
   const submit = async () => {
     if (!draft.title?.trim()) {
@@ -95,9 +97,19 @@ export function LessonEditor({
           </select>
         </label>
         <label className="field">
-          <span className="field__label">{t('Dars tartibi')}</span>
+          <span className="field__label">{fizika ? t('Hafta') : t('Dars tartibi')}</span>
           <input className="input" type="number" min={1} max={99} value={draft.hafta ?? ''} onChange={(e) => setDraft({ ...draft, hafta: Number(e.target.value) })} />
         </label>
+        {fizika && (
+          <label className="field">
+            <span className="field__label">{t("Bo'lim")}</span>
+            <select className="input" value={draft.cat || 'boshqa'} onChange={(e) => setDraft({ ...draft, cat: e.target.value as LessonCategory })}>
+              {(Object.keys(CATEGORY_LABELS) as LessonCategory[]).map((c) => (
+                <option key={c} value={c}>{t(CATEGORY_LABELS[c])}</option>
+              ))}
+            </select>
+          </label>
+        )}
       </div>
       <label className="field">
         <span className="field__label">{t('Maqsad')} <span className="field__opt">({t('ixtiyoriy')})</span></span>

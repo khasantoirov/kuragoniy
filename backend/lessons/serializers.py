@@ -40,7 +40,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Experiment
         fields = [
-            'id', 'order', 'name', 'name_ru', 'name_en',
+            'id', 'order', 'name', 'name_ru', 'name_en', 'type',
             'desc', 'desc_ru', 'desc_en',
             'equipment_items',
             'steps', 'steps_ru', 'steps_en',
@@ -79,7 +79,7 @@ class LessonSerializer(ProtectedFilesMixin, serializers.ModelSerializer):
     class Meta:
         model = Lesson
         fields = [
-            'id', 'title', 'title_ru', 'title_en', 'grade', 'chorak', 'hafta',
+            'id', 'title', 'title_ru', 'title_en', 'grade', 'chorak', 'hafta', 'cat', 'sim_id',
             'goal', 'goal_ru', 'goal_en', 'file_url', 'file', 'file_name',
             'file_size', 'updated_at', 'translated_at', 'experiments',
         ]

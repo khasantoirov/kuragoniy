@@ -749,6 +749,21 @@ label.btn { display: inline-flex; align-items: center; }
 }
 .exp__name { flex: 1; min-width: 0; }
 .exp__min  { flex: none; font: 400 11px/1 var(--f-mono); color: var(--ink-3); }
+/* Amaliy fizika: Oddiy / WOW / O'yin (amaliyfizika.uz'dagidek) */
+.exp__type {
+  flex: none;
+  display: inline-flex; align-items: center; gap: 4px;
+  font: 600 10px/1 var(--f-mono); letter-spacing: .04em;
+  padding: 4px 6px; border-radius: 4px; border: 1px solid;
+  white-space: nowrap;
+}
+.exp__type .svic { width: 10px; height: 10px; }
+.exp__type--oddiy { color: var(--pick); border-color: color-mix(in srgb, var(--pick) 35%, transparent); background: color-mix(in srgb, var(--pick) 6%, transparent); }
+.exp__type--wow   { color: #9A6B12; border-color: rgba(154,107,18,.35); background: rgba(154,107,18,.07); }
+.exp__type--oyin  { color: #6B46C1; border-color: rgba(107,70,193,.35); background: rgba(107,70,193,.07); }
+[data-theme="dark"] .exp__type--wow  { background: rgba(212,160,60,.12); border-color: rgba(212,160,60,.35); color: #D9AC4F; }
+[data-theme="dark"] .exp__type--oyin { background: rgba(167,139,250,.14); border-color: rgba(167,139,250,.4); color: #A78BFA; }
+.xcard__meta .exp__type { margin-right: 6px; }
 
 .card--click { cursor: pointer; transition: border-color .15s, transform .06s; }
 .card--click:hover { border-color: var(--ink-3); }
@@ -2205,6 +2220,7 @@ button.bottomnav__item { border: 0; background: none; font: inherit; cursor: poi
   .doccard__acts { width: 100%; justify-content: flex-start; }
 
   .exp { font-size: 13px; gap: 6px; }
+  .exp__type { font-size: 10px; padding: 2px 6px; }
 
   .row { grid-template-columns: 1fr !important; }
   .tt { overflow-x: auto; }

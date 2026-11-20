@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 
 import { useConfirm } from '@/components/ConfirmProvider'
 import { Skeleton } from '@/components/Skeleton'
@@ -15,13 +15,13 @@ import { useDeleteLesson, useLesson, useMoveCopyLesson, useRemoveLessonFile, use
 import { ExperimentCard } from './ExperimentCard'
 import { ExperimentEditor } from './ExperimentEditor'
 import type { Grade } from './labels'
-import { lessonLabel, quarterLabel, subjectOfGrade } from './labels'
+import { numberLabel, quarterLabel, subjectOfGrade } from './labels'
 import { LessonDocCard } from './LessonDocCard'
 import { LessonEditor } from './LessonEditor'
 import { LessonFileModal } from './LessonFileModal'
 import { LessonMoveCopyModal } from './LessonMoveCopyModal'
 import { MoveCopyExperimentModal } from './MoveCopyExperimentModal'
-import type { Experiment, Lesson } from './types'
+import { CATEGORY_LABELS, type Experiment, type Lesson } from './types'
 
 // its own chunk: the lesson page itself stays as light as before
 const LessonKitPanel = lazy(() => import('@/features/kits/LessonKitPanel').then((m) => ({ default: m.LessonKitPanel })))
@@ -190,12 +190,18 @@ export function LessonDetail() {
 
       <header className="lhead">
         <div className="lhead__meta">
+          {lesson.cat ? <span className="tag">{t(CATEGORY_LABELS[lesson.cat])}</span> : null}
           <span className="lhead__q">{quarterLabel(lesson.chorak, lang)}</span>
-          {lesson.hafta ? <span className="lhead__q">{lessonLabel(lesson.hafta, lang)}</span> : null}
+          {lesson.hafta ? <span className="lhead__q">{numberLabel(lesson.hafta, lesson.grade, lang)}</span> : null}
         </div>
         <h2 className="lhead__title">{lesson.title}</h2>
         {lesson.goal && <p className="lhead__goal">{lesson.goal}</p>}
         <div className="lhead__tools">
+          {many && lesson.sim_id && (
+            <Link className="btn btn--sm" to={`/lab/${lesson.sim_id}`}>
+              {IC.flask} {t('Simulyatsiya')}
+            </Link>
+          )}
           {admin && (
             <>
               <button className="btn btn--sm" onClick={() => setEditingLesson(true)}>
@@ -230,6 +236,7 @@ export function LessonDetail() {
           <ExperimentCard
             key={task.id ?? task.name}
             exp={task}
+            typed={many}
             admin={admin}
             onEdit={() => setEditingExp(task)}
             onDelete={() => onDeleteExp(task)}
@@ -273,6 +280,7 @@ export function LessonDetail() {
       {editingExp && (
         <ExperimentEditor
           exp={editingExp === 'new' ? null : editingExp}
+          typed={many}
           onClose={() => setEditingExp(null)}
           onSave={async (exp) => {
             const isNewExp = editingExp === 'new'
