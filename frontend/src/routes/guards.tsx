@@ -13,9 +13,8 @@ import {
   isTeacherLike,
   useAuth,
 } from '@/lib/auth/AuthContext'
-import { FanChooser, useFanPicked } from '@/components/FanWindow'
 import { useModules, type ModuleKey } from '@/lib/modules'
-import { subjectsFor, useSubjects } from '@/lib/subjects'
+import { useSubjects } from '@/lib/subjects'
 import type { Subject } from '@/features/lessons/labels'
 import { useViewAs } from '@/lib/viewAs'
 import { useUIStore } from '@/store/uiStore'
@@ -48,11 +47,8 @@ export function RequireAuth({ children }: { children: ReactNode }) {
  * their own portal instead. */
 export function RequireApproved({ children }: { children: ReactNode }) {
   const { user } = useAuth()
-  const picked = useFanPicked((s) => s.picked)
   if (isStudent(user)) return <Navigate to={homePathFor(user)} replace />
   if (!isApproved(user)) return <Navigate to="/pending-approval" replace />
-  // whoever sees both fans picks the window to enter, once a session
-  if (subjectsFor(user).length > 1 && !picked) return <FanChooser />
   return children
 }
 

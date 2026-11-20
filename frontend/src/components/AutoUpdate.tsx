@@ -1,15 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
 import { registerSW } from 'virtual:pwa-register'
 
 import { isUpdateGuarded } from '@/lib/updateGuard'
 import { router } from '@/routes'
 
 import { isAnyModalOpen } from './Modal'
-import { useToast } from './Toast'
-
-const UPDATED_KEY = 'af-updated'
 
 function isField(el: EventTarget | null): el is HTMLElement {
   if (!(el instanceof HTMLElement)) return false
@@ -38,24 +34,12 @@ function mediaActive() {
  * a successful save), no open dialog, no save still in flight, no test or
  * live game in progress (useUpdateGuard), no video playing. Until then the
  * old version keeps working. After the switch the same page and scroll
- * position come back (lib/scroll), test drafts survive in sessionStorage,
- * and a short "updated" toast says what happened.
+ * position come back (lib/scroll) and test drafts survive in
+ * sessionStorage. Nothing is announced — the owner asked for no "Platforma
+ * yangilandi" note.
  */
 export function AutoUpdate() {
-  const { t } = useTranslation()
-  const toast = useToast()
   const queryClient = useQueryClient()
-
-  useEffect(() => {
-    try {
-      if (sessionStorage.getItem(UPDATED_KEY)) {
-        sessionStorage.removeItem(UPDATED_KEY)
-        toast(t('Platforma yangilandi'))
-      }
-    } catch {
-      // storage blocked — skip the toast
-    }
-  }, [t, toast])
 
   useEffect(() => {
     let ready = false
@@ -63,11 +47,6 @@ export function AutoUpdate() {
     let retry: ReturnType<typeof setInterval> | undefined
 
     const reload = (href?: string) => {
-      try {
-        sessionStorage.setItem(UPDATED_KEY, '1')
-      } catch {
-        // no toast then — the update itself still happens
-      }
       if (href) window.location.assign(href)
       else window.location.reload()
     }
