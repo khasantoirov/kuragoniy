@@ -281,3 +281,11 @@ text.labroom__chalk--small { font-size: 16px; }
 .labbench__b b { font-size: 15px; }
 .labbench__b small { font-size: 12px; line-height: 1.35; color: var(--ink-3); }
 .labbench__n { font: 600 12px/1 var(--f-mono); color: var(--ink-2); white-space: nowrap; }
+
+/* Telefonda "Yon tomonga burish" tugmasi tajriba maydonining pastini
+   (arava, jism yuradigan joyni) to'smasin: yuqori o'ng burchakda, faqat
+   belgi bilan turadi. */
+@media (max-width: 560px) {
+  .sim__land { top: 8px; right: 8px; bottom: auto; padding: 7px; }
+  .sim__land span { display: none; }
+}

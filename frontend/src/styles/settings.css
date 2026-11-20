@@ -1070,3 +1070,13 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
   .seg > .seg__b { flex-shrink: 0; }
   .ltbar__grades.seg > .seg__b, .ttx__tabs.seg > .seg__b { flex-shrink: 1; }
 }
+
+/* Telefonda dars sahifasining tugmalari (tahrirlash, fayl, nusxa,
+   ko'chirish, o'chirish) qatorga sig'adi: matnli tugmalar ixcham, kerak
+   bo'lsa ikkinchi qatorga o'tadi — ekrandan chiqib ketmaydi. Sarlavha
+   yonidagi tugmalar bloki ham ekran kengligidan oshmaydi. */
+@media (max-width: 760px) {
+  .lhead__tools { flex-wrap: wrap; gap: 6px; }
+  .lhead__tools > .btn { flex: 0 1 auto; min-width: 0; padding-inline: 12px; white-space: nowrap; }
+  .phead__acts { max-width: 100%; min-width: 0; }
+}

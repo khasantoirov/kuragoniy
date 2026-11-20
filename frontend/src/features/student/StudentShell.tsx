@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Outlet, useLocation } from 'react-router-dom'
 
@@ -8,6 +8,7 @@ import { ContentGuard } from '@/components/ContentGuard'
 import { NotifyPermissionPrompt } from '@/features/notifications/PermissionPrompt'
 import { ScrollTopButton } from '@/components/ScrollTopButton'
 import { RENAMED_LOGIN_KEY } from '@/features/auth/LoginPage'
+import { subjectOfGrade } from '@/features/lessons/labels'
 import { PortalSidebar, type PortalNavItem } from '@/features/portal/PortalSidebar'
 import { IC, themeIconMoon, themeIconSun } from '@/icons'
 import { NavRail, type RailItem } from '@/layouts/NavRail'
@@ -65,6 +66,11 @@ export function StudentShell() {
   const { t } = useTranslation()
   const { logout } = useAuth()
   const user = usePortalUser()
+  // the window colour of the pupil's own class (Fizika teal, STEAM violet)
+  const pupilGrade = user?.student?.grade
+  useEffect(() => {
+    if (pupilGrade) useUIStore.getState().setSubject(subjectOfGrade(pupilGrade))
+  }, [pupilGrade])
   // Ko'rish rejimi → O'quvchi: an administrator looking through this pupil
   const viewing = useViewedPupil()
   const stopViewing = useViewAs((s) => s.stop)
