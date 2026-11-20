@@ -64,8 +64,6 @@ const ru: Record<string, string> = {
   'Amaliy fizika': 'Прикладная физика',
   'STEAM / Robototexnika': 'STEAM / Робототехника',
   'Bosh sahifa': 'Главная',
-  "Email bilan kirish o'chirilgan. Loginingiz yoki telefon raqamingiz bilan kiring.":
-    'Вход по email отключён. Войдите по логину или номеру телефона.',
   'Fan': 'Предмет',
   'Fan biriktirish': 'Назначить предмет',
   'Fan biriktirilmagan': 'Предмет не назначен',
@@ -134,8 +132,6 @@ const en: Record<string, string> = {
   'Amaliy fizika': 'Applied physics',
   'STEAM / Robototexnika': 'STEAM / Robotics',
   'Bosh sahifa': 'Home',
-  "Email bilan kirish o'chirilgan. Loginingiz yoki telefon raqamingiz bilan kiring.":
-    'Signing in by email is off. Use your login or your phone number.',
   'Fan': 'Subject',
   'Fan biriktirish': 'Assign a subject',
   'Fan biriktirilmagan': 'No subject yet',

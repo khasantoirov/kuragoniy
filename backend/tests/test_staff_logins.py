@@ -37,7 +37,7 @@ def test_command_adds_logins(api_client, make_user, student):
 
     # The same password signs in with the new login; an email is no way in.
     assert _login(api_client, "hasantoirov").status_code == 200
-    assert _login(api_client, "hasan.toirov@gmail.com").status_code == 400
+    assert _login(api_client, "hasan.toirov@gmail.com").status_code == 401
 
     # Running again is a no-op.
     call_command("create_staff_logins", "--apply")
@@ -63,7 +63,7 @@ def test_admin_changes_a_staff_login(as_user, api_client, admin, teacher, make_u
     assert _login(api_client, "aziz.ustoz").status_code == 200
     renamed = _login(api_client, old)
     assert renamed.status_code == 200 and renamed.data["renamed_login"] == "aziz.ustoz"
-    assert _login(api_client, "teacher@example.com").status_code == 400  # never by email
+    assert _login(api_client, "teacher@example.com").status_code == 401  # never by email
 
     # A teacher can't do it, nor a plain admin to another admin.
     assert as_user(teacher).post(url, {"login": "boshqa"}, format="json").status_code == 403

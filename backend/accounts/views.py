@@ -168,14 +168,12 @@ def _register_failed_login(user, request, reason='password') -> None:
     user.save(update_fields=fields)
 
 
-EMAIL_LOGIN_OFF = "Email bilan kirish o'chirilgan. Loginingiz yoki telefon raqamingiz bilan kiring."
-
-
 class LoginView(generics.GenericAPIView):
-    """One login endpoint for every portal: `login` is the username (an
-    email is not accepted on Ko'ragoniy Edu — see UserManager.
-    get_by_natural_key). Older cached clients still send `email`, which is
-    read as the same field."""
+    """One login endpoint for every portal: `login` is the username. An
+    email matches nobody on Ko'ragoniy Edu (UserManager.get_by_natural_key)
+    and gets the same plain "Login yoki parol noto'g'ri" as any unknown
+    login — no word about email at all (owner's wish). Older cached clients
+    still send `email`, which is read as the same field."""
 
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
@@ -190,9 +188,6 @@ class LoginView(generics.GenericAPIView):
         password = str(request.data.get('password') or '')
         if not login or not password:
             return Response({'detail': GENERIC_LOGIN_ERROR}, status=status.HTTP_400_BAD_REQUEST)
-        if '@' in login:
-            # says nothing about whether such an account exists
-            return Response({'detail': EMAIL_LOGIN_OFF, 'email_login_off': True}, status=status.HTTP_400_BAD_REQUEST)
 
         candidate = User.objects.find_by_login(login)
         if candidate and _is_locked(candidate):
@@ -523,9 +518,7 @@ class PasswordResetRequestView(generics.GenericAPIView):
         if not captcha_ok(request, 'password_reset'):
             return Response({'detail': FAILED}, status=status.HTTP_400_BAD_REQUEST)
         login = str(request.data.get('login') or request.data.get('email') or '').strip()
-        if '@' in login:
-            return Response({'detail': EMAIL_LOGIN_OFF, 'email_login_off': True}, status=status.HTTP_400_BAD_REQUEST)
-        user = User.objects.find_by_login(login)
+        user = User.objects.find_by_login(login)  # an email finds nobody
         if not user or not user.is_active:
             return Response(GENERIC_RESET_RESPONSE)
 

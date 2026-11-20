@@ -24,14 +24,14 @@ def test_login_succeeds_regardless_of_login_case(api_client):
 
 def test_an_email_is_not_a_way_in(api_client):
     User.objects.create_user(email="ivan@example.com", username="ivan", password="testpass123", name="Ivan", approved=True)
+    wrong = api_client.post("/api/auth/login/", {"login": "nobody-here", "password": "x"}, format="json")
     for field in ("login", "email"):  # older clients sent `email`
         resp = api_client.post("/api/auth/login/", {field: "ivan@example.com", "password": "testpass123"}, format="json")
-        assert resp.status_code == 400 and resp.data.get("email_login_off") is True
-    # the same answer for an email nobody has — nothing to learn from it
-    ghost = api_client.post("/api/auth/login/", {"login": "ghost@example.com", "password": "x"}, format="json")
-    assert ghost.status_code == 400 and ghost.data == resp.data
-    assert api_client.post("/api/auth/password-reset/request/", {"login": "ivan@example.com"},
-                           format="json").data.get("email_login_off") is True
+        # just like any unknown login — not a word about email
+        assert resp.status_code == 401 and resp.data == wrong.data
+        assert "email" not in str(resp.data).lower()
+    reset = api_client.post("/api/auth/password-reset/request/", {"login": "ivan@example.com"}, format="json")
+    assert reset.data == api_client.post("/api/auth/password-reset/request/", {"login": "nobody-here"}, format="json").data
     # and the email sign-up is gone
     assert api_client.post("/api/auth/register/", {"email": "n@example.com", "name": "N", "password": "Kj8$mQ2vLp"},
                            format="json").status_code == 404
