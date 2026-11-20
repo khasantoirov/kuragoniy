@@ -112,3 +112,23 @@ def test_oversight_teacher_list_is_the_windows(as_user, teacher, admin, make_use
     assert steam.id in ids('steam') and teacher.id not in ids('steam')
     assert as_user(admin).get('/api/learning/analytics/top-teachers/', HTTP_X_FAN='fizika').status_code == 200
     assert as_user(admin).get('/api/learning/analytics/overview/', HTTP_X_FAN='steam').status_code == 200
+
+
+def test_announcements_go_to_everyone_or_one_window(as_user, teacher, admin):
+    for text, fan in (('Hammaga', ''), ('Fizikachilar', 'fizika'), ('Robotchilar', 'steam')):
+        assert as_user(admin).post('/api/announcements/', {'text': text, 'fan': fan}, format='json').status_code == 201
+    texts = lambda fan: sorted(a['text'] for a in as_user(teacher).get('/api/announcements/', HTTP_X_FAN=fan).data['results'])  # noqa: E731
+    assert texts('fizika') == ['Fizikachilar', 'Hammaga']
+    assert texts('steam') == ['Hammaga', 'Robotchilar']
+    assert as_user(admin).post('/api/announcements/', {'text': 'x', 'fan': 'kimyo'}, format='json').status_code == 400
+
+
+def test_quizzes_by_window_grade(as_user, teacher):
+    from games.models import Quiz
+
+    Quiz.objects.create(owner=teacher, title='Bosim', grade='F7')
+    Quiz.objects.create(owner=teacher, title='Robot', grade='5-6')
+    Quiz.objects.create(owner=teacher, title='Umumiy')
+    titles = lambda fan: sorted(q['title'] for q in as_user(teacher).get('/api/games/quizzes/', HTTP_X_FAN=fan).data['results'])  # noqa: E731
+    assert titles('fizika') == ['Bosim', 'Umumiy']
+    assert titles('steam') == ['Robot', 'Umumiy']

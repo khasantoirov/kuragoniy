@@ -274,6 +274,7 @@ function CreateStaffModal({ onClose, onCreated, canObserver }: {
 function AnnounceModal({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation()
   const [text, setText] = useState('')
+  const [fan, setFan] = useState<'' | 'fizika' | 'steam'>('')
   const create = useCreateAnnouncement()
   const toast = useToast()
 
@@ -281,7 +282,7 @@ function AnnounceModal({ onClose }: { onClose: () => void }) {
     const msg = text.trim()
     if (!msg) return toast(t('Xabar matnini kiriting'), 'error')
     try {
-      await create.mutateAsync(msg)
+      await create.mutateAsync({ text: msg, fan })
       toast(t("E'lon yuborildi"))
       onClose()
     } catch {
@@ -300,7 +301,15 @@ function AnnounceModal({ onClose }: { onClose: () => void }) {
         </>
       }
     >
-      <p className="prose prose--note">{t("Xabar barcha o'qituvchilarning bildirishnomalarida ko'rinadi.")}</p>
+      <p className="prose prose--note">{t("Xabar o'qituvchilarning bildirishnomalarida ko'rinadi.")}</p>
+      <label className="field">
+        <span className="field__label">{t('Kimga')}</span>
+        <select className="input" value={fan} onChange={(e) => setFan(e.target.value as '' | 'fizika' | 'steam')}>
+          <option value="">{t('Hammaga (ikkala fan)')}</option>
+          <option value="fizika">{t('Faqat Amaliy fizika')}</option>
+          <option value="steam">{t('Faqat STEAM / Robototexnika')}</option>
+        </select>
+      </label>
       <label className="field">
         <span className="field__label">{t('Xabar matni')}</span>
         <textarea

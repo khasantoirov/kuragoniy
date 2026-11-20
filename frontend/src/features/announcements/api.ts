@@ -26,7 +26,8 @@ export function useApprovedUsers() {
 export function useCreateAnnouncement() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (text: string) => (await api.post<Announcement>('/announcements/', { text })).data,
+    mutationFn: async ({ text, fan = '' }: { text: string; fan?: Announcement['fan'] }) =>
+      (await api.post<Announcement>('/announcements/', { text, fan })).data,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['announcements'] }),
   })
 }

@@ -12,7 +12,7 @@ from datetime import timedelta
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.db import IntegrityError, transaction
-from django.db.models import Count, F, Max
+from django.db.models import Count, F, Max, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import permissions, serializers, status, viewsets
@@ -23,6 +23,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common.permissions import IsApproved, IsTeacher
+from common.subjects import GRADES, window
 from common.throttling import GameAnswerRateThrottle
 from journal.models import JournalClass
 from learning.models import Question
@@ -132,6 +133,9 @@ class QuizViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         qs = Quiz.objects.select_related('owner').prefetch_related('questions')
+        fan = window(self.request)
+        if fan:  # the window's grades; a quiz with no grade shows in both
+            qs = qs.filter(Q(grade__in=GRADES[fan]) | Q(grade__isnull=True) | Q(grade=''))
         if user.is_oversight and self.request.query_params.get('all'):
             return qs
         return qs.filter(owner=user)
