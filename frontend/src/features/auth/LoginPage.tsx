@@ -9,7 +9,7 @@ import { api } from '@/lib/api/client'
 import { homePathFor, LOGOUT_REASON_KEY, useAuth } from '@/lib/auth/AuthContext'
 import { useCaptcha } from '@/lib/publicSite'
 
-import { CaptchaNote, fullPhone, HelpLink, localDigits, PhoneField, PhoneVerify, type VerifyDone, type VerifyStart } from './phone'
+import { CaptchaBadge, fullPhone, HelpLink, localDigits, PhoneField, PhoneVerify, type VerifyDone, type VerifyStart } from './phone'
 
 // Two ways in, one screen: a phone number proven through our Telegram bot,
 // or the login and password everyone already has (pupils mostly have no
@@ -286,7 +286,7 @@ export function LoginPage() {
         {notes}
         {signUp}
         <HelpLink />
-        <CaptchaNote on={captcha.enabled} />
+        <CaptchaBadge on={captcha.enabled} />
       </form>
     )
   }
@@ -345,7 +345,7 @@ export function LoginPage() {
       </button>
       {notes}
       {signUp}
-      <CaptchaNote on={captcha.enabled} />
+      <CaptchaBadge on={captcha.enabled} />
     </form>
   )
 }

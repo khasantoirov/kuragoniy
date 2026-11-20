@@ -303,8 +303,6 @@
 .lp .input { width: 100%; }
 .lp .ifield__pre { color: var(--lp-ink); border-right-color: var(--lp-line); }
 .lp .input--at { padding-left: 46px; }
-.lp-captcha { margin: 10px 0 0; font-size: 12px; line-height: 1.45; color: var(--lp-ink-3); text-align: center; }
-.lp-captcha a { text-decoration: underline; }
 .lp-lead__done { display: grid; justify-items: center; gap: 8px; padding: 28px 8px; text-align: center; }
 .lp-lead__done h3 { margin: 8px 0 0; font: 700 22px/1.3 var(--f-display); }
 .lp-lead__done p { margin: 0; color: var(--lp-ink-2); }

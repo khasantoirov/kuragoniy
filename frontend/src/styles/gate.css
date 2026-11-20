@@ -355,10 +355,11 @@
    qadami va reCAPTCHA izohi. Keng ekranda kartaning yonida loyiha
    haqidagi panel (BrandAside). */
 
-/* reCAPTCHA v3 nishoni yashirin — har bir himoyalangan formada uning
-   o'rniga Google talab qilgan izoh turadi (CaptchaNote), shuning uchun
-   nishon tizimga kirgandan keyin ilova ichida osilib qolmaydi. */
-.grecaptcha-badge { visibility: hidden !important; }
+/* reCAPTCHA v3 nishoni faqat himoyalangan forma ekranda turganda
+   ko'rinadi (lib/captcha.ts → useCaptchaBadge, <html class="captcha-on">),
+   shuning uchun u tizimga kirgandan keyin ilova ichida osilib qolmaydi. */
+html:not(.captcha-on) .grecaptcha-badge { visibility: hidden !important; }
+.grecaptcha-badge { z-index: 60; }
 
 .gx-tabs {
   display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
@@ -428,8 +429,6 @@
 .gx-form__help { margin: 10px 0 0; text-align: center; font-size: 13.5px; color: var(--gx-ink-2); }
 .gx-form__help a { color: #fff; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .gx-form__foot--split { display: flex; justify-content: center; }
-.captcha-note { margin: 12px 0 0; text-align: center; font-size: 11.5px; line-height: 1.45; color: var(--gx-ink-3); }
-.captcha-note a { color: inherit; text-decoration: underline; }
 .nowrap { white-space: nowrap; }
 
 /* ── Keng ekran: karta + loyiha haqida panel ─────────────────── */

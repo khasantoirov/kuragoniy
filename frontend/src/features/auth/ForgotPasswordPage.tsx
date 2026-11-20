@@ -7,7 +7,7 @@ import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import { useCaptcha } from '@/lib/publicSite'
 
-import { CaptchaNote } from './phone'
+import { CaptchaBadge } from './phone'
 
 /** Self-service reset: a 6-digit code arrives over the account's linked
  * Telegram bot (or email when configured). Students without Telegram ask
@@ -124,7 +124,7 @@ export function ForgotPasswordPage() {
       </button>
       {note && <p className="form__note form__note--err" role="alert">{note}</p>}
       <p className="gx-form__foot"><Link className="gx-form__link" to="/login">{t('Kirish sahifasiga qaytish')}</Link></p>
-      <CaptchaNote on={captcha.enabled} />
+      <CaptchaBadge on={captcha.enabled} />
     </form>
   )
 }

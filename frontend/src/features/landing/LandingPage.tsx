@@ -13,6 +13,7 @@ import { useUIStore } from '@/store/uiStore'
 
 import './i18n'
 import './landing.css'
+import { useCaptchaBadge } from '@/lib/captcha'
 
 /* kuragoniy.uz for a guest: what Ko'ragoniy Education and Muhandis D do,
    live figures from the database, and — once the administration fills
@@ -385,6 +386,7 @@ function Partners({ names }: { names: string[] }) {
 function LeadForm() {
   const { t } = useTranslation()
   const captcha = useCaptcha()
+  useCaptchaBadge(captcha.enabled)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [tg, setTg] = useState('')
@@ -442,15 +444,6 @@ function LeadForm() {
         {busy ? t('Yuborilmoqda…') : t('Yuborish')}
       </button>
       {note && <p className="form__note form__note--err" role="alert">{note}</p>}
-      {captcha.enabled && (
-        <p className="lp-captcha">
-          {t('Sayt reCAPTCHA bilan himoyalangan; Google')}{' '}
-          <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">{t('Maxfiylik siyosati')}</a>{' '}
-          {t('va')}{' '}
-          <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer">{t('Foydalanish shartlari')}</a>{' '}
-          {t('amal qiladi.')}
-        </p>
-      )}
     </form>
   )
 }

@@ -3,11 +3,13 @@
  * sahifadagi so'rov). The site key comes from /api/public/landing/; with no
  * key set on the server the check is off and every helper here returns ''.
  *
- * Google's script is loaded only when a form first needs it, and its
- * floating badge is hidden (styles/gate.css) — each protected form carries
- * the required "protected by reCAPTCHA" line instead, so the badge never
- * follows the user into the app after signing in.
+ * Google's script is loaded only when a form first needs it. Its small
+ * corner badge (which Google's terms require to be visible) shows only
+ * while a protected form is on screen — useCaptchaBadge below; elsewhere
+ * styles/gate.css hides it, so it never follows the user into the app.
  */
+
+import { useEffect } from 'react'
 
 type Grecaptcha = {
   ready(cb: () => void): void
@@ -39,6 +41,26 @@ function load(siteKey: string): Promise<void> {
     })
   }
   return loading
+}
+
+let badgeUsers = 0
+
+/** Shows Google's badge while the calling form is mounted (and the check
+ * is on): marks <html> with .captcha-on, counted so two forms can't
+ * hide it under each other. */
+export function useCaptchaBadge(on: boolean) {
+  useEffect(() => {
+    if (!on) return
+    badgeUsers += 1
+    document.documentElement.classList.add('captcha-on')
+    return () => {
+      badgeUsers -= 1
+      if (badgeUsers <= 0) {
+        badgeUsers = 0
+        document.documentElement.classList.remove('captcha-on')
+      }
+    }
+  }, [on])
 }
 
 /** Start loading early (a form came on screen), so the submit isn't slowed. */

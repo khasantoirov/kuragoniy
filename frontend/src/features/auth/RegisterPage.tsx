@@ -10,7 +10,7 @@ import type { User } from '@/lib/api/types'
 import { useAuth } from '@/lib/auth/AuthContext'
 import { useCaptcha } from '@/lib/publicSite'
 
-import { CaptchaNote, fullPhone, HelpLink, localDigits, PhoneField, PhoneVerify, type VerifyDone, type VerifyStart } from './phone'
+import { CaptchaBadge, fullPhone, HelpLink, localDigits, PhoneField, PhoneVerify, type VerifyDone, type VerifyStart } from './phone'
 
 /* "Ro'yxatdan o'tish" for teachers: name → the number proven through the
    Telegram bot → a password. The account then waits for the
@@ -187,7 +187,7 @@ export function RegisterPage() {
       <p className="gx-form__foot gx-form__foot--sm">
         {t("O'quvchimisiz?")} <Link className="gx-form__link" to="/join">{t("Sinf kodi bilan ro'yxatdan o'ting")}</Link>
       </p>
-      <CaptchaNote on={captcha.enabled} />
+      <CaptchaBadge on={captcha.enabled} />
     </form>
   )
 }
