@@ -10,9 +10,10 @@ changed.
 
     manage.py import_af_journals --source /tmp/af.sqlite3                  # report only
     manage.py import_af_journals --source /tmp/af.sqlite3 --apply          # copy
-    ... --with-blocked   also bring over the blocked teachers who own journal
-                         classes, as blocked accounts here (login and
-                         password as there), so their classes come with them
+    ... --with-blocked   also bring over the staff accounts import_af left out
+                         (blocked or not yet approved there) with their role
+                         and state as there — login and password too — so
+                         their journals come with them
 
 The report is the real run rolled back at the end, so its numbers are
 exact. People are matched through import_af's ImportedRow list, then by
@@ -55,7 +56,7 @@ class Command(BaseCommand):
         parser.add_argument('--source', required=True, help="amaliyfizika.uz'ning SQLite bazasi (nusxasi)")
         parser.add_argument('--apply', action='store_true', help="Haqiqatda ko'chirish (aks holda faqat hisobot)")
         parser.add_argument('--with-blocked', action='store_true',
-                            help="Jurnali bor bloklangan o'qituvchilarni ham (bloklangan holda) ko'chirish")
+                            help="Bloklangan / tasdiqlanmagan xodimlarni ham (AF'dagi roli va holatida) ko'chirish")
 
     # ── reading / bookkeeping ────────────────────────────────────────────
     def _rows(self, table):
@@ -86,7 +87,6 @@ class Command(BaseCommand):
         people = {k: v for k, v in self._done('accounts_user').items()}
         by_email = {e.lower(): pk for pk, e in User.objects.exclude(email=None).values_list('pk', 'email')}
         by_login = {u.lower(): pk for pk, u in User.objects.exclude(username=None).values_list('pk', 'username')}
-        owners = {str(r['teacher_id']) for r in self._rows('journal_journalclass')}
         self.blocked_brought = []
         for r in self._rows('accounts_user'):
             uid = str(r['id'])
@@ -97,15 +97,17 @@ class Command(BaseCommand):
                 people[uid] = by_email[email]
             elif login and login in by_login:
                 people[uid] = by_login[login]
-            elif with_blocked and uid in owners and r['role'] == 'teacher' and r['is_active'] and not r['approved']:
+            elif (with_blocked and r['role'] in ('teacher', 'admin', 'boshliq') and r['is_active']
+                  and not r['is_dev_superuser']):  # the developer is here already
+                # role and approved exactly as there (fields_from); never a developer
                 kw = fields_from(User, r, skip=USER_SKIP)
                 u = User(id=r['id'], **kw)
-                u.approved = False  # as there: blocked
                 u.subjects = ['fizika']
                 u.save()
                 self._mark('accounts_user', uid, u.pk)
                 people[uid] = u.pk
-                self.blocked_brought.append(r['name'])
+                state = 'tasdiqlangan' if r['approved'] else 'tasdiqlanmagan/bloklangan'
+                self.blocked_brought.append(f"{r['name']} ({r['role']}, {state})")
         self.names = {str(r['id']): r['name'] for r in self._rows('accounts_user')}
         return people
 
@@ -185,7 +187,7 @@ class Command(BaseCommand):
             out(f"  ! {name}: {n} ta sinf jurnali ko'chmaydi — o'qituvchi kuragoniy.uz'da yo'q"
                 + ('' if with_blocked else " (bloklangan bo'lsa, --with-blocked bilan ko'chadi)"))
         for name in self.blocked_brought:
-            out(f"  + bloklangan hisob ham ko'chadi: {name}")
+            out(f"  + hisob ham ko'chadi: {name}")
         for note in self.notes:
             out(f"  · {note}")
         if not apply:

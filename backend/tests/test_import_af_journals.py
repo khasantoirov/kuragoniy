@@ -156,3 +156,25 @@ def test_the_rest_comes_over_too(tmp_path, make_user):
     invite = ClassInvite.objects.get(journal_class__name='8-A')
     assert invite.code != 'TAKEN123'  # taken here: a fresh code
     assert NotificationPreference.objects.get(user=t).channels == {'telegram': False}
+
+
+@pytest.mark.django_db
+def test_with_blocked_brings_every_left_out_staff_account_as_it_was(tmp_path, make_user):
+    db = tmp_path / 'af.sqlite3'
+    _af_db(db)
+    c = sqlite3.connect(db)
+    c.execute("insert into accounts_user values ('af-kamola', ?, 'k@af.uz', 'kamola', 'Kamola A', 'Kamola', 'A', 'admin',"
+              " 0, 0, '', 1, 0, '2026-09-01 08:00:00')", (make_password('Kamola-2026'),))
+    c.execute("insert into journal_journalclass values (13, 'af-kamola', '', null, '8-K', 5, 1, null, '2026-09-03 08:00:00')")
+    c.execute("insert into accounts_user values ('af-dev', 'x', 'dev2@af.uz', 'dev2', 'Dev', 'Dev', '', 'teacher',"
+              " 1, 1, '', 1, 0, '2026-09-01 08:00:00')")
+    c.commit()
+    c.close()
+    out = StringIO()
+    call_command('import_af_journals', source=str(db), apply=True, with_blocked=True, stdout=out)
+    kamola = User.objects.get(username='kamola')
+    assert kamola.role == 'admin' and not kamola.approved and kamola.check_password('Kamola-2026')
+    assert kamola.subjects == ['fizika'] and not kamola.is_dev_superuser
+    assert JournalClass.objects.get(name='8-K').teacher_id == kamola.pk
+    assert not User.objects.filter(username='dev2').exists()  # the developer is never brought again
+    assert "Kamola A (admin, tasdiqlanmagan/bloklangan)" in out.getvalue()
