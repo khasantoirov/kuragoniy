@@ -17,7 +17,6 @@ const SOUND_KEYS: SoundKey[] = ['bell', 'short', 'alert', 'signal', 'soft', 'cus
 const CHANNELS: { key: ChannelKey; label: string }[] = [
   { key: 'app', label: 'Ilova' },
   { key: 'telegram', label: 'Telegram' },
-  { key: 'email', label: 'Email' },
 ]
 
 function Switch({ on, onChange, label, disabled }: { on: boolean; onChange: (v: boolean) => void; label: string; disabled?: boolean }) {
@@ -233,7 +232,7 @@ export function NotificationSettingsPage() {
                   <span className="nmatrix__s">{t(k.desc)}</span>
                 </span>
                 {CHANNELS.map((c) => {
-                  const unavailable = (c.key === 'email' && !data.email_enabled) || (c.key === 'telegram' && !data.telegram_linked)
+                  const unavailable = c.key === 'telegram' && !data.telegram_linked
                   return (
                     <span key={c.key} role="cell" className="nmatrix__cell" data-label={t(c.label)}>
                       <Switch on={!!matrix[k.key]?.[c.key] && !unavailable} disabled={unavailable}
@@ -245,7 +244,6 @@ export function NotificationSettingsPage() {
             ))}
           </div>
         )}
-        {data && !data.email_enabled && <p className="setnote">{t("Email ustuni: hisobingizda email ko'rsatilmagan yoki platformada email yuborish sozlanmagan.")}</p>}
       </section>
     </div>
   )

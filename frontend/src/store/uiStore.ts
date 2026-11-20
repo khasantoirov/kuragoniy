@@ -178,7 +178,7 @@ export const useUIStore = create<UIState>()(
       // v7: themeMode + bottom-bar layout (Sozlamalar → Ko'rinish) — start
       // from what the user already had.
       // v8: one bottom-bar look only — the style/dock/label choices are gone.
-      version: 8,
+      version: 9,
       migrate: (persisted, version) => {
         const state = persisted as UIState & Record<string, unknown>
         if (version < 2) {
@@ -196,6 +196,12 @@ export const useUIStore = create<UIState>()(
         if (version < 6 && (state.grade as unknown) === '7-8-9') state.grade = '7'
         if (version < 7) {
           state.themeMode = state.theme ?? 'light'
+          state.navItems = DEFAULT_NAV_ITEMS
+        }
+        // the Ko'rish rejimi and Pastki navbar choices left Sozlamalar:
+        // back to the defaults
+        if (version < 9) {
+          state.viewMode = 'admin'
           state.navItems = DEFAULT_NAV_ITEMS
         }
         delete state.navStyle

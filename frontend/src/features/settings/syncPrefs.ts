@@ -5,13 +5,13 @@
 import { useEffect, useRef } from 'react'
 
 import { usePrefs, useSavePrefs } from '@/features/notifications/api'
-import { MAX_NAV_ITEMS, useUIStore, type Lang, type ThemeMode } from '@/store/uiStore'
+import { useUIStore, type Lang, type ThemeMode } from '@/store/uiStore'
 
-type Synced = { themeMode: ThemeMode; lang: Lang; navItems: string[] }
+type Synced = { themeMode: ThemeMode; lang: Lang }
 
 function pick(): Synced {
   const s = useUIStore.getState()
-  return { themeMode: s.themeMode, lang: s.lang, navItems: s.navItems }
+  return { themeMode: s.themeMode, lang: s.lang }
 }
 
 function applyServer(ui: Record<string, unknown>) {
@@ -20,9 +20,6 @@ function applyServer(ui: Record<string, unknown>) {
     if (ui.themeMode !== s.themeMode) s.setThemeMode(ui.themeMode)
   }
   if ((ui.lang === 'uz' || ui.lang === 'ru' || ui.lang === 'en') && ui.lang !== s.lang) s.setLang(ui.lang)
-  if (Array.isArray(ui.navItems) && ui.navItems.every((x) => typeof x === 'string')) {
-    s.setNavItems((ui.navItems as string[]).slice(0, MAX_NAV_ITEMS))
-  }
 }
 
 export function usePrefsSync(enabled: boolean) {

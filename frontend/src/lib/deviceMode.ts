@@ -19,13 +19,15 @@ const DEFAULT_VIEWPORT = 'width=device-width, initial-scale=1.0, maximum-scale=1
 let current: DeviceMode = read()
 const listeners = new Set<() => void>()
 
+/* The Sozlamalar choice is gone (the owner asked): every device follows
+   its own screen again, and a choice stored before is cleared. */
 function read(): DeviceMode {
   try {
-    const v = localStorage.getItem(KEY)
-    return v === 'mobile' || v === 'desktop' ? v : 'auto'
+    localStorage.removeItem(KEY)
   } catch {
-    return 'auto'
+    /* storage blocked */
   }
+  return 'auto'
 }
 
 export function getDeviceMode(): DeviceMode {

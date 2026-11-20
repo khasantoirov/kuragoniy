@@ -193,7 +193,7 @@ export function AppShell() {
     <>
       <RoleSwitch />
       <FanSwitch />
-      <button className="iconbtn" onClick={toggleTheme} title={t('Rejimni almashtirish')} aria-label={t('Rejim')}>
+      <button className="iconbtn edtop__theme" onClick={toggleTheme} title={t('Rejimni almashtirish')} aria-label={t('Rejim')}>
         {theme === 'dark' ? themeIconMoon() : themeIconSun()}
       </button>
       <AnnouncementsBell />

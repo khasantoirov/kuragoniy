@@ -1061,3 +1061,12 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
 /* Amaliy fizika: a lesson holds several experiments (LessonDetail) */
 .tasksec .xcard + .xcard { margin-top: 12px; }
 .tasksec .xcard + .btn { margin-top: 12px; }
+
+/* Telefonda tugmalar qatori (choraklar, bo'limlar) ekrandan chiqib
+   ketmaydi — yon tomonga suriladi. */
+@media (max-width: 760px) {
+  .seg[class] { max-width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .seg::-webkit-scrollbar { display: none; }
+  .seg > .seg__b { flex-shrink: 0; }
+  .ltbar__grades.seg > .seg__b, .ttx__tabs.seg > .seg__b { flex-shrink: 1; }
+}

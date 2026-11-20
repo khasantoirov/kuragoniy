@@ -1,10 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 
 import { useConfirm } from '@/components/ConfirmProvider'
 import { useToast } from '@/components/Toast'
-import { usePrefs } from '@/features/notifications/api'
 import { PageHead, errText } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
@@ -25,7 +23,6 @@ export function IntegrationsPage() {
   const { user, refreshMe } = useAuth()
   const toast = useToast()
   const confirm = useConfirm()
-  const prefs = usePrefs()
   const [busy, setBusy] = useState(false)
   const linked = !!user?.telegram_linked
 
@@ -64,7 +61,7 @@ export function IntegrationsPage() {
 
   return (
     <div className="setpg">
-      <PageHead title={t('Integratsiyalar')} sub={t('Telegram bot va email orqali xabarlar')} />
+      <PageHead title={t('Integratsiyalar')} sub={t('Telegram bot orqali xabarlar')} />
 
       <section className="panel icard">
         <div className="icard__head">
@@ -99,25 +96,6 @@ export function IntegrationsPage() {
               </>
             )}
           </div>
-        </div>
-      </section>
-
-      <section className="panel icard">
-        <div className="icard__head">
-          <span className="icard__logo icard__logo--mail">{IC.mail}</span>
-          <span className="icard__txt">
-            <span className="icard__t">{t('Email')}</span>
-            <span className="icard__s">{user?.email || t("Hisobingizda email ko'rsatilmagan")}</span>
-          </span>
-          <StatusTag on={!!prefs.data?.email_enabled} />
-        </div>
-        <div className="icard__body">
-          <p className="prose prose--note">
-            {prefs.data?.email_enabled
-              ? t("Email orqali qaysi xabarlar kelishini «Bildirishnomalar» sozlamalarida yoqasiz (odatda o'chiq).")
-              : t('Email xabarlari uchun hisobingizda email bo\'lishi va platformada email yuborish sozlangan bo\'lishi kerak.')}
-          </p>
-          <Link className="btn" to="/settings/notifications">{IC.bell} {t('Bildirishnoma sozlamalari')}</Link>
         </div>
       </section>
     </div>
