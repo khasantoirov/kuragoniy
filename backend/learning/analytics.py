@@ -57,8 +57,26 @@ def _school_filter(prefix, school_id):
     return {f'{prefix}partner_school_id': school_id} if school_id else {}
 
 
-def scope_profiles(viewer, *, teacher_id=None, class_id=None, grade=None, school_id=None):
+def report_in_fan(fan):
+    """A Q for the lesson reports of a fan window: by their class's fan, or
+    their lesson's when there is no class (neither: both windows)."""
+    from common.subjects import GRADES
+
+    return (Q(journal_class__subject=fan)
+            | Q(journal_class__isnull=True, lesson__grade__in=GRADES[fan])
+            | Q(journal_class__isnull=True, lesson__isnull=True))
+
+
+def _lesson_grades(fan):
+    from common.subjects import GRADES
+
+    return GRADES[fan]
+
+
+def scope_profiles(viewer, *, teacher_id=None, class_id=None, grade=None, school_id=None, fan=None):
     qs = StudentProfile.objects.filter(user__role=User.Role.STUDENT, user__is_active=True, user__approved=True)
+    if fan:  # the Fizika or STEAM window's classes
+        qs = qs.filter(journal_class__subject=fan)
     if not viewer.is_oversight:
         qs = qs.filter(journal_class__teacher=viewer)
     elif teacher_id:
@@ -71,8 +89,10 @@ def scope_profiles(viewer, *, teacher_id=None, class_id=None, grade=None, school
     return qs
 
 
-def scope_classes(viewer, *, teacher_id=None, school_id=None):
+def scope_classes(viewer, *, teacher_id=None, school_id=None, fan=None):
     qs = JournalClass.objects.filter(**_school_filter('', school_id))
+    if fan:
+        qs = qs.filter(subject=fan)
     if not viewer.is_oversight:
         return qs.filter(teacher=viewer)
     if teacher_id:
@@ -122,9 +142,12 @@ def overview(viewer, since, **scope):
         readiness = readiness.filter(user_id=scope['teacher_id'])
     elif scope.get('school_id'):
         # a school's teachers: everyone with a class there
-        teachers = scope_classes(viewer, school_id=scope['school_id']).values('teacher_id')
+        teachers = scope_classes(viewer, school_id=scope['school_id'], fan=scope.get('fan')).values('teacher_id')
         reports = reports.filter(teacher_id__in=teachers)
         readiness = readiness.filter(user_id__in=teachers)
+    if scope.get('fan'):
+        reports = reports.filter(report_in_fan(scope['fan']))
+        readiness = readiness.filter(lesson__grade__in=_lesson_grades(scope['fan']))
     if since:
         reports = reports.filter(date__gte=since.date())
         readiness = readiness.filter(submitted_at__gte=since)
@@ -202,7 +225,7 @@ def top_students(viewer, since, limit=20, **scope):
     return rows[:limit]
 
 
-def top_teachers(viewer, since, limit=20):
+def top_teachers(viewer, since, limit=20, fan=None):
     """"Eng yaxshi dars o'tgan" ranking — combines administration's ratings
     of lesson reports, the teacher's own readiness checks, and how their
     students actually perform and keep up with homework."""
@@ -212,6 +235,9 @@ def top_teachers(viewer, since, limit=20):
         teachers = User.objects.filter(is_active=True).exclude(role__in=[User.Role.STUDENT, User.Role.KUZATUVCHI, User.Role.MAKTAB]).filter(
             Q(classes__isnull=False) | Q(lesson_reports__isnull=False)
         ).distinct()
+        from common.subjects import window_people
+
+        teachers = window_people(teachers, fan)
     teachers = list(teachers)
     ids = [t.id for t in teachers]
 
@@ -221,6 +247,11 @@ def top_teachers(viewer, since, limit=20):
         assignment__teacher_id__in=ids, kind=Attempt.Kind.HOMEWORK, submitted_at__isnull=False,
     )
     assignments = Assignment.objects.filter(teacher_id__in=ids, is_published=True)
+    if fan:  # only what was done in this window counts here
+        reports = reports.filter(report_in_fan(fan))
+        readiness = readiness.filter(lesson__grade__in=_lesson_grades(fan))
+        hw = hw.filter(assignment__journal_class__subject=fan)
+        assignments = assignments.filter(journal_class__subject=fan)
     if since:
         reports = reports.filter(date__gte=since.date())
         readiness = readiness.filter(submitted_at__gte=since)
@@ -275,18 +306,20 @@ def top_teachers(viewer, since, limit=20):
     return rows[:limit]
 
 
-def best_reports(viewer, since, limit=10):
+def best_reports(viewer, since, limit=10, fan=None):
     qs = LessonReport.objects.filter(status=LessonReport.Status.REVIEWED, rating__isnull=False).select_related(
         'teacher', 'journal_class', 'lesson', 'readiness_attempt')
     if not viewer.is_oversight:
         qs = qs.filter(teacher=viewer)
+    if fan:
+        qs = qs.filter(report_in_fan(fan))
     if since:
         qs = qs.filter(date__gte=since.date())
     return list(qs.order_by('-rating', '-date')[:limit])
 
 
-def class_compare(viewer, since, teacher_id=None, school_id=None):
-    classes = list(scope_classes(viewer, teacher_id=teacher_id, school_id=school_id).select_related('teacher'))
+def class_compare(viewer, since, teacher_id=None, school_id=None, fan=None):
+    classes = list(scope_classes(viewer, teacher_id=teacher_id, school_id=school_id, fan=fan).select_related('teacher'))
     ids = [c.id for c in classes]
     attempts = Attempt.objects.filter(
         user__student_profile__journal_class_id__in=ids, submitted_at__isnull=False,
@@ -315,10 +348,10 @@ def class_compare(viewer, since, teacher_id=None, school_id=None):
     return rows
 
 
-def lesson_stats(viewer, since, grade=None):
+def lesson_stats(viewer, since, grade=None, fan=None):
     """Which lessons students find hardest/easiest — useful for deciding
     where a video or theory text needs work."""
-    student_ids = scope_profiles(viewer, grade=grade).values_list('user_id', flat=True)
+    student_ids = scope_profiles(viewer, grade=grade, fan=fan).values_list('user_id', flat=True)
     attempts = Attempt.objects.filter(
         user_id__in=student_ids, submitted_at__isnull=False, lesson__isnull=False,
         kind__in=[Attempt.Kind.HOMEWORK, Attempt.Kind.PRACTICE],

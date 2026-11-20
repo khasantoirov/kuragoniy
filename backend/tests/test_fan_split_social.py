@@ -79,3 +79,36 @@ def test_old_rows_follow_their_author(teacher, make_user):
         importlib.import_module(mod).by_author(label)(apps, None)
     assert dict(Post.objects.values_list('body', 'fan')) == {'a': 'fizika', 'b': 'steam'}
     assert Ticket.objects.get().fan == 'fizika'
+
+
+def test_learning_lists_follow_the_window(as_user, teacher, admin):
+    from journal.models import JournalClass
+    from learning.models import Assignment
+
+    fz = JournalClass.objects.create(teacher=teacher, name='7-A', subject='fizika')
+    st = JournalClass.objects.create(teacher=teacher, name='5-B', subject='steam')
+    Assignment.objects.create(teacher=teacher, journal_class=fz, title='Bosim', is_published=True)
+    Assignment.objects.create(teacher=teacher, journal_class=st, title='Robot', is_published=True)
+    LessonReport.objects.create(teacher=teacher, journal_class=fz, date=timezone.localdate(), topic='Bosim', summary='.')
+    LessonReport.objects.create(teacher=teacher, journal_class=st, date=timezone.localdate(), topic='Robot', summary='.')
+    LessonReport.objects.create(teacher=teacher, date=timezone.localdate(), topic='Umumiy', summary='.')
+
+    def titles(path, key, fan):
+        data = as_user(teacher).get(path, HTTP_X_FAN=fan).data
+        return sorted(r[key] for r in (data['results'] if isinstance(data, dict) else data))
+
+    assert titles('/api/learning/assignments/', 'title', 'fizika') == ['Bosim']
+    assert titles('/api/learning/assignments/', 'title', 'steam') == ['Robot']
+    assert titles('/api/learning/reports/', 'topic', 'fizika') == ['Bosim', 'Umumiy']  # no class: both
+    assert titles('/api/learning/reports/', 'topic', 'steam') == ['Robot', 'Umumiy']
+    assert len(as_user(teacher).get('/api/learning/assignments/').data['results']) == 2  # no window: all
+
+
+def test_oversight_teacher_list_is_the_windows(as_user, teacher, admin, make_user):
+    _fan(teacher, 'fizika')
+    steam = _fan(make_user('steam@x.uz', approved=True), 'steam')
+    ids = lambda fan: {r['id'] for r in as_user(admin).get('/api/learning/teachers/', HTTP_X_FAN=fan).data}  # noqa: E731
+    assert teacher.id in ids('fizika') and steam.id not in ids('fizika')
+    assert steam.id in ids('steam') and teacher.id not in ids('steam')
+    assert as_user(admin).get('/api/learning/analytics/top-teachers/', HTTP_X_FAN='fizika').status_code == 200
+    assert as_user(admin).get('/api/learning/analytics/overview/', HTTP_X_FAN='steam').status_code == 200

@@ -23,6 +23,7 @@ from common.audit import notify_admin_action
 from common.permissions import IsAdminOrDevSuperuser, IsApproved, IsOversight, IsTeacher
 from common.presence import presence_for
 from common.security import generate_readable_password, log_event, revoke_all_tokens
+from common.subjects import window, window_people
 from journal.models import JournalClass, Student
 from lessons.models import Lesson
 
@@ -432,6 +433,8 @@ class AssignmentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         qs = Assignment.objects.select_related('journal_class', 'lesson', 'teacher').prefetch_related('custom_questions')
+        if (fan := window(self.request)):  # the Fizika or STEAM window's classes
+            qs = qs.filter(journal_class__subject=fan)
         class_id = self.request.query_params.get('class')
         if class_id:
             qs = qs.filter(journal_class_id=class_id)
@@ -617,6 +620,8 @@ class LessonReportViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         qs = LessonReport.objects.select_related('teacher', 'journal_class', 'lesson', 'reviewed_by', 'readiness_attempt')
+        if (fan := window(self.request)):
+            qs = qs.filter(analytics.report_in_fan(fan))
         st = self.request.query_params.get('status')
         if st:
             qs = qs.filter(status=st)
@@ -736,7 +741,7 @@ class AnalyticsView(APIView):
         if report not in self.REPORTS:
             return Response({'detail': 'Topilmadi.'}, status=status.HTTP_404_NOT_FOUND)
         params = {k: request.query_params.get(k, '') for k in ('period', 'teacher', 'class', 'grade', 'limit', 'school')}
-        raw_key = json.dumps([report, request.user.id, request.user.is_oversight, params], sort_keys=True)
+        raw_key = json.dumps([report, request.user.id, request.user.is_oversight, params, window(request)], sort_keys=True)
         key = 'analytics:' + hashlib.sha256(raw_key.encode()).hexdigest()
         data = cache.get(key)
         if data is None:
@@ -751,18 +756,20 @@ class AnalyticsView(APIView):
         class_id = _int_param(request, 'class')
         grade = _grade_param(request)
         limit = min(_int_param(request, 'limit') or 20, 100)
-        scope = {'teacher_id': teacher_id, 'class_id': class_id, 'grade': grade, 'school_id': params['school'] or None}
+        fan = window(request)
+        scope = {'teacher_id': teacher_id, 'class_id': class_id, 'grade': grade, 'school_id': params['school'] or None,
+                 'fan': fan}
         if report == 'overview':
             return {**analytics.overview(user, since, **scope), **analytics.lessons_summary()}
         if report == 'top-students':
             return analytics.top_students(user, since, limit=limit, **scope)
         if report == 'top-teachers':
-            return analytics.top_teachers(user, since, limit=limit)
+            return analytics.top_teachers(user, since, limit=limit, fan=fan)
         if report == 'best-reports':
-            return LessonReportSerializer(analytics.best_reports(user, since, limit=limit), many=True).data
+            return LessonReportSerializer(analytics.best_reports(user, since, limit=limit, fan=fan), many=True).data
         if report == 'classes':
-            return analytics.class_compare(user, since, teacher_id=teacher_id, school_id=scope['school_id'])
-        return analytics.lesson_stats(user, since, grade=grade)
+            return analytics.class_compare(user, since, teacher_id=teacher_id, school_id=scope['school_id'], fan=fan)
+        return analytics.lesson_stats(user, since, grade=grade, fan=fan)
 
 
 class TeachersListView(APIView):
@@ -771,9 +778,9 @@ class TeachersListView(APIView):
     permission_classes = [IsOversight]
 
     def get(self, request):
-        rows = (
+        rows = window_people(
             User.objects.filter(is_active=True).exclude(role__in=[User.Role.STUDENT, User.Role.KUZATUVCHI, User.Role.MAKTAB])
-            .filter(Q(classes__isnull=False) | Q(lesson_reports__isnull=False) | Q(role=User.Role.TEACHER))
-            .distinct().order_by('name').values('id', 'name', 'role')
-        )
+            .filter(Q(classes__isnull=False) | Q(lesson_reports__isnull=False) | Q(role=User.Role.TEACHER)),
+            window(request),
+        ).distinct().order_by('name').values('id', 'name', 'role')
         return Response(list(rows))
