@@ -33,12 +33,14 @@ class UserManager(BaseUserManager):
         return user
 
     def get_by_natural_key(self, login):
-        # One login box for every portal: anything with an "@" is an email
-        # (staff), anything else a student username. ModelBackend calls
-        # this with whatever was typed into the login field.
+        # One login box for every portal: the login (username), or the one
+        # it replaced. Ko'ragoniy Edu signs in by login + password or by
+        # phone only — an email is never a way in (owner's decision,
+        # 2026-11-20), so anything with an "@" matches nobody. ModelBackend
+        # calls this with whatever was typed into the login field.
         login = (login or '').strip()
-        if '@' in login:
-            return self.get(email__iexact=login)
+        if not login or '@' in login:
+            raise self.model.DoesNotExist('Email bilan kirish yoqilmagan.')
         try:
             return self.get(username__iexact=login)
         except self.model.DoesNotExist:
@@ -49,10 +51,8 @@ class UserManager(BaseUserManager):
         raising — for the login/password-reset views, which must behave
         the same whether or not the account exists."""
         login = (login or '').strip()
-        if not login:
+        if not login or '@' in login:
             return None
-        if '@' in login:
-            return self.filter(email__iexact=login).first()
         return (self.filter(username__iexact=login).first()
                 or self.filter(previous_username__iexact=login).first())
 

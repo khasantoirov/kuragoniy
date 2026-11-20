@@ -138,7 +138,7 @@ def test_bot_announcement_fanout_respects_telegram_switch(teacher, make_user):
 # ── sessions ────────────────────────────────────────────────────────────
 
 def _login(api_client, email, ua='Mozilla/5.0 (Windows NT 10.0) Chrome/130'):
-    return api_client.post('/api/auth/login/', {'login': email, 'password': 'testpass123'}, HTTP_USER_AGENT=ua)
+    return api_client.post('/api/auth/login/', {'login': email.split('@')[0].lower(), 'password': 'testpass123'}, HTTP_USER_AGENT=ua)
 
 
 def test_login_creates_session_listed_as_current(api_client, teacher):

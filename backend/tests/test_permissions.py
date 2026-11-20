@@ -315,14 +315,3 @@ def test_admin_can_approve_pending_teacher(as_user, admin, unapproved_teacher):
     assert unapproved_teacher.approved is True
 
 
-def test_register_always_creates_unapproved_teacher_regardless_of_payload(api_client):
-    """A malicious client can't self-elevate by sending role/approved in
-    the registration payload — the serializer ignores both."""
-    resp = api_client.post(
-        "/api/auth/register/",
-        {"email": "new@example.com", "name": "New", "password": "testpass123", "role": "admin", "approved": True},
-        format="json",
-    )
-    assert resp.status_code == 201
-    assert resp.data["role"] == "teacher"
-    assert resp.data["approved"] is False

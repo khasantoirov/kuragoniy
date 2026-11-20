@@ -66,7 +66,7 @@ def test_hints_header_is_sanitised():
 # ── sessions: details, new-device notice ────────────────────────────────
 
 def _login(client, email, ua=CHROME_WIN, device=''):
-    return client.post('/api/auth/login/', {'login': email, 'password': 'testpass123'},
+    return client.post('/api/auth/login/', {'login': email.split('@')[0].lower(), 'password': 'testpass123'},
                        HTTP_USER_AGENT=ua, HTTP_X_DEVICE=device)
 
 

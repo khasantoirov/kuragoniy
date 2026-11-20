@@ -40,25 +40,25 @@ def linked_teacher(teacher):
 
 
 def test_reset_via_telegram_code(api_client, linked_teacher, sent):
-    resp = api_client.post("/api/auth/password-reset/request/", {"login": "teacher@example.com"}, format="json")
+    resp = api_client.post("/api/auth/password-reset/request/", {"login": "teacher"}, format="json")
     assert resp.status_code == 200
     code = _code_from(sent)
     assert not PasswordResetCode.objects.filter(code_hash__contains=code).exists()  # only a hash is stored
 
     resp = api_client.post("/api/auth/password-reset/confirm/",
-                           {"login": "teacher@example.com", "code": code, "new_password": "Yangi-Parol-2026"}, format="json")
+                           {"login": "teacher", "code": code, "new_password": "Yangi-Parol-2026"}, format="json")
     assert resp.status_code == 200
-    login = api_client.post("/api/auth/login/", {"login": "teacher@example.com", "password": "Yangi-Parol-2026"}, format="json")
+    login = api_client.post("/api/auth/login/", {"login": "teacher", "password": "Yangi-Parol-2026"}, format="json")
     assert login.status_code == 200
     # Code is single-use.
     again = api_client.post("/api/auth/password-reset/confirm/",
-                            {"login": "teacher@example.com", "code": code, "new_password": "Boshqa-Parol-2026"}, format="json")
+                            {"login": "teacher", "code": code, "new_password": "Boshqa-Parol-2026"}, format="json")
     assert again.status_code == 400
 
 
 def test_reset_response_identical_for_unknown_and_unlinked(api_client, teacher, sent):
-    unknown = api_client.post("/api/auth/password-reset/request/", {"login": "ghost@example.com"}, format="json")
-    unlinked = api_client.post("/api/auth/password-reset/request/", {"login": "teacher@example.com"}, format="json")
+    unknown = api_client.post("/api/auth/password-reset/request/", {"login": "ghost"}, format="json")
+    unlinked = api_client.post("/api/auth/password-reset/request/", {"login": "teacher"}, format="json")
     assert unknown.status_code == unlinked.status_code == 200
     assert unknown.data == unlinked.data
     assert sent == []
@@ -66,30 +66,30 @@ def test_reset_response_identical_for_unknown_and_unlinked(api_client, teacher, 
 
 
 def test_wrong_codes_burn_the_code(api_client, linked_teacher, sent):
-    api_client.post("/api/auth/password-reset/request/", {"login": "teacher@example.com"}, format="json")
+    api_client.post("/api/auth/password-reset/request/", {"login": "teacher"}, format="json")
     code = _code_from(sent)
     wrong = "000000" if code != "000000" else "111111"
     for _ in range(PasswordResetCode.MAX_ATTEMPTS):
         resp = api_client.post("/api/auth/password-reset/confirm/",
-                               {"login": "teacher@example.com", "code": wrong, "new_password": "Yangi-Parol-2026"}, format="json")
+                               {"login": "teacher", "code": wrong, "new_password": "Yangi-Parol-2026"}, format="json")
         assert resp.status_code == 400
     resp = api_client.post("/api/auth/password-reset/confirm/",
-                           {"login": "teacher@example.com", "code": code, "new_password": "Yangi-Parol-2026"}, format="json")
+                           {"login": "teacher", "code": code, "new_password": "Yangi-Parol-2026"}, format="json")
     assert resp.status_code == 400
 
 
 def test_expired_code_rejected(api_client, linked_teacher, sent):
-    api_client.post("/api/auth/password-reset/request/", {"login": "teacher@example.com"}, format="json")
+    api_client.post("/api/auth/password-reset/request/", {"login": "teacher"}, format="json")
     code = _code_from(sent)
     PasswordResetCode.objects.update(expires_at=timezone.now() - timedelta(seconds=1))
     resp = api_client.post("/api/auth/password-reset/confirm/",
-                           {"login": "teacher@example.com", "code": code, "new_password": "Yangi-Parol-2026"}, format="json")
+                           {"login": "teacher", "code": code, "new_password": "Yangi-Parol-2026"}, format="json")
     assert resp.status_code == 400
 
 
 def test_reset_request_cooldown(api_client, linked_teacher, sent):
-    api_client.post("/api/auth/password-reset/request/", {"login": "teacher@example.com"}, format="json")
-    api_client.post("/api/auth/password-reset/request/", {"login": "teacher@example.com"}, format="json")
+    api_client.post("/api/auth/password-reset/request/", {"login": "teacher"}, format="json")
+    api_client.post("/api/auth/password-reset/request/", {"login": "teacher"}, format="json")
     assert PasswordResetCode.objects.count() == 1
     assert len(sent) == 1
 
@@ -105,24 +105,24 @@ def test_student_reset_by_username(api_client, student, sent):
 
 def test_account_locks_after_repeated_failures(api_client, teacher, settings, sent):
     for _ in range(settings.LOGIN_LOCKOUT_THRESHOLD - 1):
-        resp = api_client.post("/api/auth/login/", {"login": "teacher@example.com", "password": "wrong"}, format="json")
+        resp = api_client.post("/api/auth/login/", {"login": "teacher", "password": "wrong"}, format="json")
         assert resp.status_code == 401
-    resp = api_client.post("/api/auth/login/", {"login": "teacher@example.com", "password": "wrong"}, format="json")
+    resp = api_client.post("/api/auth/login/", {"login": "teacher", "password": "wrong"}, format="json")
     assert resp.status_code == 429
     # Even the right password is refused while locked.
-    resp = api_client.post("/api/auth/login/", {"login": "teacher@example.com", "password": "testpass123"}, format="json")
+    resp = api_client.post("/api/auth/login/", {"login": "teacher", "password": "testpass123"}, format="json")
     assert resp.status_code == 429
 
     teacher.refresh_from_db()
     teacher.locked_until = timezone.now() - timedelta(seconds=1)
     teacher.save()
-    resp = api_client.post("/api/auth/login/", {"login": "teacher@example.com", "password": "testpass123"}, format="json")
+    resp = api_client.post("/api/auth/login/", {"login": "teacher", "password": "testpass123"}, format="json")
     assert resp.status_code == 200
 
 
 def test_successful_login_resets_failure_counter(api_client, teacher):
-    api_client.post("/api/auth/login/", {"login": "teacher@example.com", "password": "wrong"}, format="json")
-    api_client.post("/api/auth/login/", {"login": "teacher@example.com", "password": "testpass123"}, format="json")
+    api_client.post("/api/auth/login/", {"login": "teacher", "password": "wrong"}, format="json")
+    api_client.post("/api/auth/login/", {"login": "teacher", "password": "testpass123"}, format="json")
     teacher.refresh_from_db()
     assert teacher.failed_login_count == 0
 
@@ -134,15 +134,16 @@ def test_student_logs_in_with_username(api_client, student):
 
 
 def test_legacy_email_field_still_accepted(api_client, teacher):
-    resp = api_client.post("/api/auth/login/", {"email": "teacher@example.com", "password": "testpass123"}, format="json")
+    # older clients send the login in an `email` field
+    resp = api_client.post("/api/auth/login/", {"email": "teacher", "password": "testpass123"}, format="json")
     assert resp.status_code == 200
 
 
 def test_login_events_are_audited(api_client, teacher):
     from common.models import AuditLog
 
-    api_client.post("/api/auth/login/", {"login": "teacher@example.com", "password": "wrong"}, format="json")
-    api_client.post("/api/auth/login/", {"login": "teacher@example.com", "password": "testpass123"}, format="json")
+    api_client.post("/api/auth/login/", {"login": "teacher", "password": "wrong"}, format="json")
+    api_client.post("/api/auth/login/", {"login": "teacher", "password": "testpass123"}, format="json")
     actions = list(AuditLog.objects.filter(actor=teacher).values_list("action", flat=True))
     assert "login_failed" in actions and "login_ok" in actions
 

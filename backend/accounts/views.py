@@ -39,7 +39,6 @@ from common.throttling import (
     LoginRateThrottle,
     PasswordResetConfirmRateThrottle,
     PasswordResetRateThrottle,
-    RegisterRateThrottle,
 )
 
 from notifications.models import Kind as NotifyKind
@@ -47,7 +46,7 @@ from notifications.service import notify
 
 from .models import PasswordResetCode, TelegramLinkToken, User
 from .sessions import end_session, idle_window, session_for_token, start_session, touch_session
-from .serializers import AdminUserSerializer, MeSerializer, RegisterSerializer, UserSerializer
+from .serializers import AdminUserSerializer, MeSerializer, UserSerializer
 
 REFRESH_COOKIE = settings.JWT_REFRESH_COOKIE_NAME
 REFRESH_COOKIE_PATH = settings.JWT_REFRESH_COOKIE_PATH
@@ -169,25 +168,14 @@ def _register_failed_login(user, request, reason='password') -> None:
     user.save(update_fields=fields)
 
 
-class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = RegisterSerializer
-    permission_classes = [permissions.AllowAny]
-    authentication_classes = []
-    throttle_classes = [RegisterRateThrottle]
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        log_event('register_teacher', actor=user, request=request)
-        return Response(MeSerializer(user).data, status=status.HTTP_201_CREATED)
+EMAIL_LOGIN_OFF = "Email bilan kirish o'chirilgan. Loginingiz yoki telefon raqamingiz bilan kiring."
 
 
 class LoginView(generics.GenericAPIView):
-    """One login endpoint for every portal: `login` is an email (staff) or
-    a username (student). Older cached clients still send `email`, which
-    is accepted as the same field."""
+    """One login endpoint for every portal: `login` is the username (an
+    email is not accepted on Ko'ragoniy Edu — see UserManager.
+    get_by_natural_key). Older cached clients still send `email`, which is
+    read as the same field."""
 
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
@@ -202,6 +190,9 @@ class LoginView(generics.GenericAPIView):
         password = str(request.data.get('password') or '')
         if not login or not password:
             return Response({'detail': GENERIC_LOGIN_ERROR}, status=status.HTTP_400_BAD_REQUEST)
+        if '@' in login:
+            # says nothing about whether such an account exists
+            return Response({'detail': EMAIL_LOGIN_OFF, 'email_login_off': True}, status=status.HTTP_400_BAD_REQUEST)
 
         candidate = User.objects.find_by_login(login)
         if candidate and _is_locked(candidate):
@@ -532,6 +523,8 @@ class PasswordResetRequestView(generics.GenericAPIView):
         if not captcha_ok(request, 'password_reset'):
             return Response({'detail': FAILED}, status=status.HTTP_400_BAD_REQUEST)
         login = str(request.data.get('login') or request.data.get('email') or '').strip()
+        if '@' in login:
+            return Response({'detail': EMAIL_LOGIN_OFF, 'email_login_off': True}, status=status.HTTP_400_BAD_REQUEST)
         user = User.objects.find_by_login(login)
         if not user or not user.is_active:
             return Response(GENERIC_RESET_RESPONSE)

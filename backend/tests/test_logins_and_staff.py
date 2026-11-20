@@ -65,11 +65,11 @@ def _cookie(resp):
 
 def test_remember_me_controls_cookie_lifetime(api_client, make_user):
     make_user("rm@example.com", approved=True)
-    kept = api_client.post("/api/auth/login/", {"login": "rm@example.com", "password": "testpass123", "remember": True},
+    kept = api_client.post("/api/auth/login/", {"login": "rm", "password": "testpass123", "remember": True},
                            format="json")
     assert _cookie(kept)["max-age"]
 
-    session = api_client.post("/api/auth/login/", {"login": "rm@example.com", "password": "testpass123", "remember": False},
+    session = api_client.post("/api/auth/login/", {"login": "rm", "password": "testpass123", "remember": False},
                               format="json")
     assert session.status_code == 200 and not _cookie(session)["max-age"]
 

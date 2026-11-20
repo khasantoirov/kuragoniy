@@ -1,6 +1,3 @@
-from django.conf import settings
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from common.presence import presence_of
@@ -151,50 +148,3 @@ class AdminUserSerializer(PresenceMixin, UserSerializer):
         ]
 
 
-class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, min_length=8)
-    email = serializers.EmailField()
-
-    class Meta:
-        model = User
-        fields = ['email', 'name', 'password']
-
-    def validate_email(self, value):
-        if User.objects.filter(email__iexact=value).exists():
-            raise serializers.ValidationError("Bu email allaqachon ro'yxatdan o'tgan")
-        return value
-
-    def validate_password(self, value):
-        # AUTH_PASSWORD_VALIDATORS (common-password/numeric-only/similarity
-        # checks) is Django-wide config that only Django's own forms/mgmt
-        # commands actually call — this API path bypassed it entirely
-        # before, leaving "12345678" as a fully valid password with only
-        # the length check below. Run it explicitly here.
-        temp_user = User(email=self.initial_data.get('email', ''), name=self.initial_data.get('name', ''))
-        try:
-            validate_password(value, user=temp_user)
-        except DjangoValidationError as exc:
-            raise serializers.ValidationError(list(exc.messages))
-        return value
-
-    def to_internal_value(self, data):
-        # Normalize before the uniqueness check runs — otherwise
-        # "Ivan@x.com" and "ivan@x.com" could both pass as "unique" and
-        # register as two indistinguishable accounts that
-        # get_by_natural_key()'s case-insensitive lookup can't tell apart.
-        email = data.get('email')
-        if isinstance(email, str):
-            data = {**data, 'email': email.strip().lower()}
-        return super().to_internal_value(data)
-
-    def create(self, validated_data):
-        email = validated_data['email']
-        user = User.objects.create_user(
-            email=email,
-            password=validated_data['password'],
-            name=validated_data['name'],
-            role=User.Role.TEACHER,
-            approved=False,
-            is_dev_superuser=email in settings.DEV_SUPERUSER_EMAILS,
-        )
-        return user

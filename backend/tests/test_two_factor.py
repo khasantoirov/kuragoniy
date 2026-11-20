@@ -64,7 +64,7 @@ def test_confirm_with_correct_code_enables_2fa(as_user, teacher):
 def test_login_with_2fa_enabled_withholds_tokens_and_returns_challenge(api_client, as_user, teacher):
     _enable_2fa(as_user(teacher))
 
-    resp = api_client.post('/api/auth/login/', {'email': teacher.email, 'password': 'testpass123'}, format='json')
+    resp = api_client.post('/api/auth/login/', {'login': teacher.username, 'password': 'testpass123'}, format='json')
     assert resp.status_code == 200
     assert resp.data['totp_required'] is True
     assert 'access' not in resp.data
@@ -74,7 +74,7 @@ def test_login_with_2fa_enabled_withholds_tokens_and_returns_challenge(api_clien
 def test_full_login_flow_with_valid_totp_code(api_client, as_user, teacher):
     secret = _enable_2fa(as_user(teacher))
 
-    login = api_client.post('/api/auth/login/', {'email': teacher.email, 'password': 'testpass123'}, format='json')
+    login = api_client.post('/api/auth/login/', {'login': teacher.username, 'password': 'testpass123'}, format='json')
     challenge = login.data['challenge']
 
     verify = api_client.post(
@@ -89,7 +89,7 @@ def test_full_login_flow_with_valid_totp_code(api_client, as_user, teacher):
 
 def test_verify_rejects_wrong_code(api_client, as_user, teacher):
     _enable_2fa(as_user(teacher))
-    login = api_client.post('/api/auth/login/', {'email': teacher.email, 'password': 'testpass123'}, format='json')
+    login = api_client.post('/api/auth/login/', {'login': teacher.username, 'password': 'testpass123'}, format='json')
     resp = api_client.post(
         '/api/auth/2fa/verify/',
         {'challenge': login.data['challenge'], 'code': '000000'},
@@ -104,7 +104,7 @@ def test_verify_rejects_garbage_challenge(api_client):
 
 
 def test_login_without_2fa_enabled_is_unaffected(api_client, teacher):
-    resp = api_client.post('/api/auth/login/', {'email': teacher.email, 'password': 'testpass123'}, format='json')
+    resp = api_client.post('/api/auth/login/', {'login': teacher.username, 'password': 'testpass123'}, format='json')
     assert resp.status_code == 200
     assert 'access' in resp.data
     assert 'totp_required' not in resp.data

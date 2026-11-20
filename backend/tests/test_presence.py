@@ -46,7 +46,7 @@ def test_goes_offline_after_window_but_keeps_last_seen(teacher):
 
 def test_logout_marks_offline_immediately(api_client, make_user):
     make_user('out@example.com', approved=True)
-    login = api_client.post('/api/auth/login/', {'login': 'out@example.com', 'password': 'testpass123'}, format='json')
+    login = api_client.post('/api/auth/login/', {'login': 'out', 'password': 'testpass123'}, format='json')
     user = User.objects.get(email='out@example.com')
     assert presence_of(user)['online'] is True
     api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {login.data['access']}")

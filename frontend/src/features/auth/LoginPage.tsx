@@ -22,9 +22,14 @@ export const RENAMED_LOGIN_KEY = 'af-renamed-login'
 
 type Mode = 'phone' | 'password'
 
+// Kirish faqat login + parol yoki telefon raqam bilan — email bilan emas.
+const EMAIL_LOGIN_OFF = "Email bilan kirish o'chirilgan. Loginingiz yoki telefon raqamingiz bilan kiring."
+
 function readLastLogin() {
   try {
-    return localStorage.getItem(LAST_LOGIN_KEY) || ''
+    const last = localStorage.getItem(LAST_LOGIN_KEY) || ''
+    // an email remembered from before is no way in any more
+    return last.includes('@') ? '' : last
   } catch {
     return ''
   }
@@ -116,6 +121,10 @@ export function LoginPage() {
 
   const onPassword = async (e: FormEvent) => {
     e.preventDefault()
+    if (loginName.includes('@')) {
+      setReason('')
+      return setNote(t(EMAIL_LOGIN_OFF))
+    }
     setBusy(true)
     setNote('')
     setReason('')

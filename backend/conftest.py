@@ -15,10 +15,18 @@ def isolated_media_root(settings, tmp_path):
 @pytest.fixture
 def make_user(db):
     def _make(email, role=User.Role.TEACHER, approved=False, is_dev_superuser=False):
+        # everyone signs in by login here (never by email): the email's
+        # local part, e.g. "teacher@example.com" → "teacher"
+        login = email.split("@")[0].lower()
+        n = 1
+        while User.objects.filter(username=login).exists():
+            n += 1
+            login = f'{email.split("@")[0].lower()}{n}'
         return User.objects.create_user(
             email=email,
             password="testpass123",
             name=email.split("@")[0],
+            username=login,
             role=role,
             approved=approved,
             is_dev_superuser=is_dev_superuser,

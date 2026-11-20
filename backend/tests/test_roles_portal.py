@@ -128,7 +128,7 @@ def test_password_change_revokes_old_tokens(api_client, make_user):
     from rest_framework.test import APIClient
 
     make_user("rev@example.com", approved=True)
-    login = api_client.post("/api/auth/login/", {"login": "rev@example.com", "password": "testpass123"}, format="json")
+    login = api_client.post("/api/auth/login/", {"login": "rev", "password": "testpass123"}, format="json")
     old = APIClient()
     old.credentials(HTTP_AUTHORIZATION=f"Bearer {login.data['access']}")
     assert old.get("/api/lessons/").status_code == 200
@@ -154,7 +154,7 @@ def test_refresh_cookie_rejected_after_logout_all(api_client, make_user):
     import time
 
     make_user("ref@example.com", approved=True)
-    login = api_client.post("/api/auth/login/", {"login": "ref@example.com", "password": "testpass123"}, format="json")
+    login = api_client.post("/api/auth/login/", {"login": "ref", "password": "testpass123"}, format="json")
     assert login.status_code == 200
     assert api_client.post("/api/auth/refresh/").status_code == 200
     time.sleep(1.1)

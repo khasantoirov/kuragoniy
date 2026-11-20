@@ -15,13 +15,14 @@ def _login(client, login, password="testpass123"):
     return client.post("/api/auth/login/", {"login": login, "password": password}, format="json")
 
 
-def test_command_adds_logins_and_keeps_email_sign_in(api_client, make_user, student):
+def test_command_adds_logins(api_client, make_user, student):
     hasan = make_user("hasan.toirov@gmail.com", approved=True)
     hasan.name = "Toirov Hasan"
     hasan.save(update_fields=["name"])
     boss = make_user("boss@example.com", role=User.Role.BOSHLIQ, approved=True)
     boss.name = "Karimova Nodira"
     boss.save(update_fields=["name"])
+    User.objects.filter(pk__in=[hasan.pk, boss.pk]).update(username=None)  # staff from before logins
     password_hashes = {u.pk: u.password for u in User.objects.all()}
     student_login = User.objects.get(pk=student.pk).username
 
@@ -34,9 +35,9 @@ def test_command_adds_logins_and_keeps_email_sign_in(api_client, make_user, stud
     assert User.objects.get(pk=student.pk).username == student_login  # pupils untouched
     assert {u.pk: u.password for u in User.objects.all()} == password_hashes
 
-    # The same password signs in with the new login and still with the email.
+    # The same password signs in with the new login; an email is no way in.
     assert _login(api_client, "hasantoirov").status_code == 200
-    assert _login(api_client, "hasan.toirov@gmail.com").status_code == 200
+    assert _login(api_client, "hasan.toirov@gmail.com").status_code == 400
 
     # Running again is a no-op.
     call_command("create_staff_logins", "--apply")
@@ -62,7 +63,7 @@ def test_admin_changes_a_staff_login(as_user, api_client, admin, teacher, make_u
     assert _login(api_client, "aziz.ustoz").status_code == 200
     renamed = _login(api_client, old)
     assert renamed.status_code == 200 and renamed.data["renamed_login"] == "aziz.ustoz"
-    assert _login(api_client, "teacher@example.com").status_code == 200
+    assert _login(api_client, "teacher@example.com").status_code == 400  # never by email
 
     # A teacher can't do it, nor a plain admin to another admin.
     assert as_user(teacher).post(url, {"login": "boshqa"}, format="json").status_code == 403
