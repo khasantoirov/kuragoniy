@@ -35,6 +35,8 @@ export const IC = {
   grid: wrap(<><rect x="3" y="3" width="8" height="8" rx="1.5" /><rect x="13" y="3" width="8" height="8" rx="1.5" /><rect x="3" y="13" width="8" height="8" rx="1.5" /><rect x="13" y="13" width="8" height="8" rx="1.5" /></>),
   list: wrap(<><path d="M8 6h13" /><path d="M8 12h13" /><path d="M8 18h13" /><path d="M3 6h.01" /><path d="M3 12h.01" /><path d="M3 18h.01" /></>),
   image: wrap(<><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="m21 15-5-5L5 21" /></>),
+  pause: wrap(<><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none" /><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none" /></>),
+  rotate: wrap(<><rect x="11" y="2.5" width="9" height="15" rx="2" /><path d="M14.5 14.5h2" /><path d="M3.5 9a8.5 8.5 0 0 0 6 10.5" /><path d="m6.5 19.6 3 .1-.4-3" /></>),
   play: wrap(<path d="M7 4v16l13-8Z" fill="currentColor" stroke="none" />),
   copy: wrap(<><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></>),
   move: wrap(<><path d="M5 12h14" /><path d="m13 5 7 7-7 7" /></>),

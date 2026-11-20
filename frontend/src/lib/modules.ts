@@ -14,6 +14,7 @@ export type ModuleKey = 'lab' | 'library' | 'timetable' | 'assignments' | 'games
 
 /** This platform's optional sections, in the order Modullar lists them. */
 export const MODULES: { key: ModuleKey; label: string; sub: string }[] = [
+  { key: 'lab', label: "Laboratoriya", sub: "Virtual laboratoriya va simulyatsiyalar (Fizika oynasida)" },
   { key: 'library', label: "Kutubxona", sub: "Kitoblar, qo'llanmalar va videolar" },
   { key: 'timetable', label: "Jadval", sub: "Haftalik dars jadvali va bosh sahifadagi «Bugungi darslar»" },
   { key: 'assignments', label: "Vazifalar", sub: "Uyga vazifa: o'qituvchi beradi, o'quvchi portalida bajariladi" },

@@ -16,7 +16,7 @@ import { TimetablePage } from '@/features/timetable/TimetablePage'
 import { AppShell } from '@/layouts/AppShell'
 import { AuthLayout } from '@/layouts/AuthLayout'
 
-import { RequireAdmin, RequireApproved, RequireAuth, RequireGuest, RequireModule, RequireNotApproved } from './guards'
+import { RequireAdmin, RequireApproved, RequireAuth, RequireFan, RequireGuest, RequireModule, RequireNotApproved } from './guards'
 import { AdminTabs, guestPortalRoutes, JournalTabs, LessonsTabs, StaffHome, staffPortalRoutes, topLevelPortalRoutes } from './portalRoutes'
 
 // Sozlamalar and the inbox: their own chunks (QR codes, sound synth, charts
@@ -32,6 +32,9 @@ const BookReaderPage = lazy(() => import('@/features/library/reader/BookReaderPa
 
 // the public front page, also for a signed-in administrator checking it
 const LandingPage = lazy(() => import('@/features/landing/LandingPage').then((m) => ({ default: m.LandingPage })))
+// the virtual lab (from amaliyfizika.uz) — the Fizika window's, its own chunk
+const LabPage = lazy(() => import('@/features/lab/LabPage').then((m) => ({ default: m.LabPage })))
+const LabSimDetail = lazy(() => import('@/features/lab/LabSimDetail').then((m) => ({ default: m.LabSimDetail })))
 const GuidePage = lazy(() => import('@/features/guide/GuidePage').then((m) => ({ default: m.GuidePage })))
 const page = (el: React.ReactNode) => <Suspense fallback={<Skeleton lines={5} />}>{el}</Suspense>
 const settings = (el: React.ReactNode) => page(<><SettingsTabs />{el}</>)
@@ -54,6 +57,8 @@ export const router = createBrowserRouter([
       { path: '/timetable', element: <RequireModule keys={['timetable']}><TimetablePage /></RequireModule> },
       { path: '/library', element: <RequireModule keys={['library']}><LibraryPage /></RequireModule> },
       { path: '/library/:id/read', element: <RequireModule keys={['library']}>{page(<BookReaderPage />)}</RequireModule> },
+      { path: '/lab', element: <RequireFan fan="fizika"><RequireModule keys={['lab']}>{page(<LabPage />)}</RequireModule></RequireFan> },
+      { path: '/lab/:simId', element: <RequireFan fan="fizika"><RequireModule keys={['lab']}>{page(<LabSimDetail />)}</RequireModule></RequireFan> },
       {
         path: '/admin',
         element: <RequireAdmin>{page(<AdminTabs />)}</RequireAdmin>,

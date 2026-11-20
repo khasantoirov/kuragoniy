@@ -15,7 +15,8 @@ import {
 } from '@/lib/auth/AuthContext'
 import { FanChooser, useFanPicked } from '@/components/FanWindow'
 import { useModules, type ModuleKey } from '@/lib/modules'
-import { subjectsFor } from '@/lib/subjects'
+import { subjectsFor, useSubjects } from '@/lib/subjects'
+import type { Subject } from '@/features/lessons/labels'
 import { useViewAs } from '@/lib/viewAs'
 import { useUIStore } from '@/store/uiStore'
 
@@ -101,6 +102,14 @@ export function RequireTeacher({ children }: { children: ReactNode }) {
 export function RequireStaff({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   if (!isTeacherLike(user) && !isObserver(user)) return <Navigate to={homePathFor(user)} replace />
+  return children
+}
+
+/** A page of one fan window only (the Laboratoriya is Fizika's) — from
+ *  the other window it leads home. */
+export function RequireFan({ fan, children }: { fan: Subject; children: ReactNode }) {
+  const { current } = useSubjects()
+  if (current !== fan) return <Navigate to="/" replace />
   return children
 }
 

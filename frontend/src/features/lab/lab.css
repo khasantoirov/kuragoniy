@@ -1,0 +1,283 @@
+/* ══ Virtual laboratoriya (features/lab) ═════════════════════
+   Xona sahnasi (LabRoom.tsx), stollar, jihozlar shkafi va tajriba ish
+   joyi. Xona va jihoz ranglari --lab-* / --eq-* o'zgaruvchilarida —
+   tungi rejimda xona ham "kechki" ko'rinishga o'tadi. */
+.labx {
+  --lab-wall-top: #EEF4F8; --lab-wall: #DCE8F0; --lab-wainscot: #C9DAE6; --lab-rail: #A9BFCF;
+  --lab-floor: #CFC6B8; --lab-floor-line: rgba(90, 74, 52, .18); --lab-skirting: #8B7355;
+  --lab-frame: #8A5A2B; --lab-frame-dark: #6B4421; --lab-sky-top: #7CC4F2; --lab-sky: #CDEBFB;
+  --lab-sun: #FDE68A; --lab-hill: #86C98E; --lab-board: #23503D; --lab-chalk: #F1F5F2;
+  --lab-clock: #FFFFFF; --lab-cab-glass: #E6F1F7; --lab-bench: #EDEFF2; --lab-door: #F7F8FA;
+  --lab-handle: #94A3B8; --lab-plinth: #475569; --lab-top: #3F4A57; --lab-top-edge: #2C3540;
+  --lab-line: #334155; --lab-steam: rgba(148, 163, 184, .75);
+  --eq-line: #334155; --eq-metal: #CBD5E1; --eq-metal-dark: #64748B; --eq-glass: rgba(186, 230, 253, .55);
+  --eq-wood: #C68B4E; --eq-dark: #334155; --eq-paper: #FFFFFF; --eq-bg: #F1F5F9;
+}
+[data-theme="dark"] .labx {
+  --lab-wall-top: #1B2735; --lab-wall: #213042; --lab-wainscot: #1A2634; --lab-rail: #2E4052;
+  --lab-floor: #2A2620; --lab-floor-line: rgba(255, 255, 255, .06); --lab-skirting: #4A3B2A;
+  --lab-frame: #5C3D20; --lab-frame-dark: #46301A; --lab-sky-top: #0B1530; --lab-sky: #23365E;
+  --lab-sun: #E2E8F0; --lab-hill: #1F3B2A; --lab-board: #173829; --lab-chalk: #E2E8E4;
+  --lab-clock: #E2E8F0; --lab-cab-glass: #1C2B3A; --lab-bench: #2A3646; --lab-door: #313E50;
+  --lab-handle: #64748B; --lab-plinth: #111827; --lab-top: #11161D; --lab-top-edge: #0B0F14;
+  --lab-line: #0F172A; --lab-steam: rgba(203, 213, 225, .55);
+  --eq-line: #CBD5E1; --eq-metal: #64748B; --eq-metal-dark: #94A3B8; --eq-glass: rgba(56, 189, 248, .22);
+  --eq-wood: #A06A35; --eq-dark: #0F172A; --eq-paper: #E2E8F0; --eq-bg: #1E293B;
+}
+
+/* ── Xona ─────────────────────────────────────────────── */
+.labtop { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.labtop__t { font-size: 22px; margin: 0; }
+.labtop__s { margin: 4px 0 0; color: var(--ink-3); font-size: 14px; max-width: 62ch; }
+.labtop__q { flex: 0 1 340px; margin: 0; }
+.labroom-wrap {
+  border-radius: 18px; overflow: hidden; border: 1px solid var(--rule);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, .14); background: var(--lab-wall);
+}
+.labroom { display: block; width: 100%; height: auto; user-select: none; }
+.labroom__hot { cursor: pointer; outline: none; }
+.labroom__lift { transition: transform .25s ease; }
+.labroom__cabinet { transition: filter .25s ease; }
+.labroom__bench:hover .labroom__lift, .labroom__bench:focus-visible .labroom__lift { transform: translateY(-4px); }
+.labroom__halo { opacity: 0; transition: opacity .25s ease; }
+.labroom__bench:hover .labroom__halo { opacity: .14; }
+.labroom__bench:focus-visible .labroom__halo { opacity: .22; }
+.labroom__cabinet:hover, .labroom__cabinet:focus-visible { filter: drop-shadow(0 0 10px rgba(224, 168, 46, .55)); }
+.labroom__plate-t { font: 700 15px/1 var(--f-body, system-ui), system-ui; fill: #fff; letter-spacing: .02em; }
+.labroom__plate-c { font: 600 10.5px/1 var(--f-mono, ui-monospace), monospace; fill: #fff; opacity: .88; letter-spacing: .06em; text-transform: uppercase; }
+.labroom__mini { font: 700 9px/1 var(--f-mono, ui-monospace), monospace; fill: #E2E8F0; }
+.labroom__label { font: 800 11px/1 var(--f-mono, ui-monospace), monospace; fill: #3A2408; letter-spacing: .12em; }
+.labroom__chalk text, text.labroom__chalk {
+  font: italic 500 23px/1 Georgia, 'Times New Roman', serif; fill: var(--lab-chalk); opacity: .9;
+}
+text.labroom__chalk--title { font-size: 25px; font-weight: 600; letter-spacing: .02em; }
+text.labroom__chalk--small { font-size: 16px; }
+
+
+/* ── Yo'l, sarlavha ───────────────────────────────────── */
+.labcrumbs { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--ink-3); margin-bottom: 10px; }
+.labcrumbs a { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); text-decoration: none; }
+.labcrumbs a:hover { color: var(--bench, var(--ok)); text-decoration: underline; }
+.labcrumbs .svic { width: 15px; height: 15px; }
+.labbhead { margin: 0 0 16px; }
+.labbhead__t { display: flex; align-items: center; gap: 10px; font-size: 24px; margin: 0; }
+.labbhead__dot { width: 12px; height: 12px; border-radius: 50%; background: var(--bench); box-shadow: 0 0 0 4px color-mix(in srgb, var(--bench) 22%, transparent); flex: none; }
+.labbhead__s { margin: 6px 0 0 22px; color: var(--ink-3); font-size: 14px; max-width: 70ch; }
+
+/* ── Stol ustidagi jihozlar ───────────────────────────── */
+.labtable {
+  position: relative; padding: 14px 14px 0; margin-bottom: 18px; border-radius: 14px;
+  background: linear-gradient(180deg, var(--lab-wall-top), var(--lab-wainscot));
+  border: 1px solid var(--rule);
+}
+.labtable::after {
+  content: ''; display: block; height: 14px; margin: 0 -14px; border-radius: 0 0 14px 14px;
+  background: linear-gradient(180deg, var(--lab-top), var(--lab-top-edge));
+}
+.labtable__label { display: block; font: 600 11px/1.3 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; }
+.labtable__row { display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-end; }
+.labtool {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; width: 92px; padding: 8px 4px 6px;
+  border: 1px solid transparent; border-radius: 12px 12px 0 0; background: transparent; color: var(--ink);
+  cursor: pointer; transition: transform .15s ease, background .15s ease;
+}
+.labtool:hover { transform: translateY(-3px); background: color-mix(in srgb, var(--surface) 70%, transparent); }
+.labtool.is-on { background: var(--surface); border-color: var(--bench); box-shadow: 0 -3px 0 var(--bench) inset; }
+.labtool__n { font-size: 11.5px; line-height: 1.2; text-align: center; color: var(--ink-2); }
+.labfilter { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 14px; color: var(--ink-2); margin: -6px 0 14px; }
+
+/* ── Tajriba kartalari ────────────────────────────────── */
+.labexps { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.labexp {
+  display: flex; flex-direction: column; border: 1px solid var(--rule); border-radius: 14px; overflow: hidden;
+  background: var(--surface); color: var(--ink); text-decoration: none;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s;
+}
+.labexp:hover, .labexp:focus-visible { transform: translateY(-3px); border-color: var(--bench); box-shadow: 0 12px 26px rgba(15, 23, 42, .12); outline: none; }
+.labexp__view { position: relative; display: block; background: var(--paper); border-bottom: 3px solid var(--bench); }
+.labexp__cv { display: block; width: 100%; aspect-ratio: 16 / 10; }
+.labexp__play {
+  position: absolute; right: 10px; bottom: 10px; width: 34px; height: 34px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--bench); color: #fff; box-shadow: 0 4px 10px rgba(0, 0, 0, .25);
+  opacity: .9; transition: transform .15s ease;
+}
+.labexp__play .svic { width: 15px; height: 15px; margin-left: 2px; }
+.labexp:hover .labexp__play { transform: scale(1.1); }
+.labexp__body { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px 12px; flex: 1; }
+.labexp__t { font-weight: 700; font-size: 15px; }
+.labexp__d { font-size: 12.5px; color: var(--ink-3); line-height: 1.4; }
+.labexp__eq { display: flex; gap: 4px; margin-top: auto; padding-top: 8px; }
+.labexp__eqi { display: inline-flex; padding: 2px; border-radius: 6px; background: var(--eq-bg); }
+.eqic { display: block; flex: none; overflow: visible; }
+
+/* ── Jihozlar shkafi ──────────────────────────────────── */
+.labshelf { margin-bottom: 22px; }
+.labshelf__t {
+  display: inline-block; margin: 0 0 10px; padding: 3px 12px; border-radius: 4px;
+  font: 700 12px/1.6 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: #fff; background: var(--bench);
+}
+.labshelf__row {
+  display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); align-items: start;
+  padding: 12px; border-radius: 12px; border: 10px solid var(--lab-frame); border-bottom-width: 14px;
+  background: var(--lab-cab-glass);
+}
+.labitem { border-radius: 10px; background: var(--surface); border: 1px solid var(--rule); }
+.labitem.is-open { border-color: var(--bench); box-shadow: 0 8px 18px rgba(15, 23, 42, .12); }
+.labitem__b {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; padding: 12px 10px;
+  border: 0; background: transparent; color: var(--ink); cursor: pointer; text-align: center;
+}
+.labitem__n { font-weight: 700; font-size: 13.5px; }
+.labitem__h { font-size: 11.5px; color: var(--ink-3); line-height: 1.3; }
+.labitem__c { font: 600 11px/1 var(--f-mono); color: var(--bench); margin-top: 2px; }
+.labitem__list { list-style: none; margin: 0; padding: 0 10px 10px; display: grid; gap: 4px; }
+.labitem__list a {
+  display: block; padding: 6px 8px; border-radius: 6px; font-size: 12.5px; color: var(--ink);
+  text-decoration: none; background: var(--rule-2);
+}
+.labitem__list a:hover { background: color-mix(in srgb, var(--bench) 16%, transparent); }
+
+/* ── Tajriba ish joyi ─────────────────────────────────── */
+.labsim .sim { grid-template-columns: minmax(0, 1fr) 310px; }
+@media (max-width: 900px) { .labsim .sim { grid-template-columns: 1fr; } }
+.labsim .sim__stage {
+  border: 10px solid var(--lab-frame); border-bottom-width: 16px; border-radius: 16px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .15), 0 14px 30px rgba(15, 23, 42, .16);
+}
+.labsim .sim__read {
+  background: #0B1F17; border: 2px solid #1F2937; border-radius: 8px; padding: 8px 12px;
+  box-shadow: inset 0 0 12px rgba(16, 185, 129, .18), 0 4px 10px rgba(0, 0, 0, .3);
+}
+.labsim .sim__rb span { color: #6EE7B7; opacity: .85; }
+.labsim .sim__rb b { color: #D1FAE5; text-shadow: 0 0 6px rgba(52, 211, 153, .6); }
+.sim__paused {
+  position: absolute; top: 10px; right: 10px; display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 999px; background: rgba(15, 23, 42, .78); color: #fff; font-size: 12px; font-weight: 600;
+}
+.sim__paused .svic { width: 13px; height: 13px; }
+.sim__flash { position: absolute; inset: 0; background: #fff; pointer-events: none; animation: lab-flash .45s ease-out forwards; }
+@keyframes lab-flash { from { opacity: .55; } to { opacity: 0; } }
+.labsim .sim__ctrls { position: relative; overflow: hidden; padding-top: 20px; }
+.labsim .sim__ctrls::before { content: ''; position: absolute; inset: 0 0 auto; height: 4px; background: var(--bench); }
+.sim__ctrls-t { margin: 0; font: 700 11px/1.3 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.sim__acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.sim__acts .btn { flex: 1 1 auto; justify-content: center; }
+.sim__measure { width: 100%; justify-content: center; }
+.sim__ctrls .btn .svic { width: 15px; height: 15px; }
+
+.labsim__grid { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 18px; }
+@media (max-width: 900px) { .labsim__grid { grid-template-columns: 1fr; } }
+.labpanel { border: 1px solid var(--rule); border-radius: var(--r); background: var(--surface); padding: 16px; min-width: 0; }
+.labpanel--wide { grid-column: 1 / -1; }
+.labpanel__t { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 15px; }
+.labpanel__t .svic { width: 17px; height: 17px; color: var(--bench); }
+.labeq { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.labeq__i { display: flex; align-items: center; gap: 12px; padding: 6px 8px; border-radius: 10px; background: var(--eq-bg); }
+.labeq__i span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.labeq__i b { font-size: 14px; }
+.labeq__i small { font-size: 12px; color: var(--ink-3); }
+.labsteps { margin: 0; padding-left: 22px; display: grid; gap: 8px; font-size: 14px; color: var(--ink-2); line-height: 1.45; }
+.labsteps li::marker { color: var(--bench); font-weight: 700; }
+
+.labnote__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.labnote__head .labpanel__t { margin: 0; }
+.labnote__acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.labnote__acts .svic { width: 14px; height: 14px; }
+.labnote__wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; }
+.labnote__t { width: 100%; border-collapse: collapse; font-size: 13px; }
+.labnote__t th, .labnote__t td { padding: 7px 10px; border-bottom: 1px solid var(--rule-2); text-align: left; white-space: nowrap; }
+.labnote__t th { background: var(--rule-2); font: 600 11.5px/1.3 var(--f-mono); color: var(--ink-2); position: sticky; top: 0; }
+.labnote__t td { font-family: var(--f-mono); }
+.labnote__t tr:last-child td { border-bottom: 0; }
+.labnote__t tbody tr:last-child { background: color-mix(in srgb, var(--bench) 9%, transparent); }
+.labnote__empty {
+  margin: 0; padding: 18px; border: 1px dashed var(--rule); border-radius: 10px; text-align: center;
+  color: var(--ink-3); font-size: 13.5px;
+  background: repeating-linear-gradient(180deg, transparent 0 27px, color-mix(in srgb, var(--rule) 50%, transparent) 27px 28px);
+}
+.labsim__nav { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+.labsim__nav .btn { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 560px) {
+  .labroom-wrap { border-radius: 12px; margin: 0 -4px; }
+  .labtop__q { flex-basis: 100%; }
+  .labtool { width: 76px; }
+  .labbhead__t { font-size: 20px; }
+  .labbhead__s { margin-left: 0; }
+  .labsim .sim__stage { border-width: 6px; border-bottom-width: 10px; border-radius: 12px; }
+  .labsim .sim__read { padding: 6px 8px; gap: 3px; }
+  .labsim .sim__rb { font-size: 11.5px; gap: 10px; }
+  .labshelf__row { border-width: 6px; border-bottom-width: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .labroom__lift, .labexp, .labtool { transition: none; }
+  .sim__flash { animation-duration: .01s; }
+}
+
+/* ── Yon tomonga burish (Landscape.tsx) ───────────────── */
+/* The open layer covers the page (position:fixed; inset:0 fits even under
+   body { zoom: 1.1 }, where vh/vw would overflow); while the screen is
+   upright its content is turned 90°, sized in container units (cqh/cqw)
+   so the turn never depends on viewport units. */
+.landbtn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border: 0; border-radius: 999px;
+  background: rgba(15, 23, 42, .8); color: #fff; font: 600 12.5px/1 var(--f-body, system-ui), system-ui;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .25); cursor: pointer;
+}
+.landbtn:hover, .landbtn:focus-visible { background: rgba(15, 23, 42, .92); }
+.landbtn .svic { width: 17px; height: 17px; }
+.labroom-wrap { position: relative; }
+/* over the window — the one corner with no plate or cabinet to hide */
+.labroom__land { position: absolute; left: 12px; top: 12px; }
+@media (max-width: 560px) { .labroom__land { left: 8px; top: 8px; padding: 6px 10px; font-size: 11.5px; } }
+.sim__land { position: absolute; right: 10px; bottom: 10px; }
+
+.landv.is-on { position: fixed; inset: 0; z-index: 3000; background: var(--paper); container-type: size; }
+.landv.is-on > .landv__in { position: absolute; inset: 0; }
+@container (orientation: portrait) {
+  .landv.is-on > .landv__in {
+    inset: auto; top: 0; left: 0; width: 100cqh; height: 100cqw;
+    transform: rotate(90deg) translateY(-100%); transform-origin: 0 0;
+  }
+}
+.landv__x {
+  position: absolute; top: 8px; right: 8px; z-index: 5; display: grid; place-items: center;
+  width: 40px; height: 40px; border: 0; border-radius: 50%;
+  background: rgba(15, 23, 42, .8); color: #fff; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+}
+.landv__x .svic { width: 18px; height: 18px; }
+
+/* The room, sideways: the whole scene, letterboxed in the wall colour. */
+.labroom-land.is-on .labroom-wrap { position: absolute; inset: 0; margin: 0; border: 0; border-radius: 0; box-shadow: none; }
+.labroom-land.is-on .labroom { width: 100%; height: 100%; }
+
+/* An experiment, sideways: the stage fills the height, the controls scroll beside it. */
+.sim-land.is-on .sim {
+  position: absolute; inset: 0; margin: 0; padding: 8px; gap: 8px;
+  grid-template-columns: minmax(0, 1fr) 250px; align-items: stretch;
+}
+.sim-land.is-on .sim__stage { height: 100%; min-height: 0; border-width: 6px; border-bottom-width: 10px; }
+.sim-land.is-on .sim__cv { height: 100%; }
+.sim-land.is-on .sim__ctrls { height: 100%; overflow-y: auto; padding-top: 52px; gap: 10px; }
+
+/* A phone turned by hand opens the sideways layer by itself; closed with ✕,
+   the page still keeps the stage within the short screen. */
+@media (orientation: landscape) and (max-height: 560px) {
+  .labsim .sim__cv { height: min(400px, 70vh); }
+}
+
+/* ── Stollar ro'yxati (telefon) ───────────────────────── */
+.labbenches { display: none; }
+@media (max-width: 700px) {
+  .labbenches { display: grid; gap: 10px; margin-top: 14px; }
+}
+.labbench {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--rule);
+  border-left: 4px solid var(--bench); border-radius: 12px; background: var(--surface); color: var(--ink); text-decoration: none;
+}
+.labbench:active { background: color-mix(in srgb, var(--bench) 8%, var(--surface)); }
+.labbench__dot { width: 12px; height: 12px; border-radius: 50%; background: var(--bench); flex: none; box-shadow: 0 0 0 4px color-mix(in srgb, var(--bench) 20%, transparent); }
+.labbench__b { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.labbench__b b { font-size: 15px; }
+.labbench__b small { font-size: 12px; line-height: 1.35; color: var(--ink-3); }
+.labbench__n { font: 600 12px/1 var(--f-mono); color: var(--ink-2); white-space: nowrap; }

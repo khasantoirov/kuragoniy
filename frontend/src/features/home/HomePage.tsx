@@ -6,6 +6,7 @@ import { useTimetable } from '@/features/timetable/api'
 import { IC } from '@/icons'
 import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
 import { routeOn, useModules } from '@/lib/modules'
+import { useSubjects } from '@/lib/subjects'
 import { useUIStore } from '@/store/uiStore'
 
 const WEEK = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba']
@@ -21,11 +22,12 @@ function greetingKey(h: number) {
   return h < 12 ? 'Xayrli tong' : h < 18 ? 'Xayrli kun' : 'Xayrli kech'
 }
 
-const LINKS: { view: string; ic: keyof typeof IC; title: string; sub: string; adminOnly?: boolean }[] = [
+const LINKS: { view: string; ic: keyof typeof IC; title: string; sub: string; adminOnly?: boolean; fizikaOnly?: boolean }[] = [
   { view: '/lessons', ic: 'file', title: 'Darslar', sub: 'Mavzular va tajribalar' },
   { view: '/journal', ic: 'clipboard', title: 'Jurnal', sub: 'Baho, davomat, statistika' },
   { view: '/timetable', ic: 'calendar', title: 'Jadval', sub: 'Haftalik dars jadvali' },
   { view: '/library', ic: 'book', title: 'Kutubxona', sub: "Kitob, qo'llanma, video" },
+  { view: '/lab', ic: 'flask', title: 'Laboratoriya', sub: 'Interaktiv simulyatsiyalar', fizikaOnly: true },
   { view: '/statistics', ic: 'chart', title: 'Statistika', sub: "Ko'rsatkichlar va sinflar kesimi", adminOnly: true },
 ]
 
@@ -48,7 +50,8 @@ export function HomePage() {
   const admin = isAdminInView(user, viewMode)
   // The daily sections only; everything else is in the side menu.
   const { on } = useModules()
-  const links = LINKS.filter((l) => (!l.adminOnly || admin) && routeOn(l.view, on))
+  const fan = useSubjects().current
+  const links = LINKS.filter((l) => (!l.adminOnly || admin) && (!l.fizikaOnly || fan === 'fizika') && routeOn(l.view, on))
   const fmtDate = `${t(WEEK[now.getDay()])}, ${now.getDate()}-${t(MONTHS[now.getMonth()])}`
 
   return (
