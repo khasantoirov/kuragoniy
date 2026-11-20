@@ -6,7 +6,7 @@ from rest_framework import serializers
 from common.protected_media import ProtectedFilesMixin
 from common.uploads import delete_file_field
 
-from .models import EquipmentItem, EquipmentSheet, Experiment, Lesson, QuarterLock
+from .models import EquipmentItem, EquipmentSheet, Experiment, LabEquipment, Lesson, QuarterLock
 
 
 class EquipmentItemSerializer(serializers.ModelSerializer):
@@ -167,3 +167,28 @@ class LessonSerializer(ProtectedFilesMixin, serializers.ModelSerializer):
         for item in to_delete:
             delete_file_field(item, 'image')
         to_delete.delete()
+
+
+class LabEquipmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LabEquipment
+        fields = ['id', 'key', 'name', 'kind', 'build_materials', 'price', 'image', 'updated_at']
+        read_only_fields = fields
+
+
+class LabEquipmentUpsertSerializer(serializers.Serializer):
+    """Create-or-update by name (matched with equipment_key); only the
+    fields sent are changed."""
+
+    name = serializers.CharField(max_length=255)
+    kind = serializers.ChoiceField(choices=LabEquipment.Kind.choices, required=False)
+    build_materials = serializers.CharField(allow_blank=True, required=False)
+    price = serializers.IntegerField(min_value=0, max_value=2_000_000_000, allow_null=True, required=False)
+
+
+class EquipmentItemQuickSerializer(serializers.ModelSerializer):
+    """Name/quantity edits from the equipment table, one row at a time."""
+
+    class Meta:
+        model = EquipmentItem
+        fields = ['name', 'quantity']

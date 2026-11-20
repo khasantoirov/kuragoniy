@@ -1,0 +1,99 @@
+/* ══ Jihozlar jadvali (features/manage/equipment) ════════════
+   Maktabning Amaliy_fizika_7_8_9_sinflar jadvaliga o'xshash: ko'k
+   sarlavha, jihoz turi ranglari (birlamchi — yashil, ikkilamchi — sariq,
+   uchlamchi — pushti), hafta/mavzu/tajriba kataklari birlashtirilgan. */
+.eqpage {
+  --eq-head: #A4C2F4; --eq-head-ink: #0F172A; --eq-band: #4A86E8;
+  --eqk-b-bg: #D9EAD3; --eqk-b-ink: #38761D;
+  --eqk-i-bg: #FFF2CC; --eqk-i-ink: #B45F06;
+  --eqk-u-bg: #F4CCCC; --eqk-u-ink: #990000;
+}
+[data-theme="dark"] .eqpage {
+  --eq-head: #1E3A6B; --eq-head-ink: #E2E8F0;
+  --eqk-b-bg: rgba(74, 222, 128, .14); --eqk-b-ink: #86EFAC;
+  --eqk-i-bg: rgba(250, 204, 21, .14); --eqk-i-ink: #FDE68A;
+  --eqk-u-bg: rgba(248, 113, 113, .16); --eqk-u-ink: #FCA5A5;
+}
+.eqbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.eqbar .chips { margin: 0; }
+.eqbar__q { flex: 1 1 260px; max-width: 380px; margin: 0; }
+.eqnote { display: flex; align-items: flex-start; gap: 8px; margin: 10px 0 14px; font-size: 13px; color: var(--ink-3); }
+.eqnote .svic { width: 16px; height: 16px; flex: none; margin-top: 1px; }
+.eqh { font-size: 16px; margin: 22px 0 10px; }
+.eqmuted { color: var(--ink-3); font-size: 12px; }
+
+.eqt-wrap {
+  overflow: auto; max-height: 76vh; border: 1px solid var(--rule); border-radius: var(--r);
+  background: var(--surface);
+}
+.eqt-wrap--auto { max-height: none; }
+.eqt { width: 100%; min-width: 1480px; border-collapse: collapse; font-size: 13px; }
+.eqt--sum, .eqt--topics { min-width: 760px; }
+.eqt th {
+  position: sticky; top: 0; z-index: 2; padding: 9px 8px; background: var(--eq-head); color: var(--eq-head-ink);
+  font: 700 12.5px/1.25 var(--f-body); text-align: center; border: 1px solid var(--rule);
+}
+.eqt td { padding: 6px 8px; border: 1px solid var(--rule); vertical-align: middle; text-align: center; }
+.eqt__first td { border-top: 2px solid color-mix(in srgb, var(--eq-band) 55%, var(--rule)); }
+/* Hafta/mavzu/tajriba kataklari bir necha qatorni egallaydi: yozuv tepada
+   va jadval aylantirilganda sarlavha ostida qotib turadi. */
+.eqt__hafta, .eqt__topic, .eqt__exp { vertical-align: top !important; }
+.eqt__stick { position: sticky; top: 52px; }
+.eqt__hafta { width: 56px; font-weight: 700; font-size: 15px; }
+.eqt__topic { width: 190px; font-weight: 700; }
+.eqt__topic small, .eqt__exp small { display: block; margin-top: 4px; font-weight: 500; font-size: 11.5px; color: var(--ink-3); }
+.eqt__exp { width: 250px; text-align: left !important; }
+.eqt__exp small { white-space: pre-line; max-height: 6.2em; overflow: hidden; }
+.eqt__photo { width: 84px; }
+.eqt__name { width: 190px; }
+.eqt__kind { width: 138px; }
+.eqt__build { width: 210px; }
+.eqt__qty { width: 74px; }
+.eqt__price { width: 116px; }
+.eqt__sum { width: 130px; white-space: nowrap; }
+.eqt__refs { width: 280px; text-align: left !important; }
+.eqt__left { text-align: left !important; }
+.eqt__none { text-align: left !important; }
+.eqt__money { font-weight: 700; color: var(--eqk-b-ink); }
+.eqt__total td { font-weight: 700; background: var(--rule-2); }
+.eqt__total td:first-child { text-align: right; }
+tr.is-flash td { animation: eq-flash 1.8s ease-out; }
+@keyframes eq-flash { 0%, 40% { background: color-mix(in srgb, var(--eq-band) 22%, transparent); } 100% { background: transparent; } }
+
+.eqk--birlamchi { background: var(--eqk-b-bg); color: var(--eqk-b-ink); }
+.eqk--ikkilamchi { background: var(--eqk-i-bg); color: var(--eqk-i-ink); }
+.eqk--uchlamchi { background: var(--eqk-u-bg); color: var(--eqk-u-ink); }
+th.eqk--birlamchi, th.eqk--ikkilamchi, th.eqk--uchlamchi { background: inherit; }
+.eqt--sum th.eqk--birlamchi { background: var(--eqk-b-bg); color: var(--eqk-b-ink); }
+.eqt--sum th.eqk--ikkilamchi { background: var(--eqk-i-bg); color: var(--eqk-i-ink); }
+.eqt--sum th.eqk--uchlamchi { background: var(--eqk-u-bg); color: var(--eqk-u-ink); }
+
+.eqin {
+  width: 100%; min-width: 0; padding: 5px 7px; border: 1px solid transparent; border-radius: 6px;
+  background: transparent; color: inherit; font: inherit; text-align: center;
+}
+.eqin:hover { border-color: var(--rule); background: color-mix(in srgb, var(--surface) 70%, transparent); }
+.eqin:focus { outline: none; border-color: var(--eq-band); background: var(--surface); color: var(--ink); }
+.eqin--kind { font-weight: 700; cursor: pointer; padding-right: 2px; text-overflow: ellipsis; }
+.eqin--area { resize: vertical; min-height: 34px; text-align: left; line-height: 1.35; }
+.eqin--num { font-family: var(--f-mono); }
+.eqin--num::-webkit-inner-spin-button { opacity: .4; }
+
+.eqphoto { position: relative; width: 68px; height: 50px; margin: 0 auto; border-radius: 6px; overflow: hidden; background: var(--rule-2); display: grid; place-items: center; }
+.eqphoto img { width: 100%; height: 100%; object-fit: cover; }
+.eqphoto.is-busy { opacity: .5; }
+.eqphoto__none { color: var(--ink-3); opacity: .55; }
+.eqphoto__none .svic { width: 20px; height: 20px; }
+.eqphoto__pick { position: absolute; inset: 0; cursor: pointer; }
+.eqphoto__pick:hover { background: rgba(15, 23, 42, .18); }
+.eqphoto__del {
+  position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; display: grid; place-items: center; padding: 0;
+  border: 0; border-radius: 50%; background: rgba(15, 23, 42, .7); color: #fff; font-size: 13px; line-height: 1; cursor: pointer;
+}
+.eqlink {
+  display: block; width: 100%; padding: 2px 0; border: 0; background: none; text-align: left; cursor: pointer;
+  color: #1155CC; font: inherit; font-size: 12px; line-height: 1.35; text-decoration: underline; text-underline-offset: 2px;
+}
+[data-theme="dark"] .eqlink { color: #7FB0FF; }
+.eqlink--up { text-align: center; color: var(--ink-3); font-style: italic; text-decoration: none; }
+.eqlink--up:hover { color: var(--ink); text-decoration: underline; }

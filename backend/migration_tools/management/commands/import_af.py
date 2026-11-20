@@ -7,7 +7,8 @@ media folder; amaliyfizika.uz itself is never changed and keeps running.
 
 What comes over
   * lessons — grade 7/8/9 becomes F7/F8/F9 (common/subjects.py) — with their
-    experiments, equipment and files; equipment sheets; lesson materials and
+    experiments, equipment and files; equipment sheets; the equipment
+    catalogue of the Jihozlar jadvali (prices, kinds, photos); lesson materials and
     lesson-bank questions; library items (fan: fizika); which quarters are
     open to teachers (they become the fizika fan's QuarterLocks);
   * staff accounts: approved, active teachers, admins and boshliqlar, with
@@ -41,7 +42,7 @@ from django.utils.dateparse import parse_date, parse_datetime, parse_time
 
 from accounts.models import User
 from learning.models import LessonMaterial, Question
-from lessons.models import EquipmentItem, EquipmentSheet, Experiment, Lesson, QuarterLock
+from lessons.models import EquipmentItem, EquipmentSheet, Experiment, LabEquipment, Lesson, QuarterLock
 from lessons.signals import send_lessons_backup, suppress_lessons_backup
 from library.models import LibraryItem
 from migration_tools.models import ImportedRow
@@ -218,6 +219,9 @@ class Command(BaseCommand):
         sheets = [r for r in self._rows('select * from lessons_equipmentsheet order by id')
                   if str(r['id']) not in done_sheets and r['grade'] in GRADE]
         books = [r for r in self._rows('select * from library_libraryitem order by id') if str(r['id']) not in done_books]
+        done_equip = self._done('lessons_labequipment')
+        equip = [r for r in self._rows('select * from lessons_labequipment order by id')
+                 if str(r['id']) not in done_equip] if self._has('lessons_labequipment') else []
         materials = self._rows(f"select * from learning_lessonmaterial where lesson_id in ({','.join('?' * len(lesson_ids)) or 'null'})",
                                *lesson_ids) if lesson_ids and self._has('learning_lessonmaterial') else []
         questions = self._rows(f"select * from learning_question where assignment_id is null and lesson_id in "
@@ -239,6 +243,8 @@ class Command(BaseCommand):
         for r in books:
             files.plan(r['file'])
             files.plan(r['cover'])
+        for r in equip:
+            files.plan(r['image'])
         for r in staff:
             files.plan(r['photo'])
         by_grade = {}
@@ -246,6 +252,7 @@ class Command(BaseCommand):
             by_grade[GRADE[r['grade']]] = by_grade.get(GRADE[r['grade']], 0) + 1
         out(f"Darslar: {len(lessons)} {by_grade} · tajribalar: {len(exps)} · jihozlar: {len(items)}")
         out(f"Jihozlar varag'i: {len(sheets)} · kutubxona: {len(books)} · materiallar: {len(materials)} · savollar: {len(questions)}")
+        out(f"Jihozlar jadvali (katalog): {len(equip)}")
         if locks:
             out("Choraklar (fizika): " + ', '.join(f"{r['chorak']}-{'ochiq' if r['is_open'] else 'yopiq'}" for r in locks))
         out(f"Fayllar: {files.count} ta, {files.bytes / 1024 / 1024:.1f} MB" + (f" · topilmadi: {len(files.missing)}" if files.missing else ''))
@@ -268,7 +275,7 @@ class Command(BaseCommand):
         files = Files(media)
         try:
             with suppress_lessons_backup(), transaction.atomic():
-                counts = self._copy(files, staff, lessons, exps, items, sheets, books, materials, questions, locks)
+                counts = self._copy(files, staff, lessons, exps, items, sheets, books, materials, questions, locks, equip)
         except Exception:
             files.rollback()
             raise
@@ -281,8 +288,9 @@ class Command(BaseCommand):
                                   f"{counts['users']} hisob")
         out(f"Tayyor: {counts}")
 
-    def _copy(self, files, staff, lessons, exps, items, sheets, books, materials, questions, locks=()):
-        counts = dict(users=0, lessons=0, exps=0, items=0, sheets=0, books=0, materials=0, questions=0, locks=0, files=0)
+    def _copy(self, files, staff, lessons, exps, items, sheets, books, materials, questions, locks=(), equip=()):
+        counts = dict(users=0, lessons=0, exps=0, items=0, sheets=0, books=0, materials=0, questions=0, locks=0,
+                      equip=0, files=0)
 
         for r in locks:
             lock, _ = QuarterLock.objects.update_or_create(subject='fizika', chorak=r['chorak'],
@@ -360,6 +368,16 @@ class Command(BaseCommand):
         for r in questions:
             Question.objects.create(lesson=lesson_map[r['lesson_id']], **fields_from(Question, r, skip={'created_at'}))
             counts['questions'] += 1
+
+        # the catalogue: an entry already here (same key) stays as it is
+        for r in equip:
+            entry = LabEquipment.objects.filter(key=r['key']).first()
+            if entry is None:
+                entry = LabEquipment(**fields_from(LabEquipment, r, skip={'updated_at'}))
+                entry.image = files.copy(r['image']) or None
+                entry.save()
+                counts['equip'] += 1
+            self._mark('lessons_labequipment', r['id'], entry.pk)
 
         counts['files'] = len(files.saved)
         return counts

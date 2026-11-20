@@ -24,6 +24,7 @@ const PORTAL_LINKS: PortalLink[] = [
   { to: '/feed', label: 'Ustozlar lentasi', sub: "Hamkasblar bilan tajriba almashish", icon: 'megaphone', audience: 'staff' },
   { to: '/statistics', label: 'Statistika', sub: "Tahlil, maktablar, natijalar va o'quvchilar bazasi", icon: 'chart', audience: 'oversight' },
   { to: '/manage/schools', label: 'Hamkor maktablar', sub: "Ro'yxat, shartnoma va nomlarni moslashtirish", icon: 'school', audience: 'oversight' },
+  { to: '/manage/equipment', label: 'Jihozlar jadvali', sub: "Tajriba jihozlari, narxlari va Excel", icon: 'flask', audience: 'oversight' },
   { to: '/shop', label: "Do'kon", sub: "Dars ishlanmalari va tajribalar", icon: 'cards', audience: 'oversight' },
 ]
 

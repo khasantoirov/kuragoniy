@@ -17,7 +17,7 @@ import { isAdminInView, isObserver, isOversight, isSchoolAdmin, isTeacherLike, u
 import { useModules } from '@/lib/modules'
 import { useUIStore, type ViewMode } from '@/store/uiStore'
 
-import { RequireAdmin, RequireAuth, RequireOversight, RequirePasswordChange, RequireModule, RequireSchoolView, RequireStaff, RequireStudent, RequireTeacher } from './guards'
+import { RequireAdmin, RequireAuth, RequireFan, RequireOversight, RequirePasswordChange, RequireModule, RequireSchoolView, RequireStaff, RequireStudent, RequireTeacher } from './guards'
 
 // Every portal feature is its own lazy chunk: students never download the
 // staff pages (and vice versa), and the shop (administration only for
@@ -34,6 +34,9 @@ const AssignmentResultsPage = named(() => import('@/features/teacher/Assignments
 const ReportsPage = named(() => import('@/features/teacher/ReportsPage'), 'ReportsPage')
 const ReadinessPage = named(() => import('@/features/teacher/ReadinessPage'), 'ReadinessPage')
 const GamesPage = named(() => import('@/features/teacher/GamesPage'), 'GamesPage')
+// Jihozlar jadvali (from amaliyfizika.uz) — the Fizika window's
+const EquipmentRegistryPage = named(() => import('@/features/manage/equipment/EquipmentRegistryPage'), 'EquipmentRegistryPage')
+const EquipmentSheetPage = named(() => import('@/features/admin/EquipmentSheetPage'), 'EquipmentSheetPage')
 const ReviewReportsPage = named(() => import('@/features/manage/ManagePages'), 'ReviewReportsPage')
 const SecurityLogPage = named(() => import('@/features/manage/ManagePages'), 'SecurityLogPage')
 const MaterialsPage = named(() => import('@/features/manage/MaterialsPage'), 'MaterialsPage')
@@ -157,6 +160,19 @@ function AssignmentsTabs() {
 }
 
 const teacher = (el: ReactNode) => <RequireTeacher><Lazy>{el}</Lazy></RequireTeacher>
+/** Jihozlar jadvali — the priced registry of the physics lessons'
+ * equipment, and (administrators) the picture sheet maker, Jihozlar varag'i. */
+function EquipmentTabs() {
+  const { user } = useAuth()
+  const viewMode = useUIStore((s) => s.viewMode)
+  return (
+    <PageTabs tabs={[
+      { key: 'jadval', label: 'Jihozlar jadvali', element: <EquipmentRegistryPage /> },
+      { key: 'varaq', label: "Jihozlar varag'i", element: <EquipmentSheetPage />, show: isAdminInView(user, viewMode) },
+    ]} />
+  )
+}
+
 const staff = (el: ReactNode) => <RequireStaff><Lazy>{el}</Lazy></RequireStaff>
 const oversight = (el: ReactNode) => <RequireOversight><Lazy>{el}</Lazy></RequireOversight>
 
@@ -179,6 +195,7 @@ export const staffPortalRoutes: RouteObject[] = [
   { path: '/manage/materials', element: <MovedTo to="/lessons" bolim="materiallar" /> },
   { path: '/manage/shop', element: <MovedTo to="/shop" bolim="sotuv" /> },
   { path: '/manage/schools', element: oversight(<Lazy><PartnerSchoolsPage /></Lazy>) },
+  { path: '/manage/equipment', element: oversight(<RequireFan fan="fizika"><RequireModule keys={['equipment']}><EquipmentTabs /></RequireModule></RequireFan>) },
   { path: '/manage/schools/:id', element: <RequireSchoolView><Lazy><SchoolDetailPage /></Lazy></RequireSchoolView> },
   { path: '/my-school', element: <Lazy><MySchoolPage /></Lazy> },
   { path: '/kits/:id', element: <RequireModule keys={['kits']}><Lazy><KitPage /></Lazy></RequireModule> },

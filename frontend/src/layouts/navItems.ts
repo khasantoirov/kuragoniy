@@ -41,7 +41,10 @@ export const SETTINGS_PAGES: { to: string; label: string; icon: keyof typeof IC 
  *  and none of the teacher's own work pages. */
 const SCHOOL_ADMIN_HIDDEN = new Set(['/', '/journal', '/timetable'])
 /** Pages of one fan window only (components/FanWindow.tsx). */
-const FIZIKA_ONLY = new Set(['/lab'])
+const FIZIKA_ONLY = new Set(['/lab', '/manage/equipment'])
+/** …and of the STEAM window only: there the picture sheet maker is a menu
+ *  item of its own; in Fizika it is a tab of the Jihozlar jadvali. */
+const STEAM_ONLY = new Set(['/equipment-sheet'])
 const MY_SCHOOL: NavItem = { to: '/my-school', label: 'Maktabim', icon: 'home' }
 
 export function useVisibleNavItems(): NavItem[] {
@@ -49,7 +52,7 @@ export function useVisibleNavItems(): NavItem[] {
   const viewMode = useUIStore((s) => s.viewMode)
   const fan = useUIStore((s) => s.subject)
   const { on } = useModules()
-  const inWindow = (to: string) => fan === 'fizika' || !FIZIKA_ONLY.has(to)
+  const inWindow = (to: string) => (fan === 'fizika' ? !STEAM_ONLY.has(to) : !FIZIKA_ONLY.has(to))
   if (isSchoolAdmin(user)) {
     return [MY_SCHOOL, ...NAV_ITEMS.filter((item) => !item.adminOnly && !SCHOOL_ADMIN_HIDDEN.has(item.to))
       .map(({ to, label, icon }) => ({ to, label, icon }))].filter((item) => routeOn(item.to, on) && inWindow(item.to))

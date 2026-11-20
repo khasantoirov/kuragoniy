@@ -180,3 +180,41 @@ class EquipmentItem(models.Model):
 
     def __str__(self):
         return f'{self.experiment.name} — {self.name} ({self.quantity})'
+
+
+_APOSTROPHES = str.maketrans({c: "'" for c in '‘’ʻʼ`´'})
+
+
+def equipment_key(name: str) -> str:
+    """How equipment names are matched across experiments: case,
+    apostrophe style, inner spacing and trailing punctuation don't matter."""
+    s = ' '.join((name or '').translate(_APOSTROPHES).lower().split())
+    return s.strip(' .,;:')
+
+
+class LabEquipment(models.Model):
+    """Catalogue entry for one kind of equipment (from amaliyfizika.uz),
+    shared by every experiment that lists an EquipmentItem with the same
+    name (matched by equipment_key). Price, kind and what it takes to build
+    it belong to the equipment itself; the per-experiment quantity stays on
+    EquipmentItem. Feeds the Fizika window's "Jihozlar jadvali" page and its
+    Excel export (lessons/registry.py)."""
+
+    class Kind(models.TextChoices):
+        BIRLAMCHI = 'birlamchi', 'Birlamchi'
+        IKKILAMCHI = 'ikkilamchi', 'Ikkilamchi'
+        UCHLAMCHI = 'uchlamchi', 'Uchlamchi'
+
+    key = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
+    kind = models.CharField(max_length=12, choices=Kind.choices, default=Kind.BIRLAMCHI)
+    build_materials = models.TextField(blank=True)
+    price = models.PositiveIntegerField(null=True, blank=True)  # so'm, for one piece
+    image = models.FileField(upload_to='lab-equipment/', null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['key']
+
+    def __str__(self):
+        return self.name

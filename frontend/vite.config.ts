@@ -26,7 +26,7 @@ export default defineConfig({
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
         // pdf.js's 1.4 MB worker loads only when someone opens a book.
-        globIgnores: ['**/pdf.worker*'],
+        globIgnores: ['**/pdf.worker*', '**/exceljs*'],
       },
       manifest: {
         name: "KO'RAGONIY EDU · Muhandis_D laboratoriyasi",

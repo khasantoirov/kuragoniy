@@ -10,11 +10,14 @@ from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 
 from common.audit import diff_fields, notify_admin_action, snapshot
-from common.permissions import IsAdminOrDevSuperuser, IsApproved
+from common.permissions import IsAdminOrDevSuperuser, IsApproved, IsOversight
 from common.uploads import delete_file_field, validate_upload
 
-from .models import EquipmentItem, EquipmentSheet, Experiment, Lesson, QuarterLock
-from .serializers import EquipmentItemSerializer, EquipmentSheetSerializer, LessonSerializer, QuarterLockSerializer
+from .models import EquipmentItem, EquipmentSheet, Experiment, LabEquipment, Lesson, QuarterLock, equipment_key
+from .registry import build_registry
+from .serializers import (EquipmentItemQuickSerializer, EquipmentItemSerializer, EquipmentSheetSerializer,
+                          LabEquipmentSerializer, LabEquipmentUpsertSerializer, LessonSerializer,
+                          QuarterLockSerializer)
 from .signals import send_lessons_backup, suppress_lessons_backup
 from .visibility import visible_lessons
 
@@ -569,6 +572,23 @@ class EquipmentItemViewSet(viewsets.GenericViewSet):
     queryset = EquipmentItem.objects.all()
     permission_classes = [IsApproved, IsAdminOrDevSuperuser]
 
+    def partial_update(self, request, pk=None):
+        """Name/quantity edit from the Jihozlar jadvali (the lesson editor
+        still saves items through the nested lesson PATCH). A renamed item
+        drops its bot-made translations, which no longer match."""
+        item = self.get_object()
+        ser = EquipmentItemQuickSerializer(item, data=request.data, partial=True)
+        ser.is_valid(raise_exception=True)
+        name = ser.validated_data.get('name')
+        if name is not None:
+            name = name.strip()
+            if not name:
+                return Response({'name': ["Nomi bo'sh bo'lmasin"]}, status=400)
+            ser.validated_data['name'] = name
+        extra = {'name_ru': '', 'name_en': ''} if name is not None and name != item.name else {}
+        ser.save(**extra)
+        return Response(EquipmentItemSerializer(item, context={'request': request}).data)
+
     @action(detail=True, methods=['post'], url_path='upload-image', parser_classes=[MultiPartParser, FormParser])
     def upload_image(self, request, pk=None):
         item = self.get_object()
@@ -617,3 +637,59 @@ class EquipmentSheetViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         delete_file_field(instance, 'image')
         instance.delete()
+
+
+class EquipmentRegistryViewSet(viewsets.ViewSet):
+    """GET /api/lessons/equipment-registry/ — the Amaliy fizika lessons,
+    experiments, equipment and the catalogue for the Jihozlar jadvali."""
+
+    permission_classes = [IsApproved, IsOversight]
+
+    def list(self, request):
+        return Response(build_registry(request))
+
+
+class LabEquipmentViewSet(viewsets.GenericViewSet):
+    """The equipment catalogue: price, kind, what it takes to build it and
+    a photo, per equipment name. Read: administration; write: admin
+    (IsOversight keeps Kuzatuvchi read-only)."""
+
+    queryset = LabEquipment.objects.all()
+    serializer_class = LabEquipmentSerializer
+    permission_classes = [IsApproved, IsOversight]
+
+    @action(detail=False, methods=['post'])
+    def upsert(self, request):
+        ser = LabEquipmentUpsertSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        data = ser.validated_data
+        name = data['name'].strip()
+        key = equipment_key(name)
+        if not key:
+            return Response({'name': ["Nomi bo'sh bo'lmasin"]}, status=400)
+        obj, _ = LabEquipment.objects.get_or_create(key=key, defaults={'name': name})
+        for field in ('kind', 'build_materials', 'price'):
+            if field in data:
+                setattr(obj, field, data[field])
+        obj.save()
+        return Response(LabEquipmentSerializer(obj, context={'request': request}).data)
+
+    @action(detail=True, methods=['post'], url_path='upload-image', parser_classes=[MultiPartParser, FormParser])
+    def upload_image(self, request, pk=None):
+        obj = self.get_object()
+        f = request.FILES.get('image')
+        if not f:
+            return Response({'detail': 'image required'}, status=400)
+        validate_upload(f, EQUIPMENT_IMAGE_EXTENSIONS, EQUIPMENT_IMAGE_MAX_MB)
+        delete_file_field(obj, 'image')
+        obj.image = f
+        obj.save(update_fields=['image', 'updated_at'])
+        return Response(LabEquipmentSerializer(obj, context={'request': request}).data)
+
+    @action(detail=True, methods=['post'], url_path='remove-image')
+    def remove_image(self, request, pk=None):
+        obj = self.get_object()
+        delete_file_field(obj, 'image')
+        obj.image = None
+        obj.save(update_fields=['image', 'updated_at'])
+        return Response(LabEquipmentSerializer(obj, context={'request': request}).data)
