@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common.permissions import IsStudent
+from common.subjects import window
 
 from .badges import is_teacher, leaderboard, progress
 
@@ -36,7 +37,7 @@ class LeaderboardView(APIView):
         user = request.user
         if not (is_teacher(user) or user.is_oversight):
             raise PermissionDenied("Reyting o'qituvchilar uchun.")
-        return Response(leaderboard(request.query_params.get('month')))
+        return Response(leaderboard(request.query_params.get('month'), fan=window(request)))
 
 
 class StudentBadgesView(APIView):

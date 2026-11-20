@@ -23,6 +23,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common.protected_media import protected_url
+from common.subjects import main_subject, window
 from common.uploads import delete_file_field, validate_upload
 from notifications.models import Kind as NotifyKind
 from notifications.service import notify
@@ -83,6 +84,12 @@ def _annotated(user):
     )
 
 
+def _windowed(qs, request):
+    """The posts of the fan window this request is in (all with no window)."""
+    fan = window(request)
+    return qs.filter(fan=fan) if fan else qs
+
+
 class FeedView(APIView):
     permission_classes = [CanReadFeed]
     parser_classes = [JSONParser, MultiPartParser, FormParser]
@@ -91,7 +98,7 @@ class FeedView(APIView):
         user = request.user
         # explicit order: an aggregate query drops the model's own ordering;
         # newest first by id, which is also what ?before= pages by
-        qs = _annotated(user).order_by('-is_pinned', '-id')
+        qs = _windowed(_annotated(user), request).order_by('-is_pinned', '-id')
         if not user.is_admin:
             qs = qs.filter(hidden=False)
         before = request.query_params.get('before')
@@ -114,7 +121,8 @@ class FeedView(APIView):
             validate_upload(image, IMAGE_EXTENSIONS, IMAGE_MAX_MB)
         # a picture may go without words; words are needed otherwise
         body = str(request.data.get('body') or '').strip()[:3000] if image else             _text(request.data.get('body'), 3000, 'body', 'Post matnini')
-        p = Post.objects.create(author=user, body=body, link_url=_url(request.data.get('link_url')), image=image)
+        p = Post.objects.create(author=user, body=body, link_url=_url(request.data.get('link_url')), image=image,
+                                fan=window(request) or main_subject(user))
         return Response(_row(_annotated(user).get(pk=p.pk), user), status=status.HTTP_201_CREATED)
 
 
@@ -154,7 +162,7 @@ class LikeView(APIView):
     permission_classes = [CanReadFeed]
 
     def post(self, request, pk):
-        p = get_object_or_404(Post, pk=pk, hidden=False)
+        p = get_object_or_404(_windowed(Post.objects.all(), request), pk=pk, hidden=False)
         like, created = PostLike.objects.get_or_create(post=p, user=request.user)
         if not created:
             like.delete()
@@ -165,7 +173,7 @@ class CommentsView(APIView):
     permission_classes = [CanReadFeed]
 
     def _post(self, request, pk) -> Post:
-        qs = Post.objects.select_related('author')
+        qs = _windowed(Post.objects.select_related('author'), request)
         if not request.user.is_admin:
             qs = qs.filter(hidden=False)
         return get_object_or_404(qs, pk=pk)

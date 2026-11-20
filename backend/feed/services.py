@@ -14,6 +14,9 @@ def auto_post(user, body: str, key: str) -> None:
 
         if not state().get('feed', True):
             return
-        Post.objects.get_or_create(auto_key=key[:80], defaults={'author': user, 'kind': Post.Kind.AUTO, 'body': body[:3000]})
+        from common.subjects import main_subject
+
+        Post.objects.get_or_create(auto_key=key[:80], defaults={'author': user, 'kind': Post.Kind.AUTO, 'body': body[:3000],
+                                                                'fan': main_subject(user)})
     except Exception:  # a feed line must never break what triggered it
         logger.exception('feed auto post failed')

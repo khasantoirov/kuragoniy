@@ -7,6 +7,8 @@ server, given out only as an expiring link (common/protected_media.py)."""
 from django.conf import settings
 from django.db import models
 
+from common.subjects import CHOICES as SUBJECT_CHOICES
+
 
 class Post(models.Model):
     class Kind(models.TextChoices):
@@ -22,6 +24,8 @@ class Post(models.Model):
     auto_key = models.CharField(max_length=80, blank=True, db_index=True)
     is_pinned = models.BooleanField(default=False)
     hidden = models.BooleanField(default=False)  # the administration took it down
+    # Fizika or STEAM window (common/subjects.py): it shows in that one only
+    fan = models.CharField(max_length=10, choices=SUBJECT_CHOICES, default='steam', db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     edited_at = models.DateTimeField(null=True, blank=True)
 

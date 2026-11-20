@@ -9,6 +9,8 @@ administration for help.
 from django.conf import settings
 from django.db import models
 
+from common.subjects import CHOICES as SUBJECT_CHOICES
+
 
 class Category(models.TextChoices):
     UMUMIY = 'umumiy', 'Umumiy'
@@ -48,6 +50,8 @@ class Ticket(models.Model):
     status = models.CharField(max_length=8, choices=Status.choices, default=Status.OPEN)
     # the page they were on when they asked (when the form was opened from one)
     page = models.CharField(max_length=300, blank=True)
+    # Fizika or STEAM window (common/subjects.py): it shows in that one only
+    fan = models.CharField(max_length=10, choices=SUBJECT_CHOICES, default='steam', db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     solved_at = models.DateTimeField(null=True, blank=True)

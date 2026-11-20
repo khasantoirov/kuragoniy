@@ -193,17 +193,19 @@ def month_bounds(month: str | None):
     return start, end, f'{y}-{m:02d}'
 
 
-def leaderboard(month: str | None) -> dict:
+def leaderboard(month: str | None, fan: str | None = None) -> dict:
     """Points each teacher earned in the month — for doing things, not for
-    how good anyone judged them (only an "a'lo" lesson adds a bonus)."""
+    how good anyone judged them (only an "a'lo" lesson adds a bonus).
+    `fan`: the window's teachers only (common/subjects.window_people)."""
+    from common.subjects import window_people
     from accounts.models import User
     from journal.models import ClassDay
     from learning.models import Assignment, Attempt, LessonReport
     from learning.readiness import PASS_PERCENT
 
     start, end, label = month_bounds(month)
-    teachers = list(User.objects.filter(is_active=True).exclude(
-        role__in=[User.Role.STUDENT, User.Role.KUZATUVCHI, User.Role.MAKTAB]))
+    teachers = list(window_people(User.objects.filter(is_active=True).exclude(
+        role__in=[User.Role.STUDENT, User.Role.KUZATUVCHI, User.Role.MAKTAB]), fan))
     ids = [t.id for t in teachers]
     in_month = {'created_at__gte': start, 'created_at__lt': end}
     parts = {

@@ -23,6 +23,7 @@ from rest_framework.views import APIView
 
 from accounts.models import User
 from common.security import log_event
+from common.subjects import assigned, main_subject, window
 from notifications.models import Kind as NotifyKind
 from notifications.service import notify
 
@@ -37,6 +38,13 @@ class IsStaffMember(BasePermission):
     def has_permission(self, request, view):
         u = request.user
         return bool(u and u.is_authenticated and u.is_staff_member)
+
+
+def _answers(admin, fan) -> bool:
+    """Whether an administrator hears of a fan window's murojaat: one pointed
+    to fans hears of theirs only; one with none set, of every window's."""
+    mine = assigned(admin)
+    return not fan or not mine or fan in mine
 
 
 def _admins():
@@ -149,6 +157,10 @@ class TicketsView(APIView):
     def get(self, request):
         qs = Ticket.objects.select_related('author').annotate(messages_count=Count('messages'))
         if request.user.is_admin and request.query_params.get('all') == '1':
+            # the administration of a fan window answers that window's murojaatlar
+            fan = window(request)
+            if fan:
+                qs = qs.filter(fan=fan)
             st = request.query_params.get('status')
             if st == 'open':
                 qs = qs.exclude(status=Ticket.Status.SOLVED)
@@ -169,10 +181,12 @@ class TicketsView(APIView):
         if category not in Category.values:
             raise ValidationError({'category': "Bo'lim noto'g'ri."})
         body = _body(request.data.get('body'))
-        t = Ticket.objects.create(author=user, subject=subject, category=category,
+        fan = window(request) or main_subject(user)
+        t = Ticket.objects.create(author=user, subject=subject, category=category, fan=fan,
                                   page=str(request.data.get('page') or '')[:300])
         TicketMessage.objects.create(ticket=t, author=user, body=body)
-        notify([a for a in _admins() if a.id != user.id], NotifyKind.YORDAM, f"Yangi murojaat: {subject}",
+        notify([a for a in _admins() if a.id != user.id and _answers(a, fan)], NotifyKind.YORDAM,
+               f"Yangi murojaat: {subject}",
                f"{user.name} · {t.get_category_display()}\n{body[:300]}", url=f'/help?bolim=murojaatlar&t={t.id}')
         log_event('help_ticket', actor=user, request=request, detail=f'#{t.id} {subject}')
         return Response(_detail(t), status=status.HTTP_201_CREATED)
@@ -217,7 +231,7 @@ class TicketMessagesView(APIView):
                    url=f'/help?bolim=mening&t={t.id}')
         else:
             replied = set(t.messages.filter(staff=True).values_list('author_id', flat=True))
-            to = [a for a in _admins() if a.id != user.id and (not replied or a.id in replied)]
+            to = [a for a in _admins() if a.id != user.id and (a.id in replied if replied else _answers(a, t.fan))]
             notify(to, NotifyKind.YORDAM, f"Murojaatga yangi xabar: {t.subject}", f"{user.name}\n{body[:300]}",
                    url=f'/help?bolim=murojaatlar&t={t.id}')
         return Response(_detail(t), status=status.HTTP_201_CREATED)
