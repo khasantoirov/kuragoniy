@@ -98,3 +98,61 @@ def test_journals_come_over_after_the_teachers(tmp_path, make_user):
     blocked = User.objects.get(username='shohrux')
     assert not blocked.approved and blocked.check_password('Eski-2026') and blocked.subjects == ['fizika']
     assert JournalClass.objects.get(name='7-V').teacher_id == blocked.pk
+
+
+@pytest.mark.django_db
+def test_the_rest_comes_over_too(tmp_path, make_user):
+    from achievements.models import UserBadge
+    from announcements.models import Announcement
+    from games.models import MiniGameScore
+    from learning.models import Attempt, Award, ClassInvite
+    from lessons.models import Lesson
+    from notifications.models import NotificationPreference
+
+    t = make_user('t@af.uz', approved=True)
+    ImportedRow.objects.create(source='af', table='accounts_user', source_id='af-t', target_id=t.pk)
+    lesson = Lesson.objects.create(title='Bosim', grade='F8', chorak=2, hafta=10)
+    ImportedRow.objects.create(source='af', table='lessons_lesson', source_id='7', target_id=lesson.pk)
+    other_class = JournalClass.objects.create(teacher=t, name='Boshqa')
+    ClassInvite.objects.create(journal_class=other_class, code='TAKEN123')
+    db = tmp_path / 'af.sqlite3'
+    _af_db(db)
+    c = sqlite3.connect(db)
+    c.executescript('''
+        create table announcements_announcement (id int, text text, at text, by_id text);
+        insert into announcements_announcement values (1, 'Seminar juma kuni', '2026-11-01 08:00:00', 'af-t');
+        create table achievements_userbadge (id int, key text, tier int, earned_at text, user_id text);
+        insert into achievements_userbadge values (1, 'jurnal', 2, '2026-11-02 08:00:00', 'af-t');
+        create table achievements_badgebaseline (id int, created_at text, user_id text);
+        insert into achievements_badgebaseline values (1, '2026-10-01 08:00:00', 'af-t');
+        create table games_minigamescore (id int, game text, score int, correct int, total int, duration_sec int,
+            played_at text, user_id text);
+        insert into games_minigamescore values (1, 'formula', 120, 6, 8, 40, '2026-11-03 08:00:00', 'af-t');
+        create table learning_attempt (id int, kind text, started_at text, submitted_at text, is_late bool, snapshot text,
+            answers text, results text, score real, max_score real, percent real, duration_sec int, assignment_id int,
+            lesson_id int, user_id text);
+        insert into learning_attempt values (1, 'readiness', '2026-11-04 08:00:00', '2026-11-04 08:10:00', 0, '[]', '{}',
+            '{}', 8, 10, 80, 600, null, 7, 'af-t');
+        create table learning_award (id int, kind text, title text, reason text, period text, created_at text,
+            granted_by_id text, recipient_id text);
+        insert into learning_award values (1, 'top_teacher', 'Oy ustozi', '', '2026-10', '2026-11-01 08:00:00', null, 'af-t');
+        create table learning_classinvite (id int, code text, is_active bool, auto_approve bool, created_at text,
+            journal_class_id int);
+        insert into learning_classinvite values (1, 'TAKEN123', 1, 0, '2026-09-05 08:00:00', 10);
+        create table notifications_notificationpreference (id int, channels text, ui text, updated_at text, user_id text);
+        insert into notifications_notificationpreference values (1, '{"telegram": false}', '{}', '2026-11-01 08:00:00', 'af-t');
+    ''')
+    c.commit()
+    c.close()
+
+    call_command('import_af_journals', source=str(db), apply=True, stdout=StringIO())
+    a = Announcement.objects.get(text='Seminar juma kuni')
+    assert a.fan == 'fizika' and a.by_id == t.pk and a.at.day == 1  # the date as it was
+    assert UserBadge.objects.get(user=t, key='jurnal').tier == 2
+    assert MiniGameScore.objects.get(user=t).score == 120
+    att = Attempt.objects.get(user=t)
+    assert att.kind == 'readiness' and att.lesson_id == lesson.pk and att.percent == 80
+    assert Award.objects.get(recipient=t).title == 'Oy ustozi'
+    invite = ClassInvite.objects.get(journal_class__name='8-A')
+    assert invite.code != 'TAKEN123'  # taken here: a fresh code
+    assert NotificationPreference.objects.get(user=t).channels == {'telegram': False}

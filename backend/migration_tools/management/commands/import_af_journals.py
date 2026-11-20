@@ -1,9 +1,12 @@
 """The second half of moving amaliyfizika.uz in (after import_af): its
 journals — partner schools, the academic year's quarter dates, teachers'
 school memberships, journal classes with their pupils (roster rows), lesson
-days, marks, attendance, control works, final marks, edit grants — and the
-timetable. Reads that platform's SQLite database read-only; amaliyfizika.uz
-itself is never changed.
+days, marks, attendance, control works, final marks, edit grants — the
+timetable and planned lessons, and the rest of what people did there:
+announcements (to the Fizika window), badges, mini-game scores, readiness
+checks, awards, class join codes and notification settings. Reads that
+platform's SQLite database read-only; amaliyfizika.uz itself is never
+changed.
 
     manage.py import_af_journals --source /tmp/af.sqlite3                  # report only
     manage.py import_af_journals --source /tmp/af.sqlite3 --apply          # copy
@@ -26,9 +29,14 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from accounts.models import User
+from achievements.models import BadgeBaseline, UserBadge
+from announcements.models import Announcement
+from games.models import MiniGameScore
 from journal.models import (AttendanceEntry, ClassDay, ControlMark, ControlWork, FinalGrade, GradeEntry,
                             JournalClass, JournalEditGrant, Student, StudentTransfer)
+from learning.models import Attempt, Award, ClassInvite
 from migration_tools.models import ImportedRow
+from notifications.models import NotificationPreference
 from schools.models import AcademicYear, School, SchoolTeacher, SchoolYear, TeacherMove
 from staffroom.models import PlannedLesson
 from timetable.models import TimetableSlot
@@ -264,5 +272,35 @@ class Command(BaseCommand):
                                                 period_index=kw['period_index']).first()
         self._copy('staffroom_plannedlesson', PlannedLesson,
                    {'teacher_id': ('people', True), 'lesson_id': ('lessons_lesson', False)}, match=free_plan)
+
+        # ── the rest of what people did there ──
+        self._copy('announcements_announcement', Announcement, {'by_id': ('people', False)},
+                   extra={'fan': 'fizika'})  # to the Fizika window
+        # badges: someone who has one here already keeps theirs
+        self._copy('achievements_userbadge', UserBadge, {'user_id': ('people', True)},
+                   match=lambda kw: UserBadge.objects.filter(user_id=kw['user_id'], key=kw['key']).first())
+        self._copy('achievements_badgebaseline', BadgeBaseline, {'user_id': ('people', True)},
+                   match=lambda kw: BadgeBaseline.objects.filter(user_id=kw['user_id']).first())
+        self._copy('games_minigamescore', MiniGameScore, {'user_id': ('people', True)})
+        # readiness checks (a teacher's own test before a lesson); homework
+        # needs its assignment, of which amaliyfizika.uz has none
+        self._copy('learning_attempt', Attempt,
+                   {'user_id': ('people', True), 'assignment_id': ('learning_assignment', True),
+                    'lesson_id': ('lessons_lesson', False)})
+        self._copy('learning_award', Award, {'recipient_id': ('people', True), 'granted_by_id': ('people', False)})
+
+        def invite(kw):
+            # one join code per class; a code taken here gets a fresh one
+            mine = ClassInvite.objects.filter(journal_class_id=kw['journal_class_id']).first()
+            if mine is None and ClassInvite.objects.filter(code=kw['code']).exists():
+                from learning.student_accounts import new_join_code
+
+                kw['code'] = new_join_code()
+                self.notes.append("bir sinfning taklif kodi bu yerda band edi — yangi kod berildi")
+            return mine
+        self._copy('learning_classinvite', ClassInvite, {'journal_class_id': ('journal_journalclass', True)},
+                   match=invite)
+        self._copy('notifications_notificationpreference', NotificationPreference, {'user_id': ('people', True)},
+                   match=lambda kw: NotificationPreference.objects.filter(user_id=kw['user_id']).first())
 
 
