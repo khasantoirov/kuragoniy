@@ -1193,6 +1193,7 @@ const ru: Record<string, string> = {
   "Rahbar oynasi (o'z hisobingizda)": "Окно руководителя (в вашем аккаунте)",
   "Sinf → o'quvchi, uning oynasi": "Класс → ученик, его окно",
   "Tanlangan o'qituvchi ko'rgandek": "Как видит выбранный учитель",
+  "Izlash": "Поиск",
 }
 
 const en: Record<string, string> = {
@@ -2375,6 +2376,7 @@ const en: Record<string, string> = {
   "Rahbar oynasi (o'z hisobingizda)": "The head's window (your own account)",
   "Sinf → o'quvchi, uning oynasi": "Class → pupil, their window",
   "Tanlangan o'qituvchi ko'rgandek": "As the chosen teacher sees it",
+  "Izlash": "Search",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

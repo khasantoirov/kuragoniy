@@ -24,6 +24,8 @@ export function GlobalSearch() {
   const [text, setText] = useState('')
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
+  // closed it reads "Izlash" (a button); open, the full hint
+  const [focused, setFocused] = useState(false)
   const [active, setActive] = useState(0)
 
   const boxRef = useRef<HTMLDivElement>(null)
@@ -111,7 +113,7 @@ export function GlobalSearch() {
         className="gsearch__input"
         type="search"
         value={text}
-        placeholder={t('Dars, material, o‘quvchi yoki xodim izlash…')}
+        placeholder={focused ? t('Dars, material, o‘quvchi yoki xodim izlash…') : t('Izlash')}
         aria-label={t('Platforma bo‘ylab qidirish')}
         role="combobox"
         aria-expanded={showPanel}
@@ -122,7 +124,11 @@ export function GlobalSearch() {
           setText(e.target.value)
           setOpen(true)
         }}
-        onFocus={() => setOpen(true)}
+        onFocus={() => {
+          setOpen(true)
+          setFocused(true)
+        }}
+        onBlur={() => setFocused(false)}
         onKeyDown={onKeyDown}
       />
       {text && (
