@@ -1229,3 +1229,17 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
   .home__tgacts { width: 100%; }
   .home__tgacts .btn:first-child { flex: 1 1 auto; }
 }
+
+/* Telefonda maktab ma'lumotlari (Maktabim, maktab sahifasi, litsenziya):
+   yorliq chapda, qiymat o'ngda — bitta ixcham ro'yxat, har biri o'z
+   qatorida emas. */
+@media (max-width: 640px) {
+  .kv.kv--grid { grid-template-columns: 1fr; gap: 0; }
+  .kv.kv--grid li {
+    flex-direction: row; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding: 9px 0; border-bottom: 1px solid var(--rule-2); font-size: 14px;
+  }
+  .kv.kv--grid li:last-child { border-bottom: 0; }
+  .kv.kv--grid li > span { flex: none; }
+  .kv.kv--grid li > b { min-width: 0; text-align: right; overflow-wrap: anywhere; }
+}
