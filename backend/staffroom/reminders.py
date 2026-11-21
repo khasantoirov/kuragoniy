@@ -16,6 +16,7 @@ again. telegrambot/bot/dars_reminders.py runs send_due() every few minutes.
 
 from datetime import datetime, time
 
+from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Q
 from django.utils import timezone
@@ -57,6 +58,11 @@ def _once(kind: str, user_id, day) -> bool:
     return cache.add(f'ke:dars:{kind}:{user_id}:{day.isoformat()}', 1, SENT_FOR)
 
 
+def _open(label: str, path: str) -> str:
+    """The last line of a Telegram reminder: the page, one tap away."""
+    return f"\n{label}: {settings.SITE_URL}{path}"
+
+
 def _hm(t) -> str:
     return t.strftime('%H:%M') if t else ''
 
@@ -92,7 +98,7 @@ def send_morning(now: datetime | None = None) -> int:
         title = f"Bugun {n} ta darsingiz bor"
         body = '\n'.join(_line(s) for s in slots)
         notify(teachers[tid], Kind.DARS, title, body, url='/timetable',
-               telegram_text=f"☀️ {title}:\n{body}")
+               telegram_text=f"☀️ {title}:\n{body}" + _open('Jadval', '/timetable'))
         sent += 1
     return sent
 
@@ -123,8 +129,10 @@ def send_evening(now: datetime | None = None) -> int:
                  for jc in missing]
         title = 'Bugungi darslar jurnalga yozilmagan'
         body = '\n'.join(names) + '\nDavomat va baholarni kiriting.'
-        notify(teachers[tid], Kind.DARS, title, body, url=f'/journal?class={missing[0].id}',
-               telegram_text=f"📋 {title}:\n" + '\n'.join(names) + '\nDavomat va baholarni kiriting.')
+        url = f'/journal?class={missing[0].id}'
+        notify(teachers[tid], Kind.DARS, title, body, url=url,
+               telegram_text=f"📋 {title}:\n" + '\n'.join(names) + '\nDavomat va baholarni kiriting.'
+               + _open('Jurnal', url))
         sent += 1
     return sent
 

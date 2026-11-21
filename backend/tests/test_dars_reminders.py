@@ -48,6 +48,7 @@ def test_morning_lists_the_days_lessons_once(sent, lessons):
     assert text.startswith('☀️ Bugun 1 ta darsingiz bor:')
     assert '1-soat · 08:00–08:45 — Iftixor School · 7-A (12-xona)' in text
     assert 'Universitet' not in text  # a "band" hour isn't a lesson
+    assert text.endswith('\nJadval: https://kuragoniy.uz/timetable')  # one tap to the page
     assert reminders.send_morning(at(WED, 8, 0)) == 0  # once a day
 
 
@@ -64,6 +65,7 @@ def test_evening_nudges_about_unwritten_journal_days(sent, lessons):
     assert reminders.send_evening(at(WED, 18, 30)) == 1
     (_uid, text), = sent
     assert 'jurnalga yozilmagan' in text and '7-A' in text
+    assert text.endswith(f'\nJurnal: https://kuragoniy.uz/journal?class={jc.id}')
 
     # a written day: nothing to say the next week
     sent.clear()
