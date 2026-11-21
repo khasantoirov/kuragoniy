@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 
 /** A link, or (with `onClick`) a button such as "Menyu". */
-export type RailItem = { to: string; icon: ReactNode; label: string; onClick?: () => void }
+export type RailItem = { to: string; icon: ReactNode; label: string; onClick?: () => void; avatar?: boolean }
 
 type Rect = { left: number; width: number }
 
@@ -58,9 +58,9 @@ export function NavRail({
       {rect && <span className="navind" style={{ transform: `translateX(${rect.left}px)`, width: rect.width }} />}
       {items.map((item) =>
         !interactive ? (
-          <div key={item.to} ref={keep(item.to)} className={`bottomnav__item ${item.to === activeTo ? 'is-on' : ''}`}>{body(item)}</div>
+          <div key={item.to} ref={keep(item.to)} className={`bottomnav__item ${item.avatar ? 'bottomnav__item--av' : ''} ${item.to === activeTo ? 'is-on' : ''}`}>{body(item)}</div>
         ) : item.onClick ? (
-          <button key={item.to} ref={keep(item.to)} type="button" className={`bottomnav__item ${item.to === activeTo ? 'is-on' : ''}`}
+          <button key={item.to} ref={keep(item.to)} type="button" className={`bottomnav__item ${item.avatar ? 'bottomnav__item--av' : ''} ${item.to === activeTo ? 'is-on' : ''}`}
             onClick={item.onClick} title={item.label}>
             {body(item)}
           </button>
@@ -70,7 +70,7 @@ export function NavRail({
             ref={keep(item.to)}
             to={item.to}
             end={item.to === '/'}
-            className={({ isActive }) => `bottomnav__item ${isActive ? 'is-on' : ''}`}
+            className={({ isActive }) => `bottomnav__item ${item.avatar ? 'bottomnav__item--av' : ''} ${isActive || item.to === activeTo ? 'is-on' : ''}`}
             title={item.label}
           >
             {body(item)}

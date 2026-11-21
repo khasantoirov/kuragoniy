@@ -946,6 +946,43 @@
   [data-skin="r2"] .edtop__acts { gap: 6px; min-width: 0; }
 }
 @media (max-width: 420px) {
-  [data-skin="r2"] .edtop__theme { display: none; }
   [data-skin="r2"] .edtop__inner { padding-left: 12px; padding-right: 12px; gap: 6px; }
+}
+
+/* ── Telefonda pastki menyu — Instagram uslubida ──────────────────────
+   Oq (tungi rejimda to'q) tekis panel, ustida ingichka chiziq; faqat
+   belgilar, yozuvsiz (yozuv ekran o'quvchilar uchun qoladi); faol bo'lim
+   belgisi qalinroq. Oxirgisi — kishining o'z rasmi (Profil), faol
+   bo'lganda atrofida halqa. Tepadagi panelda rasm turmaydi — o'rnida
+   tungi/kunduzgi rejim tugmasi. */
+@media (max-width: 760px) {
+  [data-skin="r2"] .bottomnav { padding: 0 0 env(safe-area-inset-bottom); }
+  [data-skin="r2"] .bottomnav::before {
+    background: var(--surface); border-top: 1px solid var(--rule);
+    -webkit-backdrop-filter: none; backdrop-filter: none; -webkit-mask-image: none; mask-image: none;
+  }
+  [data-skin="r2"] .bottomnav .bottomnav__rail { padding: 0; }
+  [data-skin="r2"] .bottomnav .navind { display: none; }
+  [data-skin="r2"] .bottomnav .bottomnav__item {
+    justify-content: center; gap: 0; padding: 11px 0 12px; border-radius: 0; color: var(--ink);
+  }
+  [data-skin="r2"] .bottomnav .bottomnav__item.is-on,
+  [data-skin="r2"] .bottomnav .bottomnav__item.is-on .bottomnav__lb { color: var(--ink); }
+  [data-skin="r2"] .bottomnav .bottomnav__ic { display: grid; place-items: center; height: 28px; }
+  [data-skin="r2"] .bottomnav .bottomnav__ic .svic { width: 26px; height: 26px; stroke-width: 1.6; }
+  [data-skin="r2"] .bottomnav .bottomnav__item.is-on .bottomnav__ic .svic { stroke-width: 2.6; }
+  [data-skin="r2"] .bottomnav .bottomnav__lb {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  [data-skin="r2"] .bottomnav .bottomnav__item--av .acct__av {
+    display: grid; place-items: center; width: 28px; height: 28px; max-width: 28px; max-height: 28px;
+    border-radius: 50%; font: 700 11px/1 var(--f-body, inherit); object-fit: cover;
+  }
+  [data-skin="r2"] .bottomnav .bottomnav__item--av.is-on .acct__av {
+    box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink);
+  }
+  /* the top bar: no picture, the day/night switch at the end instead */
+  [data-skin="r2"] .edtop .acct { display: none; }
+  [data-skin="r2"] .edtop__theme { order: 10; }
+  [data-skin="r2"] .sportal__who { display: none; }
 }

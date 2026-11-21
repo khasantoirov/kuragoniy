@@ -1080,3 +1080,12 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
   .lhead__tools > .btn { flex: 0 1 auto; min-width: 0; padding-inline: 12px; white-space: nowrap; }
   .phead__acts { max-width: 100%; min-width: 0; }
 }
+
+/* Bosh sahifa → Bugungi darslar: sarlavha, kun yorlig'i va «Ustozlar
+   xonasi» tugmasi har biri bir butun qoladi; joy yetmasa tugma keyingi
+   qatorga o'tadi (so'zlar ikkiga bo'linib ketmaydi). */
+@media (max-width: 760px) {
+  .home__phead { flex-wrap: wrap; justify-content: flex-start; gap: 8px 10px; }
+  .home__ptitle, .home__pday, .home__sroom { white-space: nowrap; }
+  .home__sroom { margin-left: auto; }
+}

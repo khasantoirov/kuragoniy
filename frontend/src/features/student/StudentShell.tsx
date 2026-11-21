@@ -90,7 +90,9 @@ export function StudentShell() {
   useGradePalette()
   const items = ITEMS.filter((it) => routeOn(it.to, on))
   const active = [...items].reverse().find((it) => (it.end ? pathname === it.to : pathname.startsWith(it.to)))
-  const rail: RailItem[] = items.filter((it) => it.to !== '/s/results').map((it) => ({ to: it.to, icon: IC[it.icon], label: t(it.label) }))
+  const rail: RailItem[] = items.filter((it) => it.to !== '/s/results').map((it) => (it.to === '/s/profile'
+    ? { to: it.to, icon: <Avatar name={user?.name ?? ''} photo={user?.photo} />, label: t(it.label), avatar: true }
+    : { to: it.to, icon: IC[it.icon], label: t(it.label) }))
 
   return (
     <>
