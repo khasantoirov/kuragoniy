@@ -9,6 +9,8 @@ import { routeOn, useModules } from '@/lib/modules'
 import { useSubjects } from '@/lib/subjects'
 import { useUIStore } from '@/store/uiStore'
 
+import { TelegramNudge } from './TelegramNudge'
+
 const WEEK = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba']
 const MONTHS = [
   'yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun',
@@ -62,6 +64,8 @@ export function HomePage() {
         </h2>
         <p className="home__date">{fmtDate}</p>
       </header>
+
+      {on('timetable') && <TelegramNudge hasLessons={(slots ?? []).some((s) => !s.band)} />}
 
       <div className={`home__grid ${on('timetable') ? '' : 'home__grid--solo'}`}>
         {on('timetable') && (

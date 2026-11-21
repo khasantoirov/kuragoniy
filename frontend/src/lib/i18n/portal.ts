@@ -1203,6 +1203,8 @@ const ru: Record<string, string> = {
   "Kun": "День",
   "Bu kunga dars yo'q": "В этот день уроков нет",
   "Dars eslatmalari": "Напоминания об уроках",
+  "Dars eslatmalarini Telegramda oling": "Получайте напоминания об уроках в Telegram",
+  "Dars kunlari ertalab bot bugungi darslaringizni, kechqurun esa jurnalga yozilmagan darslarni eslatadi.": "В учебные дни бот утром напомнит о сегодняшних уроках, а вечером — об уроках, не записанных в журнал.",
   "Ertalab bugungi darslaringiz, kechqurun jurnalga yozilmagan darslar (dars kunlari)": "Утром — сегодняшние уроки, вечером — уроки, не записанные в журнал (в учебные дни)",
 }
 
@@ -2396,6 +2398,8 @@ const en: Record<string, string> = {
   "Kun": "Day",
   "Bu kunga dars yo'q": "No lessons on this day",
   "Dars eslatmalari": "Lesson reminders",
+  "Dars eslatmalarini Telegramda oling": "Get lesson reminders in Telegram",
+  "Dars kunlari ertalab bot bugungi darslaringizni, kechqurun esa jurnalga yozilmagan darslarni eslatadi.": "On school days the bot reminds you of today's lessons in the morning, and of lessons not yet in the journal in the evening.",
   "Ertalab bugungi darslaringiz, kechqurun jurnalga yozilmagan darslar (dars kunlari)": "In the morning, today's lessons; in the evening, lessons not yet written in the journal (school days)",
 }
 

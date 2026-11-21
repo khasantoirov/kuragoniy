@@ -1203,3 +1203,29 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
   .dtab { padding-top: 8px; padding-bottom: 8px; }
   .dtabs { margin-bottom: 10px; }
 }
+
+/* Bosh sahifa: «Dars eslatmalarini Telegramda oling» — for a teacher with
+   lessons and no Telegram linked (features/home/TelegramNudge.tsx). */
+.home__tg[class] {
+  display: flex; align-items: center; gap: 14px;
+  margin: 0 0 16px; padding: 14px 16px;
+  border: 1px solid var(--rule); border-radius: 16px;
+}
+.home__tgic {
+  flex: none; display: grid; place-items: center;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: #229ED9; color: #fff;
+}
+.home__tgic svg { width: 20px; height: 20px; }
+.home__tgbody { flex: 1 1 auto; min-width: 0; }
+.home__tgtitle { margin: 0 0 2px; font-size: 15px; font-weight: 600; color: var(--ink); }
+.home__tgtext { margin: 0; font-size: 13px; line-height: 1.4; color: var(--ink-2); }
+.home__tgacts { flex: none; display: flex; gap: 8px; }
+@media (max-width: 640px) {
+  .home__tg[class] { flex-wrap: wrap; align-items: flex-start; gap: 10px 12px; padding: 12px 14px; margin-bottom: 12px; }
+  .home__tgic { width: 34px; height: 34px; }
+  .home__tgic svg { width: 17px; height: 17px; }
+  .home__tgbody { flex-basis: calc(100% - 46px); }
+  .home__tgacts { width: 100%; }
+  .home__tgacts .btn:first-child { flex: 1 1 auto; }
+}

@@ -8,6 +8,7 @@ import { api } from '@/lib/api/client'
 import type { User } from '@/lib/api/types'
 import { useAuth } from '@/lib/auth/AuthContext'
 
+import { useTelegramConnect } from './telegramConnect'
 import { errText } from './ui'
 
 /** Telegram link/unlink. Linking goes through a single-use token from the
@@ -17,25 +18,7 @@ export function TelegramLinkBox() {
   const { t } = useTranslation()
   const { user, refreshMe } = useAuth()
   const toast = useToast()
-  const [busy, setBusy] = useState(false)
-
-  const connect = async () => {
-    setBusy(true)
-    // Opened synchronously (before the await) so popup blockers allow it.
-    const win = window.open('', '_blank')
-    if (win) win.opener = null
-    try {
-      const res = await api.post<{ url: string }>('/accounts/me/telegram-link/')
-      if (win) win.location.href = res.data.url
-      else window.location.href = res.data.url
-      toast(t("Botda «Start» bosing, so'ng shu sahifaga qayting."))
-    } catch (err) {
-      win?.close()
-      toast(t(errText(err)), 'error')
-    } finally {
-      setBusy(false)
-    }
-  }
+  const { connect, busy } = useTelegramConnect()
 
   const disconnect = async () => {
     try {
