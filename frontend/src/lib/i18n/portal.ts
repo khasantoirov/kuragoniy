@@ -1194,6 +1194,7 @@ const ru: Record<string, string> = {
   "Sinf → o'quvchi, uning oynasi": "Класс → ученик, его окно",
   "Tanlangan o'qituvchi ko'rgandek": "Как видит выбранный учитель",
   "Izlash": "Поиск",
+  "Tizimdan chiqish": "Выйти из системы",
 }
 
 const en: Record<string, string> = {
@@ -2377,6 +2378,7 @@ const en: Record<string, string> = {
   "Sinf → o'quvchi, uning oynasi": "Class → pupil, their window",
   "Tanlangan o'qituvchi ko'rgandek": "As the chosen teacher sees it",
   "Izlash": "Search",
+  "Tizimdan chiqish": "Sign out",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

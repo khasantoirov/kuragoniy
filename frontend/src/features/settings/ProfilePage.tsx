@@ -47,6 +47,15 @@ function Kpi({ value, label, icon, tone }: { value: string | number; label: stri
   )
 }
 
+function MetaRow({ icon, label, value }: { icon: keyof typeof IC; label: string; value: string }) {
+  return (
+    <div className="prof__mi">
+      <dt><span className="prof__mic">{IC[icon]}</span>{label}</dt>
+      <dd>{value}</dd>
+    </div>
+  )
+}
+
 function GeneralTab({ ov }: { ov?: Overview }) {
   const { t } = useTranslation()
   if (!ov?.reports) return <section className="panel"><p className="prose prose--note">{t('Yuklanmoqda…')}</p></section>
@@ -101,7 +110,7 @@ function ReportList({ rows }: { rows: NonNullable<Overview['recent_reports']> })
 
 export function ProfilePage() {
   const { t } = useTranslation()
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const [params, setParams] = useSearchParams()
   const tab = (TABS.some((x) => x.key === params.get('tab')) ? params.get('tab') : 'general') as Tab
   const ov = useOverview()
@@ -134,12 +143,14 @@ export function ProfilePage() {
           </div>
           <button type="button" className="btn prof__edit" onClick={() => setEditing(true)}>{IC.edit} {t('Tahrirlash')}</button>
         </div>
-        <div className="prof__meta">
-          {user.phone && <span>{user.phone}</span>}
-          <span>{user.email || user.username}</span>
-          {user.bday && <span>{t("Tug'ilgan sana")}: {fmtDate(user.bday)}</span>}
-          {ov.data?.joined && <span>{t("Qo'shilgan")}: {fmtDate(ov.data.joined)}</span>}
-        </div>
+        {/* Kuragoniy signs in with a login or a phone number — the login is
+            shown, not an email. */}
+        <dl className="prof__meta">
+          {user.phone && <MetaRow icon="smartphone" label={t('Telefon')} value={user.phone} />}
+          {user.username && <MetaRow icon="user" label={t('Login')} value={user.username} />}
+          {user.bday && <MetaRow icon="calendar" label={t("Tug'ilgan sana")} value={fmtDate(user.bday)} />}
+          {ov.data?.joined && <MetaRow icon="check2" label={t("Qo'shilgan")} value={fmtDate(ov.data.joined)} />}
+        </dl>
       </section>
 
       <nav className="ptabs" aria-label={t('Profil bo\'limlari')}>
@@ -177,6 +188,11 @@ export function ProfilePage() {
       )}
       {tab === 'sessions' && <SessionsTab />}
       {tab === 'security' && <SecurityTab />}
+
+      {/* phones: the top bar has no account menu, so signing out is here */}
+      <button type="button" className="btn prof__out" onClick={() => logout()}>
+        {IC.logout} {t('Tizimdan chiqish')}
+      </button>
 
       {editing && (
         <Modal title={t('Profilni tahrirlash')} onClose={() => setEditing(false)}>

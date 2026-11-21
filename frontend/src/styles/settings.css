@@ -61,10 +61,16 @@
 .prof__tags > span:first-child { margin-left: 0 !important; }
 .prof__edit { margin-left: auto; }
 .prof__meta {
-  display: flex; flex-wrap: wrap; gap: 8px 22px;
-  margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--rule);
+  display: flex; flex-wrap: wrap; gap: 8px 28px;
+  margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--rule);
   font-size: 14px; color: var(--ink-2);
 }
+.prof__mi { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.prof__mi dt { display: flex; align-items: center; gap: 6px; color: var(--ink-3); font-weight: 400; }
+.prof__mi dd { margin: 0; color: var(--ink); font-weight: 500; overflow-wrap: anywhere; }
+.prof__mic { display: inline-flex; color: var(--ink-3); }
+.prof__mic .svic { width: 16px; height: 16px; }
+.prof__out { display: none; }
 /* Phone: name, role and status beside the photo; "Tahrirlash" at the
    card's bottom right, under the details. */
 @media (max-width: 640px) {
@@ -1107,4 +1113,55 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
   .ltbar .seg__b { height: 26px; }
   .settabs[class] { margin-bottom: 6px; padding: 2px; }
   .settabs[class] .seg__b { height: 28px; padding-inline: 10px; font-size: 13px; }
+}
+
+/* ── Profil — telefonda (professional, Instagram uslubida) ─────────────
+   Sarlavha takrorlanmaydi (tepada tab bor); rasm, ism va rol belgisi bir
+   blokda, «Tahrirlash» to'liq kenglikda; ma'lumotlar belgi + nom | qiymat
+   ro'yxati; bo'limlar bitta yon tomonga suriladigan qator; ko'rsatkichlar
+   ixcham; oxirida «Tizimdan chiqish» (tepada akkaunt menyusi yo'q). */
+@media (max-width: 640px) {
+  .setpg > .phead { display: none; }
+  .settabs + .setpg, .setpg { padding-top: 0; }
+
+  .prof { padding: 18px 16px; }
+  .prof__av, img.prof__av { width: 72px; height: 72px; max-width: 72px; font-size: 24px; }
+  .prof__nm { font-size: 19px; }
+  .prof__role { display: none; }
+  .prof__tags { margin-top: 6px; }
+  .prof__edit { grid-row: 2; justify-self: stretch; justify-content: center; margin: 14px 0 0; height: 38px; }
+  .prof__meta {
+    grid-column: 1 / -1; grid-row: 3; display: grid; gap: 0;
+    margin-top: 14px; padding-top: 4px; font-size: 14px;
+  }
+  .prof__mi { justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+  .prof__mi:last-child { border-bottom: 0; padding-bottom: 0; }
+  .prof__mi dd { text-align: right; }
+
+  .ptabs[class] {
+    display: flex; flex-wrap: nowrap; gap: 4px; padding: 4px; overflow-x: auto;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  .ptabs::-webkit-scrollbar { display: none; }
+  .ptabs[class] .ptab { flex: none; white-space: nowrap; padding: 9px 12px; font-size: 13px; gap: 6px; }
+  .ptabs[class] .ptab .svic { width: 15px; height: 15px; }
+
+  .pkpis[class] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .pkpi[class] { padding: 12px 12px 11px; gap: 4px; box-shadow: none; }
+  .pkpi[class] .pkpi__v { font-size: 22px; }
+  .pkpi[class] .pkpi__l { font-size: 12px; line-height: 1.3; padding-right: 18px; }
+  .pkpi[class] .pkpi__ic { top: 10px; right: 10px; }
+  .pkpi[class] .pkpi__ic .svic { width: 16px; height: 16px; }
+
+  /* reports / awards: compact rows — the title, then status and date on one line */
+  .prow-list { gap: 6px; }
+  .prow[class] { padding: 10px 12px; gap: 4px 10px; border-radius: 12px; }
+  .prow__txt { flex-basis: 100%; }
+  .prow__t { font-size: 14px; }
+  .prow__d { margin-left: auto; font-size: 12px; }
+  .btn.prof__out {
+    display: flex; justify-content: center; width: 100%; margin-top: 18px; height: 42px;
+    color: #d6455d; border-color: rgba(214, 69, 93, .35); background: var(--surface);
+  }
+  [data-theme="dark"] .btn.prof__out { color: #ff7a8e; border-color: rgba(255, 122, 142, .35); }
 }
