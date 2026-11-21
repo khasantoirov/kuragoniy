@@ -1195,6 +1195,13 @@ const ru: Record<string, string> = {
   "Tanlangan o'qituvchi ko'rgandek": "Как видит выбранный учитель",
   "Izlash": "Поиск",
   "Tizimdan chiqish": "Выйти из системы",
+  "Du": "Пн",
+  "Se": "Вт",
+  "Ch": "Ср",
+  "Pa": "Чт",
+  "Ju": "Пт",
+  "Kun": "День",
+  "Bu kunga dars yo'q": "В этот день уроков нет",
 }
 
 const en: Record<string, string> = {
@@ -2379,6 +2386,13 @@ const en: Record<string, string> = {
   "Tanlangan o'qituvchi ko'rgandek": "As the chosen teacher sees it",
   "Izlash": "Search",
   "Tizimdan chiqish": "Sign out",
+  "Du": "Mon",
+  "Se": "Tue",
+  "Ch": "Wed",
+  "Pa": "Thu",
+  "Ju": "Fri",
+  "Kun": "Day",
+  "Bu kunga dars yo'q": "No lessons on this day",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

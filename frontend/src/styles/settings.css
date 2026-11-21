@@ -1165,3 +1165,25 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
   }
   [data-theme="dark"] .btn.prof__out { color: #ff7a8e; border-color: rgba(255, 122, 142, .35); }
 }
+
+/* ── Telefonda jurnal: belgilar va amallar bittadan qatorda (yon tomonga
+   suriladi), jadval ixcham — ism ustuni tor, qatorlar past. ── */
+@media (max-width: 760px) {
+  .jhead[class] { gap: 8px; margin-bottom: 10px; }
+  .jhead__info { flex-wrap: nowrap; overflow-x: auto; width: 100%; gap: 6px; scrollbar-width: none; }
+  .jhead__info::-webkit-scrollbar { display: none; }
+  .jhead__info > * { flex: none; }
+  .jhead__info .jscale, .jhead__info .jpast, .jhead__info .jpending { font-size: 12px; padding: 4px 10px; }
+  .jhead__acts[class] {
+    display: flex; flex-wrap: nowrap; overflow-x: auto; width: 100%; gap: 6px; padding-bottom: 2px; scrollbar-width: none;
+  }
+  .jhead__acts[class]::-webkit-scrollbar { display: none; }
+  .jhead__acts[class] .btn { flex: none; white-space: nowrap; height: 34px; padding: 0 12px; font-size: 13px; }
+  .jt[class] { font-size: 12.5px; }
+  .jt .jt__no { width: 26px; min-width: 26px; padding: 0 2px; font-size: 11px; }
+  .jt .jt__nm { min-width: 124px; max-width: 150px; padding: 6px 8px; font-size: 13px; line-height: 1.25; }
+  /* the date stays readable: the lock / ✕ sits in the corner, the date beside it */
+  .jt .jt__d { min-width: 60px; padding-left: 4px; padding-right: 15px; }
+  .jt .jt__lk, .jt .jt__open, .jt .jt__dx { top: 1px; right: 0; padding: 2px; }
+  .jt .jt__lk svg, .jt .jt__open svg, .jt .jt__dx svg { width: 11px; height: 11px; }
+}

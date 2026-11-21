@@ -75,6 +75,26 @@ function statusOf(c: TimetableSlot, now: Date): Status {
   return cur < from ? 'next' : cur >= to ? 'done' : 'now'
 }
 
+/** A phone-width screen (follows rotation / resizing). */
+function usePhone() {
+  const query = '(max-width: 760px)'
+  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches)
+  useEffect(() => {
+    const mq = window.matchMedia(query)
+    const on = () => setPhone(mq.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
+  return phone
+}
+
+const DAY_SHORT = ['Du', 'Se', 'Ch', 'Pa', 'Ju']
+/** Today as a school day (Mon = 0); a weekend opens Monday. */
+const schoolDay = (now: Date) => {
+  const d = (now.getDay() + 6) % 7
+  return d > 4 ? 0 : d
+}
+
 /** The clock the statuses follow — ticks once a minute. */
 function useNow() {
   const [now, setNow] = useState(() => new Date())
@@ -367,6 +387,66 @@ function ModeTabs({ mode, onChange }: { mode: 'mine' | 'all'; onChange: (m: 'min
   )
 }
 
+/** Phone: the week's day tabs (with how many lessons each has) and the
+ *  picked day's lessons as rows — soat, then the lesson card. */
+function DayList({ byKey, covered, day, setDay, now, onOpen, onAdd }: {
+  byKey: Map<string, TimetableSlot>
+  covered: Set<string>
+  day: number
+  setDay: (d: number) => void
+  now: Date
+  onOpen: (c: TimetableSlot) => void
+  onAdd: (period: number) => void
+}) {
+  const { t } = useTranslation()
+  const lessonsOf = (d: number) => {
+    const out: { c: TimetableSlot; p: number; sp: number }[] = []
+    for (let p = 1; p <= SOATLAR; p++) {
+      const c = byKey.get(key(d, p))
+      if (!isEmpty(c) && !covered.has(key(d, p))) out.push({ c: c!, p, sp: spanOf(c!, p) })
+    }
+    return out
+  }
+  const rows = lessonsOf(day)
+  const today = (now.getDay() + 6) % 7
+  let free = 0
+  for (let p = 1; p <= SOATLAR && !free; p++) if (isEmpty(byKey.get(key(day, p))) && !covered.has(key(day, p))) free = p
+  return (
+    <div className="ttday">
+      <div className="ttday__days" role="tablist" aria-label={t('Kun')}>
+        {DAYS.map((d, i) => {
+          const n = lessonsOf(i).length
+          return (
+            <button key={d} type="button" role="tab" aria-selected={i === day} title={t(d)}
+              className={`ttday__d ${i === day ? 'is-on' : ''} ${i === today ? 'is-today' : ''}`} onClick={() => setDay(i)}>
+              <b>{t(DAY_SHORT[i])}</b>
+              <small>{n ? `${n} ${t('dars')}` : '—'}</small>
+            </button>
+          )
+        })}
+      </div>
+      <h3 className="ttday__title">{t(DAYS[day])}{day === today && <span className="ttday__now">{t('Bugun')}</span>}</h3>
+      {rows.length ? (
+        <ul className="ttday__list">
+          {rows.map(({ c, p, sp }) => (
+            <li key={p}>
+              <button type="button" className="ttrow" onClick={() => onOpen(c)}>
+                <span className="ttrow__p"><b>{sp > 1 ? `${p}–${p + sp - 1}` : p}</b><small>{t('soat')}</small></span>
+                <span className="ttrow__card"><LessonCard c={c} sp={sp} now={now} /></span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="ttday__empty">{t("Bu kunga dars yo'q")}</p>
+      )}
+      {free > 0 && (
+        <button type="button" className="btn ttday__add" onClick={() => onAdd(free)}>+ {t("Dars qo'shish")}</button>
+      )}
+    </div>
+  )
+}
+
 function MineView({ tabs }: { tabs: ReactNode }) {
   const { t } = useTranslation()
   const { lang } = useUIStore()
@@ -379,6 +459,11 @@ function MineView({ tabs }: { tabs: ReactNode }) {
   const now = useNow()
   const [editing, setEditing] = useState<{ slot: TimetableSlot; existing: boolean; fresh?: boolean } | null>(null)
   const [f, setF] = useState<Filters>(NO_FILTER)
+  // phones: one day at a time (a scaled-down week is too small to read)
+  const phone = usePhone()
+  const [view, setView] = useState<'day' | 'week'>('day')
+  const [day, setDay] = useState(() => schoolDay(new Date()))
+  const dayView = phone && view === 'day'
 
   const byKey = useMemo(() => {
     const m = new Map<string, TimetableSlot>()
@@ -523,9 +608,9 @@ function MineView({ tabs }: { tabs: ReactNode }) {
         <p className="ttx-head__sub">{user?.name} · {filled} {t('ta dars')}</p>
       </header>
 
-      <section className="ttx">
+      <section className={`ttx ${dayView ? 'ttx--day' : ''}`}>
         <div className="ttx__bar">
-          <SlotFilters slots={data ?? []} f={f} onChange={setF} />
+          {!dayView && <SlotFilters slots={data ?? []} f={f} onChange={setF} />}
           <div className="ttx__acts">
             <ExportMenu
               formats={['jpg', 'pdf-portrait', 'pdf-landscape']}
@@ -537,8 +622,21 @@ function MineView({ tabs }: { tabs: ReactNode }) {
           </div>
         </div>
         {tabs}
-        <p className="ttx__cap">{t('Haftalik dars jadvali')} — {t('Dushanbadan Jumagacha, 5 kun va 8 ta dars soati')}</p>
+        {phone && (
+          <div className="seg ttview" role="group" aria-label={t("Ko'rinish")}>
+            <button type="button" className={`seg__b ${view === 'day' ? 'is-on' : ''}`} aria-pressed={view === 'day'}
+              onClick={() => setView('day')}>{IC.list} {t('Kun')}</button>
+            <button type="button" className={`seg__b ${view === 'week' ? 'is-on' : ''}`} aria-pressed={view === 'week'}
+              onClick={() => setView('week')}>{IC.grid} {t('Hafta')}</button>
+          </div>
+        )}
+        {!dayView && <p className="ttx__cap">{t('Haftalik dars jadvali')} — {t('Dushanbadan Jumagacha, 5 kun va 8 ta dars soati')}</p>}
 
+        {dayView ? (
+          <DayList byKey={byKey} covered={covered} day={day} setDay={setDay} now={now}
+            onOpen={(c) => setEditing({ slot: c, existing: true })}
+            onAdd={(p) => setEditing({ slot: { ...emptySlot(day, p), ...byKey.get(key(day, p)) }, existing: false })} />
+        ) : (
         <div className="table-wrap ttx__grid">
           <ScaleToFit naturalWidth={LABEL_COL + DAYS.length * DATA_COL_MIN}>
             <table className="tt" ref={tableRef} style={{ minWidth: LABEL_COL + DAYS.length * DATA_COL_MIN }}>
@@ -599,6 +697,7 @@ function MineView({ tabs }: { tabs: ReactNode }) {
             </table>
           </ScaleToFit>
         </div>
+        )}
       </section>
 
       <div className={`ttsum ${all.isError ? 'ttsum--one' : ''}`}>
