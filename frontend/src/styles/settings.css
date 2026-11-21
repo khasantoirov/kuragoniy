@@ -1187,3 +1187,19 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
   .jt .jt__lk, .jt .jt__open, .jt .jt__dx { top: 1px; right: 0; padding: 2px; }
   .jt .jt__lk svg, .jt .jt__open svg, .jt .jt__dx svg { width: 11px; height: 11px; }
 }
+
+/* Telefonda kunlik dars sahifasining tepasi ixcham: sana kichikroq, hafta
+   kuni va «Soat» bir qatorda, mavzu maydoni va tablar past — o'quvchilar
+   ro'yxati birinchi ekranda ko'proq ko'rinadi. */
+@media (max-width: 640px) {
+  .dpage__top { margin-bottom: 4px; }
+  .dpage__cls { font-size: 13px; }
+  .dpage__head { gap: 10px; }
+  .dpage__day { font-size: 26px; }
+  .dpage__period { height: 34px; }
+  .dpage__wd { margin: 0 0 10px; font-size: 13.5px; }
+  .dpage__topic { height: 40px; margin-bottom: 10px; }
+  .dpage .jlock__why { margin: 0 0 10px; padding: 8px 12px; font-size: 13px; }
+  .dtab { padding-top: 8px; padding-bottom: 8px; }
+  .dtabs { margin-bottom: 10px; }
+}
