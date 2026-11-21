@@ -1089,3 +1089,18 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
   .home__ptitle, .home__pday, .home__sroom { white-space: nowrap; }
   .home__sroom { margin-left: auto; }
 }
+
+/* Telefonda Darslar sahifasining tepasi iloji boricha past (Fizika va
+   STEAM oynasida bir xil): qidiruv va bo'lim tanlovi («Hammasi (38)»)
+   turmaydi; sinflar va ko'rinish tugmasi bitta qatorda, sahifa tablari
+   ixcham. */
+@media (max-width: 760px) {
+  .ltbar__search, .ltbar__catsel { display: none !important; }
+  .ltbar[class] { flex-wrap: nowrap; gap: 6px; padding-top: 2px; padding-bottom: 4px; margin-bottom: 6px; }
+  .ltbar[class] .ltbar__grades { flex: 1 1 0; min-width: 0; }
+  .ltbar[class] .ltbar__grades .seg__b { padding: 0 4px; font-size: 12px; }
+  .ltbar[class] .ltbar__view { flex: none; }
+  .ltbar .seg__b { height: 26px; }
+  .settabs[class] { margin-bottom: 6px; padding: 2px; }
+  .settabs[class] .seg__b { height: 28px; padding-inline: 10px; font-size: 13px; }
+}
