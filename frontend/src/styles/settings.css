@@ -1081,13 +1081,17 @@ html[data-device="mobile"] .totop { right: calc(var(--frame-l, 0px) + 16px); }
   .phead__acts { max-width: 100%; min-width: 0; }
 }
 
-/* Bosh sahifa → Bugungi darslar: sarlavha, kun yorlig'i va «Ustozlar
-   xonasi» tugmasi har biri bir butun qoladi; joy yetmasa tugma keyingi
-   qatorga o'tadi (so'zlar ikkiga bo'linib ketmaydi). */
+/* Bosh sahifa → Bugungi darslar (telefonda): birinchi qatorda sarlavha
+   va o'ngda ixcham «Ustozlar xonasi ›», kun yorlig'i (Juma) sarlavha
+   ostida; dam olish kuni yorliq turmaydi — kartaning o'zi «Bugun dam olish
+   kuni» deydi. Fizika va STEAM oynasida bir xil. */
 @media (max-width: 760px) {
-  .home__phead { flex-wrap: wrap; justify-content: flex-start; gap: 8px 10px; }
-  .home__ptitle, .home__pday, .home__sroom { white-space: nowrap; }
-  .home__sroom { margin-left: auto; }
+  .home__phead { flex-wrap: wrap; justify-content: flex-start; align-items: center; gap: 6px 10px; margin-bottom: 10px; }
+  .home__phead::after { content: ''; order: 3; flex-basis: 100%; height: 0; }
+  .home__ptitle { order: 1; white-space: nowrap; }
+  .home__sroom { order: 2; margin-left: auto; white-space: nowrap; height: 30px; padding: 0 10px; font-size: 12.5px; }
+  .home__pday { order: 4; white-space: nowrap; }
+  .home__pday--off { display: none; }
 }
 
 /* Telefonda Darslar sahifasining tepasi iloji boricha past (Fizika va

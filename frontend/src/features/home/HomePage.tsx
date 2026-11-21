@@ -68,7 +68,7 @@ export function HomePage() {
         <div className="panel home__today">
           <div className="home__phead">
             <h3 className="home__ptitle">{t('Bugungi darslar')}</h3>
-            <span className="home__pday">{isWeekday ? t(WEEK[now.getDay()]) : t('Dam olish kuni')}</span>
+            <span className={`home__pday ${isWeekday ? '' : 'home__pday--off'}`}>{isWeekday ? t(WEEK[now.getDay()]) : t('Dam olish kuni')}</span>
             {on('staffroom') && (
               <button className="btn btn--sm btn--ghost home__sroom" onClick={() => navigate('/staffroom')}>{t('Ustozlar xonasi')} ›</button>
             )}
