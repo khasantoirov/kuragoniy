@@ -25,8 +25,11 @@ export default defineConfig({
       filename: 'sw.ts',
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
-        // pdf.js's 1.4 MB worker loads only when someone opens a book.
-        globIgnores: ['**/pdf.worker*', '**/exceljs*'],
+        // pdf.js's 1.4 MB worker loads only when someone opens a book; the
+        // Excel and PDF export libraries (~1.5 MB) only on an export. They
+        // are cached when first used (the 'assets' route in src/sw.ts), so a
+        // phone doesn't download them in the background on its first visit.
+        globIgnores: ['**/pdf.worker*', '**/exceljs*', '**/jspdf*', '**/html2canvas*'],
       },
       manifest: {
         name: "KO'RAGONIY EDU · Muhandis_D laboratoriyasi",

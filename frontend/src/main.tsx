@@ -2,9 +2,8 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import App from './App.tsx'
-import './lib/i18n'
-import './lib/i18n/portal'
-import './lib/i18n/site'
+// ru/en are a chunk of their own (lib/i18n/index.ts); Uzbek needs none
+import { languageReady } from './lib/i18n'
 import './legacy.css'
 // 2-rejim ("ta'lim paneli" ko'rinishi) — legacy.css'dan KEYIN, chunki
 // hamma qoidasi [data-skin="r2"] ostida va teng specifikatsiyada
@@ -25,8 +24,12 @@ import { startDeviceMode } from './lib/deviceMode'
 // Qurilma rejimi (Mobil / Kompyuter) before the first paint.
 startDeviceMode()
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+// A saved Русский / English: its dictionary first, so the first paint is
+// already in that language (the UI store has picked it up by now).
+void languageReady().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  )
+})

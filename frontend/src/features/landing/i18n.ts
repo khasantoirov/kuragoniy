@@ -1,4 +1,4 @@
-import i18n from '@/lib/i18n'
+import i18n, { whenDictionaries } from '@/lib/i18n'
 
 /** ru/en for the landing page — loaded with its chunk only. */
 const ru: Record<string, string> = {
@@ -209,5 +209,7 @@ const en: Record<string, string> = {
   'Barcha huquqlar himoyalangan': 'All rights reserved',
 }
 
-i18n.addResourceBundle('ru', 'translation', ru, true, false)
-i18n.addResourceBundle('en', 'translation', en, true, false)
+whenDictionaries(() => {
+  i18n.addResourceBundle('ru', 'translation', ru, true, false)
+  i18n.addResourceBundle('en', 'translation', en, true, false)
+})

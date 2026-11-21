@@ -1,4 +1,4 @@
-import i18n from '@/lib/i18n'
+import i18n, { whenDictionaries } from '@/lib/i18n'
 
 /** ru/en for the Laboratoriya (ported with it from amaliyfizika.uz) —
  *  loaded with the lab's chunk only. Generated from AF's dictionaries. */
@@ -380,5 +380,7 @@ const en: Record<string, string> = {
   "№": "No.",
 }
 
-i18n.addResourceBundle('ru', 'translation', ru, true, false)
-i18n.addResourceBundle('en', 'translation', en, true, false)
+whenDictionaries(() => {
+  i18n.addResourceBundle('ru', 'translation', ru, true, false)
+  i18n.addResourceBundle('en', 'translation', en, true, false)
+})

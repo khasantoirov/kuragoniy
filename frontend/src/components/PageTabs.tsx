@@ -1,6 +1,8 @@
-import { type ReactNode, useEffect, useRef } from 'react'
+import { type ReactNode, Suspense, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
+
+import { Skeleton } from '@/components/Skeleton'
 
 export interface PageTab {
   key: string
@@ -59,7 +61,8 @@ export function PageTabs({ tabs, keep = [], toolbar, aside }: { tabs: PageTab[];
       {/* `aside` (e.g. the o'quv yili picker) sits at the tabs' right end */}
       {aside ? <div className="settabs-row">{bar}{aside}</div> : bar}
       {toolbar}
-      {current.element}
+      {/* a tab's page is often a lazy chunk: only the page waits, not the tabs */}
+      <Suspense fallback={<Skeleton lines={5} />}>{current.element}</Suspense>
     </>
   )
 }

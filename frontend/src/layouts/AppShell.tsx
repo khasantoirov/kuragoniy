@@ -23,6 +23,7 @@ import { useGradePalette } from '@/lib/modules'
 import { useSubjectGuard, useSubjects } from '@/lib/subjects'
 import { usePageScrolled, useScrollRestoration } from '@/lib/scroll'
 import { useUIStore } from '@/store/uiStore'
+import { prefetchEverydayPages } from '@/routes/prefetch'
 
 import { BottomNav } from './BottomNav'
 import { useVisibleNavItems } from './navItems'
@@ -51,6 +52,8 @@ export function AppShell() {
 
   // New page opens at the top; Back/Forward return to where you were.
   useScrollRestoration()
+  // Darslar / Jurnal / Jadval are lazy chunks: fetch them once the browser is idle
+  useEffect(() => prefetchEverydayPages(), [])
 
   const closeAll = () => {
     setAcctOpen(false)

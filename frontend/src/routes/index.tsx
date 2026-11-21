@@ -3,16 +3,8 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { Skeleton } from '@/components/Skeleton'
 
-import { AboutPage } from '@/features/about/AboutPage'
-import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage'
 import { LoginPage } from '@/features/auth/LoginPage'
-import { PendingApprovalPage } from '@/features/auth/PendingApprovalPage'
-import { RegisterPage } from '@/features/auth/RegisterPage'
-import { LessonDetail } from '@/features/lessons/LessonDetail'
-import { EquipmentSheetPage } from '@/features/admin/EquipmentSheetPage'
-import { LibraryPage } from '@/features/library/LibraryPage'
 import { SettingsTabs } from '@/features/settings/SettingsTabs'
-import { TimetablePage } from '@/features/timetable/TimetablePage'
 import { AppShell } from '@/layouts/AppShell'
 import { AuthLayout } from '@/layouts/AuthLayout'
 
@@ -21,6 +13,16 @@ import { AdminTabs, guestPortalRoutes, JournalTabs, LessonsTabs, StaffHome, staf
 
 // Sozlamalar and the inbox: their own chunks (QR codes, sound synth, charts
 // of sessions) — opened now and then, so kept out of the main bundle.
+// Only the sign-in page and the shell come with the first download; every
+// page is its own chunk (the everyday ones are warmed up by routes/prefetch.ts).
+const AboutPage = lazy(() => import('@/features/about/AboutPage').then((m) => ({ default: m.AboutPage })))
+const ForgotPasswordPage = lazy(() => import('@/features/auth/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })))
+const PendingApprovalPage = lazy(() => import('@/features/auth/PendingApprovalPage').then((m) => ({ default: m.PendingApprovalPage })))
+const RegisterPage = lazy(() => import('@/features/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })))
+const LessonDetail = lazy(() => import('@/features/lessons/LessonDetail').then((m) => ({ default: m.LessonDetail })))
+const EquipmentSheetPage = lazy(() => import('@/features/admin/EquipmentSheetPage').then((m) => ({ default: m.EquipmentSheetPage })))
+const LibraryPage = lazy(() => import('@/features/library/LibraryPage').then((m) => ({ default: m.LibraryPage })))
+const TimetablePage = lazy(() => import('@/features/timetable/TimetablePage').then((m) => ({ default: m.TimetablePage })))
 const ProfilePage = lazy(() => import('@/features/settings/ProfilePage').then((m) => ({ default: m.ProfilePage })))
 const AppearancePage = lazy(() => import('@/features/settings/AppearancePage').then((m) => ({ default: m.AppearancePage })))
 const NotificationSettingsPage = lazy(() => import('@/features/settings/NotificationSettingsPage').then((m) => ({ default: m.NotificationSettingsPage })))
@@ -51,11 +53,11 @@ export const router = createBrowserRouter([
     children: [
       { path: '/', element: <StaffHome /> },
       { path: '/lessons', element: page(<LessonsTabs />) },
-      { path: '/lessons/:id', element: <LessonDetail /> },
+      { path: '/lessons/:id', element: page(<LessonDetail />) },
       { path: '/journal', element: page(<JournalTabs />) },
       { path: '/journal/:classId/day/:date', element: page(<DayPage />) },
-      { path: '/timetable', element: <RequireModule keys={['timetable']}><TimetablePage /></RequireModule> },
-      { path: '/library', element: <RequireModule keys={['library']}><LibraryPage /></RequireModule> },
+      { path: '/timetable', element: <RequireModule keys={['timetable']}>{page(<TimetablePage />)}</RequireModule> },
+      { path: '/library', element: <RequireModule keys={['library']}>{page(<LibraryPage />)}</RequireModule> },
       { path: '/library/:id/read', element: <RequireModule keys={['library']}>{page(<BookReaderPage />)}</RequireModule> },
       { path: '/lab', element: <RequireFan fan="fizika"><RequireModule keys={['lab']}>{page(<LabPage />)}</RequireModule></RequireFan> },
       { path: '/lab/:simId', element: <RequireFan fan="fizika"><RequireModule keys={['lab']}>{page(<LabSimDetail />)}</RequireModule></RequireFan> },
@@ -68,12 +70,12 @@ export const router = createBrowserRouter([
         element: (
           <RequireAdmin>
             <RequireModule keys={['equipment']}>
-              <EquipmentSheetPage />
+              {page(<EquipmentSheetPage />)}
             </RequireModule>
           </RequireAdmin>
         ),
       },
-      { path: '/about', element: <AboutPage /> },
+      { path: '/about', element: page(<AboutPage />) },
       {
         path: '/guide',
         element: (
@@ -101,7 +103,7 @@ export const router = createBrowserRouter([
     element: (
       <RequireAuth>
         <RequireNotApproved>
-          <PendingApprovalPage />
+          {page(<PendingApprovalPage />)}
         </RequireNotApproved>
       </RequireAuth>
     ),
@@ -114,8 +116,8 @@ export const router = createBrowserRouter([
     ),
     children: [
       { path: '/login', element: <LoginPage /> },
-      { path: '/register', element: <RegisterPage /> },
-      { path: '/forgot-password', element: <ForgotPasswordPage /> },
+      { path: '/register', element: page(<RegisterPage />) },
+      { path: '/forgot-password', element: page(<ForgotPasswordPage />) },
       ...guestPortalRoutes,
     ],
   },

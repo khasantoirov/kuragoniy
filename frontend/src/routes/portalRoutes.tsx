@@ -3,15 +3,7 @@ import { Navigate, type RouteObject } from 'react-router-dom'
 
 import { MovedTo, PageTabs } from '@/components/PageTabs'
 import { Skeleton } from '@/components/Skeleton'
-import { AdminDataPanel, AdminPage } from '@/features/admin/AdminPage'
-import { ModulesPanel } from '@/features/admin/ModulesPanel'
-import { ProtectionPanel } from '@/features/admin/ProtectionPanel'
-import { LicencesPanel } from '@/features/admin/LicencesPanel'
 import { YearPicker } from '@/features/schools/YearPicker'
-import { JournalPage } from '@/features/journal/JournalPage'
-import { LessonsPage } from '@/features/lessons/LessonsPage'
-import { ChangePasswordPage } from '@/features/auth/ChangePasswordPage'
-import { StudentRegisterPage } from '@/features/auth/StudentRegisterPage'
 import { HomePage } from '@/features/home/HomePage'
 import { isAdminInView, isObserver, isOversight, isSchoolAdmin, isTeacherLike, useAuth } from '@/lib/auth/AuthContext'
 import { useModules } from '@/lib/modules'
@@ -26,6 +18,17 @@ const StudentApp = lazy(() => import('@/features/student/routes'))
 const named = <T extends Record<string, unknown>>(loader: () => Promise<T>, key: keyof T) =>
   lazy(() => loader().then((m) => ({ default: m[key] as React.ComponentType })))
 
+// the everyday pages too: the first screen downloads only Bosh sahifa,
+// and AppShell warms these up once the browser is idle (routes/prefetch.ts)
+const JournalPage = named(() => import('@/features/journal/JournalPage'), 'JournalPage')
+const LessonsPage = named(() => import('@/features/lessons/LessonsPage'), 'LessonsPage')
+const AdminPage = named(() => import('@/features/admin/AdminPage'), 'AdminPage')
+const AdminDataPanel = named(() => import('@/features/admin/AdminPage'), 'AdminDataPanel')
+const ModulesPanel = named(() => import('@/features/admin/ModulesPanel'), 'ModulesPanel')
+const ProtectionPanel = named(() => import('@/features/admin/ProtectionPanel'), 'ProtectionPanel')
+const LicencesPanel = named(() => import('@/features/admin/LicencesPanel'), 'LicencesPanel')
+const ChangePasswordPage = named(() => import('@/features/auth/ChangePasswordPage'), 'ChangePasswordPage')
+const StudentRegisterPage = named(() => import('@/features/auth/StudentRegisterPage'), 'StudentRegisterPage')
 const StudentsPage = named(() => import('@/features/teacher/StudentsPage'), 'StudentsPage')
 const AcademicYearsPanel = named(() => import('@/features/admin/AcademicYearsPanel'), 'AcademicYearsPanel')
 const SitePanel = named(() => import('@/features/admin/SitePanel'), 'SitePanel')
@@ -230,12 +233,12 @@ export const topLevelPortalRoutes: RouteObject[] = [
     path: '/change-password',
     element: (
       <RequirePasswordChange>
-        <ChangePasswordPage />
+        <Lazy><ChangePasswordPage /></Lazy>
       </RequirePasswordChange>
     ),
   },
 ]
 
 /** Children of the guest AuthLayout route. */
-export const guestPortalRoutes: RouteObject[] = [{ path: '/join', element: <StudentRegisterPage /> }]
+export const guestPortalRoutes: RouteObject[] = [{ path: '/join', element: <Lazy><StudentRegisterPage /></Lazy> }]
 

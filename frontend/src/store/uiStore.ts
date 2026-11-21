@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 import { SUBJECT_GRADES, type Grade, type Subject } from '@/features/lessons/labels'
-import i18n from '@/lib/i18n'
+import { setLanguage } from '@/lib/i18n'
 
 export type Lang = 'uz' | 'ru' | 'en'
 export type Theme = 'light' | 'dark'
@@ -130,7 +130,7 @@ export const useUIStore = create<UIState>()(
         set({ sidebarMini: next })
       },
       setLang: (lang) => {
-        i18n.changeLanguage(lang)
+        void setLanguage(lang)
         document.documentElement.lang = lang
         set({ lang })
       },
@@ -216,7 +216,7 @@ export const useUIStore = create<UIState>()(
         applyTheme(state.theme, state.skin)
         applySidebarMini(state.sidebarMini)
         applyFan(state.subject ?? 'steam')
-        i18n.changeLanguage(state.lang)
+        void setLanguage(state.lang)
         document.documentElement.lang = state.lang
       },
     },
