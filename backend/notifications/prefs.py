@@ -25,6 +25,8 @@ DEFAULTS = {
     Kind.YORDAM: {'app': True, 'telegram': True, 'email': False},
     Kind.CHAMADON: {'app': True, 'telegram': True, 'email': False},
     Kind.LENTA: {'app': True, 'telegram': False, 'email': False},
+    # a daily digest: to Telegram, not piling up in the inbox
+    Kind.DARS: {'app': False, 'telegram': True, 'email': False},
 }
 
 DESCRIPTIONS = {
@@ -45,6 +47,7 @@ DESCRIPTIONS = {
     Kind.YORDAM: "Murojaatingizga javob berilganda (ma'muriyatga — yangi murojaat yoki xabar kelganda)",
     Kind.CHAMADON: "Chamadon so'rovingizga javob berilganda (ma'muriyatga — yangi so'rov kelganda)",
     Kind.LENTA: "Ustozlar lentasidagi postingizga izoh yozilganda",
+    Kind.DARS: "Ertalab bugungi darslaringiz, kechqurun jurnalga yozilmagan darslar (dars kunlari)",
 }
 
 
@@ -56,7 +59,7 @@ def kinds_for(user) -> list[str]:
     if not user.is_observer:
         out.append(Kind.JURNAL)
     if not user.is_observer and not user.is_school_admin:
-        out += [Kind.MALAKA, Kind.USTOZ]
+        out += [Kind.DARS, Kind.MALAKA, Kind.USTOZ]
     if user.is_admin:
         out += [Kind.DOKON, Kind.JAMOA]
     if not user.is_observer:

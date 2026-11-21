@@ -1202,6 +1202,8 @@ const ru: Record<string, string> = {
   "Ju": "Пт",
   "Kun": "День",
   "Bu kunga dars yo'q": "В этот день уроков нет",
+  "Dars eslatmalari": "Напоминания об уроках",
+  "Ertalab bugungi darslaringiz, kechqurun jurnalga yozilmagan darslar (dars kunlari)": "Утром — сегодняшние уроки, вечером — уроки, не записанные в журнал (в учебные дни)",
 }
 
 const en: Record<string, string> = {
@@ -2393,6 +2395,8 @@ const en: Record<string, string> = {
   "Ju": "Fri",
   "Kun": "Day",
   "Bu kunga dars yo'q": "No lessons on this day",
+  "Dars eslatmalari": "Lesson reminders",
+  "Ertalab bugungi darslaringiz, kechqurun jurnalga yozilmagan darslar (dars kunlari)": "In the morning, today's lessons; in the evening, lessons not yet written in the journal (school days)",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

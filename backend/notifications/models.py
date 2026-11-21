@@ -32,6 +32,7 @@ class Kind(models.TextChoices):
     YORDAM = 'yordam', 'Yordam markazi'
     CHAMADON = 'chamadon', 'STEM chamadon'
     LENTA = 'lenta', 'Ustozlar lentasi'
+    DARS = 'dars', 'Dars eslatmalari'
 
 
 class Notification(models.Model):
