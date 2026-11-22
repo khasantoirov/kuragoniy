@@ -76,11 +76,6 @@ const ru: Record<string, string> = {
     'Уроки, библиотека и курсы показываются по этому предмету. Если ничего не выбрано, видны оба предмета.',
   "Hisobingiz yaratildi. Ma'muriyat arizangizni ko'rib chiqib, sizni mos fanga yo'naltiradi. Tasdiqlangach, telefon raqamingiz yoki loginingiz va parolingiz bilan kira olasiz.":
     'Аккаунт создан. Администрация рассмотрит заявку и назначит вам предмет. После подтверждения вы сможете войти по номеру телефона или по логину и паролю.',
-  'Telegram orqali tasdiqlang': 'Подтвердите через Telegram',
-  "Hisobingizga yangi qurilmadan kirilmoqda. Telegram botimiz sizga 6 xonali kod yubordi — shu yerga kiriting.":
-    'Вход в аккаунт с нового устройства. Наш Telegram-бот отправил вам 6-значный код — введите его здесь.',
-  "Bu brauzer eslab qolinadi — keyingi safar kod so'ralmaydi.": 'Этот браузер будет запомнен — в следующий раз код не понадобится.',
-  'Kod muddati tugagan. Qaytadan kiring.': 'Срок действия кода истёк. Войдите заново.',
 }
 
 const en: Record<string, string> = {
@@ -152,11 +147,6 @@ const en: Record<string, string> = {
     'Lessons, the library and courses follow this subject. With none ticked, both subjects show.',
   "Hisobingiz yaratildi. Ma'muriyat arizangizni ko'rib chiqib, sizni mos fanga yo'naltiradi. Tasdiqlangach, telefon raqamingiz yoki loginingiz va parolingiz bilan kira olasiz.":
     'Your account is created. The administration will review it and assign your subject. Once approved, sign in with your phone number or your login and password.',
-  'Telegram orqali tasdiqlang': 'Confirm through Telegram',
-  "Hisobingizga yangi qurilmadan kirilmoqda. Telegram botimiz sizga 6 xonali kod yubordi — shu yerga kiriting.":
-    'Someone is signing in to your account from a new device. Our Telegram bot has sent you a 6-digit code: enter it here.',
-  "Bu brauzer eslab qolinadi — keyingi safar kod so'ralmaydi.": "This browser will be remembered, so the code won't be asked next time.",
-  'Kod muddati tugagan. Qaytadan kiring.': 'The code has expired. Please sign in again.',
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

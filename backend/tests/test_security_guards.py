@@ -1,20 +1,18 @@
 """The protections that replaced Google reCAPTCHA (2026-11-22): the public
-forms' bot check (common/formguard.py), the IP password-spraying block
-(common/loginguard.py) and the leaders' Telegram step (accounts/tg_step.py)."""
+forms' bot check (common/formguard.py) and the IP password-spraying block
+(common/loginguard.py). The leaders' Telegram step was taken out again the
+same day at the owner's request."""
 
-import re
 from unittest.mock import patch
 
 import pytest
 from django.core.cache import cache
 
-from accounts import tg_step
 from accounts.models import User
 from common import formguard
 
 LOGIN = '/api/auth/login/'
 GUARD = '/api/auth/guard/'
-TG = '/api/auth/login/telegram/'
 
 pytestmark = pytest.mark.django_db
 
@@ -122,81 +120,3 @@ def test_spraying_from_one_address_blocks_password_sign_in_there(send, api_clien
     assert send.call_count == 1 and send.call_args[0][0] == 4242 and '203.0.113.7' in send.call_args[0][1]
     assert api_client.post(LOGIN, {'login': 'ghost4', 'password': 'x'}, format='json', **here).status_code == 429
     assert send.call_count == 1
-
-
-# --- the leaders' Telegram step --------------------------------------------
-
-@pytest.fixture
-def leader(settings, admin):
-    cache.clear()
-    settings.LEADER_TELEGRAM_STEP = True
-    User.objects.filter(pk=admin.pk).update(telegram_linked=True, telegram_chat_id=777)
-    admin.refresh_from_db()
-    return admin
-
-
-@pytest.fixture
-def bot():
-    sent = []
-    with patch.object(tg_step, '_send', side_effect=lambda chat, text: sent.append((chat, text)) or True):
-        yield sent
-
-
-def code_in(text):
-    return re.search(r'\b(\d{6})\b', text).group(1)
-
-
-def test_a_leader_on_a_new_browser_confirms_with_a_telegram_code(api_client, leader, bot):
-    creds = {'login': leader.username, 'password': 'testpass123'}
-    r = api_client.post(LOGIN, creds, format='json')
-    assert r.status_code == 200 and r.data['telegram_required'] and 'access' not in r.data
-    (chat, text), = bot
-    assert chat == 777 and 'kirish kodi' in text
-
-    assert api_client.post(TG, {'challenge': r.data['challenge'], 'code': '000000' if code_in(text) != '000000' else '111111'},
-                           format='json').status_code == 400
-    ok = api_client.post(TG, {'challenge': r.data['challenge'], 'code': code_in(text)}, format='json')
-    assert ok.status_code == 200 and ok.data['access']
-    assert tg_step.cookie_name(leader) in ok.cookies
-
-    # the browser is known now: straight in, no code
-    again = api_client.post(LOGIN, creds, format='json')
-    assert again.status_code == 200 and again.data.get('access') and len(bot) == 1
-
-    # a new password makes every browser confirm again
-    leader.set_password('another-pass-456')
-    leader.save()
-    r = api_client.post(LOGIN, {'login': leader.username, 'password': 'another-pass-456'}, format='json')
-    assert r.data.get('telegram_required')
-
-
-def test_a_used_or_guessed_code_runs_out(api_client, leader, bot):
-    r = api_client.post(LOGIN, {'login': leader.username, 'password': 'testpass123'}, format='json')
-    right = code_in(bot[0][1])
-    wrong = '000000' if right != '000000' else '111111'
-    for _ in range(tg_step.MAX_ATTEMPTS):
-        assert api_client.post(TG, {'challenge': r.data['challenge'], 'code': wrong}, format='json').status_code in (400, 429)
-    # five wrong tries: even the right code is too late
-    assert api_client.post(TG, {'challenge': r.data['challenge'], 'code': right}, format='json').status_code in (401, 429)
-
-
-def test_teachers_and_unlinked_or_unreachable_leaders_sign_in_as_before(api_client, leader, teacher, settings):
-    with patch.object(tg_step, '_send', return_value=True) as send:
-        r = api_client.post(LOGIN, {'login': teacher.username, 'password': 'testpass123'}, format='json')
-        assert r.status_code == 200 and r.data.get('access')
-        assert not send.called
-    # Telegram can't be reached: never a lock-out by our own fault
-    with patch.object(tg_step, '_send', return_value=False):
-        r = api_client.post(LOGIN, {'login': leader.username, 'password': 'testpass123'}, format='json')
-        assert r.status_code == 200 and r.data.get('access')
-    # no Telegram linked: nothing to send to
-    User.objects.filter(pk=leader.pk).update(telegram_linked=False, telegram_chat_id=None)
-    with patch.object(tg_step, '_send', return_value=True) as send:
-        r = api_client.post(LOGIN, {'login': leader.username, 'password': 'testpass123'}, format='json')
-        assert r.data.get('access') and not send.called
-
-
-def test_an_authenticator_app_is_already_the_second_step(api_client, leader, bot):
-    User.objects.filter(pk=leader.pk).update(totp_enabled=True, totp_secret='JBSWY3DPEHPK3PXP')
-    r = api_client.post(LOGIN, {'login': leader.username, 'password': 'testpass123'}, format='json')
-    assert r.data.get('totp_required') and not r.data.get('telegram_required') and bot == []

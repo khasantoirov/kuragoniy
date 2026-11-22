@@ -11,7 +11,6 @@ router.register('users', views.UserAdminViewSet, basename='user-admin')
 
 auth_urlpatterns = [
     path('login/', views.LoginView.as_view(), name='auth-login'),
-    path('login/telegram/', views.TelegramStepVerifyView.as_view(), name='auth-login-telegram'),
     path('guard/', GuardChallengeView.as_view(), name='auth-guard'),
     path('phone/start/', phone_views.PhoneStartView.as_view(), name='auth-phone-start'),
     path('phone/register/', phone_views.PhoneRegisterStartView.as_view(), name='auth-phone-register'),

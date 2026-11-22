@@ -20,6 +20,7 @@ either way.
 
 import hashlib
 import logging
+import math
 import secrets
 import time
 
@@ -51,7 +52,7 @@ def _ttl() -> int:
 def issue(action: str) -> dict:
     salt = secrets.token_hex(12)
     bits = _bits()
-    token = signing.dumps({'a': action, 's': salt, 'b': bits, 't': round(time.time(), 3)}, salt=SALT)
+    token = signing.dumps({'a': action, 's': salt, 'b': bits, 't': math.floor(time.time() * 1000) / 1000}, salt=SALT)
     return {'token': token, 'salt': salt, 'bits': bits, 'ttl': _ttl()}
 
 

@@ -6,13 +6,12 @@ from accounts.models import User
 
 @pytest.fixture(autouse=True)
 def security_guards_off(settings):
-    """The public forms' bot check, the IP password-spraying block and the
-    leaders' Telegram step are switched on by their own tests
+    """The public forms' bot check and the IP password-spraying block are
+    switched on by their own tests
     (tests/test_security_guards.py) — the rest of the suite signs in the
     plain way, and its many wrong passwords from 127.0.0.1 never add up to
     an IP block."""
     settings.FORM_GUARD_ENABLED = False
-    settings.LEADER_TELEGRAM_STEP = False
     settings.LOGIN_IP_THRESHOLD = 10 ** 6
 
 

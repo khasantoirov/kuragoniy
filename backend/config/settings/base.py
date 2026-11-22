@@ -262,10 +262,6 @@ FORM_GUARD_TTL_SECONDS = 900
 LOGIN_IP_THRESHOLD = env.int('LOGIN_IP_THRESHOLD', default=25)
 LOGIN_IP_WINDOW_MINUTES = 15
 LOGIN_IP_BLOCK_MINUTES = env.int('LOGIN_IP_BLOCK_MINUTES', default=15)
-# Rahbarlar uchun Telegram tasdig'i (accounts/tg_step.py): a code from the
-# bot on a browser the leader hasn't confirmed in TRUSTED_DEVICE_DAYS.
-LEADER_TELEGRAM_STEP = env.bool('LEADER_TELEGRAM_STEP', default=True)
-TRUSTED_DEVICE_DAYS = 60
 FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
 # The site's public address, for links inside Telegram messages (the bot
 # reminders open the right page with one tap).
