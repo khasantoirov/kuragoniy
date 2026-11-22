@@ -197,6 +197,9 @@ REST_FRAMEWORK = {
         'lead': '10/hour',
         'password_reset_confirm': '60/hour',
         'game_answer': '120/min',
+        # the public forms' challenges (common/formguard.py) — a class
+        # behind one school address opens the sign-in page at once
+        'guard': '600/hour',
         'protection_event': '20/hour',
     },
     # None = trust X-Forwarded-For as-is (dev, no proxy). prod.py sets 1:
@@ -245,13 +248,24 @@ LOGIN_LOCKOUT_MINUTES = env.int('LOGIN_LOCKOUT_MINUTES', default=15)
 # frontend origin used in password-reset messages.
 TELEGRAM_BOT_USERNAME = env('TELEGRAM_BOT_USERNAME', default='kuragoniybot')
 
-# Google reCAPTCHA v3 on the public forms (common/captcha.py) — off until
-# both keys are in .env.
-RECAPTCHA_SITE_KEY = env('RECAPTCHA_SITE_KEY', default='')
-RECAPTCHA_SECRET_KEY = env('RECAPTCHA_SECRET_KEY', default='')
-RECAPTCHA_MIN_SCORE = env.float('RECAPTCHA_MIN_SCORE', default=0.5)
-# 0 = trial run: checks are logged, nobody is refused (common/captcha.py)
-RECAPTCHA_ENFORCE = env.bool('RECAPTCHA_ENFORCE', default=True)
+# The public forms' own bot check (common/formguard.py): a hidden bot trap
+# and a small proof of work — Google reCAPTCHA is gone. FORM_GUARD_ENFORCE=0
+# is the emergency switch: still checked and logged, nobody refused.
+FORM_GUARD_ENABLED = env.bool('FORM_GUARD_ENABLED', default=True)
+FORM_GUARD_ENFORCE = env.bool('FORM_GUARD_ENFORCE', default=True)
+FORM_GUARD_BITS = env.int('FORM_GUARD_BITS', default=16)
+FORM_GUARD_MIN_SECONDS = env.float('FORM_GUARD_MIN_SECONDS', default=1.0)
+FORM_GUARD_TTL_SECONDS = 900
+# Password spraying from one address (common/loginguard.py): this many
+# different logins failing within the window block password sign-in from
+# it (phone sign-in keeps working).
+LOGIN_IP_THRESHOLD = env.int('LOGIN_IP_THRESHOLD', default=25)
+LOGIN_IP_WINDOW_MINUTES = 15
+LOGIN_IP_BLOCK_MINUTES = env.int('LOGIN_IP_BLOCK_MINUTES', default=15)
+# Rahbarlar uchun Telegram tasdig'i (accounts/tg_step.py): a code from the
+# bot on a browser the leader hasn't confirmed in TRUSTED_DEVICE_DAYS.
+LEADER_TELEGRAM_STEP = env.bool('LEADER_TELEGRAM_STEP', default=True)
+TRUSTED_DEVICE_DAYS = 60
 FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
 # The site's public address, for links inside Telegram messages (the bot
 # reminders open the right page with one tap).

@@ -111,35 +111,3 @@ def test_sign_up_refuses_a_number_already_registered(api_client, teacher):
     User.objects.filter(pk=teacher.pk).update(phone='+998901112288')
     r = api_client.post(REGISTER, {'phone': '+998901112288', 'first_name': 'Ali', 'last_name': 'Valiyev'}, format='json')
     assert r.status_code == 409 and r.data['step'] == 'login'
-
-
-@pytest.mark.django_db
-def test_recaptcha_guards_the_forms_once_keys_are_set(api_client, settings):
-    settings.RECAPTCHA_SECRET_KEY = 'secret'
-    with patch('common.captcha.requests.post') as post:
-        post.return_value.json.return_value = {'success': True, 'score': 0.1, 'action': 'phone_start'}
-        assert api_client.post(START, {'phone': '+998901112299', 'captcha': 't'}, format='json').status_code == 400
-        post.return_value.json.return_value = {'success': True, 'score': 0.9, 'action': 'phone_start'}
-        assert api_client.post(START, {'phone': '+998901112299', 'captcha': 't'}, format='json').status_code == 200
-    # no token at all
-    assert api_client.post(START, {'phone': '+998901112299'}, format='json').status_code == 400
-
-
-@pytest.mark.django_db
-def test_recaptcha_trial_run_and_our_own_mistakes_never_lock_people_out(api_client, settings):
-    settings.RECAPTCHA_SECRET_KEY = 'secret'
-    with patch('common.captcha.requests.post') as post:
-        # a wrong secret key is our mistake: let people in, say so in the log
-        post.return_value.json.return_value = {'success': False, 'error-codes': ['invalid-input-secret']}
-        assert api_client.post(START, {'phone': '+998901112300', 'captcha': 't'}, format='json').status_code == 200
-        # Google out of reach: same
-        post.side_effect = ConnectionError('down')
-        assert api_client.post(START, {'phone': '+998901112300', 'captcha': 't'}, format='json').status_code == 200
-        post.side_effect = None
-        # a bad token is the visitor's: refused
-        post.return_value.json.return_value = {'success': False, 'error-codes': ['invalid-input-response']}
-        assert api_client.post(START, {'phone': '+998901112300', 'captcha': 't'}, format='json').status_code == 400
-        # the trial run refuses nobody
-        settings.RECAPTCHA_ENFORCE = False
-        assert api_client.post(START, {'phone': '+998901112300', 'captcha': 't'}, format='json').status_code == 200
-        assert api_client.post(START, {'phone': '+998901112300'}, format='json').status_code == 200

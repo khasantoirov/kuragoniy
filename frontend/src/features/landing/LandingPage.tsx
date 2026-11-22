@@ -7,13 +7,13 @@ import { fullPhone, PhoneField } from '@/features/auth/phone'
 import { errText } from '@/features/portal/ui'
 import { IC, themeIconMoon, themeIconSun } from '@/icons'
 import { api } from '@/lib/api/client'
-import { socialUrl, telegramUrl, useCaptcha, useLanding, type LandingData } from '@/lib/publicSite'
+import { HoneypotField, useFormGuard } from '@/lib/formGuard'
+import { socialUrl, telegramUrl, useLanding, type LandingData } from '@/lib/publicSite'
 import { LangMenu } from '@/layouts/AuthLayout'
 import { useUIStore } from '@/store/uiStore'
 
 import './i18n'
 import './landing.css'
-import { useCaptchaBadge } from '@/lib/captcha'
 
 /* kuragoniy.uz for a guest: what Ko'ragoniy Education and Muhandis D do,
    live figures from the database, and — once the administration fills
@@ -385,8 +385,7 @@ function Partners({ names }: { names: string[] }) {
 
 function LeadForm() {
   const { t } = useTranslation()
-  const captcha = useCaptcha()
-  useCaptchaBadge(captcha.enabled)
+  const guard = useFormGuard('lead')
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [tg, setTg] = useState('')
@@ -402,7 +401,7 @@ function LeadForm() {
     setNote('')
     try {
       await api.post('/public/leads/', {
-        name, phone: fullPhone(phone), telegram: tg, message: msg, captcha: await captcha.token('lead'),
+        ...(await guard.fields()), name, phone: fullPhone(phone), telegram: tg, message: msg,
       })
       setDone(true)
     } catch (err) {
@@ -444,6 +443,7 @@ function LeadForm() {
         {busy ? t('Yuborilmoqda…') : t('Yuborish')}
       </button>
       {note && <p className="form__note form__note--err" role="alert">{note}</p>}
+      <HoneypotField guard={guard} />
     </form>
   )
 }

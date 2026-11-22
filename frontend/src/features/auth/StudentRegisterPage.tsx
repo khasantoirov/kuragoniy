@@ -6,6 +6,7 @@ import { errText } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import { homePathFor, useAuth } from '@/lib/auth/AuthContext'
+import { HoneypotField, useFormGuard } from '@/lib/formGuard'
 
 interface JoinInfo {
   class_name: string
@@ -21,6 +22,9 @@ export function StudentRegisterPage() {
   const { t } = useTranslation()
   const { login } = useAuth()
   const navigate = useNavigate()
+  // the sign-up and the sign-in straight after are two guarded forms
+  const guard = useFormGuard('student_register')
+  const guardLogin = useFormGuard('login')
   const [code, setCode] = useState(() => new URLSearchParams(window.location.search).get('code') ?? '')
   const [info, setInfo] = useState<JoinInfo | null>(null)
   const [fullName, setFullName] = useState('')
@@ -52,13 +56,14 @@ export function StudentRegisterPage() {
     setNote('')
     try {
       const res = await api.post<{ username: string; approved: boolean }>('/student/register/', {
+        ...(await guard.fields()),
         code: code.trim(),
         full_name: fullName,
         username: username.trim().toLowerCase(),
         password,
       })
-      const result = await login(res.data.username, password)
-      if (!result.totpRequired) navigate(homePathFor(result.user))
+      const result = await login(res.data.username, password, true, await guardLogin.fields())
+      if ('user' in result) navigate(homePathFor(result.user))
     } catch (err) {
       setNote(t(errText(err)))
     } finally {
@@ -141,6 +146,7 @@ export function StudentRegisterPage() {
           : t("Ro'yxatdan o'tgach, o'qituvchingiz tasdiqlaydi.")}{' '}
         <button type="button" className="linklike" onClick={() => setInfo(null)}>{t('Boshqa kod')}</button>
       </p>
+      <HoneypotField guard={guard} />
     </form>
   )
 }

@@ -5,16 +5,15 @@ import { Link } from 'react-router-dom'
 import { errText } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
-import { useCaptcha } from '@/lib/publicSite'
+import { HoneypotField, useFormGuard } from '@/lib/formGuard'
 
-import { CaptchaBadge } from './phone'
 
 /** Self-service reset: a 6-digit code arrives over the account's linked
  * Telegram bot (or email when configured). Students without Telegram ask
  * their teacher, teachers ask an administrator — never the developer. */
 export function ForgotPasswordPage() {
   const { t } = useTranslation()
-  const captcha = useCaptcha()
+  const guard = useFormGuard('password_reset')
   const [step, setStep] = useState<'login' | 'code' | 'done'>('login')
   const [loginName, setLoginName] = useState('')
   const [code, setCode] = useState('')
@@ -29,7 +28,7 @@ export function ForgotPasswordPage() {
     setBusy(true)
     setNote('')
     try {
-      await api.post('/auth/password-reset/request/', { login: loginName.trim(), captcha: await captcha.token('password_reset') })
+      await api.post('/auth/password-reset/request/', { ...(await guard.fields()), login: loginName.trim() })
       setStep('code')
     } catch (err) {
       setNote(t(errText(err)))
@@ -124,7 +123,7 @@ export function ForgotPasswordPage() {
       </button>
       {note && <p className="form__note form__note--err" role="alert">{note}</p>}
       <p className="gx-form__foot"><Link className="gx-form__link" to="/login">{t('Kirish sahifasiga qaytish')}</Link></p>
-      <CaptchaBadge on={captcha.enabled} />
+      <HoneypotField guard={guard} />
     </form>
   )
 }

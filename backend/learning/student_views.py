@@ -91,6 +91,10 @@ class StudentRegisterView(APIView):
     throttle_classes = [StudentRegisterRateThrottle]
 
     def post(self, request):
+        from common.formguard import FAILED, guard_ok
+
+        if not guard_ok(request, 'student_register'):
+            return Response({'detail': FAILED}, status=status.HTTP_400_BAD_REQUEST)
         inv = _invite(request.data.get('code'))
         if not inv:
             raise ValidationError({'code': "Sinf kodi noto'g'ri yoki faol emas."})

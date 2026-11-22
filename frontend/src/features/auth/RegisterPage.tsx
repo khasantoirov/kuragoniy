@@ -8,9 +8,9 @@ import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import type { User } from '@/lib/api/types'
 import { useAuth } from '@/lib/auth/AuthContext'
-import { useCaptcha } from '@/lib/publicSite'
+import { HoneypotField, useFormGuard } from '@/lib/formGuard'
 
-import { CaptchaBadge, fullPhone, HelpLink, localDigits, PhoneField, PhoneVerify, type VerifyDone, type VerifyStart } from './phone'
+import { fullPhone, HelpLink, localDigits, PhoneField, PhoneVerify, type VerifyDone, type VerifyStart } from './phone'
 
 /* "Ro'yxatdan o'tish" for teachers: name → the number proven through the
    Telegram bot → a password. The account then waits for the
@@ -24,7 +24,7 @@ export function RegisterPage() {
   const { applySession } = useAuth()
   const navigate = useNavigate()
   const navState = useLocation().state as NavState
-  const captcha = useCaptcha()
+  const guard = useFormGuard('phone_register')
   const [step, setStep] = useState<'form' | 'verify' | 'password'>('form')
   const [first, setFirst] = useState('')
   const [last, setLast] = useState('')
@@ -50,10 +50,10 @@ export function RegisterPage() {
     setNote('')
     try {
       const r = await api.post<VerifyStart>('/auth/phone/register/', {
+        ...(await guard.fields()),
         phone: fullPhone(phone),
         first_name: first,
         last_name: last,
-        captcha: await captcha.token('phone_register'),
       })
       setVerify(r.data)
       setTicket(r.data.ticket)
@@ -187,7 +187,7 @@ export function RegisterPage() {
       <p className="gx-form__foot gx-form__foot--sm">
         {t("O'quvchimisiz?")} <Link className="gx-form__link" to="/join">{t("Sinf kodi bilan ro'yxatdan o'ting")}</Link>
       </p>
-      <CaptchaBadge on={captcha.enabled} />
+      <HoneypotField guard={guard} />
     </form>
   )
 }

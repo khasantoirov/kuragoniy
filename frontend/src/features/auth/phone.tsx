@@ -7,7 +7,6 @@ import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import type { User } from '@/lib/api/types'
 import { telegramUrl, useLanding } from '@/lib/publicSite'
-import { useCaptchaBadge } from '@/lib/captcha'
 
 /* Signing in / up with a phone number. The number is proven through our
    Telegram bot (backend accounts/phone_auth.py): an account already linked
@@ -279,9 +278,3 @@ export function formatPhone(p: string): string {
   return d.length === 9 ? `+998 ${formatLocal(d)}` : p
 }
 
-/** Google's reCAPTCHA badge in the corner while this form is on screen
- *  (no text line under the form — the owner asked it away). */
-export function CaptchaBadge({ on }: { on: boolean }) {
-  useCaptchaBadge(on)
-  return null
-}

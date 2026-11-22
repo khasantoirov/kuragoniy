@@ -352,14 +352,12 @@
 
 /* ══ Telefon orqali kirish (features/auth/phone.tsx) ══════════════
    Kirish usuli tablari, +998 maydoni, 6 katakli kod, Telegram bot
-   qadami va reCAPTCHA izohi. Keng ekranda kartaning yonida loyiha
+   qadami. Keng ekranda kartaning yonida loyiha
    haqidagi panel (BrandAside). */
 
-/* reCAPTCHA v3 nishoni faqat himoyalangan forma ekranda turganda
-   ko'rinadi (lib/captcha.ts → useCaptchaBadge, <html class="captcha-on">),
-   shuning uchun u tizimga kirgandan keyin ilova ichida osilib qolmaydi. */
-html:not(.captcha-on) .grecaptcha-badge { visibility: hidden !important; }
-.grecaptcha-badge { z-index: 60; }
+/* Ochiq formalardagi bot-tuzoq (lib/formGuard.ts → HoneypotField): ekrandan
+   tashqarida, odam uni ko'rmaydi va to'ldirmaydi. */
+.hpf { position: absolute !important; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
 
 .gx-tabs {
   display: grid; grid-template-columns: 1fr 1fr; gap: 4px;

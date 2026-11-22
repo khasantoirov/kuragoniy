@@ -7,9 +7,9 @@ import { errText } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import { homePathFor, LOGOUT_REASON_KEY, useAuth } from '@/lib/auth/AuthContext'
-import { useCaptcha } from '@/lib/publicSite'
+import { HoneypotField, useFormGuard } from '@/lib/formGuard'
 
-import { CaptchaBadge, fullPhone, HelpLink, localDigits, PhoneField, PhoneVerify, type VerifyDone, type VerifyStart } from './phone'
+import { fullPhone, HelpLink, localDigits, PhoneField, PhoneVerify, type VerifyDone, type VerifyStart } from './phone'
 
 // Two ways in, one screen: a phone number proven through our Telegram bot,
 // or the login and password everyone already has (pupils mostly have no
@@ -83,11 +83,13 @@ type NavState = { phone?: string; note?: string } | null
 
 export function LoginPage() {
   const { t } = useTranslation()
-  const { login, verifyTotp, applySession } = useAuth()
+  const { login, verifyTotp, verifyTelegram, applySession } = useAuth()
   const navigate = useNavigate()
   const navState = useLocation().state as NavState
-  const captcha = useCaptcha()
   const [mode, setModeState] = useState<Mode>(() => (navState?.phone ? 'phone' : readMode()))
+  // the bot check of the form on screen, solved in the background
+  const guardPw = useFormGuard('login', mode === 'password')
+  const guardPhone = useFormGuard('phone_start', mode === 'phone')
   const [loginName, setLoginName] = useState(readLastLogin)
   const [password, setPassword] = useState('')
   const [phone, setPhone] = useState(() => localDigits(navState?.phone ?? ''))
@@ -99,6 +101,9 @@ export function LoginPage() {
   const [reason, setReason] = useState(takeLogoutReason)
   const [challenge, setChallenge] = useState<string | null>(null)
   const [totpCode, setTotpCode] = useState('')
+  // Rahbarlar uchun Telegram tasdig'i: the challenge for the bot's code
+  const [tgChallenge, setTgChallenge] = useState<string | null>(null)
+  const [tgCode, setTgCode] = useState('')
 
   const setMode = (m: Mode) => {
     setModeState(m)
@@ -123,9 +128,13 @@ export function LoginPage() {
     setNote('')
     setReason('')
     try {
-      const result = await login(loginName.trim(), password, remember, await captcha.token('login'))
+      const result = await login(loginName.trim(), password, remember, await guardPw.fields())
       if (result.totpRequired) {
         setChallenge(result.challenge)
+        return
+      }
+      if (result.telegramRequired) {
+        setTgChallenge(result.challenge)
         return
       }
       rememberLogin(remember ? result.renamedLogin || loginName.trim() : null)
@@ -152,8 +161,8 @@ export function LoginPage() {
     setReason('')
     try {
       const r = await api.post<VerifyStart | { step: 'register'; phone: string }>('/auth/phone/start/', {
+        ...(await guardPhone.fields()),
         phone: fullPhone(phone),
-        captcha: await captcha.token('phone_start'),
       })
       if (r.data.step === 'register') {
         navigate('/register', { state: { phone, note: t("Bu raqam hali ro'yxatdan o'tmagan. Ma'lumotlaringizni kiriting.") } })
@@ -199,6 +208,63 @@ export function LoginPage() {
     } finally {
       setBusy(false)
     }
+  }
+
+  const onVerifyTelegram = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!tgChallenge) return
+    setBusy(true)
+    setNote('')
+    try {
+      const user = await verifyTelegram(tgChallenge, tgCode)
+      rememberLogin(remember ? loginName.trim() : null)
+      navigate(homePathFor(user))
+    } catch (err) {
+      if (isAxiosError(err) && err.response?.status === 401) {
+        // the code ran out (5 minutes, or too many wrong tries): start again
+        setTgChallenge(null)
+        setTgCode('')
+        setNote(t('Kod muddati tugagan. Qaytadan kiring.'))
+      } else {
+        setNote(isAxiosError(err) && err.response?.status === 429 ? failMessage(err) : t("Kod noto'g'ri"))
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (tgChallenge) {
+    return (
+      <form className="form gx-form" onSubmit={onVerifyTelegram}>
+        <h1 className="gx-form__title">{t('Telegram orqali tasdiqlang')}</h1>
+        <p className="gx-form__sub">{t("Hisobingizga yangi qurilmadan kirilmoqda. Telegram botimiz sizga 6 xonali kod yubordi — shu yerga kiriting.")}</p>
+        <label className="field">
+          <span className="field__label">{t('Tasdiqlash kodi')}</span>
+          <input
+            className="input"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            required
+            autoFocus
+            maxLength={6}
+            placeholder="123456"
+            value={tgCode}
+            onChange={(e) => setTgCode(e.target.value.replace(/\D/g, ''))}
+          />
+        </label>
+        <button className="btn btn--primary btn--block gx-form__go" type="submit" disabled={busy || tgCode.length !== 6}>
+          {busy ? t('Tekshirilmoqda…') : t('Tasdiqlash')}
+        </button>
+        {note && <p className="form__note form__note--err" role="alert">{note}</p>}
+        <p className="gx-form__foot gx-form__foot--sm">{t("Bu brauzer eslab qolinadi — keyingi safar kod so'ralmaydi.")}</p>
+        <p className="gx-form__foot">
+          <button type="button" className="linklike" onClick={() => { setTgChallenge(null); setTgCode('') }}>
+            {t('Orqaga')}
+          </button>
+        </p>
+      </form>
+    )
   }
 
   if (challenge) {
@@ -286,7 +352,7 @@ export function LoginPage() {
         {notes}
         {signUp}
         <HelpLink />
-        <CaptchaBadge on={captcha.enabled} />
+        <HoneypotField guard={guardPhone} />
       </form>
     )
   }
@@ -345,7 +411,7 @@ export function LoginPage() {
       </button>
       {notes}
       {signUp}
-      <CaptchaBadge on={captcha.enabled} />
+      <HoneypotField guard={guardPw} />
     </form>
   )
 }

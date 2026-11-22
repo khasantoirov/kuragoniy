@@ -11,8 +11,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from common.audit import notify_admin_action, send_telegram_message
-from common.captcha import FAILED as CAPTCHA_FAILED
-from common.captcha import captcha_ok
+from common.formguard import FAILED as GUARD_FAILED
+from common.formguard import guard_ok
 from common.security import log_event
 from common.throttling import PhoneStartRateThrottle, PhoneVerifyRateThrottle
 
@@ -46,15 +46,15 @@ class _Public(generics.GenericAPIView):
 
 
 class PhoneStartView(_Public):
-    """POST {phone, captcha} — "Hisobingizga kiring". A known number goes
+    """POST {phone, guard} — "Hisobingizga kiring". A known number goes
     to its code; an unknown one to sign-up; one shared by several accounts
     to the login/password form."""
 
     throttle_classes = [PhoneStartRateThrottle]
 
     def post(self, request, *args, **kwargs):
-        if not captcha_ok(request, 'phone_start'):
-            return Response({'detail': CAPTCHA_FAILED}, status=status.HTTP_400_BAD_REQUEST)
+        if not guard_ok(request, 'phone_start'):
+            return Response({'detail': GUARD_FAILED}, status=status.HTTP_400_BAD_REQUEST)
         phone = _phone(request)
         users = phone_auth.users_with_phone(phone)
         if len(users) > 1:
@@ -70,13 +70,13 @@ class PhoneStartView(_Public):
 
 
 class PhoneRegisterStartView(_Public):
-    """POST {phone, first_name, last_name, captcha} — "Ro'yxatdan o'tish"."""
+    """POST {phone, first_name, last_name, guard} — "Ro'yxatdan o'tish"."""
 
     throttle_classes = [PhoneStartRateThrottle]
 
     def post(self, request, *args, **kwargs):
-        if not captcha_ok(request, 'phone_register'):
-            return Response({'detail': CAPTCHA_FAILED}, status=status.HTTP_400_BAD_REQUEST)
+        if not guard_ok(request, 'phone_register'):
+            return Response({'detail': GUARD_FAILED}, status=status.HTTP_400_BAD_REQUEST)
         errors = {}
         try:
             first = clean_first_name(request.data.get('first_name'))

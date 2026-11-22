@@ -25,14 +25,21 @@ const ACTIVITY_EVENTS = ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touc
 
 // renamedLogin: signed in with a login that has since been regenerated —
 // the new one, to show the student (the old one still works meanwhile).
-type LoginResult = { totpRequired: false; user: User; renamedLogin?: string } | { totpRequired: true; challenge: string }
+// telegramRequired: a leader on a browser not confirmed yet — a code from
+// the bot comes next (backend accounts/tg_step.py, verifyTelegram).
+type LoginResult =
+  | { totpRequired: false; telegramRequired: false; user: User; renamedLogin?: string }
+  | { totpRequired: true; telegramRequired: false; challenge: string }
+  | { totpRequired: false; telegramRequired: true; challenge: string }
 
 interface AuthState {
   user: User | null
   loading: boolean
   /** `login` is an email (staff) or a username (student). */
-  login: (login: string, password: string, remember?: boolean, captcha?: string) => Promise<LoginResult>
+  /** `extra`: the sign-in form's bot-check fields (lib/formGuard.ts). */
+  login: (login: string, password: string, remember?: boolean, extra?: Record<string, unknown>) => Promise<LoginResult>
   verifyTotp: (challenge: string, code: string) => Promise<User>
+  verifyTelegram: (challenge: string, code: string) => Promise<User>
   logout: () => Promise<void>
   refreshMe: () => Promise<User>
   /** Applies the fresh session the change-password endpoint hands back
@@ -140,13 +147,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [userId])
 
-  const login = useCallback(async (loginName: string, password: string, remember = true, captcha = ''): Promise<LoginResult> => {
-    const res = await api.post('/auth/login/', { login: loginName, password, remember, captcha })
-    if (res.data.totp_required) return { totpRequired: true, challenge: res.data.challenge }
+  const login = useCallback(async (loginName: string, password: string, remember = true, extra: Record<string, unknown> = {}): Promise<LoginResult> => {
+    const res = await api.post('/auth/login/', { ...extra, login: loginName, password, remember })
+    if (res.data.totp_required) return { totpRequired: true, telegramRequired: false, challenge: res.data.challenge }
+    if (res.data.telegram_required) return { totpRequired: false, telegramRequired: true, challenge: res.data.challenge }
     markActive(true)
     setAccessToken(res.data.access)
     setUser(res.data.user)
-    return { totpRequired: false, user: res.data.user, renamedLogin: res.data.renamed_login }
+    return { totpRequired: false, telegramRequired: false, user: res.data.user, renamedLogin: res.data.renamed_login }
+  }, [])
+
+  const verifyTelegram = useCallback(async (challenge: string, code: string) => {
+    const res = await api.post('/auth/login/telegram/', { challenge, code })
+    markActive(true)
+    setAccessToken(res.data.access)
+    setUser(res.data.user)
+    return res.data.user as User
   }, [])
 
   const verifyTotp = useCallback(async (challenge: string, code: string) => {
@@ -174,7 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, verifyTotp, logout, refreshMe, applySession }}>
+    <AuthContext.Provider value={{ user, loading, login, verifyTotp, verifyTelegram, logout, refreshMe, applySession }}>
       {children}
       {user && idleLeft !== null && (
         <div className="idlewarn" role="alertdialog" aria-live="assertive">

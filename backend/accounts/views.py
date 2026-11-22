@@ -180,10 +180,15 @@ class LoginView(generics.GenericAPIView):
     throttle_classes = [LoginRateThrottle]
 
     def post(self, request, *args, **kwargs):
-        from common.captcha import FAILED, captcha_ok
+        from common.formguard import FAILED, guard_ok
+        from common.loginguard import BLOCKED, blocked_minutes, note_failed_login
 
-        if not captcha_ok(request, 'login'):
+        if not guard_ok(request, 'login'):
             return Response({'detail': FAILED}, status=status.HTTP_400_BAD_REQUEST)
+        minutes = blocked_minutes(request)
+        if minutes:
+            return Response({'detail': BLOCKED.format(minutes=minutes), 'ip_blocked': True},
+                            status=status.HTTP_429_TOO_MANY_REQUESTS)
         login = str(request.data.get('login') or request.data.get('email') or '').strip()
         password = str(request.data.get('password') or '')
         if not login or not password:
@@ -201,6 +206,9 @@ class LoginView(generics.GenericAPIView):
                 if _is_locked(candidate):
                     return _locked_response(candidate)
             log_event('login_failed', actor=candidate, request=request, detail=f'login: {login[:80]}')
+            if note_failed_login(request, login):
+                return Response({'detail': BLOCKED.format(minutes=settings.LOGIN_IP_BLOCK_MINUTES), 'ip_blocked': True},
+                                status=status.HTTP_429_TOO_MANY_REQUESTS)
             return Response({'detail': GENERIC_LOGIN_ERROR}, status=status.HTTP_401_UNAUTHORIZED)
 
         if user.totp_enabled:
@@ -209,6 +217,17 @@ class LoginView(generics.GenericAPIView):
             # tokens; TwoFactorVerifyView issues the real tokens only once
             # a matching TOTP code comes back for it.
             return Response({'totp_required': True, 'challenge': _make_totp_challenge(user, _wants_remember(request))})
+
+        from . import tg_step
+
+        if tg_step.applies(user) and not tg_step.trusted(request, user):
+            # a leader on a browser not confirmed yet: a code from the bot
+            challenge = tg_step.start(user, _wants_remember(request))
+            if challenge:
+                log_event('login_telegram_step', actor=user, request=request)
+                return Response({'telegram_required': True, 'challenge': challenge})
+            log_event('login_telegram_step_skipped', actor=user, request=request,
+                      detail="kod Telegramga yetib bormadi — parol bilan kiritildi")
 
         extra = {}
         if user.username and login.lower() != user.username and login.lower() == (user.previous_username or '').lower():
@@ -240,6 +259,35 @@ class TwoFactorVerifyView(generics.GenericAPIView):
             return Response({'detail': "Kod noto'g'ri."}, status=status.HTTP_400_BAD_REQUEST)
 
         return _issue_tokens_response(user, request, remember=remember)
+
+
+class TelegramStepVerifyView(generics.GenericAPIView):
+    """Rahbarlar uchun Telegram tasdig'i, step two (accounts/tg_step.py):
+    the challenge from LoginView plus the code the bot sent. Signs in and
+    marks the browser as known."""
+
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+    throttle_classes = [LoginRateThrottle]
+
+    def post(self, request, *args, **kwargs):
+        from . import tg_step
+
+        verdict, user, remember = tg_step.verify(request.data.get('challenge'), request.data.get('code'))
+        if verdict == 'expired':
+            return Response({'detail': "Kod muddati tugagan. Qaytadan kiring.", 'expired': True},
+                            status=status.HTTP_401_UNAUTHORIZED)
+        if _is_locked(user):
+            return _locked_response(user)
+        if verdict == 'wrong':
+            _register_failed_login(user, request, reason='telegram kodi')
+            if _is_locked(user):
+                return _locked_response(user)
+            return Response({'detail': "Kod noto'g'ri."}, status=status.HTTP_400_BAD_REQUEST)
+        log_event('login_telegram_confirmed', actor=user, request=request)
+        response = _issue_tokens_response(user, request, remember=remember)
+        tg_step.trust(response, user)
+        return response
 
 
 class TwoFactorSetupView(generics.GenericAPIView):
@@ -555,9 +603,9 @@ class PasswordResetRequestView(generics.GenericAPIView):
     throttle_classes = [PasswordResetRateThrottle]
 
     def post(self, request, *args, **kwargs):
-        from common.captcha import FAILED, captcha_ok
+        from common.formguard import FAILED, guard_ok
 
-        if not captcha_ok(request, 'password_reset'):
+        if not guard_ok(request, 'password_reset'):
             return Response({'detail': FAILED}, status=status.HTTP_400_BAD_REQUEST)
         login = str(request.data.get('login') or request.data.get('email') or '').strip()
         user = User.objects.find_by_login(login)  # an email finds nobody

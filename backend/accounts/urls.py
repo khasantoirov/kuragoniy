@@ -2,6 +2,8 @@ from rest_framework.routers import DefaultRouter
 
 from django.urls import include, path
 
+from common.formguard import GuardChallengeView
+
 from . import phone_views, sessions, views
 
 router = DefaultRouter()
@@ -9,6 +11,8 @@ router.register('users', views.UserAdminViewSet, basename='user-admin')
 
 auth_urlpatterns = [
     path('login/', views.LoginView.as_view(), name='auth-login'),
+    path('login/telegram/', views.TelegramStepVerifyView.as_view(), name='auth-login-telegram'),
+    path('guard/', GuardChallengeView.as_view(), name='auth-guard'),
     path('phone/start/', phone_views.PhoneStartView.as_view(), name='auth-phone-start'),
     path('phone/register/', phone_views.PhoneRegisterStartView.as_view(), name='auth-phone-register'),
     path('phone/status/', phone_views.PhoneStatusView.as_view(), name='auth-phone-status'),

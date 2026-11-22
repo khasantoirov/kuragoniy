@@ -12,8 +12,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common.audit import notify_admin_action
-from common.captcha import FAILED as CAPTCHA_FAILED
-from common.captcha import captcha_ok
+from common.formguard import FAILED as GUARD_FAILED
+from common.formguard import guard_ok
 from common.permissions import IsAdminOrDevSuperuser
 from common.throttling import LeadRateThrottle
 from common.uploads import delete_file_field, validate_upload
@@ -76,12 +76,11 @@ class LandingView(APIView):
                 'partners': list(School.objects.filter(is_active=True).order_by('name').values_list('name', flat=True)),
             }
             cache.set(CACHE_KEY, data, 60)
-        return Response({**data, 'recaptcha_site_key': settings.RECAPTCHA_SITE_KEY,
-                         'bot_username': settings.TELEGRAM_BOT_USERNAME})
+        return Response({**data, 'bot_username': settings.TELEGRAM_BOT_USERNAME})
 
 
 class LeadCreateView(APIView):
-    """POST {name, phone, telegram, message, captcha} — "Ma'lumot qoldiring"."""
+    """POST {name, phone, telegram, message, guard} — "Ma'lumot qoldiring"."""
 
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
@@ -90,8 +89,8 @@ class LeadCreateView(APIView):
     def post(self, request):
         from accounts.profile import clean_phone
 
-        if not captcha_ok(request, 'lead'):
-            return Response({'detail': CAPTCHA_FAILED}, status=status.HTTP_400_BAD_REQUEST)
+        if not guard_ok(request, 'lead'):
+            return Response({'detail': GUARD_FAILED}, status=status.HTTP_400_BAD_REQUEST)
         name = ' '.join(str(request.data.get('name') or '').split())[:120]
         if len(name) < 2:
             raise ValidationError({'name': "Ismingizni yozing."})

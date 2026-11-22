@@ -45,5 +45,9 @@ class PasswordResetConfirmRateThrottle(AnonRateThrottle):
     scope = 'password_reset_confirm'
 
 
+class GuardRateThrottle(AnonRateThrottle):
+    scope = 'guard'
+
+
 class GameAnswerRateThrottle(UserRateThrottle):
     scope = 'game_answer'
