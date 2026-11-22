@@ -18,6 +18,7 @@ import { tablePdf } from '@/lib/pdf'
 import { type Lang, useUIStore } from '@/store/uiStore'
 
 import { useAllTimetables, usePartnerSchools, useSaveTeacherTimetable, useSaveTimetable, useTimetable } from './api'
+import { BellsEditor } from './BellsEditor'
 import { SlotEditor } from './SlotEditor'
 import { DAYS, hourLabel, SOATLAR, type TimetableSlot } from './types'
 import './timetable.css'
@@ -73,26 +74,6 @@ function statusOf(c: TimetableSlot, now: Date): Status {
   if (from == null) from = to - len
   const cur = now.getHours() * 60 + now.getMinutes()
   return cur < from ? 'next' : cur >= to ? 'done' : 'now'
-}
-
-/** A phone-width screen (follows rotation / resizing). */
-function usePhone() {
-  const query = '(max-width: 760px)'
-  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches)
-  useEffect(() => {
-    const mq = window.matchMedia(query)
-    const on = () => setPhone(mq.matches)
-    mq.addEventListener('change', on)
-    return () => mq.removeEventListener('change', on)
-  }, [])
-  return phone
-}
-
-const DAY_SHORT = ['Du', 'Se', 'Ch', 'Pa', 'Ju']
-/** Today as a school day (Mon = 0); a weekend opens Monday. */
-const schoolDay = (now: Date) => {
-  const d = (now.getDay() + 6) % 7
-  return d > 4 ? 0 : d
 }
 
 /** The clock the statuses follow — ticks once a minute. */
@@ -387,83 +368,18 @@ function ModeTabs({ mode, onChange }: { mode: 'mine' | 'all'; onChange: (m: 'min
   )
 }
 
-/** Phone: the week's day tabs (with how many lessons each has) and the
- *  picked day's lessons as rows — soat, then the lesson card. */
-function DayList({ byKey, covered, day, setDay, now, onOpen, onAdd }: {
-  byKey: Map<string, TimetableSlot>
-  covered: Set<string>
-  day: number
-  setDay: (d: number) => void
-  now: Date
-  onOpen: (c: TimetableSlot) => void
-  onAdd: (period: number) => void
-}) {
-  const { t } = useTranslation()
-  const lessonsOf = (d: number) => {
-    const out: { c: TimetableSlot; p: number; sp: number }[] = []
-    for (let p = 1; p <= SOATLAR; p++) {
-      const c = byKey.get(key(d, p))
-      if (!isEmpty(c) && !covered.has(key(d, p))) out.push({ c: c!, p, sp: spanOf(c!, p) })
-    }
-    return out
-  }
-  const rows = lessonsOf(day)
-  const today = (now.getDay() + 6) % 7
-  let free = 0
-  for (let p = 1; p <= SOATLAR && !free; p++) if (isEmpty(byKey.get(key(day, p))) && !covered.has(key(day, p))) free = p
-  return (
-    <div className="ttday">
-      <div className="ttday__days" role="tablist" aria-label={t('Kun')}>
-        {DAYS.map((d, i) => {
-          const n = lessonsOf(i).length
-          return (
-            <button key={d} type="button" role="tab" aria-selected={i === day} title={t(d)}
-              className={`ttday__d ${i === day ? 'is-on' : ''} ${i === today ? 'is-today' : ''}`} onClick={() => setDay(i)}>
-              <b>{t(DAY_SHORT[i])}</b>
-              <small>{n ? `${n} ${t('dars')}` : '—'}</small>
-            </button>
-          )
-        })}
-      </div>
-      <h3 className="ttday__title">{t(DAYS[day])}{day === today && <span className="ttday__now">{t('Bugun')}</span>}</h3>
-      {rows.length ? (
-        <ul className="ttday__list">
-          {rows.map(({ c, p, sp }) => (
-            <li key={p}>
-              <button type="button" className="ttrow" onClick={() => onOpen(c)}>
-                <span className="ttrow__p"><b>{sp > 1 ? `${p}–${p + sp - 1}` : p}</b><small>{t('soat')}</small></span>
-                <span className="ttrow__card"><LessonCard c={c} sp={sp} now={now} /></span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="ttday__empty">{t("Bu kunga dars yo'q")}</p>
-      )}
-      {free > 0 && (
-        <button type="button" className="btn ttday__add" onClick={() => onAdd(free)}>+ {t("Dars qo'shish")}</button>
-      )}
-    </div>
-  )
-}
-
-function MineView({ tabs }: { tabs: ReactNode }) {
+function MineView({ tabs, admin }: { tabs: ReactNode; admin: boolean }) {
   const { t } = useTranslation()
   const { lang } = useUIStore()
   const { data, isLoading } = useTimetable()
-  const all = useAllTimetables()
+  const all = useAllTimetables(false, admin)
   const save = useSaveTimetable()
   const toast = useToast()
   const confirm = useConfirm()
   const { user } = useAuth()
   const now = useNow()
   const [editing, setEditing] = useState<{ slot: TimetableSlot; existing: boolean; fresh?: boolean } | null>(null)
-  const [f, setF] = useState<Filters>(NO_FILTER)
-  // phones: one day at a time (a scaled-down week is too small to read)
-  const phone = usePhone()
-  const [view, setView] = useState<'day' | 'week'>('day')
-  const [day, setDay] = useState(() => schoolDay(new Date()))
-  const dayView = phone && view === 'day'
+  const [bellsOpen, setBellsOpen] = useState(false)
 
   const byKey = useMemo(() => {
     const m = new Map<string, TimetableSlot>()
@@ -471,6 +387,8 @@ function MineView({ tabs }: { tabs: ReactNode }) {
     return m
   }, [data])
   const covered = useMemo(() => coveredOf(byKey.values()), [byKey])
+  // the schools of one's own lessons: Dars vaqtlari opens on them first
+  const mySchools = useMemo(() => [...new Set((data ?? []).map((s) => s.school).filter((x): x is number => !!x))], [data])
 
   const filled = data?.filter((c) => !isEmpty(c)).length ?? 0
   const loads = useMemo(() => (all.data ? loadsOf(all.data.teachers, all.data.tables) : []), [all.data])
@@ -500,25 +418,6 @@ function MineView({ tabs }: { tabs: ReactNode }) {
     else next.set(k, slot)
     await persist(next, slotLabel(slot))
     toast(isEmpty(slot) ? t("Katak bo'shatildi") : t('Saqlandi'))
-  }
-
-  // "Yangi dars qo'shish": the place is picked in the editor, so it may
-  // land on a taken cell — ask before replacing what's there.
-  const onSaveNew = async (slot: TimetableSlot) => {
-    const k = key(slot.day_index, slot.period_index)
-    if (covered.has(k)) {
-      toast(t('Bu soat boshqa darsning davomi bilan band'), 'error')
-      return
-    }
-    if (!isEmpty(byKey.get(k))) {
-      const ok = await confirm({
-        title: t('Katak band'),
-        text: t('Tanlangan katakda boshqa dars bor. Uni almashtirasizmi?'),
-        danger: true,
-      })
-      if (!ok) return
-    }
-    await onSaveSlot(slot)
   }
 
   const onDeleteSlot = async (slot: TimetableSlot) => {
@@ -570,25 +469,11 @@ function MineView({ tabs }: { tabs: ReactNode }) {
     toast(t("Dars ko'chirildi"))
   }
 
-  // the first free cell of the week, for a new lesson to start from
-  const openNew = () => {
-    for (let d = 0; d < DAYS.length; d++) {
-      for (let p = 1; p <= SOATLAR; p++) {
-        if (isEmpty(byKey.get(key(d, p))) && !covered.has(key(d, p))) {
-          setEditing({ slot: { ...emptySlot(d, p), ...byKey.get(key(d, p)) }, existing: false, fresh: true })
-          return
-        }
-      }
-    }
-    setEditing({ slot: emptySlot(0, 1), existing: false, fresh: true })
-  }
-
   const tableRef = useRef<HTMLTableElement>(null)
 
   if (isLoading) return <Skeleton lines={6} />
 
   const skip: Record<string, boolean> = {}
-  const filtering = !!(f.sinf || f.maktab)
 
   const exportHead = [t('Soat'), ...DAYS.map((d) => t(d))]
   const exportRows = Array.from({ length: SOATLAR }, (_, i) => {
@@ -603,40 +488,27 @@ function MineView({ tabs }: { tabs: ReactNode }) {
 
   return (
     <div className="ttpage">
-      <header className="ttx-head">
-        <h2 className="ttx-head__title">{t('Dars jadvali')}</h2>
-        <p className="ttx-head__sub">{user?.name} · {filled} {t('ta dars')}</p>
+      {/* the two actions sit by the title, so the tabs keep the whole row */}
+      <header className="ttx-head ttx-head--acts">
+        <div className="ttx-head__txt">
+          <h2 className="ttx-head__title">{t('Dars jadvali')}</h2>
+          <p className="ttx-head__sub">{user?.name} · {filled} {t('ta dars')}</p>
+        </div>
+        <div className="ttx__acts">
+          <button type="button" className="btn btn--sm" onClick={() => setBellsOpen(true)} title={t('Dars vaqtlari')}>
+            {IC.clock} <span className="btnlbl">{t('Dars vaqtlari')}</span>
+          </button>
+          <ExportMenu
+            formats={['jpg', 'pdf-portrait', 'pdf-landscape']}
+            onExport={(fm) =>
+              runExport(fm, exportTitle, tableRef.current, exportHead, exportRows).catch(() => toast(t('Yuklab olishda xatolik'), 'error'))
+            }
+          />
+        </div>
       </header>
 
-      <section className={`ttx ${dayView ? 'ttx--day' : ''}`}>
-        <div className="ttx__bar">
-          {!dayView && <SlotFilters slots={data ?? []} f={f} onChange={setF} />}
-          <div className="ttx__acts">
-            <ExportMenu
-              formats={['jpg', 'pdf-portrait', 'pdf-landscape']}
-              onExport={(fm) =>
-                runExport(fm, exportTitle, tableRef.current, exportHead, exportRows).catch(() => toast(t('Yuklab olishda xatolik'), 'error'))
-              }
-            />
-            <button type="button" className="btn btn--sm btn--primary" onClick={openNew}>+ {t("Yangi dars qo'shish")}</button>
-          </div>
-        </div>
+      <section className="ttx">
         {tabs}
-        {phone && (
-          <div className="seg ttview" role="group" aria-label={t("Ko'rinish")}>
-            <button type="button" className={`seg__b ${view === 'day' ? 'is-on' : ''}`} aria-pressed={view === 'day'}
-              onClick={() => setView('day')}>{IC.list} {t('Kun')}</button>
-            <button type="button" className={`seg__b ${view === 'week' ? 'is-on' : ''}`} aria-pressed={view === 'week'}
-              onClick={() => setView('week')}>{IC.grid} {t('Hafta')}</button>
-          </div>
-        )}
-        {!dayView && <p className="ttx__cap">{t('Haftalik dars jadvali')} — {t('Dushanbadan Jumagacha, 5 kun va 8 ta dars soati')}</p>}
-
-        {dayView ? (
-          <DayList byKey={byKey} covered={covered} day={day} setDay={setDay} now={now}
-            onOpen={(c) => setEditing({ slot: c, existing: true })}
-            onAdd={(p) => setEditing({ slot: { ...emptySlot(day, p), ...byKey.get(key(day, p)) }, existing: false })} />
-        ) : (
         <div className="table-wrap ttx__grid">
           <ScaleToFit naturalWidth={LABEL_COL + DAYS.length * DATA_COL_MIN}>
             <table className="tt" ref={tableRef} style={{ minWidth: LABEL_COL + DAYS.length * DATA_COL_MIN }}>
@@ -681,7 +553,7 @@ function MineView({ tabs }: { tabs: ReactNode }) {
                         return (
                           <td
                             key={di}
-                            className={`tt__c tt__c--on ${filtering && !matches(c!, f) ? 'is-dim' : ''}`}
+                            className="tt__c tt__c--on"
                             tabIndex={0}
                             rowSpan={sp > 1 ? sp : undefined}
                             onClick={() => setEditing({ slot: c!, existing: true })}
@@ -697,24 +569,26 @@ function MineView({ tabs }: { tabs: ReactNode }) {
             </table>
           </ScaleToFit>
         </div>
-        )}
       </section>
 
-      <div className={`ttsum ${all.isError ? 'ttsum--one' : ''}`}>
-        {!all.isError && <LoadsPanel loads={loads} meId={user?.id} loading={all.isLoading} />}
-        <StatsPanel slots={data ?? []} now={now} />
-      </div>
+      {/* the teachers' loads and the week's summary: the administration's */}
+      {admin && (
+        <div className={`ttsum ${all.isError ? 'ttsum--one' : ''}`}>
+          {!all.isError && <LoadsPanel loads={loads} meId={user?.id} loading={all.isLoading} />}
+          <StatsPanel slots={data ?? []} now={now} />
+        </div>
+      )}
 
       {editing && (
         <SlotEditor
           slot={editing.slot}
-          choosePlace={editing.fresh}
-          onSave={editing.fresh ? onSaveNew : onSaveSlot}
+          onSave={onSaveSlot}
           onDelete={editing.existing ? () => onDeleteSlot(editing.slot) : undefined}
           onMove={editing.existing ? (target) => onMoveSlot(editing.slot, target) : undefined}
           onClose={() => setEditing(null)}
         />
       )}
+      {bellsOpen && <BellsEditor schoolIds={mySchools} onClose={() => setBellsOpen(false)} />}
     </div>
   )
 }
@@ -785,6 +659,7 @@ function AllView({ tabs, admin, versions }: { tabs: ReactNode; admin: boolean; v
       </header>
 
       <section className="ttx">
+        {tabs}
         <div className="ttx__bar">
           <Pick label={t("O'qituvchini tanlash")} value={only} all={t("Barcha o'qituvchilar")}
             options={data.teachers.map((tc) => ({ value: tc.id, label: tc.name }))} onChange={setOnly} />
@@ -799,7 +674,6 @@ function AllView({ tabs, admin, versions }: { tabs: ReactNode; admin: boolean; v
             />
           </div>
         </div>
-        {tabs}
         <p className="ttx__cap">{t("Har bir ustun — bitta o'qituvchi; bo'sh katak — bo'sh vaqt")}</p>
 
         <div className="table-wrap ttx__grid">
@@ -893,10 +767,10 @@ type Entry = { slot: TimetableSlot; teacherId: string }
 /** "Barcha o'qituvchilar", picked: one teacher's week, or one school's —
  * every teacher's lessons there — in the "Mening jadvalim" layout. A school
  * may hold several lessons in one soat: they stack in the cell. */
-function PickView({ tabs, versions }: { tabs: ReactNode; versions: ReactNode }) {
+function PickView({ tabs, versions, admin }: { tabs: ReactNode; versions: ReactNode; admin: boolean }) {
   const { t } = useTranslation()
   const { lang } = useUIStore()
-  const { data, isLoading } = useAllTimetables(true)
+  const { data, isLoading } = useAllTimetables(admin)
   const { data: schoolList } = usePartnerSchools()
   const edits = useTeacherEdits(data?.tables)
   const queryClient = useQueryClient()
@@ -1000,6 +874,7 @@ function PickView({ tabs, versions }: { tabs: ReactNode; versions: ReactNode }) 
       </header>
 
       <section className="ttx">
+        {tabs}
         <div className="ttx__bar">
           <div className="ttx__f">
             <span className="ttx__fl">{t("Ko'rish")}</span>
@@ -1034,10 +909,9 @@ function PickView({ tabs, versions }: { tabs: ReactNode; versions: ReactNode }) 
             />
           </div>
         </div>
-        {tabs}
         <p className="ttx__cap">
           {multi ? t("Shu maktabdagi barcha ustozlarning darslari; bir soatda bir nechta dars bo'lsa, ustma-ust turadi.")
-            : t("Tanlangan ustozning haftasi — katakni bosib tahrirlash mumkin.")}
+            : admin ? t("Tanlangan ustozning haftasi — katakni bosib tahrirlash mumkin.") : t("Tanlangan ustozning haftasi — faqat ko'rish uchun.")}
         </p>
 
         <div className="table-wrap ttx__grid">
@@ -1069,7 +943,7 @@ function PickView({ tabs, versions }: { tabs: ReactNode; versions: ReactNode }) 
                         const here = starts.get(k) ?? []
                         const cont = multi ? later.get(k) ?? [] : []
                         if (!here.length && !cont.length) {
-                          return multi ? (
+                          return multi || !admin ? (
                             <td key={di} className="tt__c tt__c--free" />
                           ) : (
                             <td key={di} className="tt__c tt__c--empty" tabIndex={0} title={t("Dars qo'shish")}
@@ -1083,8 +957,8 @@ function PickView({ tabs, versions }: { tabs: ReactNode; versions: ReactNode }) 
                           const sp = spanOf(e.slot, p)
                           for (let k2 = 1; k2 < sp; k2++) skip[key(di, p + k2)] = true
                           return (
-                            <td key={di} className={`tt__c tt__c--on ${dim(e.slot) ? 'is-dim' : ''}`} tabIndex={0}
-                              rowSpan={sp > 1 ? sp : undefined} onClick={() => setEditing({ teacherId, slot: e.slot, existing: true })}>
+                            <td key={di} className={`tt__c tt__c--on ${dim(e.slot) ? 'is-dim' : ''}`} tabIndex={admin ? 0 : undefined}
+                              rowSpan={sp > 1 ? sp : undefined} onClick={admin ? () => setEditing({ teacherId, slot: e.slot, existing: true }) : undefined}>
                               <LessonCard c={e.slot} sp={sp} now={now} />
                             </td>
                           )
@@ -1093,10 +967,11 @@ function PickView({ tabs, versions }: { tabs: ReactNode; versions: ReactNode }) 
                           <td key={di} className="tt__c tt__c--on tt__c--multi">
                             <div className="ttstack">
                               {here.map((e) => (
-                                <div key={`${e.teacherId}:${e.slot.day_index}:${e.slot.period_index}`} role="button" tabIndex={0}
+                                <div key={`${e.teacherId}:${e.slot.day_index}:${e.slot.period_index}`}
+                                  role={admin ? 'button' : undefined} tabIndex={admin ? 0 : undefined}
                                   className={dim(e.slot) ? 'is-dim' : ''}
-                                  onClick={() => setEditing({ teacherId: e.teacherId, slot: e.slot, existing: true })}
-                                  onKeyDown={(ev) => { if (ev.key === 'Enter') setEditing({ teacherId: e.teacherId, slot: e.slot, existing: true }) }}>
+                                  onClick={admin ? () => setEditing({ teacherId: e.teacherId, slot: e.slot, existing: true }) : undefined}
+                                  onKeyDown={admin ? (ev) => { if (ev.key === 'Enter') setEditing({ teacherId: e.teacherId, slot: e.slot, existing: true }) } : undefined}>
                                   <LessonCard c={e.slot} sp={spanOf(e.slot, e.slot.period_index)} now={now} heading={names.get(e.teacherId)} />
                                 </div>
                               ))}
@@ -1119,12 +994,13 @@ function PickView({ tabs, versions }: { tabs: ReactNode; versions: ReactNode }) 
         </div>
       </section>
 
-      <div className="ttsum">
+      {/* the breakdown and the week's summary: the administration's */}
+      {admin && <div className="ttsum">
         {multi
           ? <BreakdownPanel title={t("Ustozlar bo'yicha")} rows={hoursBy(entries, (e) => [e.teacherId, names.get(e.teacherId) ?? ''])} />
           : <BreakdownPanel title={t("Maktablar bo'yicha")} rows={hoursBy(entries, (e) => [e.slot.maktab || '—', e.slot.maktab || '—'])} />}
         <StatsPanel slots={multi ? slots : tables[teacherId] ?? []} now={now} teachers={multi ? teacherCount : undefined} />
-      </div>
+      </div>}
 
       {editing && (
         <SlotEditor
@@ -1186,7 +1062,9 @@ export function TimetablePage() {
   // stays admin-only (see timetable/views.py's require_write_permission).
   const tabs = <ModeTabs mode={mode} onChange={setMode} />
 
-  if (mode === 'all' && admin && version === 'pick') return <PickView tabs={tabs} versions={versions} />
-  if (mode === 'all') return <AllView tabs={tabs} admin={admin} versions={versions} />
-  return <MineView tabs={tabs} />
+  // everyone's timetable: the readable picked view (one teacher's or one
+  // school's week) for everyone; the administration may also see all at once
+  if (mode === 'all' && admin && version === 'wide') return <AllView tabs={tabs} admin={admin} versions={versions} />
+  if (mode === 'all') return <PickView tabs={tabs} versions={versions} admin={admin} />
+  return <MineView tabs={tabs} admin={admin} />
 }

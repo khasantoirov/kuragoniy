@@ -59,7 +59,9 @@ function applyFan(subject: Subject) {
 // topbar foniga mos keladi, shuning uchun mavzu va uslub birga o'qiladi.
 const THEME_COLOR: Record<Skin, Record<Theme, string>> = {
   r1: { light: '#12212E', dark: '#0E1620' },
-  r2: { light: '#6A73FA', dark: '#1A1D2E' },
+  // the phone's status bar takes the top bar's own colour (--surface in
+  // skin-edumin.css), so the two read as one strip
+  r2: { light: '#FFFFFF', dark: '#232740' },
 }
 
 const DARK_QUERY = '(prefers-color-scheme: dark)'

@@ -130,42 +130,43 @@
 
 .ttx-head__flag { margin-left: 10px; padding: 2px 8px; border-radius: 999px; background: rgba(226, 70, 90, .12); color: #c22a43; font: 600 12px/1.4 var(--f-body, inherit); vertical-align: middle; }
 
-/* ── Telefonda: kun ko'rinishi (DayList) ───────────────────────────────
-   Tepada hafta kunlari (darslar soni bilan), ostida tanlangan kunning
-   darslari qator bo'lib: chapda soat, o'ngda dars kartasi. «Kun / Hafta»
-   almashtirgichi bilan to'liq hafta to'riga o'tiladi. */
-.ttview { display: flex; width: 100%; margin: 0 0 10px; }
-.ttview .seg__b { flex: 1 1 0; justify-content: center; gap: 6px; }
-.ttday__days { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-bottom: 12px; }
-.ttday__d {
-  display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 2px;
-  border: 1px solid var(--rule); border-radius: 12px; background: var(--surface); color: var(--ink-2); cursor: pointer;
-}
-.ttday__d b { font: 700 14px/1 var(--f-body, inherit); color: var(--ink); }
-.ttday__d small { font-size: 10.5px; color: var(--ink-3); white-space: nowrap; }
-.ttday__d.is-today { border-color: color-mix(in srgb, var(--pick) 45%, var(--rule)); }
-.ttday__d.is-on { background: var(--pick); border-color: var(--pick); }
-.ttday__d.is-on b, .ttday__d.is-on small { color: #fff; }
-.ttday__title { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font: 600 16px/1.2 var(--f-body, inherit); color: var(--ink); }
-.ttday__now { padding: 3px 8px; border-radius: 50rem; font-size: 11.5px; font-weight: 600; color: var(--pick); background: color-mix(in srgb, var(--pick) 12%, transparent); }
-.ttday__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.ttrow {
-  display: flex; align-items: stretch; gap: 10px; width: 100%; padding: 0; border: 0; background: none;
-  text-align: left; cursor: pointer; color: inherit; font: inherit;
-}
-.ttrow__p {
-  flex: none; width: 46px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  border-radius: 12px; background: var(--rule-2);
-}
-.ttrow__p b { font: 700 16px/1 var(--f-body, inherit); color: var(--ink); }
-.ttrow__p small { font-size: 10.5px; color: var(--ink-3); }
-.ttrow__card { flex: 1 1 auto; min-width: 0; }
-.ttrow__card .ttk { height: 100%; padding: 10px 12px; }
-.ttrow__card .ttk__t { font-size: 14px; }
-.ttrow__card .ttk__m { font-size: 12.5px; white-space: normal; }
-.ttday__empty { margin: 6px 0 4px; padding: 18px; border: 1px dashed var(--rule); border-radius: 12px; text-align: center; color: var(--ink-3); font-size: 13.5px; }
-.ttday__add { width: 100%; justify-content: center; margin-top: 10px; border-style: dashed; }
+/* ── Jadval tepasi: sarlavha yonida ikki kichik amal (Dars vaqtlari,
+   Yuklab olish), ostida tablar va darhol haftalik jadval (egasining
+   2026-11-22 dagi so'rovi: tugmalar kam, haftalik asosiy). ───────────── */
+.ttx-head--acts { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.ttx-head--acts .ttx-head__txt { min-width: 0; }
+.ttx-head--acts .ttx__acts { flex: none; width: auto; margin-left: auto; }
+.ttx__acts .btn .svic { width: 16px; height: 16px; }
 @media (max-width: 760px) {
   .ttx-head { margin-bottom: 10px; }
-  .ttx--day .ttx__bar { margin-bottom: 10px; }
+  /* icons only by the title */
+  .ttx-head--acts .btnlbl { display: none; }
+  .ttx-head--acts .ttx__acts { gap: 6px; }
+  .ttx-head--acts .ttx__acts .btn { width: 38px; height: 38px; padding: 0; justify-content: center; }
+}
+
+/* ── Dars vaqti maktabning qo'ng'iroq jadvalidan (SlotEditor) ── */
+.ttbell { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; padding: 10px 12px;
+  border-radius: 10px; background: var(--rule-2); font-size: 14px; color: var(--ink-2); }
+.ttbell b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.ttbell .svic { width: 16px; height: 16px; color: var(--pick); }
+
+/* ── Dars vaqtlari (BellsEditor) ── */
+.bells { display: grid; gap: 12px; }
+.bells__quick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 8px; align-items: end;
+  padding: 10px; border: 1px dashed var(--rule); border-radius: 12px; }
+.bells__quick .field { margin: 0; }
+.bells__quick .field__label { font-size: 12px; }
+.bells__fill { height: 40px; }
+.bells__tabs { justify-self: start; }
+.bells__table { width: 100%; border-collapse: collapse; }
+.bells__table th, .bells__table td { padding: 4px 6px; text-align: left; }
+.bells__table thead th { font-size: 12px; font-weight: 600; color: var(--ink-3); }
+.bells__table tbody th { width: 70px; font-size: 13.5px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+.bells__table .input { height: 38px; font-variant-numeric: tabular-nums; }
+.bells__note { margin: 0; }
+.bells__acts { display: flex; justify-content: flex-end; gap: 8px; }
+@media (max-width: 560px) {
+  .bells__quick { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .bells__fill { grid-column: 1 / -1; }
 }

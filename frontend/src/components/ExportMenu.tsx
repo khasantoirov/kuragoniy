@@ -59,7 +59,7 @@ export function ExportMenu({
   return (
     <div className="acct" ref={wrapRef}>
       <button ref={btnRef} type="button" className="btn btn--sm" onClick={() => setOpen((v) => !v)} disabled={busy}>
-        {IC.download} {t('Yuklab olish')}
+        {IC.download} <span className="btnlbl">{t('Yuklab olish')}</span>
       </button>
       {open && (
         <div className="acct__pop" style={popStyle}>

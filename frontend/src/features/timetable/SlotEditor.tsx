@@ -6,7 +6,7 @@ import { useToast } from '@/components/Toast'
 import { IC } from '@/icons'
 import { useUIStore } from '@/store/uiStore'
 
-import { usePartnerSchools } from './api'
+import { bellTimesFor, usePartnerSchools, useSchoolBells } from './api'
 import { DAYS, hourLabel, PERIODS, SOATLAR, type TimetableSlot } from './types'
 
 const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/
@@ -14,7 +14,7 @@ const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/
 /** A time typed as 24-hour soat:minut — the browser's own time picker shows
  * AM/PM on many devices. Digits only, the colon goes in by itself ("0930",
  * "930" and "9:30" all give 09:30). Hands back "HH:MM", or null when emptied. */
-function HhMmInput({ value, onChange }: { value: string | null; onChange: (v: string | null) => void }) {
+export function HhMmInput({ value, onChange, disabled }: { value: string | null; onChange: (v: string | null) => void; disabled?: boolean }) {
   const [text, setText] = useState(value?.slice(0, 5) ?? '')
   const type = (raw: string) => {
     const r = raw.replace(/[.,\s-]/g, ':')
@@ -45,7 +45,7 @@ function HhMmInput({ value, onChange }: { value: string | null; onChange: (v: st
   // red only for a time that cannot be, not for one still being typed
   const bad = (text.length === 5 && !HHMM.test(text)) || Number(text.slice(0, 2)) > 23
   return (
-    <input className="input" inputMode="numeric" placeholder="00:00" maxLength={5} value={text}
+    <input className="input" inputMode="numeric" placeholder="00:00" maxLength={5} value={text} disabled={disabled}
       aria-invalid={bad || undefined} onChange={(e) => type(e.target.value)} onBlur={leave} />
   )
 }
@@ -85,6 +85,12 @@ export function SlotEditor({
   const schools = (schoolList ?? []).filter((s) => s.is_active !== false || s.id === draft.school)
   // an old cell whose name was typed by hand and not matched to a school yet
   const unpicked = !draft.band && !draft.school && !!draft.maktab.trim()
+  // the school's own lesson times (Dars vaqtlari), when it has them, are
+  // the lesson's — the server sets them too (timetable/bells.py)
+  const { data: bellsList } = useSchoolBells()
+  const auto = !draft.band && draft.school
+    ? bellTimesFor(bellsList?.find((b) => b.school === draft.school), draft.day_index, draft.period_index, draft.span)
+    : null
   const pickSchool = (raw: string) => {
     const s = schools.find((x) => x.id === Number(raw))
     setDraft({ ...draft, school: s?.id ?? null, maktab: s?.name ?? '' })
@@ -95,7 +101,7 @@ export function SlotEditor({
       toast(t("Maktabni ro'yxatdan tanlang"), 'error')
       return
     }
-    onSave(draft)
+    onSave(auto ? { ...draft, time_from: auto[0], time_to: auto[1] } : draft)
     onClose()
   }
   const [moveDay, setMoveDay] = useState(slot.day_index)
@@ -142,16 +148,22 @@ export function SlotEditor({
           </label>
         </div>
       )}
-      <div className="row row--2">
-        <label className="field">
-          <span className="field__label">{t('Boshlanish')}</span>
-          <HhMmInput value={draft.time_from} onChange={(v) => setDraft((d) => ({ ...d, time_from: v }))} />
-        </label>
-        <label className="field">
-          <span className="field__label">{t('Tugash')}</span>
-          <HhMmInput value={draft.time_to} onChange={(v) => setDraft((d) => ({ ...d, time_to: v }))} />
-        </label>
-      </div>
+      {auto ? (
+        <p className="ttbell">
+          {IC.clock} <b>{auto[0]}–{auto[1]}</b> <span>· {t("maktabning dars vaqti bo'yicha")}</span>
+        </p>
+      ) : (
+        <div className="row row--2">
+          <label className="field">
+            <span className="field__label">{t('Boshlanish')}</span>
+            <HhMmInput value={draft.time_from} onChange={(v) => setDraft((d) => ({ ...d, time_from: v }))} />
+          </label>
+          <label className="field">
+            <span className="field__label">{t('Tugash')}</span>
+            <HhMmInput value={draft.time_to} onChange={(v) => setDraft((d) => ({ ...d, time_to: v }))} />
+          </label>
+        </div>
+      )}
       {draft.band ? (
         <label className="field">
           <span className="field__label">{t('Qayerda band')}</span>

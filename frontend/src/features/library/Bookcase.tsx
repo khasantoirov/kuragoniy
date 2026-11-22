@@ -88,7 +88,10 @@ const PLANK = 14
 const TOP_GAP = 30
 const PLATE = 24
 
-type Fit = { perRow: number; rowh: number; capacity: number; height: number }
+type Fit = { perRow: number; rowh: number; room: number; frameY: number }
+
+/** A bookcase has at least this many shelves, empty ones included. */
+const MIN_SHELVES = 3
 
 /** How many volumes stand in a row and how many rows a bookcase that
  * reaches the bottom of the screen holds. Measured in the page's CSS px:
@@ -106,8 +109,7 @@ function useBookcaseFit(ref: React.RefObject<HTMLDivElement | null>) {
       const perRow = Math.max(1, Math.floor((booksW + sz.gap) / (sz.bw + sz.gap)))
       const bottomBar = window.innerWidth <= 760 ? 84 : 24
       const room = (window.innerHeight - el.getBoundingClientRect().top) / zoom - bottomBar
-      const height = Math.max(sz.frameY + PLATE + rowh, Math.floor(room))
-      setFit({ perRow, rowh, capacity: height - sz.frameY, height })
+      setFit({ perRow, rowh, room: Math.floor(room), frameY: sz.frameY })
     }
     measure()
     const ro = new ResizeObserver(measure)
@@ -123,10 +125,11 @@ function useBookcaseFit(ref: React.RefObject<HTMLDivElement | null>) {
 
 type ShelfPart = { kind: LibraryKind; total: number; rows: LibraryItem[][]; cont: boolean }
 type CasePlan = { parts: ShelfPart[]; used: number }
+type Space = { rowh: number; perRow: number; capacity: number; plate: number }
 
 /** Fills bookcases shelf by shelf; when a case is full the rest goes on
  * the next one ("2-javon"), each case as tall as the screen. */
-function planCases(shelves: { kind: LibraryKind; items: LibraryItem[] }[], fit: Fit): CasePlan[] {
+function planCases(shelves: { kind: LibraryKind; items: LibraryItem[] }[], fit: Space): CasePlan[] {
   const cases: CasePlan[] = [{ parts: [], used: 0 }]
   for (const s of shelves) {
     const rows: LibraryItem[][] = []
@@ -134,13 +137,13 @@ function planCases(shelves: { kind: LibraryKind; items: LibraryItem[] }[], fit: 
     let i = 0
     while (i < rows.length) {
       let cur = cases[cases.length - 1]
-      if (cur.used > 0 && cur.used + PLATE + fit.rowh > fit.capacity) {
+      if (cur.used > 0 && cur.used + fit.plate + fit.rowh > fit.capacity) {
         cur = { parts: [], used: 0 }
         cases.push(cur)
       }
-      const take = Math.max(1, Math.floor((fit.capacity - cur.used - PLATE) / fit.rowh))
+      const take = Math.max(1, Math.floor((fit.capacity - cur.used - fit.plate) / fit.rowh))
       cur.parts.push({ kind: s.kind, total: s.items.length, rows: rows.slice(i, i + take), cont: i > 0 })
-      cur.used += PLATE + Math.min(take, rows.length - i) * fit.rowh
+      cur.used += fit.plate + Math.min(take, rows.length - i) * fit.rowh
       i += take
     }
   }
@@ -166,20 +169,34 @@ export function Bookcase({ items, admin, onEdit, onDelete }: {
     kind,
     items: items.filter((x) => x.kind === kind).sort((a, b) => (a.grade ?? 99) - (b.grade ?? 99) || a.title.localeCompare(b.title)),
   })).filter((s) => s.items.length)
-  const cases = fit ? planCases(shelves, fit) : []
+  // One kind on the shelves (just books): no name plate — the case is all
+  // shelves. Several kinds: each one's plate tells them apart.
+  const plate = shelves.length > 1 ? PLATE : 0
+  // whole shelves only, down to the bottom of the screen — and never fewer
+  // than MIN_SHELVES, so a short library still stands as a bookcase
+  const space: Space | null = fit && {
+    rowh: fit.rowh,
+    perRow: fit.perRow,
+    plate,
+    capacity: plate + Math.max(MIN_SHELVES, Math.floor((fit.room - fit.frameY - plate) / fit.rowh)) * fit.rowh,
+  }
+  const cases = space ? planCases(shelves, space) : []
 
   return (
     <>
       <div ref={wrap} className="vcases">
-        {fit && cases.map((c, ci) => (
+        {space && fit && cases.map((c, ci) => (
           <div key={ci}>
             {cases.length > 1 && <p className="vcase__no">{ci + 1}-{t('javon')}</p>}
-            <div className="vcase" style={{ minHeight: fit.height }}>
+            <div className="vcase" style={{ minHeight: fit.frameY + space.capacity }}>
               {c.parts.map((part) => (
-                <section key={`${part.kind}-${part.cont}`} className="vshelf" aria-label={t(SHELF_TITLES[part.kind])}>
-                  <span className="vshelf__plate">
-                    {t(SHELF_TITLES[part.kind])} · {part.total}{part.cont ? ` (${t('davomi')})` : ''}
-                  </span>
+                <section key={`${part.kind}-${part.cont}`} className={`vshelf ${plate ? '' : 'vshelf--bare'}`}
+                  aria-label={t(SHELF_TITLES[part.kind])}>
+                  {plate > 0 && (
+                    <span className="vshelf__plate">
+                      {t(SHELF_TITLES[part.kind])} · {part.total}{part.cont ? ` (${t('davomi')})` : ''}
+                    </span>
+                  )}
                   <div className="vshelf__books">
                     {part.rows.flat().map((item) => (
                       <div key={item.id} className="vslot">
@@ -189,8 +206,8 @@ export function Bookcase({ items, admin, onEdit, onDelete }: {
                   </div>
                 </section>
               ))}
-              {fit.capacity - c.used >= fit.rowh && (
-                <div className="vshelf__books vshelf__fill" style={{ height: Math.floor((fit.capacity - c.used) / fit.rowh) * fit.rowh }} aria-hidden="true" />
+              {space.capacity - c.used >= fit.rowh && (
+                <div className="vshelf__books vshelf__fill" style={{ height: Math.floor((space.capacity - c.used) / fit.rowh) * fit.rowh }} aria-hidden="true" />
               )}
             </div>
           </div>

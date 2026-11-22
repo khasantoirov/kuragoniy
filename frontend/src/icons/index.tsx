@@ -58,6 +58,7 @@ export const IC = {
   eye: wrap(<><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></>),
   eyeOff: wrap(<><path d="M10.6 5.1A9.7 9.7 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3 3.6M6.3 6.3C3.6 7.9 2 12 2 12s3.6 7 10 7a9.6 9.6 0 0 0 4-.85" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" /><path d="m3 3 18 18" /></>),
   bell: wrap(<><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></>),
+  clock: wrap(<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>),
   profile: wrap(<><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>),
   logout: wrap(<><path d="M15 17l5-5-5-5" /><path d="M20 12H9" /><path d="M11 3H5v18h6" /></>),
   info: wrap(<><circle cx="12" cy="12" r="9.5" /><path d="M12 11v6" /><path d="M12 7.5h.01" /></>),

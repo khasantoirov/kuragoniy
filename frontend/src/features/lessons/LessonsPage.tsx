@@ -14,10 +14,9 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
-  verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { type CSSProperties, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { type CSSProperties, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
@@ -33,12 +32,12 @@ import { useLessons, useQuarterLocks, useReorderLesson } from './api'
 import { ExperimentRow } from './ExperimentRow'
 import { LessonEditor } from './LessonEditor'
 import { useSubjects } from '@/lib/subjects'
+import { chorakOf, useChorakNow } from '@/features/journal/calendar'
+import { localToday } from '@/features/journal/lock'
 
-import { gradeLabel, numberLabel, quarterLabel, subjectOfGrade, weeksLabel } from './labels'
+import { gradeLabel, numberLabel, quarterLabel, subjectOfGrade } from './labels'
 import { CATEGORY_LABELS, type Lesson, type LessonCategory } from './types'
 import './quarters.css'
-
-type ViewMode = 'grid' | 'list'
 
 const dndIdOf = (id: number) => `lesson-${id}`
 const chorakIdOf = (ch: number) => `ch-${ch}`
@@ -46,7 +45,6 @@ const chorakIdOf = (ch: number) => `ch-${ch}`
 // one moves to the end of that chorak
 const tabIdOf = (ch: number) => `tab-ch-${ch}`
 const CHORAKS = [1, 2, 3, 4]
-const QUARTER_MONTHS = ['sentyabr – oktyabr', 'noyabr – dekabr', 'yanvar – mart', 'aprel – may']
 type Locks = Partial<Record<'1' | '2' | '3' | '4', boolean>> | undefined
 const isOpenFor = (locks: Locks, ch: number) => !!locks?.[String(ch) as '1' | '2' | '3' | '4']
 
@@ -64,17 +62,21 @@ export function LessonsPage() {
   const { data: locks, isLoading: locksLoading } = useQuarterLocks(fans.current)
   const reorder = useReorderLesson()
   const scrolled = usePageScrolled(4)
-  // ?chorak=N — the chorak opened from its card (none: the four cards)
+  // ?chorak=N — the chorak picked from the tabs; by default today's (by
+  // the school calendar), or the nearest one this person may open
   const [params, setParams] = useSearchParams()
+  const nowCh = useChorakNow() ?? chorakOf(localToday(), undefined)
   const openCh = (() => {
     const n = Number(params.get('chorak'))
-    return n >= 1 && n <= 4 ? n : null
+    if (n >= 1 && n <= 4) return n
+    if (admin || isOpenFor(locks, nowCh)) return nowCh
+    const open = CHORAKS.filter((c) => isOpenFor(locks, c))
+    return [...open].reverse().find((c) => c <= nowCh) ?? open[0] ?? nowCh
   })()
-  const pickChorak = (ch: number | null) => {
+  const pickChorak = (ch: number) => {
     const next = new URLSearchParams(params)
-    if (ch) next.set('chorak', String(ch))
-    else next.delete('chorak')
-    setParams(next)
+    next.set('chorak', String(ch))
+    setParams(next, { replace: true })
     window.scrollTo(0, 0)
   }
 
@@ -83,7 +85,6 @@ export function LessonsPage() {
   const fizika = fans.current === 'fizika'
   const [catPick, setCatFilter] = useState<LessonCategory | null>(null)
   const catFilter = fizika ? catPick : null
-  const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [creatingForQuarter, setCreatingForQuarter] = useState<number | null>(null)
 
   const counts = useMemo(() => {
@@ -224,12 +225,6 @@ export function LessonsPage() {
             </select>
           </>
         )}
-        <div className="seg ltbar__view" role="group" aria-label={t("Ko'rinish")}>
-          <button type="button" className={`seg__b ${viewMode === 'grid' ? 'is-on' : ''}`} aria-pressed={viewMode === 'grid'}
-            onClick={() => setViewMode('grid')} title={t('Katak')} aria-label={t('Katak')}>{IC.grid}</button>
-          <button type="button" className={`seg__b ${viewMode === 'list' ? 'is-on' : ''}`} aria-pressed={viewMode === 'list'}
-            onClick={() => setViewMode('list')} title={t("Ro'yxat")} aria-label={t("Ro'yxat")}>{IC.list}</button>
-        </div>
       </div>
 
       {!filtered.length ? (
@@ -238,7 +233,7 @@ export function LessonsPage() {
           <h3 className="empty__title">{t('Hech narsa topilmadi')}</h3>
           <p className="empty__hint">{t("Qidiruv shartini o'zgartirib ko'ring.")}</p>
         </div>
-      ) : !searching && openCh ? (
+      ) : !searching ? (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <QuarterNav ch={openCh} locks={locks} admin={admin} canDrag={canDrag} lang={lang} onPick={pickChorak} />
           <QuarterSection
@@ -247,15 +242,12 @@ export function LessonsPage() {
             admin={admin}
             canDrag={canDrag}
             searching={false}
-            viewMode={viewMode}
             lang={lang}
             locked={!admin && !isOpenFor(locks, openCh)}
             onOpen={(l) => navigate(`/lessons/${l.id}`)}
             onAdd={() => setCreatingForQuarter(openCh)}
           />
         </DndContext>
-      ) : !searching ? (
-        <QuarterCards lessons={data} locks={locks} admin={admin} lang={lang} onOpen={pickChorak} />
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           {CHORAKS.map((ch) => {
@@ -272,7 +264,6 @@ export function LessonsPage() {
                 admin={admin}
                 canDrag={canDrag}
                 searching={searching}
-                viewMode={viewMode}
                 lang={lang}
                 locked={lockedForMe}
                 onOpen={(l) => navigate(`/lessons/${l.id}`)}
@@ -290,93 +281,19 @@ export function LessonsPage() {
   )
 }
 
-/** The grid's height: from where it starts to the bottom of the window
- * (the phone's bottom bar left free). Measured in the page's CSS px —
- * body has CSS zoom, so window rects are divided by it (as Bookcase does). */
-function useFillHeight(ref: React.RefObject<HTMLDivElement | null>) {
-  const [height, setHeight] = useState<number | null>(null)
-  useLayoutEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const measure = () => {
-      const zoom = parseFloat(getComputedStyle(document.body).zoom || '1') || 1
-      // down to the page's own bottom padding (the shell's, the phone's
-      // bottom bar's room) — past it a scrollbar would appear
-      let bottom = 2
-      for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
-        bottom += parseFloat(getComputedStyle(p).paddingBottom) || 0
-      }
-      const room = (window.innerHeight - el.getBoundingClientRect().top) / zoom - bottom
-      setHeight(Math.max(window.innerWidth <= 760 ? 300 : 380, Math.floor(room)))
-    }
-    measure()
-    window.addEventListener('resize', measure)
-    return () => window.removeEventListener('resize', measure)
-  }, [ref])
-  return height
-}
-
-/** The window in four equal parts, 2x2 — a chorak in each; one opens on its own. */
-function QuarterCards({ lessons, locks, admin, lang, onOpen }: {
-  lessons: Lesson[]
-  locks: Locks
-  admin: boolean
-  lang: Lang
-  onOpen: (ch: number) => void
-}) {
-  const { t } = useTranslation()
-  const ref = useRef<HTMLDivElement>(null)
-  const height = useFillHeight(ref)
-  return (
-    <div ref={ref} className="qtrs" style={height ? { height } : undefined}>
-      {CHORAKS.map((ch) => {
-        const rows = lessons.filter((l) => l.chorak === ch)
-        const open = isOpenFor(locks, ch)
-        const lockedForMe = !admin && !open
-        const exps = rows.reduce((n, l) => n + l.experiments.length, 0)
-        const weeks = rows.map((l) => l.hafta).filter(Boolean)
-        return (
-          <button key={ch} type="button" className={`qtr qtr--${ch} ${lockedForMe ? 'is-locked' : ''}`}
-            disabled={lockedForMe} onClick={() => onOpen(ch)}>
-            <span className="qtr__n" aria-hidden="true">{ch}</span>
-            <span className="qtr__body">
-              <b className="qtr__title">{quarterLabel(ch, lang)}</b>
-              <small className="qtr__months">{t(QUARTER_MONTHS[ch - 1])}</small>
-              {lockedForMe ? (
-                <span className="qtr__lock">{IC.lock} {t('Hali ochilmagan')}</span>
-              ) : rows.length ? (
-                <span className="qtr__stats">
-                  <span><b>{rows.length}</b> {t('ta dars')}</span>
-                  <span><b>{exps}</b> {t('ta tajriba')}</span>
-                  {weeks.length > 0 && <span>{weeksLabel(Math.min(...weeks), Math.max(...weeks), lang, subjectOfGrade(lessons[0]?.grade ?? '') === 'fizika')}</span>}
-                </span>
-              ) : (
-                <span className="qtr__empty">{t("Hali dars yo'q")}</span>
-              )}
-              {admin && !open && <span className="qtr__closed">{IC.lock} {t("O'qituvchilarga yopiq")}</span>}
-            </span>
-            {!lockedForMe && <span className="qtr__go" aria-hidden="true">›</span>}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-/** Inside a chorak: back to the four cards, or straight to another chorak. */
+/** The chorak tabs under the grade tabs (also drop targets: a lesson
+ * dragged onto one moves to that chorak). */
 function QuarterNav({ ch, locks, admin, canDrag, lang, onPick }: {
   ch: number
   locks: Locks
   admin: boolean
   canDrag: boolean
   lang: Lang
-  onPick: (ch: number | null) => void
+  onPick: (ch: number) => void
 }) {
   const { t } = useTranslation()
   return (
     <div className="qtrnav">
-      <button type="button" className="btn btn--sm qtrnav__back" title={t('Choraklar')} aria-label={t('Choraklar')}
-        onClick={() => onPick(null)}>{IC.back} <span className="qtrnav__backlbl">{t('Choraklar')}</span></button>
       <div className="seg qtrnav__tabs" role="group" aria-label={t('Chorak')}>
         {CHORAKS.map((n) => (
           <QuarterTab key={n} n={n} active={n === ch} locked={!admin && !isOpenFor(locks, n)} canDrag={canDrag}
@@ -411,7 +328,6 @@ function QuarterSection({
   admin,
   canDrag,
   searching,
-  viewMode,
   lang,
   locked,
   onOpen,
@@ -422,7 +338,6 @@ function QuarterSection({
   admin: boolean
   canDrag: boolean
   searching: boolean
-  viewMode: ViewMode
   lang: Lang
   locked: boolean
   onOpen: (lesson: Lesson) => void
@@ -447,17 +362,13 @@ function QuarterSection({
           <p>{t("Bu chorak hali ochilmagan. Administrator ochgach shu yerda ko'rinadi.")}</p>
         </div>
       ) : (
-        <SortableContext items={ids} strategy={viewMode === 'list' ? verticalListSortingStrategy : rectSortingStrategy}>
-          <div ref={setNodeRef} className={viewMode === 'list' ? 'list' : 'grid'}>
-            {rows.map((l) =>
-              viewMode === 'list' ? (
-                <LessonRow key={l.id} lesson={l} onOpen={() => onOpen(l)} canDrag={canDrag} />
-              ) : (
-                <LessonCard key={l.id} lesson={l} onOpen={() => onOpen(l)} canDrag={canDrag} />
-              ),
-            )}
+        <SortableContext items={ids} strategy={rectSortingStrategy}>
+          <div ref={setNodeRef} className="grid">
+            {rows.map((l) => (
+              <LessonCard key={l.id} lesson={l} onOpen={() => onOpen(l)} canDrag={canDrag} />
+            ))}
             {admin && !searching && (
-              <button className={viewMode === 'list' ? 'lrow lrow--add' : 'card card--add'} onClick={onAdd}>
+              <button className="card card--add" onClick={onAdd}>
                 <span className="card--add__plus">+</span>
                 <span>{t("Dars qo'shish")}</span>
               </button>
@@ -523,52 +434,6 @@ function LessonCard({ lesson, onOpen, canDrag = false }: { lesson: Lesson; onOpe
         </ul>
       ) : (
         <p className="card__none">{t('Amaliy topshiriq kiritilmagan')}</p>
-      )}
-    </article>
-  )
-}
-
-function LessonRow({ lesson, onOpen, canDrag = false }: { lesson: Lesson; onOpen: () => void; canDrag?: boolean }) {
-  const { t } = useTranslation()
-  const { lang } = useUIStore()
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: dndIdOf(lesson.id),
-    disabled: !canDrag,
-  })
-  const style: CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  }
-
-  return (
-    <article ref={setNodeRef} style={style} className="lrow card--click" onClick={onOpen} tabIndex={0} role="button">
-      {canDrag && (
-        <button
-          type="button"
-          className="lrow__grip"
-          aria-label={t("Ko'chirish uchun ushlab torting")}
-          onClick={(e) => e.stopPropagation()}
-          {...attributes}
-          {...listeners}
-        >
-          {IC.grip}
-        </button>
-      )}
-      <span className="lrow__week">{lesson.hafta ? numberLabel(lesson.hafta, lesson.grade, lang) : ''}</span>
-      <h4 className="lrow__title">
-        {lesson.title}
-        {lesson.file_url && <span className="lrow__file" title={t('Dars fayli biriktirilgan')}>{IC.file}</span>}
-      </h4>
-      {subjectOfGrade(lesson.grade) === 'fizika' ? (
-        <>
-          <span className="lrow__x">{lesson.experiments.length} {t('ta tajriba')}</span>
-          {lesson.cat ? <span className="tag">{t(CATEGORY_LABELS[lesson.cat])}</span> : null}
-        </>
-      ) : (
-        <span className="lrow__x">
-          {lesson.experiments.length > 0 ? t('Amaliy topshiriq bor') : t("Amaliy topshiriq yo'q")}
-        </span>
       )}
     </article>
   )

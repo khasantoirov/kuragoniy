@@ -54,10 +54,13 @@ export function usePartnerSchools() {
 }
 
 /** Everyone's week. `withBlocked`: the administration's picked view also
- * lists a blocked teacher (one who left) while lessons are still theirs. */
-export function useAllTimetables(withBlocked = false) {
+ * lists a blocked teacher (one who left) while lessons are still theirs.
+ * `enabled` = false skips the fetch (one request per teacher) where it
+ * isn't shown. */
+export function useAllTimetables(withBlocked = false, enabled = true) {
   return useQuery({
     queryKey: ['timetable', 'all', withBlocked ? 'with-blocked' : 'approved'],
+    enabled,
     queryFn: async () => {
       // Boshliq doesn't teach (see accounts.models.User.Role.BOSHLIQ), so
       // they never get a column in the aggregated "Barcha o'qituvchilar"
@@ -76,4 +79,60 @@ export function useAllTimetables(withBlocked = false) {
       return { teachers, tables }
     },
   })
+}
+
+/** A school's lesson times (backend timetable/bells.py): "*" every school
+ * day, "0"–"4" a weekday that runs differently; each period "1"–"8" is
+ * [from, to] as "HH:MM". */
+export type BellTimes = Record<string, Record<string, [string, string]>>
+
+export interface SchoolBells {
+  school: number
+  school_name: string
+  times: BellTimes
+  updated_by_name: string
+  updated_at: string | null
+  can_edit: boolean
+  updated_slots?: number
+}
+
+/** Every school whose lesson times are set (anyone may read them). */
+export function useSchoolBells() {
+  return useQuery({
+    queryKey: ['timetable', 'bells'],
+    queryFn: async () => (await api.get<SchoolBells[]>('/timetable/bells/')).data,
+    staleTime: 60_000,
+  })
+}
+
+/** One school's times — can_edit says whether this person may change them. */
+export function useSchoolBell(schoolId: number | null | undefined) {
+  return useQuery({
+    queryKey: ['timetable', 'bells', schoolId ?? 0],
+    enabled: !!schoolId,
+    queryFn: async () => (await api.get<SchoolBells>(`/timetable/bells/${schoolId}/`)).data,
+  })
+}
+
+/** Saves a school's times; the server then sets every lesson's there. */
+export function useSaveBells() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ schoolId, times }: { schoolId: number; times: BellTimes }) =>
+      (await api.put<SchoolBells>(`/timetable/bells/${schoolId}/`, { times })).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['timetable'] })
+    },
+  })
+}
+
+/** [from, to] of a lesson from its school's times (the first period's
+ * start to the last one's end) — timetable/bells.py lesson_times. */
+export function bellTimesFor(bells: SchoolBells | undefined, day: number, period: number, span = 1): [string, string] | null {
+  if (!bells) return null
+  const at = (p: number) => bells.times[String(day)]?.[String(p)] ?? bells.times['*']?.[String(p)]
+  const first = at(period)
+  if (!first) return null
+  const last = at(period + Math.max(1, span) - 1) ?? first
+  return [first[0], last[1]]
 }

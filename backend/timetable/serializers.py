@@ -2,7 +2,8 @@ from rest_framework import serializers
 
 from schools.models import School
 
-from .models import TimetableSlot
+from .bells import lesson_times
+from .models import SchoolBells, TimetableSlot
 
 
 class TimetableSlotSerializer(serializers.ModelSerializer):
@@ -26,4 +27,17 @@ class TimetableSlotSerializer(serializers.ModelSerializer):
             attrs['school'] = None
         elif attrs.get('school'):
             attrs['maktab'] = attrs['school'].name
+            # the school's lesson times, when it has them, set the lesson's
+            # (timetable/bells.py) — looked up once per school per request
+            inst = self.instance if isinstance(self.instance, TimetableSlot) else None
+            day = attrs.get('day_index', inst.day_index if inst else None)
+            period = attrs.get('period_index', inst.period_index if inst else None)
+            if day is not None and period is not None:
+                cache = self.context.setdefault('_bells', {})
+                sid = attrs['school'].pk
+                if sid not in cache:
+                    cache[sid] = SchoolBells.objects.filter(school_id=sid).first()
+                times = lesson_times(cache[sid], day, period, attrs.get('span', inst.span if inst else 1))
+                if times:
+                    attrs['time_from'], attrs['time_to'] = times
         return attrs

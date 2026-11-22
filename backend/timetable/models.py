@@ -31,3 +31,28 @@ class TimetableSlot(models.Model):
 
     def __str__(self):
         return f'{self.teacher_id} {self.day_index}:{self.period_index}'
+
+
+class SchoolBells(models.Model):
+    """A school's own lesson times (its bell schedule), entered by a teacher
+    who works there or by the administration. Every lesson in that school's
+    timetable — any teacher's — takes its times from here (timetable/bells.py).
+
+    times = {"*": {"1": ["08:00", "08:45"], …}, "4": {"6": ["14:30", "15:10"]}}
+    "*" is every school day; a weekday's own map ("0" Monday … "4" Friday)
+    is for a day that runs differently, e.g. Friday. A period missing from a
+    day's own map falls back to "*"."""
+
+    school = models.OneToOneField('schools.School', related_name='bells', on_delete=models.CASCADE)
+    times = models.JSONField(default=dict, blank=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+                                   related_name='+')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.school_id} bells'
+
+    def period(self, day_index: int, period_index: int):
+        """[from, to] as "HH:MM" strings, or None."""
+        own = (self.times.get(str(day_index)) or {}).get(str(period_index))
+        return own or (self.times.get('*') or {}).get(str(period_index))
