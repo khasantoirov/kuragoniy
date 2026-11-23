@@ -16,7 +16,7 @@ import './fan.css'
    o'tadi — kirishda alohida tanlash ekrani yo'q; bitta fanli kishi
    to'g'ri o'z oynasida. */
 
-const ICONS: Record<Subject, keyof typeof IC> = { fizika: 'atom', steam: 'gear' }
+const ICONS: Record<Subject, keyof typeof IC> = { fizika: 'atom', steam: 'robot' }
 
 /** Enter a window: everything shown so far belonged to the other one. */
 function useEnterWindow() {

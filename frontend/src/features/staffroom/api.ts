@@ -74,9 +74,12 @@ export const GUEST_TONE: Record<GuestStatus, 'ok' | 'mid' | 'bad' | 'muted' | 'i
 }
 
 /** date: "YYYY-MM-DD", "today", or undefined (the next school day). */
-export function useDayPlan(date?: string) {
+/** One school day's plan; no date = the next school day. `enabled` =
+ * false waits (Bosh sahifa asks for the next day only when today is over). */
+export function useDayPlan(date?: string, enabled = true) {
   return useQuery({
     queryKey: ['staffroom', 'day', date ?? 'next'],
+    enabled,
     queryFn: async () => (await api.get<DayPlan>('/staffroom/day/', { params: date ? { date } : {} })).data,
   })
 }

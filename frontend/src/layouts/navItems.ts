@@ -10,9 +10,9 @@ export type NavItem = { to: string; label: string; icon: keyof typeof IC }
 /** The staff app's own pages (portal pages are added by portalNavItems). */
 export const NAV_ITEMS: (NavItem & { adminOnly?: boolean })[] = [
   { to: '/', label: 'Bosh sahifa', icon: 'home' },
-  { to: '/lessons', label: 'Darslar', icon: 'file' },
-  { to: '/journal', label: 'Jurnal', icon: 'clipboard' },
-  { to: '/timetable', label: 'Jadval', icon: 'calendar' },
+  { to: '/lessons', label: 'Darslar', icon: 'lessons' },
+  { to: '/journal', label: 'Jurnal', icon: 'gradebook' },
+  { to: '/timetable', label: 'Jadval', icon: 'timetable' },
   { to: '/library', label: 'Kutubxona', icon: 'book' },
   // the Fizika window's own (FIZIKA_ONLY below)
   { to: '/lab', label: 'Laboratoriya', icon: 'flask' },

@@ -24,7 +24,7 @@ import { usePortalUser, useViewedPupil } from './portalUser'
 
 const ITEMS: PortalNavItem[] = [
   { to: '/s', label: 'Bosh sahifa', icon: 'home', end: true },
-  { to: '/s/lessons', label: 'Darslar', icon: 'atom' },
+  { to: '/s/lessons', label: 'Darslar', icon: 'lessons' },
   { to: '/s/homework', label: 'Uyga vazifa', icon: 'clipboard' },
   { to: '/s/games', label: "O'yinlar", icon: 'dice' },
   { to: '/s/results', label: 'Natijalarim', icon: 'star' },
