@@ -122,22 +122,133 @@ function Hero() {
           </div>
           <ul className="lp-hero__tags">
             <li>{IC.atom} {t('Fizika: nazariya va tajriba')}</li>
-            <li>{IC.gear} {t('Robototexnika')}</li>
+            <li>{IC.robot} {t('Robototexnika')}</li>
             <li>{IC.flask} {t('STEAM loyihalar')}</li>
           </ul>
         </div>
-        <div className="lp-orbit" aria-hidden="true">
-          <span className="lp-orbit__ring lp-orbit__ring--1" />
-          <span className="lp-orbit__ring lp-orbit__ring--2" />
-          <span className="lp-orbit__core"><img src="/logo.png" alt="" width={120} height={120} /></span>
-          <span className="lp-orbit__node lp-orbit__node--a">{IC.atom}</span>
-          <span className="lp-orbit__node lp-orbit__node--b">{IC.gear}</span>
-          <span className="lp-orbit__node lp-orbit__node--c">{IC.flask}</span>
-          <span className="lp-orbit__node lp-orbit__node--d">{IC.cap}</span>
-          <span className="lp-orbit__f lp-orbit__f--1">F = m·a</span>
-          <span className="lp-orbit__f lp-orbit__f--2">U = I·R</span>
-          <span className="lp-orbit__f lp-orbit__f--3">v = s / t</span>
-          <img className="lp-orbit__sign" src="/muhandis-d-on-dark.png" alt="" width={751} height={160} />
+        <ProductShot />
+      </div>
+    </section>
+  )
+}
+
+/** What the platform looks like inside — a picture made of the app's own
+ * pieces (not a screenshot, so it stays sharp and follows the language):
+ * the Bosh sahifa in a browser window, the journal on a phone, the bot's
+ * morning reminder. Decorative only. */
+const SHOT_LESSONS = [
+  { time: '08:00', cls: '7-A', topic: 'Gidrostatik bosim va Paskal qonuni', tags: ['Oddiy', 'WOW'], now: true },
+  { time: '09:50', cls: '8-B', topic: 'Issiqlik miqdori', tags: ['Oddiy', 'Oddiy'], now: false },
+  { time: '11:30', cls: '9-A', topic: 'Elektr zanjiri qonunlari', tags: ['Oddiy', 'WOW'], now: false },
+]
+const SHOT_MARKS: [string, (number | string)[]][] = [
+  ['Aliyev S.', [5, 4, 5, 5]],
+  ['Karimova M.', [5, 5, 4, 5]],
+  ['Rustamov J.', [4, 'nb', 4, 5]],
+  ['Yusupova L.', [5, 5, 5, 4]],
+  ['Toshmatov B.', [3, 4, 4, 4]],
+]
+
+function ProductShot() {
+  const { t } = useTranslation()
+  return (
+    <div className="lp-shot" aria-hidden="true">
+      <div className="lp-shot__win">
+        <div className="lp-shot__bar"><i /><i /><i /><span>kuragoniy.uz</span></div>
+        <div className="lp-shot__app">
+          <div className="lp-shot__side">
+            <span className="lp-shot__logo"><img src="/logo.png" alt="" width={28} height={28} /></span>
+            {[IC.home, IC.lessons, IC.gradebook, IC.timetable, IC.flask, IC.book].map((ic, n) => (
+              <span key={n} className={`lp-shot__nav ${n === 0 ? 'is-on' : ''}`}>{ic}</span>
+            ))}
+          </div>
+          <div className="lp-shot__main">
+            <div className="lp-shot__hero">
+              <small>{t('Dushanba')} · 2-{t('chorak')}, 3-{t('hafta')}</small>
+              <b>{t('Xayrli tong')}, Dilnoza!</b>
+              <div className="lp-shot__stats">
+                <span><b>4</b>{t('bugun dars')}</span>
+                <span><b>18</b>{t('bu hafta')}</span>
+                <span><b>1/4</b>{t("o'tildi")}</span>
+              </div>
+            </div>
+            <div className="lp-shot__day">
+              <b className="lp-shot__h">{t('Bugungi darslar')}</b>
+              <ul className="lp-shot__tl">
+                {SHOT_LESSONS.map((l) => (
+                  <li key={l.time} className={l.now ? 'is-now' : ''}>
+                    <span className="lp-shot__time">{l.time}</span>
+                    <span className="lp-shot__dot" />
+                    <span className="lp-shot__card">
+                      <span className="lp-shot__top"><b>{l.cls}</b> Sodiq School{l.now && <em>{t('Hozir')}</em>}</span>
+                      <span className="lp-shot__topic">{IC.lessons} {t(l.topic)}</span>
+                      <span className="lp-shot__tags">{l.tags.map((g, n) => <i key={n} className={g === 'WOW' ? 'is-wow' : ''}>{g}</i>)}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="lp-shot__phone">
+        <span className="lp-shot__notch" />
+        <div className="lp-shot__ph-head">{IC.gradebook}<span><b>{t('Elektron jurnal')}</b><small>7-A · {t('Fizika')}</small></span></div>
+        <ul className="lp-shot__marks">
+          {SHOT_MARKS.map(([name, marks]) => (
+            <li key={name}>
+              <span className="lp-shot__ava">{name.split(' ').map((w) => w[0]).join('')}</span>
+              <span className="lp-shot__nm">{name}</span>
+              <span className="lp-shot__mk">
+                {marks.map((m, n) => <i key={n} className={`m-${m}`}>{m}</i>)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="lp-shot__toast">
+        <span className="lp-shot__tg">{IC.telegram}</span>
+        <span><b>@kuragoniybot</b><small>☀️ {t('Bugun 4 ta darsingiz bor')}</small></span>
+      </div>
+    </div>
+  )
+}
+
+/** Imkoniyatlar — the teacher's everyday tools, each in its own colour. */
+function Features() {
+  const { t } = useTranslation()
+  const items: { ic: keyof typeof IC; tone: string; title: string; text: string }[] = [
+    { ic: 'lessons', tone: 'blue', title: t('Tayyor dars ishlanmalari'),
+      text: t("Har bir mavzuga dars rejasi, taqdimot, tajriba yo'riqnomasi va masalalar — darslikka mos, hafta bo'yicha.") },
+    { ic: 'gradebook', tone: 'green', title: t('Elektron jurnal'),
+      text: t("Baho, davomat, nazorat ishlari va chorak baholari; o'zlashtirish va sifat o'zi hisoblanadi.") },
+    { ic: 'timetable', tone: 'orange', title: t('Dars jadvali'),
+      text: t("Haftalik jadval, maktab qo'ng'iroqlari bo'yicha vaqtlar va bugungi darslar — bir qarashda.") },
+    { ic: 'flask', tone: 'teal', title: t('Virtual laboratoriya'),
+      text: t("Interaktiv simulyatsiyalarda o'lchash, grafik va tajriba daftari — jihoz yetmasa ham.") },
+    { ic: 'telegram', tone: 'sky', title: t('Telegram eslatmalari'),
+      text: t("Ertalab bugungi darslar, kechqurun jurnalga yozilmagan darslar — @kuragoniybot orqali.") },
+    { ic: 'chart', tone: 'rose', title: t('Statistika va hisobotlar'),
+      text: t("Maktab, sinf va o'qituvchi kesimida natijalar; dars hisobotlari va baholash.") },
+  ]
+  return (
+    <section id="imkoniyatlar" className="lp-sec">
+      <div className="lp-wrap">
+        <SectionHead
+          kicker={t('Imkoniyatlar')}
+          title={t("O'qituvchi uchun hamma narsa bir joyda")}
+          lead={t("Darsga tayyorgarlikdan baholashgacha — kundalik ishning har bir qadami platformada.")}
+        />
+        <div className="lp-feats">
+          {items.map((f) => (
+            <article key={f.title} className={`lp-feat lp-feat--${f.tone}`}>
+              <span className="lp-feat__ic">{IC[f.ic]}</span>
+              <h3 className="lp-feat__t">{f.title}</h3>
+              <p className="lp-feat__p">{f.text}</p>
+            </article>
+          ))}
         </div>
       </div>
     </section>
@@ -168,7 +279,7 @@ function Subjects() {
       ],
     },
     {
-      key: 'steam', icon: IC.gear, tag: t('1–9-sinflar'), title: t('STEAM / Robototexnika'),
+      key: 'steam', icon: IC.robot, tag: t('1–9-sinflar'), title: t('STEAM / Robototexnika'),
       text: t("Fan, texnologiya, muhandislik, san'at va matematika — loyiha orqali: kichik sinflarda konstruktor, kattalarida dasturlash va robot."),
       points: [
         t("STEM chamadonlar bilan amaliy mashg'ulotlar"),
@@ -555,6 +666,7 @@ export function LandingPage() {
 
   const sections = [
     { id: 'yonalishlar', label: t("Yo'nalishlar") },
+    { id: 'imkoniyatlar', label: t('Imkoniyatlar') },
     { id: 'platforma', label: t('Qanday ishlaydi') },
     ...(data?.mentors.length ? [{ id: 'ustozlar', label: t('Ustozlar') }] : []),
     ...(data?.partners.length ? [{ id: 'hamkorlar', label: t('Hamkorlar') }] : []),
@@ -567,6 +679,7 @@ export function LandingPage() {
       <main>
         <Hero />
         <Subjects />
+        <Features />
         <HowItWorks />
         <Mission videoUrl={data?.contacts.video_url ?? ''} onVideo={setVideo} />
         <Gallery photos={data?.photos ?? []} />
