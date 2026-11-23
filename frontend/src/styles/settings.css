@@ -462,77 +462,22 @@ button.jt__open:hover { color: #fff; }
    --g* is the band itself: stripes, dots, bars. */
 :root { --g5: #047857; --g4: #4ade80; --g3: #eab308; --g2: #ea580c; --g1: #991b1b; }
 [data-theme="dark"] { --g5: #15803d; --g4: #86efac; --g3: #facc15; --g2: #f97316; --g1: #e11d48; }
-/* A mark (--gc fill, --gt number, --gr hairline ring). The two ends are
-   solid with a white number — the best and the worst read at a glance,
-   and a'lo/yaxshi, qoniqarsiz/yomon never rest on hue alone; the middle
-   three are a tint of their hue with the number in a deep shade of it
-   (on the dark theme a translucent tint with a light number). Every
-   number clears 4.5:1 on its fill. --gb is the band, for accents. */
-.gchip--5 { --gb: var(--g5); --gc: var(--g5); --gt: #fff; --gr: transparent; }
-.gchip--4 { --gb: var(--g4); --gc: #dcfce7; --gt: #15803d; --gr: rgba(22, 163, 74, .35); }
-.gchip--3 { --gb: var(--g3); --gc: #fef9c3; --gt: #a16207; --gr: rgba(202, 138, 4, .35); }
-.gchip--2 { --gb: var(--g2); --gc: #ffedd5; --gt: #c2410c; --gr: rgba(234, 88, 12, .35); }
-.gchip--1, .gchip--0 { --gb: var(--g1); --gc: var(--g1); --gt: #fff; --gr: transparent; }
-[data-theme="dark"] .gchip--4 { --gc: rgba(134, 239, 172, .14); --gt: #86efac; --gr: rgba(134, 239, 172, .35); }
-[data-theme="dark"] .gchip--3 { --gc: rgba(250, 204, 21, .14); --gt: #fde047; --gr: rgba(250, 204, 21, .35); }
-[data-theme="dark"] .gchip--2 { --gc: rgba(249, 115, 22, .16); --gt: #fdba74; --gr: rgba(249, 115, 22, .4); }
-/* ── The developer's choice of mark colours (common.PlatformSettings
-   .grade_palette → <html data-grades>). Each palette also styles its
-   preview card (.palpick__opt[data-grades]), one class stronger, so a
-   card shows its own colours whatever the page uses. --g* stays the
-   band for stripes and charts; --gbw is the stripe (chiziq only). */
-/* tonal: a tint of the hue with a deep number of it (dark: deep tint, light number) */
-[data-grades="tonal"], .palpick__opt[data-grades="tonal"] { --g5: #018a36; --g4: #85ae20; --g3: #dfbf32; --g2: #e68126; --g1: #d23837; }
-[data-grades="tonal"] .gchip--5, .palpick__opt[data-grades="tonal"] .gchip--5 { --gc: #cbf6ce; --gt: #005820; --gr: #9cd4a1; --gbw: 0px; }
-[data-grades="tonal"] .gchip--4, .palpick__opt[data-grades="tonal"] .gchip--4 { --gc: #e5f1be; --gt: #3b5300; --gr: #bdcd8e; --gbw: 0px; }
-[data-grades="tonal"] .gchip--3, .palpick__opt[data-grades="tonal"] .gchip--3 { --gc: #fceab9; --gt: #594a00; --gr: #dbc587; --gbw: 0px; }
-[data-grades="tonal"] .gchip--2, .palpick__opt[data-grades="tonal"] .gchip--2 { --gc: #fee7d7; --gt: #773b00; --gr: #f5ba8f; --gbw: 0px; }
-[data-grades="tonal"] :is(.gchip--1, .gchip--0), .palpick__opt[data-grades="tonal"] :is(.gchip--1, .gchip--0) { --gc: #ffe5e2; --gt: #980f1b; --gr: #ffb4aa; --gbw: 0px; }
-[data-theme="dark"][data-grades="tonal"], [data-theme="dark"] .palpick__opt[data-grades="tonal"] { --g5: #23a64a; --g4: #9ec342; --g3: #f0d04e; --g2: #f6933f; --g1: #ed5a52; }
-[data-theme="dark"][data-grades="tonal"] .gchip--5, [data-theme="dark"] .palpick__opt[data-grades="tonal"] .gchip--5 { --gc: #214326; --gt: #95ea9f; --gr: #35693d; --gbw: 0px; }
-[data-theme="dark"][data-grades="tonal"] .gchip--4, [data-theme="dark"] .palpick__opt[data-grades="tonal"] .gchip--4 { --gc: #353f1a; --gt: #c8e281; --gr: #54642b; --gbw: 0px; }
-[data-theme="dark"][data-grades="tonal"] .gchip--3, [data-theme="dark"] .palpick__opt[data-grades="tonal"] .gchip--3 { --gc: #453b16; --gt: #f2d577; --gr: #6d5d25; --gbw: 0px; }
-[data-theme="dark"][data-grades="tonal"] .gchip--2, [data-theme="dark"] .palpick__opt[data-grades="tonal"] .gchip--2 { --gc: #54341b; --gt: #ffcdab; --gr: #83532d; --gbw: 0px; }
-[data-theme="dark"][data-grades="tonal"] :is(.gchip--1, .gchip--0), [data-theme="dark"] .palpick__opt[data-grades="tonal"] :is(.gchip--1, .gchip--0) { --gc: #5c2e29; --gt: #fecbc4; --gr: #904a42; --gbw: 0px; }
-/* klassik: solid fills stepping in lightness, white or deep number */
-[data-grades="klassik"], .palpick__opt[data-grades="klassik"] { --g5: #028133; --g4: #aed058; --g3: #fcdb62; --g2: #f99a4b; --g1: #c33e39; }
-[data-grades="klassik"] .gchip--5, .palpick__opt[data-grades="klassik"] .gchip--5 { --gc: #028133; --gt: #ffffff; --gr: transparent; --gbw: 0px; }
-[data-grades="klassik"] .gchip--4, .palpick__opt[data-grades="klassik"] .gchip--4 { --gc: #aed058; --gt: #293a00; --gr: transparent; --gbw: 0px; }
-[data-grades="klassik"] .gchip--3, .palpick__opt[data-grades="klassik"] .gchip--3 { --gc: #fcdb62; --gt: #3f3400; --gr: transparent; --gbw: 0px; }
-[data-grades="klassik"] .gchip--2, .palpick__opt[data-grades="klassik"] .gchip--2 { --gc: #f99a4b; --gt: #552900; --gr: transparent; --gbw: 0px; }
-[data-grades="klassik"] :is(.gchip--1, .gchip--0), .palpick__opt[data-grades="klassik"] :is(.gchip--1, .gchip--0) { --gc: #c33e39; --gt: #ffffff; --gr: transparent; --gbw: 0px; }
-[data-theme="dark"][data-grades="klassik"], [data-theme="dark"] .palpick__opt[data-grades="klassik"] { --g5: #028133; --g4: #9bb94f; --g3: #e2c55a; --g2: #db8742; --g1: #c33e39; }
-[data-theme="dark"][data-grades="klassik"] .gchip--5, [data-theme="dark"] .palpick__opt[data-grades="klassik"] .gchip--5 { --gc: #028133; --gt: #ffffff; --gr: transparent; --gbw: 0px; }
-[data-theme="dark"][data-grades="klassik"] .gchip--4, [data-theme="dark"] .palpick__opt[data-grades="klassik"] .gchip--4 { --gc: #9bb94f; --gt: #263500; --gr: transparent; --gbw: 0px; }
-[data-theme="dark"][data-grades="klassik"] .gchip--3, [data-theme="dark"] .palpick__opt[data-grades="klassik"] .gchip--3 { --gc: #e2c55a; --gt: #3a3000; --gr: transparent; --gbw: 0px; }
-[data-theme="dark"][data-grades="klassik"] .gchip--2, [data-theme="dark"] .palpick__opt[data-grades="klassik"] .gchip--2 { --gc: #db8742; --gt: #4e2600; --gr: transparent; --gbw: 0px; }
-[data-theme="dark"][data-grades="klassik"] :is(.gchip--1, .gchip--0), [data-theme="dark"] .palpick__opt[data-grades="klassik"] :is(.gchip--1, .gchip--0) { --gc: #c33e39; --gt: #ffffff; --gr: transparent; --gbw: 0px; }
-/* chiziq: neutral chip and ink number, the band a left stripe */
-[data-grades="chiziq"], .palpick__opt[data-grades="chiziq"] { --g5: #018a36; --g4: #85ae20; --g3: #dfbf32; --g2: #e68126; --g1: #d23837; }
-[data-grades="chiziq"] .gchip--5, .palpick__opt[data-grades="chiziq"] .gchip--5 { --gc: #eef1f5; --gt: #1d2533; --gr: transparent; --gbw: 3px; }
-[data-grades="chiziq"] .gchip--4, .palpick__opt[data-grades="chiziq"] .gchip--4 { --gc: #eef1f5; --gt: #1d2533; --gr: transparent; --gbw: 3px; }
-[data-grades="chiziq"] .gchip--3, .palpick__opt[data-grades="chiziq"] .gchip--3 { --gc: #eef1f5; --gt: #1d2533; --gr: transparent; --gbw: 3px; }
-[data-grades="chiziq"] .gchip--2, .palpick__opt[data-grades="chiziq"] .gchip--2 { --gc: #eef1f5; --gt: #1d2533; --gr: transparent; --gbw: 3px; }
-[data-grades="chiziq"] :is(.gchip--1, .gchip--0), .palpick__opt[data-grades="chiziq"] :is(.gchip--1, .gchip--0) { --gc: #eef1f5; --gt: #1d2533; --gr: transparent; --gbw: 3px; }
-[data-theme="dark"][data-grades="chiziq"], [data-theme="dark"] .palpick__opt[data-grades="chiziq"] { --g5: #23a64a; --g4: #9ec342; --g3: #f0d04e; --g2: #f6933f; --g1: #ed5a52; }
-[data-theme="dark"][data-grades="chiziq"] .gchip--5, [data-theme="dark"] .palpick__opt[data-grades="chiziq"] .gchip--5 { --gc: #283041; --gt: #e8ebf1; --gr: transparent; --gbw: 3px; }
-[data-theme="dark"][data-grades="chiziq"] .gchip--4, [data-theme="dark"] .palpick__opt[data-grades="chiziq"] .gchip--4 { --gc: #283041; --gt: #e8ebf1; --gr: transparent; --gbw: 3px; }
-[data-theme="dark"][data-grades="chiziq"] .gchip--3, [data-theme="dark"] .palpick__opt[data-grades="chiziq"] .gchip--3 { --gc: #283041; --gt: #e8ebf1; --gr: transparent; --gbw: 3px; }
-[data-theme="dark"][data-grades="chiziq"] .gchip--2, [data-theme="dark"] .palpick__opt[data-grades="chiziq"] .gchip--2 { --gc: #283041; --gt: #e8ebf1; --gr: transparent; --gbw: 3px; }
-[data-theme="dark"][data-grades="chiziq"] :is(.gchip--1, .gchip--0), [data-theme="dark"] .palpick__opt[data-grades="chiziq"] :is(.gchip--1, .gchip--0) { --gc: #283041; --gt: #e8ebf1; --gr: transparent; --gbw: 3px; }
-/* aralash: the default above, for its preview card */
-.palpick__opt[data-grades="aralash"] { --g5: #047857; --g4: #4ade80; --g3: #eab308; --g2: #ea580c; --g1: #991b1b; }
-.palpick__opt[data-grades="aralash"] .gchip--5 { --gc: var(--g5); --gt: #fff; --gr: transparent; --gbw: 0px; }
-.palpick__opt[data-grades="aralash"] .gchip--4 { --gc: #dcfce7; --gt: #15803d; --gr: rgba(22, 163, 74, .35); --gbw: 0px; }
-.palpick__opt[data-grades="aralash"] .gchip--3 { --gc: #fef9c3; --gt: #a16207; --gr: rgba(202, 138, 4, .35); --gbw: 0px; }
-.palpick__opt[data-grades="aralash"] .gchip--2 { --gc: #ffedd5; --gt: #c2410c; --gr: rgba(234, 88, 12, .35); --gbw: 0px; }
-.palpick__opt[data-grades="aralash"] :is(.gchip--1, .gchip--0) { --gc: var(--g1); --gt: #fff; --gr: transparent; --gbw: 0px; }
-[data-theme="dark"] .palpick__opt[data-grades="aralash"] { --g5: #15803d; --g4: #86efac; --g3: #facc15; --g2: #f97316; --g1: #e11d48; }
-[data-theme="dark"] .palpick__opt[data-grades="aralash"] .gchip--5 { --gc: var(--g5); --gt: #fff; --gr: transparent; --gbw: 0px; }
-[data-theme="dark"] .palpick__opt[data-grades="aralash"] .gchip--4 { --gc: rgba(134, 239, 172, .14); --gt: #86efac; --gr: rgba(134, 239, 172, .35); --gbw: 0px; }
-[data-theme="dark"] .palpick__opt[data-grades="aralash"] .gchip--3 { --gc: rgba(250, 204, 21, .14); --gt: #fde047; --gr: rgba(250, 204, 21, .35); --gbw: 0px; }
-[data-theme="dark"] .palpick__opt[data-grades="aralash"] .gchip--2 { --gc: rgba(249, 115, 22, .16); --gt: #fdba74; --gr: rgba(249, 115, 22, .4); --gbw: 0px; }
-[data-theme="dark"] .palpick__opt[data-grades="aralash"] :is(.gchip--1, .gchip--0) { --gc: var(--g1); --gt: #fff; --gr: transparent; --gbw: 0px; }
+/* A mark: a solid square of its colour with a white number (the owner's
+   pick, 2026-11-23, after the landing page's journal picture) — 5 green,
+   4 blue, 3 orange, 2 red-orange, 1/0 red: told apart by hue AND by the
+   number in it. --gc fill, --gt number, --gr ring (none); --gb stays the
+   ordinal band above, for stripes and charts. The old palettes
+   (tonal / klassik / chiziq) went with their picker. */
+.gchip--5 { --gb: var(--g5); --gc: #16a34a; --gt: #fff; --gr: transparent; --gbw: 0px; }
+.gchip--4 { --gb: var(--g4); --gc: #2563eb; --gt: #fff; --gr: transparent; --gbw: 0px; }
+.gchip--3 { --gb: var(--g3); --gc: #e8720c; --gt: #fff; --gr: transparent; --gbw: 0px; }
+.gchip--2 { --gb: var(--g2); --gc: #dc4423; --gt: #fff; --gr: transparent; --gbw: 0px; }
+.gchip--1, .gchip--0 { --gb: var(--g1); --gc: #be123c; --gt: #fff; --gr: transparent; --gbw: 0px; }
+[data-theme="dark"] .gchip--5 { --gc: #1fa855; }
+[data-theme="dark"] .gchip--4 { --gc: #3b7cf5; }
+[data-theme="dark"] .gchip--3 { --gc: #ee8420; }
+[data-theme="dark"] .gchip--2 { --gc: #e8583a; }
+[data-theme="dark"] :is(.gchip--1, .gchip--0) { --gc: #dc3a55; }
 /* Scores outside the journal (PercentPill, MetricPill, a test's result) wear the same bands. */
 .pill[class*="gchip--"] { background: var(--gc); color: var(--gt); box-shadow: inset var(--gbw, 0px) 0 0 var(--gb, transparent), inset 0 0 0 1px var(--gr, transparent); }
 .review__score[class*="gchip--"] { background: color-mix(in srgb, var(--gb) 16%, var(--surface)); box-shadow: inset 4px 0 0 var(--gb); }
