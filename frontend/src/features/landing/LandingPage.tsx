@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'rea
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
-import { fullPhone, PhoneField } from '@/features/auth/phone'
+import { fullPhone, PhoneField } from '@/components/PhoneField'
 import { errText } from '@/features/portal/ui'
 import { IC, themeIconMoon, themeIconSun } from '@/icons'
 import { api } from '@/lib/api/client'
@@ -112,13 +112,13 @@ function Hero() {
       <div className="lp-wrap lp-hero__in">
         <div className="lp-hero__text">
           <span className="lp-kicker">Ko'ragoniy Education × Muhandis D</span>
-          <h1 className="lp-hero__title">{t('Kelajak muhandislari maktab partasidan boshlanadi')}</h1>
+          <h1 className="lp-hero__title">{t("Fizika va STEAM ta'limi uchun yagona maktab platformasi")}</h1>
           <p className="lp-hero__lead">
-            {t("Fizika (nazariy va amaliy), STEAM va robototexnika darslari — O'zbekiston maktablarida o'qituvchi va o'quvchi uchun yagona ta'lim tizimi.")}
+            {t("Darslikka mos dars ishlanmalari, laboratoriya tajribalari, elektron jurnal va dars jadvali — o'qituvchi, o'quvchi va maktab ma'muriyati uchun bitta tizimda.")}
           </p>
           <div className="lp-hero__cta">
-            <Link to="/login" className="lp-btn lp-btn--white lp-btn--lg">{t('Platformaga kirish')} <span className="lp-arrow">{IC.back}</span></Link>
-            <Anchor to="boglanish" className="lp-btn lp-btn--glass lp-btn--lg">{t('Maktabingizni ulang')}</Anchor>
+            <Link to="/login" className="lp-btn lp-btn--white lp-btn--lg">{t('Tizimga kirish')} <span className="lp-arrow">{IC.back}</span></Link>
+            <Anchor to="boglanish" className="lp-btn lp-btn--glass lp-btn--lg">{t('Hamkorlik uchun ariza')}</Anchor>
           </div>
           <ul className="lp-hero__tags">
             <li>{IC.atom} {t('Fizika: nazariya va tajriba')}</li>
@@ -210,7 +210,7 @@ function ProductShot() {
 
       <div className="lp-shot__toast">
         <span className="lp-shot__tg">{IC.telegram}</span>
-        <span><b>@kuragoniybot</b><small>☀️ {t('Bugun 4 ta darsingiz bor')}</small></span>
+        <span><b>@kuragoniybot</b><small>{t('Bugun 4 ta darsingiz bor')}</small></span>
       </div>
     </div>
   )
@@ -238,8 +238,8 @@ function Features() {
       <div className="lp-wrap">
         <SectionHead
           kicker={t('Imkoniyatlar')}
-          title={t("O'qituvchi uchun hamma narsa bir joyda")}
-          lead={t("Darsga tayyorgarlikdan baholashgacha — kundalik ishning har bir qadami platformada.")}
+          title={t('Platforma imkoniyatlari')}
+          lead={t("O'qituvchining kundalik ishi — darsga tayyorgarlikdan baholashgacha — yagona tizimda yuritiladi.")}
         />
         <div className="lp-feats">
           {items.map((f) => (
@@ -270,7 +270,7 @@ function Subjects() {
   const cards = [
     {
       key: 'fizika', icon: IC.atom, tag: t('Nazariy + amaliy'), title: t('Amaliy fizika'),
-      text: t("Qonunni kitobdan yodlamay, o'z qo'li bilan o'lchab topadi: har bir mavzuda nazariya, tajriba va masala bir darsda."),
+      text: t("Har bir mavzu nazariya, laboratoriya tajribasi va masala yechish bilan bir darsda o'tiladi; o'quvchi qonuniyatni o'lchash orqali o'zlashtiradi."),
       points: [
         t('Darslikka mos tayyor dars ishlanmalari'),
         t("Bosqichma-bosqich laboratoriya tajribalari"),
@@ -280,7 +280,7 @@ function Subjects() {
     },
     {
       key: 'steam', icon: IC.robot, tag: t('1–9-sinflar'), title: t('STEAM / Robototexnika'),
-      text: t("Fan, texnologiya, muhandislik, san'at va matematika — loyiha orqali: kichik sinflarda konstruktor, kattalarida dasturlash va robot."),
+      text: t("Fan, texnologiya, muhandislik, san'at va matematika loyiha asosida o'qitiladi: boshlang'ich sinflarda konstruktorlar, yuqori sinflarda dasturlash va robototexnika."),
       points: [
         t("STEM chamadonlar bilan amaliy mashg'ulotlar"),
         t("Robot yig'ish va dasturlash"),
@@ -294,8 +294,8 @@ function Subjects() {
       <div className="lp-wrap">
         <SectionHead
           kicker={t("Yo'nalishlar")}
-          title={t("Ikki yo'nalish — bitta maqsad")}
-          lead={t("Har bir o'qituvchi va o'quvchi ma'muriyat tomonidan o'ziga mos fanga yo'naltiriladi; dars, material va natijalar shu fan bo'yicha ko'rinadi.")}
+          title={t("Ta'lim yo'nalishlari")}
+          lead={t("Platformada ikki yo'nalish bo'yicha darslar, materiallar va natijalar alohida yuritiladi. Har bir o'qituvchi va o'quvchi o'z yo'nalishiga biriktiriladi.")}
         />
         <div className="lp-subjects">
           {cards.map((c) => (
@@ -320,10 +320,10 @@ function Subjects() {
 function HowItWorks() {
   const { t } = useTranslation()
   const steps = [
-    { t: t("Maktab hamkor bo'ladi"), p: t("Kelishuvdan so'ng maktabning sinflari, dars jadvali va o'qituvchilari platformaga kiritiladi.") },
-    { t: t('O\'qituvchi tayyor dars bilan keladi'), p: t("Dars ishlanmasi, tajriba yo'riqnomasi, taqdimot va materiallar bitta joyda — darsga tayyorgarlik daqiqalarda.") },
-    { t: t("O'quvchi amalda o'rganadi"), p: t("Tajriba, loyiha, test va o'yinlar; har bir yutuq ball va reytingda ko'rinadi.") },
-    { t: t("Natija ko'rinib turadi"), p: t("Elektron jurnal, chorak baholari, o'zlashtirish va sifat ko'rsatkichlari — o'qituvchi va ma'muriyat uchun.") },
+    { t: t('Shartnoma tuziladi'), p: t("Maktab bilan hamkorlik shartnomasi tuzilib, sinflar, dars jadvali va o'qituvchilar platformaga kiritiladi.") },
+    { t: t("O'qituvchilar ulanadi"), p: t("Har bir o'qituvchiga login va parol beriladi; dars ishlanmalari, tajriba yo'riqnomalari va materiallar bitta joyda.") },
+    { t: t("Darslar o'tiladi"), p: t("O'quvchilar tajriba, loyiha va testlar orqali amaliy o'rganadi; baho va davomat jurnalga yoziladi.") },
+    { t: t('Natijalar tahlil qilinadi'), p: t("Chorak baholari, o'zlashtirish va sifat ko'rsatkichlari o'qituvchi va ma'muriyat uchun doimiy ko'rinadi.") },
   ]
   const roles = [
     { icon: IC.cap, title: t("O'qituvchi uchun"), items: [t('Dars jadvali va elektron jurnal'), t('Tayyor dars ishlanmalari va tajribalar'), t("Kutubxona va o'quv materiallari"), t('Malaka oshirish kurslari')] },
@@ -334,8 +334,8 @@ function HowItWorks() {
     <section id="platforma" className="lp-sec lp-sec--tint">
       <div className="lp-wrap">
         <SectionHead
-          kicker={t('Qanday ishlaydi')}
-          title={t("Maktabdan natijagacha — to'rt qadam")}
+          kicker={t('Hamkorlik tartibi')}
+          title={t('Hamkorlik bosqichlari')}
         />
         <ol className="lp-steps">
           {steps.map((s, i) => (
@@ -470,30 +470,6 @@ function Mentors({ items }: { items: LandingData['mentors'] }) {
   )
 }
 
-function Partners({ names }: { names: string[] }) {
-  const { t } = useTranslation()
-  if (!names.length) return null
-  // The strip is one run long enough to fill the screen, then that run
-  // again — sliding by half loops without a seam. Screen readers get the
-  // list once; with reduced motion only the names themselves stay.
-  const run: string[] = []
-  while (run.length < 8) run.push(...names)
-  const loop = [...run, ...run]
-  return (
-    <section id="hamkorlar" className="lp-sec lp-sec--tight">
-      <div className="lp-wrap">
-        <SectionHead kicker={t('Hamkorlar')} title={t('Hamkor maktablarimiz')} />
-      </div>
-      <ul className="lp-sr">{names.map((n) => <li key={n}>{n}</li>)}</ul>
-      <div className="lp-marquee" aria-hidden="true">
-        <div className="lp-marquee__track" style={{ ['--dur' as string]: `${Math.max(24, run.length * 4)}s` }}>
-          {loop.map((n, i) => <span key={i} className="lp-marquee__i" data-dup={i >= names.length ? '' : undefined}>{IC.school} {n}</span>)}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 function LeadForm() {
   const { t } = useTranslation()
   const guard = useFormGuard('lead')
@@ -526,8 +502,8 @@ function LeadForm() {
     return (
       <div className="lp-lead__done" role="status">
         <span className="lp-lead__ok">{IC.check2}</span>
-        <h3>{t('Rahmat! So\'rovingiz qabul qilindi')}</h3>
-        <p>{t("Jamoamiz tez orada siz bilan bog'lanadi.")}</p>
+        <h3>{t('Arizangiz qabul qilindi')}</h3>
+        <p>{t("Mas'ul xodimimiz siz bilan bog'lanadi.")}</p>
       </div>
     )
   }
@@ -547,11 +523,11 @@ function LeadForm() {
         </span>
       </label>
       <label className="field">
-        <span className="field__label">{t('Xabar')} <small className="muted">({t('ixtiyoriy')})</small></span>
+        <span className="field__label">{t('Maktab va izoh')} <small className="muted">({t('ixtiyoriy')})</small></span>
         <textarea className="input lp-lead__msg" rows={3} maxLength={500} placeholder={t("Maktab nomi, hudud yoki savolingiz")} value={msg} onChange={(e) => setMsg(e.target.value)} />
       </label>
       <button className="lp-btn lp-btn--primary lp-btn--lg lp-btn--block" type="submit" disabled={busy}>
-        {busy ? t('Yuborilmoqda…') : t('Yuborish')}
+        {busy ? t('Yuborilmoqda…') : t('Ariza yuborish')}
       </button>
       {note && <p className="form__note form__note--err" role="alert">{note}</p>}
       <HoneypotField guard={guard} />
@@ -577,9 +553,9 @@ function Contact({ contacts }: { contacts: LandingData['contacts'] | undefined }
       <div className="lp-wrap lp-lead">
         <div className="lp-lead__text">
           <span className="lp-shead__k">{t("Bog'lanish")}</span>
-          <h2 className="lp-shead__t">{t('Maktabingizda darslarni boshlaymizmi?')}</h2>
+          <h2 className="lp-shead__t">{t('Hamkorlik uchun ariza')}</h2>
           <p className="lp-shead__l">
-            {t("Ma'lumot qoldiring — jamoamiz siz bilan bog'lanib, hamkorlik shartlari, jihozlar va o'qituvchilar tayyorgarligi haqida batafsil gaplashadi.")}
+            {t("Maktabingizni platformaga ulash bo'yicha arizangizni qoldiring. Mas'ul xodimimiz siz bilan bog'lanib, hamkorlik shartlari, jihozlar va o'qituvchilar tayyorgarligi haqida ma'lumot beradi.")}
           </p>
           {rows.length > 0 && (
             <ul className="lp-contacts">
@@ -615,7 +591,7 @@ function Footer({ data, sections }: { data: LandingData | undefined; sections: {
       <div className="lp-wrap lp-foot__grid">
         <div className="lp-foot__brand">
           <span className="lp-brand lp-brand--foot"><img src="/logo.png" alt="" width={38} height={38} /><span>KO'RAGONIY EDU</span></span>
-          <p>{t("Ko'ragoniy Education va Muhandis D loyihalari: fizika, STEAM va robototexnika orqali muhandislikka ilk qadam.")}</p>
+          <p>{t("Ko'ragoniy Education va Muhandis D: maktablar uchun fizika, STEAM va robototexnika ta'limi platformasi.")}</p>
           {socials.length > 0 && (
             <nav className="lp-foot__social" aria-label={t('Ijtimoiy tarmoqlar')}>
               {socials.map((s) => <a key={s.label} href={s.url} target="_blank" rel="noreferrer" aria-label={s.label} title={s.label}>{s.ic}</a>)}
@@ -626,7 +602,6 @@ function Footer({ data, sections }: { data: LandingData | undefined; sections: {
           <h3 className="lp-foot__h">{t('Platforma')}</h3>
           <ul className="lp-foot__links">
             <li><Link to="/login">{t('Kirish')}</Link></li>
-            <li><Link to="/register">{t("O'qituvchi sifatida ro'yxatdan o'tish")}</Link></li>
             <li><Link to="/join">{t("O'quvchilar: sinf kodi bilan qo'shilish")}</Link></li>
           </ul>
         </div>
@@ -667,9 +642,8 @@ export function LandingPage() {
   const sections = [
     { id: 'yonalishlar', label: t("Yo'nalishlar") },
     { id: 'imkoniyatlar', label: t('Imkoniyatlar') },
-    { id: 'platforma', label: t('Qanday ishlaydi') },
+    { id: 'platforma', label: t('Hamkorlik tartibi') },
     ...(data?.mentors.length ? [{ id: 'ustozlar', label: t('Ustozlar') }] : []),
-    ...(data?.partners.length ? [{ id: 'hamkorlar', label: t('Hamkorlar') }] : []),
     { id: 'boglanish', label: t("Bog'lanish") },
   ]
 
@@ -685,7 +659,6 @@ export function LandingPage() {
         <Gallery photos={data?.photos ?? []} />
         <Testimonials items={data?.testimonials ?? []} onVideo={setVideo} />
         <Mentors items={data?.mentors ?? []} />
-        <Partners names={data?.partners ?? []} />
         <Contact contacts={data?.contacts} />
       </main>
       <Footer data={data} sections={sections} />

@@ -25,14 +25,6 @@ class StudentRegisterRateThrottle(AnonRateThrottle):
     scope = 'student_register'
 
 
-class PhoneStartRateThrottle(AnonRateThrottle):
-    scope = 'phone_start'
-
-
-class PhoneVerifyRateThrottle(AnonRateThrottle):
-    scope = 'phone_verify'
-
-
 class LeadRateThrottle(AnonRateThrottle):
     scope = 'lead'
 

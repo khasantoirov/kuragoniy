@@ -81,14 +81,11 @@ def test_the_emergency_switch_refuses_nobody(api_client, guarded, teacher):
 
 
 @pytest.mark.parametrize('url, action, body', [
-    ('/api/auth/phone/start/', 'phone_start', {'phone': '+998901112233'}),
-    ('/api/auth/phone/register/', 'phone_register', {'phone': '+998901112234', 'first_name': 'Ali', 'last_name': 'Valiyev'}),
     ('/api/auth/password-reset/request/', 'password_reset', {'login': 'nobody'}),
     ('/api/public/leads/', 'lead', {'name': 'Ali Valiyev', 'phone': '+998901112235'}),
     ('/api/student/register/', 'student_register', {'code': 'NOPE1234'}),
 ])
-@patch('accounts.phone_views.send_telegram_message')
-def test_every_public_form_is_guarded(_send, api_client, guarded, url, action, body):
+def test_every_public_form_is_guarded(api_client, guarded, url, action, body):
     r = api_client.post(url, body, format='json')
     assert r.status_code == 400 and r.data.get('detail') == formguard.FAILED
     r = api_client.post(url, {**body, 'guard': proof(api_client, action)}, format='json')

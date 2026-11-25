@@ -15,7 +15,7 @@ export function PendingApprovalPage() {
         <p className="prose">
           {student
             ? t("Hisobingiz yaratildi. O'qituvchingiz tasdiqlagach, shu login va parol bilan kira olasiz.")
-            : t("Hisobingiz yaratildi. Ma'muriyat arizangizni ko'rib chiqib, sizni mos fanga yo'naltiradi. Tasdiqlangach, telefon raqamingiz yoki loginingiz va parolingiz bilan kira olasiz.")}
+            : t("Hisobingiz yaratildi. Ma'muriyat ko'rib chiqib, sizni mos fanga yo'naltiradi. Tasdiqlangach, login va parolingiz bilan kira olasiz.")}
         </p>
         {user?.username && (
           <p className="prose prose--note">{t('Loginingiz')}: <b>{user.username}</b></p>

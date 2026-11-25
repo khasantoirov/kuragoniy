@@ -18,7 +18,6 @@ import { AdminTabs, guestPortalRoutes, JournalTabs, LessonsTabs, StaffHome, staf
 const AboutPage = lazy(() => import('@/features/about/AboutPage').then((m) => ({ default: m.AboutPage })))
 const ForgotPasswordPage = lazy(() => import('@/features/auth/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })))
 const PendingApprovalPage = lazy(() => import('@/features/auth/PendingApprovalPage').then((m) => ({ default: m.PendingApprovalPage })))
-const RegisterPage = lazy(() => import('@/features/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })))
 const LessonDetail = lazy(() => import('@/features/lessons/LessonDetail').then((m) => ({ default: m.LessonDetail })))
 const EquipmentSheetPage = lazy(() => import('@/features/admin/EquipmentSheetPage').then((m) => ({ default: m.EquipmentSheetPage })))
 const LibraryPage = lazy(() => import('@/features/library/LibraryPage').then((m) => ({ default: m.LibraryPage })))
@@ -116,7 +115,8 @@ export const router = createBrowserRouter([
     ),
     children: [
       { path: '/login', element: <LoginPage /> },
-      { path: '/register', element: page(<RegisterPage />) },
+      // no self sign-up: staff accounts are made by the administration
+      { path: '/register', element: <Navigate to="/login" replace /> },
       { path: '/forgot-password', element: page(<ForgotPasswordPage />) },
       ...guestPortalRoutes,
     ],

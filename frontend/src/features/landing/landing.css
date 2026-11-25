@@ -18,9 +18,9 @@
   --lp-navy: #0d1a45;
   --lp-navy-2: #1b2f86;
   --lp-shadow: 0 1px 2px rgba(15,27,61,.06), 0 12px 32px rgba(15,27,61,.08);
-  --lp-hero-a: #2f7bff;
-  --lp-hero-b: #4f63f0;
-  --lp-hero-c: #2c3a9e;
+  --lp-hero-a: #173a8c;
+  --lp-hero-b: #1c3f99;
+  --lp-hero-c: #0e2156;
   position: fixed; inset: 0;
   overflow: hidden auto; overscroll-behavior: contain;
   scroll-behavior: smooth;
@@ -46,6 +46,15 @@
   --lp-hero-c: #0f1430;
 }
 .lp *, .lp *::before, .lp *::after { box-sizing: border-box; }
+/* the page's own scrollbar: slim, a soft thumb on a clear track */
+.lp { scrollbar-width: thin; scrollbar-color: rgba(15,27,61,.28) transparent; }
+.lp::-webkit-scrollbar { width: 10px; }
+.lp::-webkit-scrollbar-track { background: transparent; }
+.lp::-webkit-scrollbar-thumb { border: 3px solid transparent; border-radius: 10px; background: rgba(15,27,61,.28) padding-box; }
+.lp::-webkit-scrollbar-thumb:hover { background-color: rgba(15,27,61,.48); }
+[data-theme="dark"] .lp { scrollbar-color: rgba(255,255,255,.22) transparent; }
+[data-theme="dark"] .lp::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,.22); }
+[data-theme="dark"] .lp::-webkit-scrollbar-thumb:hover { background-color: rgba(255,255,255,.4); }
 .lp img { max-width: 100%; display: block; }
 :where(.lp) a { color: inherit; }
 .lp .svic { width: 18px; height: 18px; flex: none; }
@@ -105,7 +114,7 @@
   background: linear-gradient(140deg, var(--lp-hero-a) 0%, var(--lp-hero-b) 50%, var(--lp-hero-c) 100%);
 }
 .lp-hero__bg { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.lp-hero__bg span { position: absolute; border-radius: 50%; background: rgba(255,255,255,.07); }
+.lp-hero__bg span { position: absolute; border-radius: 50%; background: rgba(255,255,255,.045); }
 .lp-hero__bg span:nth-child(1) { width: 620px; height: 620px; left: -220px; top: -260px; }
 .lp-hero__bg span:nth-child(2) { width: 360px; height: 360px; right: -120px; top: 40%; }
 .lp-hero__bg span:nth-child(3) { width: 220px; height: 220px; left: 38%; bottom: -120px; background: rgba(255,255,255,.05); }
@@ -119,7 +128,7 @@
 }
 .lp-kicker--dark { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.22); }
 .lp-hero__title { margin: 18px 0 16px; font: 700 clamp(34px, 5.2vw, 60px)/1.08 var(--f-display); letter-spacing: -.02em; text-wrap: balance; }
-@media (max-width: 560px) { .lp-hero__title { font-size: 31px; line-height: 1.12; } }
+@media (max-width: 560px) { .lp-hero__title { font-size: 28px; line-height: 1.15; } }
 .lp-hero__lead { margin: 0; max-width: 56ch; font-size: clamp(16px, 1.6vw, 19px); line-height: 1.6; color: rgba(255,255,255,.86); }
 .lp-hero__cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
 .lp-hero__tags { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 28px 0 0; padding: 0; list-style: none; }
@@ -223,7 +232,7 @@
 /* ── Imkoniyatlar ─────────────────────────────────────────────── */
 .lp-feats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .lp-feat {
-  --tc: #2563eb;
+  --tc: var(--lp-brand);
   display: grid; align-content: start; gap: 10px; padding: 24px;
   border: 1px solid var(--lp-line); border-radius: 18px; background: var(--lp-surface); box-shadow: var(--lp-shadow);
   transition: transform .18s ease, border-color .18s ease;
@@ -233,18 +242,6 @@
 .lp .lp-feat__ic .svic { width: 26px; height: 26px; }
 .lp-feat__t { margin: 6px 0 0; font: 700 18px/1.25 var(--f-display); color: var(--lp-ink); }
 .lp-feat__p { margin: 0; font-size: 15px; line-height: 1.6; color: var(--lp-ink-2); }
-.lp-feat--blue { --tc: #2563eb; }
-.lp-feat--green { --tc: #16a34a; }
-.lp-feat--orange { --tc: #ea7a12; }
-.lp-feat--teal { --tc: #0d9488; }
-.lp-feat--sky { --tc: #229ed9; }
-.lp-feat--rose { --tc: #e11d48; }
-[data-theme="dark"] .lp-feat--blue { --tc: #60a5fa; }
-[data-theme="dark"] .lp-feat--green { --tc: #4ade80; }
-[data-theme="dark"] .lp-feat--orange { --tc: #fb9a3c; }
-[data-theme="dark"] .lp-feat--teal { --tc: #2dd4bf; }
-[data-theme="dark"] .lp-feat--sky { --tc: #5cc3f2; }
-[data-theme="dark"] .lp-feat--rose { --tc: #fb7185; }
 @media (max-width: 959px) { .lp-feats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) {
   .lp-feats { grid-template-columns: minmax(0, 1fr); gap: 12px; }
@@ -367,18 +364,6 @@
 .lp-mentor__r { margin: 0; font-size: 14px; font-weight: 600; color: var(--lp-brand); }
 .lp-mentor__b { margin: 8px 0 0; font-size: 14px; line-height: 1.5; color: var(--lp-ink-2); }
 
-/* Hamkorlar — yuguruvchi qator */
-.lp-marquee { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
-.lp-marquee__track { display: flex; gap: 12px; width: max-content; padding: 4px 0; animation: lp-marquee var(--dur, 30s) linear infinite; }
-.lp-marquee:hover .lp-marquee__track { animation-play-state: paused; }
-.lp-marquee__i {
-  display: inline-flex; align-items: center; gap: 10px; padding: 14px 20px; border-radius: 14px;
-  background: var(--lp-surface); border: 1px solid var(--lp-line); white-space: nowrap;
-  font: 600 15px/1 var(--f-body); color: var(--lp-ink);
-}
-.lp-marquee__i .svic { color: var(--lp-brand); }
-@keyframes lp-marquee { to { transform: translateX(-50%); } }
-
 /* Bog'lanish */
 .lp-lead { display: grid; gap: 32px; align-items: start; }
 @media (min-width: 900px) { .lp-lead { grid-template-columns: 1fr 1fr; gap: 56px; } }
@@ -431,7 +416,7 @@
   .lp-brand img { width: 32px; height: 32px; }
   .lp-head__tools { gap: 8px; }
   .lp-head__tools .gx-tool { height: 40px; padding: 0 10px; }
-  .lp-head__tools .gx-tool--sq { display: none; }
+  .lp-head__tools .gx-tool--sq { width: 40px; padding: 0; justify-content: center; }
   .lp-head__go { height: 40px; padding: 0 14px; }
   .lp-hero { padding-top: 96px; }
   .lp-hero__cta .lp-btn { flex: 1 1 auto; }
@@ -439,21 +424,20 @@
   .lp-subject, .lp-lead__card { padding: 22px; }
   .lp-mission { padding: 64px 0; }
 }
+/* a phone: name, language, theme and Kirish all fit one row */
 @media (max-width: 440px) {
-  .lp-head__in { gap: 10px; }
+  .lp-head__in { gap: 8px; }
   .lp-brand { font-size: 13.5px; gap: 8px; }
-  .lp-head__tools .gx-lang__chev { display: none; }
-  .lp-head__tools .gx-tool { padding: 0 9px; gap: 5px; }
-  .lp-head__go { padding: 0 12px; font-size: 14px; }
+  .lp-head__tools { gap: 6px; }
+  .lp-head__tools .gx-lang__chev, .lp-head__tools .gx-lang .gx-tool > .svic:first-child { display: none; }
+  .lp-head__tools .gx-tool { height: 38px; padding: 0 10px; gap: 5px; }
+  .lp-head__tools .gx-tool--sq { width: 38px; padding: 0; }
+  .lp-head__go { height: 38px; padding: 0 12px; font-size: 14px; }
 }
-@media (max-width: 340px) {
+@media (max-width: 370px) {
   .lp-brand span { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .lp { scroll-behavior: auto; }
-  .lp-orbit__ring--1, .lp-orbit__node, .lp-orbit__f { animation: none; }
-  .lp-marquee { -webkit-mask-image: none; mask-image: none; }
-  .lp-marquee__track { animation: none; flex-wrap: wrap; justify-content: center; width: auto; padding: 0 16px; }
-  .lp-marquee__i[data-dup] { display: none; }
 }

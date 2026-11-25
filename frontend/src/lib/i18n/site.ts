@@ -74,8 +74,9 @@ const ru: Record<string, string> = {
   'belgilanmasa, ikkalasi': 'если не выбрано — оба',
   "Darslar, kutubxona va kurslar shu fan bo'yicha ko'rinadi. Hech biri belgilanmasa, ikkala fan ham ko'rinadi.":
     'Уроки, библиотека и курсы показываются по этому предмету. Если ничего не выбрано, видны оба предмета.',
-  "Hisobingiz yaratildi. Ma'muriyat arizangizni ko'rib chiqib, sizni mos fanga yo'naltiradi. Tasdiqlangach, telefon raqamingiz yoki loginingiz va parolingiz bilan kira olasiz.":
-    'Аккаунт создан. Администрация рассмотрит заявку и назначит вам предмет. После подтверждения вы сможете войти по номеру телефона или по логину и паролю.',
+  "Hisobingiz yaratildi. Ma'muriyat ko'rib chiqib, sizni mos fanga yo'naltiradi. Tasdiqlangach, login va parolingiz bilan kira olasiz.":
+    'Аккаунт создан. Администрация рассмотрит его и назначит вам предмет. После подтверждения вы сможете войти по логину и паролю.',
+  "Login va parolni maktabingiz ma'muriyati beradi.": "Логин и пароль выдаёт администрация вашей школы.",
 }
 
 const en: Record<string, string> = {
@@ -145,8 +146,9 @@ const en: Record<string, string> = {
   'belgilanmasa, ikkalasi': 'none ticked = both',
   "Darslar, kutubxona va kurslar shu fan bo'yicha ko'rinadi. Hech biri belgilanmasa, ikkala fan ham ko'rinadi.":
     'Lessons, the library and courses follow this subject. With none ticked, both subjects show.',
-  "Hisobingiz yaratildi. Ma'muriyat arizangizni ko'rib chiqib, sizni mos fanga yo'naltiradi. Tasdiqlangach, telefon raqamingiz yoki loginingiz va parolingiz bilan kira olasiz.":
-    'Your account is created. The administration will review it and assign your subject. Once approved, sign in with your phone number or your login and password.',
+  "Hisobingiz yaratildi. Ma'muriyat ko'rib chiqib, sizni mos fanga yo'naltiradi. Tasdiqlangach, login va parolingiz bilan kira olasiz.":
+    'Your account is created. The administration will review it and assign your subject. Once approved, sign in with your login and password.',
+  "Login va parolni maktabingiz ma'muriyati beradi.": "Your school's administration gives you your login and password.",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

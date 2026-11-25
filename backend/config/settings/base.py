@@ -192,8 +192,6 @@ REST_FRAMEWORK = {
         'register': '5/hour',
         'student_register': '200/hour',
         'password_reset': '30/hour',
-        'phone_start': '30/hour',
-        'phone_verify': '120/hour',
         'lead': '10/hour',
         'password_reset_confirm': '60/hour',
         'game_answer': '120/min',
