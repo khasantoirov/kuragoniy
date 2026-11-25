@@ -18,9 +18,9 @@
   --lp-navy: #0d1a45;
   --lp-navy-2: #1b2f86;
   --lp-shadow: 0 1px 2px rgba(15,27,61,.06), 0 12px 32px rgba(15,27,61,.08);
-  --lp-hero-a: #173a8c;
-  --lp-hero-b: #1c3f99;
-  --lp-hero-c: #0e2156;
+  --lp-hero-a: #2f7bff;
+  --lp-hero-b: #4f63f0;
+  --lp-hero-c: #2c3a9e;
   position: fixed; inset: 0;
   overflow: hidden auto; overscroll-behavior: contain;
   scroll-behavior: smooth;
@@ -114,7 +114,7 @@
   background: linear-gradient(140deg, var(--lp-hero-a) 0%, var(--lp-hero-b) 50%, var(--lp-hero-c) 100%);
 }
 .lp-hero__bg { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-.lp-hero__bg span { position: absolute; border-radius: 50%; background: rgba(255,255,255,.045); }
+.lp-hero__bg span { position: absolute; border-radius: 50%; background: rgba(255,255,255,.07); }
 .lp-hero__bg span:nth-child(1) { width: 620px; height: 620px; left: -220px; top: -260px; }
 .lp-hero__bg span:nth-child(2) { width: 360px; height: 360px; right: -120px; top: 40%; }
 .lp-hero__bg span:nth-child(3) { width: 220px; height: 220px; left: 38%; bottom: -120px; background: rgba(255,255,255,.05); }
