@@ -1,5 +1,5 @@
 import type { IC } from '@/icons'
-import { isAdminInView, isObserver, isSchoolAdmin, useAuth } from '@/lib/auth/AuthContext'
+import { isAdminInView, isObserver, isSchoolAdmin, mayUseAdminPanel, useAuth } from '@/lib/auth/AuthContext'
 import { routeOn, useModules } from '@/lib/modules'
 import { useUIStore } from '@/store/uiStore'
 
@@ -8,7 +8,7 @@ import { OBSERVER_HIDDEN, portalNavItems } from './portalNav'
 export type NavItem = { to: string; label: string; icon: keyof typeof IC }
 
 /** The staff app's own pages (portal pages are added by portalNavItems). */
-export const NAV_ITEMS: (NavItem & { adminOnly?: boolean })[] = [
+export const NAV_ITEMS: (NavItem & { adminOnly?: boolean; panelOnly?: boolean })[] = [
   { to: '/', label: 'Bosh sahifa', icon: 'home' },
   { to: '/lessons', label: 'Darslar', icon: 'lessons' },
   { to: '/journal', label: 'Jurnal', icon: 'gradebook' },
@@ -21,7 +21,8 @@ export const NAV_ITEMS: (NavItem & { adminOnly?: boolean })[] = [
   { to: '/guide', label: "Yo'riqnoma", icon: 'book', adminOnly: true },
   { to: '/help', label: 'Yordam markazi', icon: 'help' },
   { to: '/about', label: 'Platforma haqida', icon: 'info' },
-  { to: '/admin', label: 'Boshqaruv', icon: 'settings', adminOnly: true },
+  // opens admin.kuragoniy.uz (an Admin's or the developer's only)
+  { to: '/admin', label: 'Boshqaruv', icon: 'settings', adminOnly: true, panelOnly: true },
   { to: '/equipment-sheet', label: 'Jihozlar jadvali', icon: 'grid', adminOnly: true },
 ]
 
@@ -58,7 +59,8 @@ export function useVisibleNavItems(): NavItem[] {
       .map(({ to, label, icon }) => ({ to, label, icon }))].filter((item) => routeOn(item.to, on) && inWindow(item.to))
   }
   return [
-    ...NAV_ITEMS.filter((item) => (!item.adminOnly || isAdminInView(user, viewMode)) && !(isObserver(user) && OBSERVER_HIDDEN.has(item.to)))
+    ...NAV_ITEMS.filter((item) => (!item.adminOnly || isAdminInView(user, viewMode)) && (!item.panelOnly || mayUseAdminPanel(user))
+      && !(isObserver(user) && OBSERVER_HIDDEN.has(item.to)))
       .map(({ to, label, icon }) => ({ to, label, icon })),
     ...portalNavItems(user, viewMode),
   ].filter((item) => routeOn(item.to, on) && inWindow(item.to))

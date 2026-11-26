@@ -1,0 +1,109 @@
+/* ══ Boshqaruv paneli → Rollar (features/admin/RolesPage) ══════════ */
+
+/* RoleBadge carries an inline left margin meant for after a name */
+.rcard__top > span:first-child,
+.rmx thead span[style],
+.rdetail summary > span[style] { margin-left: 0 !important; }
+
+.rcards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.rcard {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  text-align: left;
+  padding: 14px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+.rcard:hover { border-color: var(--pick); box-shadow: 0 6px 18px rgba(30, 40, 90, .08); transform: translateY(-1px); }
+.rcard:focus-visible { outline: 2px solid var(--pick); outline-offset: 2px; }
+.rcard__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.rcard__n { font-size: 26px; line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; }
+.rcard__sub { color: var(--ink-2); font-size: 13px; line-height: 1.45; }
+.rcard__go { color: var(--pick); font-size: 12.5px; font-weight: 600; }
+
+/* the who-can-do-what table */
+.rmx__legend {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 6px 0 12px;
+  padding: 0;
+  font-size: 12.5px;
+}
+.rmx__legend li { display: inline-flex; align-items: center; gap: 6px; }
+.rmx__wrap {
+  overflow-x: auto;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+.rmx { width: 100%; min-width: 860px; border-collapse: collapse; font-size: 13px; }
+.rmx th, .rmx td { padding: 10px 12px; border-bottom: 1px solid var(--rule-2); text-align: left; vertical-align: top; }
+.rmx tbody tr:last-child > * { border-bottom: 0; }
+.rmx thead th { background: var(--rule-2); font-weight: 600; white-space: nowrap; }
+.rmx tbody th { font-weight: 600; min-width: 150px; }
+.rmx tbody th small { display: block; margin-top: 2px; color: var(--ink-3); font-weight: 400; font-size: 11.5px; }
+/* the area column stays put while the roles scroll sideways */
+.rmx th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface);
+  box-shadow: 1px 0 0 var(--rule-2);
+}
+.rmx thead th:first-child { background: var(--rule-2); }
+
+.rmx__c {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.rmx__ic { display: inline-flex; }
+.rmx__ic svg { width: 13px; height: 13px; }
+.rmx__c--edit { background: color-mix(in srgb, var(--pick) 14%, transparent); color: var(--pick); }
+.rmx__c--view { background: var(--rule-2); color: var(--ink); }
+.rmx__c--own { background: rgba(196, 122, 18, .14); color: #9a5f0a; }
+.rmx__c--none { color: var(--ink-3); font-weight: 400; padding-inline: 2px; }
+[data-theme="dark"] .rmx__c--own { background: rgba(240, 170, 60, .16); color: #f0b45a; }
+.rmx__note { display: block; margin-top: 4px; color: var(--ink-2); font-size: 11.5px; line-height: 1.35; }
+
+/* per-role details */
+.rdetails { display: grid; gap: 8px; }
+.rdetail { border: 1px solid var(--rule); border-radius: 10px; padding: 10px 14px; }
+.rdetail summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.rdetail summary::-webkit-details-marker { display: none; }
+.rdetail summary::after { content: '+'; margin-left: auto; font-size: 18px; line-height: 1; color: var(--ink-3); }
+.rdetail[open] summary::after { content: '−'; }
+.rdetail[open] summary { margin-bottom: 10px; }
+
+@media (max-width: 560px) {
+  .rcards { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .rcard { padding: 12px; }
+  .rcard__n { font-size: 22px; }
+  .rcard__go { display: none; }
+}

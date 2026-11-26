@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
 import { errText, StatusPill } from '@/features/portal/ui'
 import { IC } from '@/icons'
+import { siteUrl } from '@/lib/adminHost'
 import { api } from '@/lib/api/client'
 
 import './site-panel.css'
@@ -88,7 +89,7 @@ export function SitePanel() {
     <section className="panel">
       <div className="sitep__head">
         <h3 className="panel__title">{t('Sayt — kuragoniy.uz bosh sahifasi')}</h3>
-        <a className="btn btn--sm" href="/sayt" target="_blank" rel="noreferrer">{IC.external} {t("Saytni ko'rish")}</a>
+        <a className="btn btn--sm" href={siteUrl('/sayt')} target="_blank" rel="noreferrer">{IC.external} {t("Saytni ko'rish")}</a>
       </div>
       <p className="prose prose--note">
         {t("Hamkorlar «Hamkor maktablar» ro'yxatidan o'zi olinadi. Rasm, fikr va ustozlarni shu yerda qo'shasiz; bo'sh bo'lim saytda ko'rinmaydi.")}

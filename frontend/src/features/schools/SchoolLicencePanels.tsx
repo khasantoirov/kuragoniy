@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 
 import { useConfirm } from '@/components/ConfirmProvider'
 import { useToast } from '@/components/Toast'
 import { errText, fmtDate, StatusPill } from '@/features/portal/ui'
+import { panelUrl } from '@/lib/adminHost'
 import { api } from '@/lib/api/client'
 import type { User } from '@/lib/api/types'
+import { mayUseAdminPanel, useAuth } from '@/lib/auth/AuthContext'
 
 import { useSchoolsMutation, type GroupRow, type ManagerPosition, type School } from './api'
 import { LICENCE_TONE, POSITIONS, seats, som } from './licence'
@@ -14,6 +15,8 @@ import { MetricPill } from './shared'
 
 /** A school's page: its licence — the state, period, seats taken. */
 export function LicencePanel({ school, admin }: { school: School; admin: boolean }) {
+  // the licence list is in the Boshqaruv paneli (an Admin's or the developer's)
+  const panel = mayUseAdminPanel(useAuth().user)
   const { t } = useTranslation()
   const st = school.licence
   if (!st) return null
@@ -24,7 +27,7 @@ export function LicencePanel({ school, admin }: { school: School; admin: boolean
       <div className="thead">
         <h3 className="panel__title">{t('Litsenziya')}</h3>
         <StatusPill tone={LICENCE_TONE[st.state]}>{t(st.label)}{st.days_left != null && st.state === 'ending' ? ` · ${st.days_left} ${t('kun qoldi')}` : ''}</StatusPill>
-        {admin && <Link className="btn btn--sm btn--ghost" to="/admin?bolim=litsenziya">{t('Litsenziyalar')} ›</Link>}
+        {admin && panel && <a className="btn btn--sm btn--ghost" href={panelUrl('litsenziya')}>{t('Litsenziyalar')} ›</a>}
       </div>
       {lic ? (
         <ul className="kv kv--grid">

@@ -22,16 +22,9 @@ const named = <T extends Record<string, unknown>>(loader: () => Promise<T>, key:
 // and AppShell warms these up once the browser is idle (routes/prefetch.ts)
 const JournalPage = named(() => import('@/features/journal/JournalPage'), 'JournalPage')
 const LessonsPage = named(() => import('@/features/lessons/LessonsPage'), 'LessonsPage')
-const AdminPage = named(() => import('@/features/admin/AdminPage'), 'AdminPage')
-const AdminDataPanel = named(() => import('@/features/admin/AdminPage'), 'AdminDataPanel')
-const ModulesPanel = named(() => import('@/features/admin/ModulesPanel'), 'ModulesPanel')
-const ProtectionPanel = named(() => import('@/features/admin/ProtectionPanel'), 'ProtectionPanel')
-const LicencesPanel = named(() => import('@/features/admin/LicencesPanel'), 'LicencesPanel')
 const ChangePasswordPage = named(() => import('@/features/auth/ChangePasswordPage'), 'ChangePasswordPage')
 const StudentRegisterPage = named(() => import('@/features/auth/StudentRegisterPage'), 'StudentRegisterPage')
 const StudentsPage = named(() => import('@/features/teacher/StudentsPage'), 'StudentsPage')
-const AcademicYearsPanel = named(() => import('@/features/admin/AcademicYearsPanel'), 'AcademicYearsPanel')
-const SitePanel = named(() => import('@/features/admin/SitePanel'), 'SitePanel')
 const AssignmentsPage = named(() => import('@/features/teacher/AssignmentsPage'), 'AssignmentsPage')
 const AssignmentResultsPage = named(() => import('@/features/teacher/AssignmentsPage'), 'AssignmentResultsPage')
 const ReportsPage = named(() => import('@/features/teacher/ReportsPage'), 'ReportsPage')
@@ -41,7 +34,6 @@ const GamesPage = named(() => import('@/features/teacher/GamesPage'), 'GamesPage
 const EquipmentRegistryPage = named(() => import('@/features/manage/equipment/EquipmentRegistryPage'), 'EquipmentRegistryPage')
 const EquipmentSheetPage = named(() => import('@/features/admin/EquipmentSheetPage'), 'EquipmentSheetPage')
 const ReviewReportsPage = named(() => import('@/features/manage/ManagePages'), 'ReviewReportsPage')
-const SecurityLogPage = named(() => import('@/features/manage/ManagePages'), 'SecurityLogPage')
 const MaterialsPage = named(() => import('@/features/manage/MaterialsPage'), 'MaterialsPage')
 const ShopPage = named(() => import('@/features/shop/ShopPage'), 'ShopPage')
 const OrdersPage = named(() => import('@/features/shop/OrdersPage'), 'OrdersPage')
@@ -106,21 +98,6 @@ function ReportsTabs() {
 
 /** Boshqaruv — users and roles, the data tools (Ma'lumot), the security
  * log and the modules. */
-export function AdminTabs() {
-  return (
-    <PageTabs tabs={[
-      { key: 'users', label: 'Foydalanuvchilar', element: <AdminPage /> },
-      { key: 'malumot', label: "Ma'lumot", element: <AdminDataPanel /> },
-      { key: 'security', label: 'Xavfsizlik jurnali', element: <SecurityLogPage /> },
-      { key: 'modules', label: 'Modullar', element: <ModulesPanel /> },
-      { key: 'himoya', label: 'Himoya', element: <ProtectionPanel /> },
-      { key: 'litsenziya', label: 'Litsenziyalar', element: <LicencesPanel /> },
-      { key: 'yillar', label: "O'quv yillari", element: <AcademicYearsPanel /> },
-      { key: 'sayt', label: 'Sayt', element: <SitePanel /> },
-    ]} />
-  )
-}
-
 /** Darslar — the lessons, the teacher's check before a lesson, and for the
  * administration the pupils' materials. */
 export function LessonsTabs() {
@@ -132,8 +109,8 @@ export function LessonsTabs() {
     <PageTabs tabs={[
       { key: 'darslar', label: 'Darslar', element: <LessonsPage /> },
       { key: 'tayyorgarlik', label: 'Darsga tayyorgarlik', element: <ReadinessPage />, show: isTeacherLike(user) && on('readiness') },
-      // STEM chamadonlar belong to the STEAM window
-      { key: 'chamadonlar', label: 'STEM chamadonlar', element: <KitsPage />, show: on('kits') && fan === 'steam' },
+      // Kerakli jihozlar (the kits) belong to the STEAM window
+      { key: 'chamadonlar', label: 'Kerakli jihozlar', element: <KitsPage />, show: on('kits') && fan === 'steam' },
       { key: 'materiallar', label: "O'quv materiallari", element: <MaterialsPage />, show: oversees(user, viewMode) && on('materials') },
     ]} />
   )

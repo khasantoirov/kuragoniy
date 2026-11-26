@@ -1,0 +1,69 @@
+/* ══ Boshqaruv paneli → Foydalanuvchilar: one list, by role ═══════ */
+
+.ulist__online { margin-left: auto; font-size: 12.5px; font-weight: 500; }
+
+.utabs { margin: 12px 0 10px; }
+.utabs .seg__b { display: inline-flex; align-items: center; gap: 6px; }
+.utabs__n {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--rule-2);
+  color: var(--ink-2);
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.utabs .is-on .utabs__n { background: rgba(255, 255, 255, .25); color: inherit; }
+
+.ubar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 8px; }
+.ubar__search { flex: 1 1 260px; max-width: 420px; }
+.ubar__fan { flex: none; }
+
+.ulist { gap: 0; }
+.person.urow {
+  display: grid;
+  grid-template-columns: 40px minmax(240px, 2fr) minmax(0, 3fr);
+  align-items: center;
+  gap: 12px;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--rule-2);
+}
+.person.urow:last-child { border-bottom: 0; }
+.urow__av {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+  background: var(--rule-2);
+  color: var(--ink-2);
+  font-weight: 600;
+  overflow: hidden;
+}
+.urow__id { min-width: 0; }
+.urow__id .person__name { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; margin: 0; }
+.urow__id .person__mail { margin: 2px 0 0; }
+.urow__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 6px 0 0;
+  color: var(--ink-2);
+  font-size: 12.5px;
+}
+.urow__meta > span { display: inline-flex; align-items: center; gap: 5px; }
+.urow__meta svg { width: 14px; height: 14px; }
+.urow__fans { gap: 4px; }
+.urow__off { color: var(--ink-3); }
+.urow .person__acts { justify-content: flex-end; flex-wrap: wrap; }
+
+@media (max-width: 760px) {
+  .person.urow { grid-template-columns: 36px minmax(0, 1fr); align-items: start; }
+  .urow__av { width: 36px; height: 36px; }
+  .urow .person__acts { grid-column: 1 / -1; justify-content: flex-start; }
+  .ubar__search { max-width: none; }
+}

@@ -211,6 +211,13 @@ class LoginView(generics.GenericAPIView):
                                 status=status.HTTP_429_TOO_MANY_REQUESTS)
             return Response({'detail': GENERIC_LOGIN_ERROR}, status=status.HTTP_401_UNAUTHORIZED)
 
+        # admin.kuragoniy.uz: Admin and the developer only (common/adminhost.py)
+        from common.adminhost import refusal
+        refused = refusal(request, user)
+        if refused:
+            log_event('admin_panel_refused', actor=user, request=request)
+            return refused
+
         if user.totp_enabled:
             # Correct password alone must not be enough for a 2FA-enabled
             # account — hand back a short-lived challenge instead of
@@ -241,6 +248,11 @@ class TwoFactorVerifyView(generics.GenericAPIView):
             return Response({'detail': "Sessiya muddati tugagan, qaytadan kiring."}, status=status.HTTP_401_UNAUTHORIZED)
         if _is_locked(user):
             return _locked_response(user)
+
+        from common.adminhost import refusal
+        refused = refusal(request, user)  # a challenge from kuragoniy.uz brought to the panel
+        if refused:
+            return refused
 
         code = str(request.data.get('code', ''))
         if not pyotp.TOTP(user.totp_secret).verify(code, valid_window=1):
@@ -357,6 +369,11 @@ class RefreshView(TokenRefreshView):
         user = User.objects.filter(pk=parsed.get(settings.SIMPLE_JWT['USER_ID_CLAIM'])).first()
         if not user or not user.is_active or token_predates_revocation(user, parsed.get('iat')):
             return self._reject("Sessiya bekor qilingan, qaytadan kiring.", 'revoked')
+        from common.adminhost import NOT_ADMIN, is_admin_host, may_use_admin_panel
+        if is_admin_host(request) and not may_use_admin_panel(user):
+            # no longer an Admin: the panel's session ends here
+            self._end(parsed, session_for_token(parsed))
+            return self._reject(NOT_ADMIN, 'not_admin')
 
         # Absolute limit: tokens issued before the 24-hour policy carry a
         # 30-day expiry, so the sign-in time decides, not just `exp`.

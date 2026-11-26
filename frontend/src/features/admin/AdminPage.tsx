@@ -1,6 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router-dom'
 
 import { Avatar } from '@/components/Avatar'
 import { useConfirm } from '@/components/ConfirmProvider'
@@ -27,90 +28,14 @@ import { POSITIONS } from '@/features/schools/licence'
 import type { Subject } from '@/features/lessons/labels'
 
 import { EditPersonModal } from './EditPersonModal'
+import { PEOPLE_TABS, type PeopleTab, tabOf, useStaffList, useStudentAccounts } from './staffApi'
+import './people.css'
 import { SubjectBadges, SubjectChips, SubjectsModal, takesSubject } from './SubjectPicker'
 import { ImportLessonsModal } from './ImportLessonsModal'
 import { ImportTranslationsModal } from './ImportTranslationsModal'
 
 const rank = (u: User) => (u.is_dev_superuser ? 0 : u.role === 'admin' || u.role === 'boshliq' || u.role === 'kuzatuvchi' ? 1 : 2)
 
-// Static reference only — not derived from the actual permission code, so
-// keep it in sync by hand when accounts/models.py's is_admin or a
-// get_permissions() override changes. Shown to the dev-superuser only,
-// as a quick lookup for "who can do what" across the app.
-const ROLE_CAPABILITIES: { user: Pick<User, 'is_dev_superuser' | 'role'>; label: string; items: string[] }[] = [
-  {
-    user: { is_dev_superuser: true, role: 'teacher' },
-    label: 'Dasturchi',
-    items: [
-      "Admin va Boshliqning barcha vakolatlariga ega",
-      "Boshqa foydalanuvchini Admin yoki Boshliq qilishi (va bu huquqni olib tashlashi) mumkin — faqat u",
-      "Boshqa admin/boshliq/dasturchi hisobini boshqarishi (bloklash, parolni tiklash, rad etish) mumkin",
-    ],
-  },
-  {
-    user: { is_dev_superuser: false, role: 'admin' },
-    label: 'Admin',
-    items: [
-      "O'qituvchilarni tasdiqlash/rad etish/bloklash, parolini tiklash",
-      "Darslarni qo'shish/tahrirlash/o'chirish/ko'chirish (barcha choraklar), choraklarni ochish/yopish, tajribalar tartibini surib o'zgartirish",
-      "Kutubxonaga material qo'shish/tahrirlash/o'chirish, fayl yuklash",
-      "E'lon yuborish va o'chirish, darslar/tarjimalarni import-eksport qilish",
-      "Har qanday o'qituvchining dars jadvalini tahrirlashi mumkin (ko'rish — \"Barcha o'qituvchilar\" — endi barcha o'qituvchiga ochiq)",
-      "Barcha o'qituvchilarning jurnal statistikasini ko'rish",
-      "Botga yuborilgan xabar va admin harakatlari haqidagi bildirishnomalarni Telegramda oladi",
-      "Boshqa admin/boshliq/dasturchini boshqara olmaydi — faqat dasturchi",
-    ],
-  },
-  {
-    user: { is_dev_superuser: false, role: 'boshliq' },
-    label: 'Boshliq',
-    items: [
-      "Admin bilan bir xil barcha vakolatlarga ega (yuqoridagilarning barchasi)",
-      "Farqi — odatda shaxsiy dars/jurnal/jadval yuritmaydi, faqat nazorat qiladi",
-      "Boshqa admin/boshliq/dasturchini boshqara olmaydi — faqat dasturchi",
-    ],
-  },
-  {
-    user: { is_dev_superuser: false, role: 'kuzatuvchi' },
-    label: 'Kuzatuvchi',
-    items: [
-      "Barcha tahlil, reyting, natija va dars hisobotlarini ko'radi (barcha o'qituvchilar bo'yicha)",
-      "Hech narsani o'zgartira olmaydi — server darajasida faqat o'qish huquqi",
-      "Faqat dasturchi tayinlaydi",
-    ],
-  },
-  {
-    user: { is_dev_superuser: false, role: 'maktab' },
-    label: "Maktab ma'muriyati",
-    items: [
-      "Hamkor maktabning direktori yoki zavuchi — faqat o'z maktabini ko'radi",
-      "Maktab statistikasi, o'qituvchilari, sinflari va litsenziya holati",
-      "O'qituvchilar jurnallarini faqat ko'rish rejimida ochadi",
-      "Hech narsani o'zgartira olmaydi (o'z profilidan tashqari)",
-    ],
-  },
-  {
-    user: { is_dev_superuser: false, role: 'student' },
-    label: "O'quvchi",
-    items: [
-      "Faqat o'quvchi oynasi: darslar (nazariya, formula, video), test va masalalar, uyga vazifa, o'yinlar, natijalari",
-      "O'qituvchi oynasi va ma'muriyat bo'limlariga umuman kira olmaydi",
-      "Hisobini o'qituvchisi yaratadi yoki sinf kodi bilan o'zi ro'yxatdan o'tadi; parolini o'qituvchisi tiklaydi",
-    ],
-  },
-  {
-    user: { is_dev_superuser: false, role: 'teacher' },
-    label: 'Ustoz',
-    items: [
-      "Faqat ochiq choraklardagi darslarni va kutubxonani ko'radi",
-      "Faqat o'z sinflari/o'quvchilari uchun jurnal yuritadi (baho, davomat)",
-      "Faqat o'zining haftalik dars jadvalini tahrirlaydi",
-      "\"Barcha o'qituvchilar\" umumiy dars jadvalini ko'ra oladi (faqat ko'rish — tahrirlay olmaydi), lekin boshqalarning jurnalini ko'ra olmaydi",
-      "Dars, kutubxona materiali yoki e'lon qo'sha olmaydi",
-      "Botga yozgan xabari adminlar va boshliqqa Telegram orqali yetib boradi",
-    ],
-  },
-]
 const byName = (a: User, b: User) => (a.name || '').localeCompare(b.name || '', 'uz')
 
 function cmpTeacher(a: User, b: User) {
@@ -425,7 +350,7 @@ export function AdminDataPanel() {
 export function AdminPage() {
   const { t } = useTranslation()
   const { user: me } = useAuth()
-  const { viewMode } = useUIStore()
+  const { viewMode, lang } = useUIStore()
   const admin = isAdminInView(me, viewMode)
   const toast = useToast()
   const confirm = useConfirm()
@@ -442,12 +367,7 @@ export function AdminPage() {
   // Tasdiq kutmoqda: the fan picked for each sign-up before approving it
   const [pendingFans, setPendingFans] = useState<Record<string, Subject[]>>({})
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['admin', 'users'],
-    queryFn: async () => (await api.get<Paginated<User>>('/accounts/users/')).data.results,
-    enabled: admin,
-    refetchInterval: 60_000, // keeps the "onlayn" dots current
-  })
+  const { data, isLoading } = useStaffList(admin)
 
   const act = useMutation({
     mutationFn: async ({ id, action }: { id: string; action: string }) => api.post(`/accounts/users/${id}/${action}/`),
@@ -455,11 +375,34 @@ export function AdminPage() {
     onError: () => toast(t("Amalni bajarib bo'lmadi"), 'error'),
   })
 
+  // Foydalanuvchilar by role (?rol=), searched; pupils come from the server a page at a time
+  const [params, setParams] = useSearchParams()
+  const tab: PeopleTab = PEOPLE_TABS.find((x) => x.key === params.get('rol'))?.key ?? 'oqituvchilar'
+  const setTab = (key: PeopleTab) => setParams((prev) => {
+    const next = new URLSearchParams(prev)
+    next.set('rol', key)
+    return next
+  }, { replace: true })
+  const [q, setQ] = useState('')
+  const [qDebounced, setQDebounced] = useState('')
+  useEffect(() => {
+    const id = setTimeout(() => setQDebounced(q.trim()), 300)
+    return () => clearTimeout(id)
+  }, [q])
+  const [fanFilter, setFanFilter] = useState<'' | Subject>('')
+  const { data: pupils, isLoading: pupilsLoading } = useStudentAccounts(qDebounced, admin)
+  const pupilRows = pupils?.results ?? []
+
   if (admin && isLoading) return <Skeleton lines={5} />
 
   const users = data ?? []
   const pending = users.filter((u) => !u.approved && u.role !== 'admin' && u.role !== 'boshliq')
   const approved = users.filter((u) => u.approved || u.role === 'admin' || u.role === 'boshliq').sort(cmpUser)
+  const countIn = (key: PeopleTab) => approved.filter((u) => tabOf(u) === key).length
+  const needle = q.trim().toLowerCase()
+  const shown = approved.filter((u) => tabOf(u) === tab
+    && (!needle || [u.name, u.username, u.phone].some((v) => v?.toLowerCase().includes(needle)))
+    && (!fanFilter || (u.subjects ?? []).includes(fanFilter)))
 
   const onApprove = async (u: User) => {
     try {
@@ -510,6 +453,72 @@ export function AdminPage() {
     }
   }
 
+  /** One person of Foydalanuvchilar: who, how to reach them, and what may be done. */
+  const personRow = (u: User) => {
+    const isSelf = u.id === me?.id
+    const targetIsAdm = u.role === 'admin' || u.role === 'boshliq' || u.role === 'kuzatuvchi'
+    const canManage = manageable(u)
+    const locked = !!u.locked_until && new Date(u.locked_until) > new Date()
+    return (
+      <li key={u.id} className="person urow">
+        <Avatar name={u.name} photo={u.photo} className="urow__av" />
+        <div className="urow__id">
+          <p className="person__name">
+            {u.name || '—'} <RoleBadge user={u} />
+            {me?.is_dev_superuser && (
+              <button type="button" className="stf__edit" onClick={() => setEditingPerson(u)}
+                title={t("Ma'lumotlarni tahrirlash")} aria-label={t("Ma'lumotlarni tahrirlash")}>{IC.edit}</button>
+            )}
+          </p>
+          <p className="person__mail">{u.username ? `${u.username} · ` : ''}<Presence online={u.online} lastSeen={u.last_seen} /></p>
+          {u.role !== 'student' && (
+            <p className="urow__meta">
+              {takesSubject(u) && <span className="urow__fans"><SubjectBadges user={u} /></span>}
+              <span className={u.telegram_linked ? '' : 'urow__off'}>
+                {IC.telegram} {u.telegram_linked ? (u.telegram_username ? `@${u.telegram_username}` : t('Ulangan')) : t('Ulanmagan')}
+              </span>
+              {u.phone && <span>{u.phone}</span>}
+              {u.bday && <span>{t("Tug'ilgan sana")}: {fmtBday(u.bday)}</span>}
+            </p>
+          )}
+        </div>
+        {isSelf ? (
+          <div className="person__acts">
+            <span className="person__you">{t('siz')}</span>
+            {me?.is_dev_superuser
+              ? <button className="btn btn--sm btn--ghost" onClick={() => setEditingPerson(u)}>{t('Tahrirlash')}</button>
+              : <button className="btn btn--sm btn--ghost" onClick={() => setEditingLogin(u)}>{t("Loginni o'zgartirish")}</button>}
+          </div>
+        ) : canManage ? (
+          <div className="person__acts">
+            {me?.is_dev_superuser && <button className="btn btn--sm btn--ghost" onClick={() => setEditingPerson(u)}>{t('Tahrirlash')}</button>}
+            {me?.is_dev_superuser &&
+              (targetIsAdm ? (
+                <button className="btn btn--sm btn--ghost" onClick={() => onDemote(u)}>
+                  {u.role === 'boshliq' ? t('Boshliqlikni olish') : u.role === 'kuzatuvchi' ? t('Kuzatuvchilikni olish') : t('Adminlikni olish')}
+                </button>
+              ) : (
+                <>
+                  <button className="btn btn--sm btn--ghost" onClick={() => onPromote(u)}>{t('Admin qilish')}</button>
+                  <button className="btn btn--sm btn--ghost" onClick={() => onSetBoshliq(u)}>{t('Boshliq qilish')}</button>
+                  <button className="btn btn--sm btn--ghost" onClick={() => onSetKuzatuvchi(u)}>{t('Kuzatuvchi qilish')}</button>
+                </>
+              ))}
+            {takesSubject(u) && <button className="btn btn--sm btn--ghost" onClick={() => setEditingFans(u)}>{t('Fan')}</button>}
+            {locked && <button className="btn btn--sm btn--primary" onClick={() => onUnlock(u)}>{t('Blokni ochish')}</button>}
+            <button className="btn btn--sm btn--ghost" onClick={() => onResetPassword(u)}>{t('Parolni tiklash')}</button>
+            {!me?.is_dev_superuser && <button className="btn btn--sm btn--ghost" onClick={() => setEditingLogin(u)}>{t("Loginni o'zgartirish")}</button>}
+            <button className="btn btn--sm btn--ghost" onClick={() => onBlock(u)}>{t("Kirishni to'xtatish")}</button>
+          </div>
+        ) : me?.is_dev_superuser ? (
+          <div className="person__acts">
+            <button className="btn btn--sm btn--ghost" onClick={() => setEditingPerson(u)}>{t('Tahrirlash')}</button>
+          </div>
+        ) : null}
+      </li>
+    )
+  }
+
   return (
     <div>
       {admin && (
@@ -540,140 +549,60 @@ export function AdminPage() {
             </section>
           )}
 
-          {approved.length > 0 && (
-            <section className="panel">
+          <section className="panel">
+            <div className="thead">
               <h3 className="panel__title">
-                {t('Xodimlar')} <span className="badge">{approved.length}</span>
-                <span className="presence presence--on" style={{ marginLeft: 'auto' }}>
+                {t('Foydalanuvchilar')} <span className="badge">{approved.length}</span>
+                <span className="presence presence--on ulist__online">
                   <span className="presence__dot" aria-hidden="true" />{t('Hozir onlayn')}: {approved.filter((u) => u.online).length}
                 </span>
               </h3>
-              <div className="staff">
-                {approved.map((u) => (
-                  <article key={u.id} className="stf">
-                    <div className="stf__head">
-                      <div className="stf__av">
-                        <Avatar name={u.name} photo={u.photo} className="stf__img" />
-                      </div>
-                      <div className="stf__id">
-                        <p className="stf__nm">{u.name || '—'}{me?.is_dev_superuser && (
-                      <button type="button" className="stf__edit" onClick={() => setEditingPerson(u)}
-                        title={t("Ma'lumotlarni tahrirlash")} aria-label={t("Ma'lumotlarni tahrirlash")}>{IC.edit}</button>
-                    )}</p>
-                        <RoleBadge user={u} />
-                        <Presence online={u.online} lastSeen={u.last_seen} />
-                      </div>
-                    </div>
-                    <div className="stf__b">
-                      <p className="stf__row"><span>{t("Tug'ilgan sana")}</span><b>{fmtBday(u.bday)}</b></p>
-                      <p className="stf__row"><span>{t('Telefon')}</span><b>{u.phone || '—'}</b></p>
-                      <p className="stf__row"><span>{t('Login')}</span><b>{u.username || '—'}</b></p>
-                      {takesSubject(u) && (
-                        <p className="stf__row">
-                          <span>{t('Fan')}</span>
-                          <b className="stf__fans">
-                            <SubjectBadges user={u} />
-                            {manageable(u) && (
-                              <button type="button" className="stf__edit" onClick={() => setEditingFans(u)}
-                                title={t('Fan biriktirish')} aria-label={t('Fan biriktirish')}>{IC.edit}</button>
-                            )}
-                          </b>
-                        </p>
-                      )}
-                      <p className="stf__row">
-                        <span>Telegram</span>
-                        <b>
-                          {u.telegram_linked
-                            ? `✅ ${u.telegram_username ? '@' + u.telegram_username : t('Ulangan')}`
-                            : `❌ ${t('Ulanmagan')}`}
-                        </b>
-                      </p>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-          )}
-
-          <section className="panel">
-            <div className="thead">
-              <h3 className="panel__title">{t('Foydalanuvchilar')} <span className="badge">{approved.length}</span></h3>
               <button className="btn btn--primary btn--sm" onClick={() => setCreatingStaff(true)}>+ {t('Yangi xodim')}</button>
             </div>
-            {approved.length ? (
-              <ul className="people">
-                {approved.map((u) => {
-                  const isSelf = u.id === me?.id
-                  const targetIsAdm = u.role === 'admin' || u.role === 'boshliq' || u.role === 'kuzatuvchi'
-                  const canManage = manageable(u)
-                  const locked = !!u.locked_until && new Date(u.locked_until) > new Date()
-                  return (
-                    <li key={u.id} className="person">
-                      <div>
-                        <p className="person__name">{u.name || '—'} <RoleBadge user={u} /></p>
-                        <p className="person__mail">{u.username ? `${u.username} · ` : ''}<Presence online={u.online} lastSeen={u.last_seen} /></p>
-                      </div>
-                      {isSelf ? (
-                        <div className="person__acts">
-                          <span className="person__you">{t('siz')}</span>
-                          {me?.is_dev_superuser
-                            ? <button className="btn btn--sm btn--ghost" onClick={() => setEditingPerson(u)}>{t('Tahrirlash')}</button>
-                            : <button className="btn btn--sm btn--ghost" onClick={() => setEditingLogin(u)}>{t("Loginni o'zgartirish")}</button>}
-                        </div>
-                      ) : canManage ? (
-                        <div className="person__acts">
-                          {me?.is_dev_superuser && <button className="btn btn--sm btn--ghost" onClick={() => setEditingPerson(u)}>{t('Tahrirlash')}</button>}
-                          {me?.is_dev_superuser &&
-                            (targetIsAdm ? (
-                              <button className="btn btn--sm btn--ghost" onClick={() => onDemote(u)}>
-                                {u.role === 'boshliq' ? t('Boshliqlikni olish') : u.role === 'kuzatuvchi' ? t('Kuzatuvchilikni olish') : t('Adminlikni olish')}
-                              </button>
-                            ) : (
-                              <>
-                                <button className="btn btn--sm btn--ghost" onClick={() => onPromote(u)}>{t('Admin qilish')}</button>
-                                <button className="btn btn--sm btn--ghost" onClick={() => onSetBoshliq(u)}>{t('Boshliq qilish')}</button>
-                                <button className="btn btn--sm btn--ghost" onClick={() => onSetKuzatuvchi(u)}>{t('Kuzatuvchi qilish')}</button>
-                              </>
-                            ))}
-                          {takesSubject(u) && <button className="btn btn--sm btn--ghost" onClick={() => setEditingFans(u)}>{t('Fan')}</button>}
-                          {locked && <button className="btn btn--sm btn--primary" onClick={() => onUnlock(u)}>{t('Blokni ochish')}</button>}
-                          <button className="btn btn--sm btn--ghost" onClick={() => onResetPassword(u)}>{t('Parolni tiklash')}</button>
-                          {!me?.is_dev_superuser && <button className="btn btn--sm btn--ghost" onClick={() => setEditingLogin(u)}>{t("Loginni o'zgartirish")}</button>}
-                          <button className="btn btn--sm btn--ghost" onClick={() => onBlock(u)}>{t("Kirishni to'xtatish")}</button>
-                        </div>
-                      ) : me?.is_dev_superuser ? (
-                        <div className="person__acts">
-                          <button className="btn btn--sm btn--ghost" onClick={() => setEditingPerson(u)}>{t('Tahrirlash')}</button>
-                        </div>
-                      ) : null}
-                    </li>
-                  )
-                })}
-              </ul>
+
+            <div className="seg settabs utabs" role="tablist" aria-label={t('Rollar')}>
+              {PEOPLE_TABS.map((x) => (
+                <button key={x.key} type="button" role="tab" aria-selected={tab === x.key}
+                  className={`seg__b ${tab === x.key ? 'is-on' : ''}`} onClick={() => setTab(x.key)}>
+                  {t(x.label)} <span className="utabs__n">{x.key === 'oquvchilar' ? (pupils?.count ?? '…') : countIn(x.key)}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="ubar">
+              <span className="ifield ubar__search">
+                <span className="ifield__ic">{IC.search}</span>
+                <input className="input input--ic" type="search" value={q} onChange={(e) => setQ(e.target.value)}
+                  placeholder={t('Ism, login yoki telefon')} aria-label={t('Qidirish')} />
+              </span>
+              {tab === 'oqituvchilar' && (
+                <div className="seg ubar__fan" role="group" aria-label={t('Fan')}>
+                  {(['', ...SUBJECTS] as ('' | Subject)[]).map((f) => (
+                    <button key={f || 'all'} type="button" className={`seg__b ${fanFilter === f ? 'is-on' : ''}`} onClick={() => setFanFilter(f)}>
+                      {f === 'fizika' ? t('Fizika') : f === 'steam' ? 'STEAM' : t('Hammasi')}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {tab === 'oquvchilar' ? (
+              pupilsLoading ? <Skeleton lines={4} /> : pupilRows.length ? (
+                <>
+                  <ul className="people ulist">{pupilRows.map(personRow)}</ul>
+                  {pupils && pupils.count > pupilRows.length && (
+                    <p className="prose prose--note">
+                      {t("{{n}} ta o'quvchidan {{k}} tasi ko'rsatilmoqda — kerakli o'quvchini ismi yoki logini bilan qidiring.", { n: pupils.count, k: pupilRows.length })}
+                    </p>
+                  )}
+                </>
+              ) : <p className="prose">{qDebounced ? t('Hech kim topilmadi.') : t("Hali o'quvchi hisobi yo'q.")}</p>
+            ) : shown.length ? (
+              <ul className="people ulist">{shown.map(personRow)}</ul>
             ) : (
-              <p className="prose">{t("Hali tasdiqlangan foydalanuvchi yo'q.")}</p>
+              <p className="prose">{q.trim() || fanFilter ? t('Hech kim topilmadi.') : t("Bu rolda hali hech kim yo'q.")}</p>
             )}
           </section>
-
-          {me?.is_dev_superuser && (
-            <section className="panel">
-              <h3 className="panel__title">{t('Rollar va vakolatlar')}</h3>
-              <div className="rolesref">
-                {ROLE_CAPABILITIES.map((r) => (
-                  <div key={r.label} className="rolesref__row">
-                    <p className="rolesref__role">
-                      <RoleBadge user={r.user} />
-                    </p>
-                    <ul className="rolesref__list">
-                      {r.items.map((item, i) => (
-                        <li key={i}>{t(item)}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
 
           {creatingStaff && (
             <CreateStaffModal

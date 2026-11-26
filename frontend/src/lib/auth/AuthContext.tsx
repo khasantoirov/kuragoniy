@@ -10,7 +10,7 @@ import { IDLE_LIMIT_MS, IDLE_WARN_MS, idleMs, markActive } from './idle'
 
 /** Why the app signed the user out — shown once on the login page. */
 export const LOGOUT_REASON_KEY = 'af-logout-reason'
-const REASONS = ['idle', 'expired', 'revoked']
+const REASONS = ['idle', 'expired', 'revoked', 'not_admin']
 
 function noteReason(code: string) {
   if (!REASONS.includes(code)) return
@@ -245,6 +245,13 @@ export function homePathFor(user: User | null): string {
   if (isObserver(user)) return '/statistics'
   if (isSchoolAdmin(user)) return '/my-school'
   return '/'
+}
+
+/** May use the Boshqaruv paneli at admin.kuragoniy.uz — an Admin or the
+ *  developer; not the boshliq (owner's choice, 2026-11-26). Mirrors
+ *  backend common/adminhost.may_use_admin_panel. */
+export function mayUseAdminPanel(user: User | null): boolean {
+  return !!user && (user.is_dev_superuser || user.role === 'admin')
 }
 
 /** isAdmin(), but respects the profile "view as teacher" preview toggle

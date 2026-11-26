@@ -9,6 +9,7 @@ import { useToast } from '@/components/Toast'
 import { errText, fmtDate, StatusPill } from '@/features/portal/ui'
 import { useLicences, useSchoolsMutation, type Licence, type LicencePlan, type LicenceRow } from '@/features/schools/api'
 import { LICENCE_TONE, seats, som } from '@/features/schools/licence'
+import { IS_ADMIN_HOST, siteUrl } from '@/lib/adminHost'
 import { api } from '@/lib/api/client'
 import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
 
@@ -88,7 +89,9 @@ export function LicencesPanel() {
                 const lic = r.licence
                 return (
                   <tr key={r.school.id} className={r.school.is_active ? '' : 'is-muted'}>
-                    <td><Link to={`/manage/schools/${r.school.id}`}><b>{r.school.name}</b></Link>{r.school.district && <><br /><small className="muted">{r.school.district}</small></>}</td>
+                    <td>{IS_ADMIN_HOST
+                      ? <a href={siteUrl(`/manage/schools/${r.school.id}`)}><b>{r.school.name}</b></a>
+                      : <Link to={`/manage/schools/${r.school.id}`}><b>{r.school.name}</b></Link>}{r.school.district && <><br /><small className="muted">{r.school.district}</small></>}</td>
                     <td>
                       <StatusPill tone={LICENCE_TONE[r.state]}>{t(r.label)}</StatusPill>
                       {r.days_left != null && r.state === 'ending' && <><br /><small className="muted">{r.days_left} {t('kun qoldi')}</small></>}

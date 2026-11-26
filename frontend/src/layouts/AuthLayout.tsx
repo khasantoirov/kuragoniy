@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, Outlet } from 'react-router-dom'
 
 import { IC, themeIconMoon, themeIconSun } from '@/icons'
+import { IS_ADMIN_HOST, MAIN_ORIGIN } from '@/lib/adminHost'
 import { socialUrl, telegramUrl, useLanding } from '@/lib/publicSite'
 import { useUIStore, type Lang } from '@/store/uiStore'
 
@@ -74,6 +75,23 @@ export function useSocials() {
   return set.length ? set : SOCIALS
 }
 
+/** admin.kuragoniy.uz: beside the form, what this address is for. */
+function PanelAside() {
+  const { t } = useTranslation()
+  return (
+    <aside className="gx__aside">
+      <span className="gx__kicker">KO'RAGONIY EDU</span>
+      <h2 className="gx__headline">{t('Boshqaruv paneli')}</h2>
+      <p className="gx__lead">{t("Xodimlar va rollar, choraklar, modullar, litsenziyalar va sayt sozlamalari — platforma administratorlari uchun.")}</p>
+      <ul className="gx__chips">
+        <li>{IC.shield} {t('Faqat administratorlar')}</li>
+        <li>{IC.lock} {t('Alohida kirish')}</li>
+      </ul>
+      <a className="gx__home" href={MAIN_ORIGIN}>{IC.back} {t("Platformaga o'tish")}</a>
+    </aside>
+  )
+}
+
 /** Beside the form on a wide screen: what the platform is. */
 function BrandAside() {
   const { t } = useTranslation()
@@ -131,7 +149,7 @@ export function AuthLayout() {
             </div>
             <Outlet />
           </div>
-          <BrandAside />
+          {IS_ADMIN_HOST ? <PanelAside /> : <BrandAside />}
         </div>
 
       </main>

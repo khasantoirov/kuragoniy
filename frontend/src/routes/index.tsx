@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom'
 
 import { Skeleton } from '@/components/Skeleton'
 
@@ -7,9 +7,11 @@ import { LoginPage } from '@/features/auth/LoginPage'
 import { SettingsTabs } from '@/features/settings/SettingsTabs'
 import { AppShell } from '@/layouts/AppShell'
 import { AuthLayout } from '@/layouts/AuthLayout'
+import { IS_ADMIN_HOST } from '@/lib/adminHost'
 
 import { RequireAdmin, RequireApproved, RequireAuth, RequireFan, RequireGuest, RequireModule, RequireNotApproved } from './guards'
-import { AdminTabs, guestPortalRoutes, JournalTabs, LessonsTabs, StaffHome, staffPortalRoutes, topLevelPortalRoutes } from './portalRoutes'
+import { adminRoutes, GoToPanel } from './adminRoutes'
+import { guestPortalRoutes, JournalTabs, LessonsTabs, StaffHome, staffPortalRoutes, topLevelPortalRoutes } from './portalRoutes'
 
 // Sozlamalar and the inbox: their own chunks (QR codes, sound synth, charts
 // of sessions) — opened now and then, so kept out of the main bundle.
@@ -40,7 +42,8 @@ const GuidePage = lazy(() => import('@/features/guide/GuidePage').then((m) => ({
 const page = (el: React.ReactNode) => <Suspense fallback={<Skeleton lines={5} />}>{el}</Suspense>
 const settings = (el: React.ReactNode) => page(<><SettingsTabs />{el}</>)
 
-export const router = createBrowserRouter([
+/** kuragoniy.uz — the platform. */
+const mainRoutes: RouteObject[] = [
   {
     element: (
       <RequireAuth>
@@ -61,8 +64,9 @@ export const router = createBrowserRouter([
       { path: '/lab', element: <RequireFan fan="fizika"><RequireModule keys={['lab']}>{page(<LabPage />)}</RequireModule></RequireFan> },
       { path: '/lab/:simId', element: <RequireFan fan="fizika"><RequireModule keys={['lab']}>{page(<LabSimDetail />)}</RequireModule></RequireFan> },
       {
+        // Boshqaruv is the panel at admin.kuragoniy.uz now (lib/adminHost.ts)
         path: '/admin',
-        element: <RequireAdmin>{page(<AdminTabs />)}</RequireAdmin>,
+        element: <RequireAdmin><GoToPanel /></RequireAdmin>,
       },
       {
         path: '/equipment-sheet',
@@ -121,4 +125,7 @@ export const router = createBrowserRouter([
       ...guestPortalRoutes,
     ],
   },
-])
+]
+
+// admin.kuragoniy.uz is the Boshqaruv paneli only (routes/adminRoutes.tsx)
+export const router = createBrowserRouter(IS_ADMIN_HOST ? adminRoutes : mainRoutes)

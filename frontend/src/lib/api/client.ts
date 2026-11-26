@@ -1,5 +1,6 @@
 import axios, { isAxiosError, type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
+import { IS_ADMIN_HOST } from '@/lib/adminHost'
 import { idleMs } from '@/lib/auth/idle'
 import { deviceHeader, deviceReady } from '@/lib/device'
 import { useViewAsUser, viewAsHeaderFor, viewAsUserHeaderFor } from '@/lib/viewAs'
@@ -46,7 +47,8 @@ api.interceptors.request.use(async (config) => {
   const viewed = viewAsUserHeaderFor(config.url)
   if (viewed) config.headers['X-View-As-User'] = viewed
   // Fizika or STEAM — the window this tab is in (backend common/subjects.window)
-  config.headers['X-Fan'] = useUIStore.getState().subject
+  // (the Boshqaruv paneli sends none: it sees both fans at once)
+  if (!IS_ADMIN_HOST) config.headers['X-Fan'] = useUIStore.getState().subject
   // Sign-in and refresh carry the device details for the sessions list;
   // the hints resolve in milliseconds, but never hold a request for long.
   if (config.url?.includes('/auth/') || config.url?.includes('change-password')) {

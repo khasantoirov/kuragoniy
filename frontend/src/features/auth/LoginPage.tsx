@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { IC } from '@/icons'
+import { IS_ADMIN_HOST, MAIN_ORIGIN } from '@/lib/adminHost'
 import { homePathFor, LOGOUT_REASON_KEY, useAuth } from '@/lib/auth/AuthContext'
 import { HoneypotField, useFormGuard } from '@/lib/formGuard'
 
@@ -44,6 +45,7 @@ const REASON_TEXT: Record<string, string> = {
   idle: "30 daqiqa faollik bo'lmagani uchun xavfsizlik maqsadida tizimdan chiqdingiz. Qaytadan kiring.",
   expired: "Xavfsizlik uchun har 24 soatda login va parol bilan qaytadan kirish talab qilinadi.",
   revoked: "Bu qurilmadagi seans yakunlangan. Qaytadan kiring.",
+  not_admin: "Boshqaruv paneliga faqat administratorlar kiradi. Platformaga kuragoniy.uz orqali kiring.",
 }
 
 /** Read once: why the app just signed this browser out. */
@@ -83,6 +85,8 @@ export function LoginPage() {
       if (err.response.status === 429 && detail) return t(detail)
       if (err.response.status === 429) return t("Juda ko'p urinish. Biroz kutib qayta urining")
       if (err.response.status === 400 && detail) return t(detail)
+      // admin.kuragoniy.uz: the password was right, the role isn't an Admin
+      if (err.response.status === 403 && detail) return t(detail)
     }
     return t("Login yoki parol noto'g'ri")
   }
@@ -165,8 +169,10 @@ export function LoginPage() {
 
   return (
     <form className="form gx-form" onSubmit={onPassword}>
-      <h1 className="gx-form__title">{t('Hisobingizga kiring')}</h1>
-      <p className="gx-form__sub gx-form__sub--opt">{t('Login va parolingiz bilan kiring.')}</p>
+      <h1 className="gx-form__title">{IS_ADMIN_HOST ? t('Boshqaruv paneli') : t('Hisobingizga kiring')}</h1>
+      <p className="gx-form__sub gx-form__sub--opt">
+        {IS_ADMIN_HOST ? t('Faqat administratorlar uchun. Login va parolingiz bilan kiring.') : t('Login va parolingiz bilan kiring.')}
+      </p>
       <label className="field">
         <span className="field__label">{t('Login')}</span>
         <span className="ifield">
@@ -222,10 +228,16 @@ export function LoginPage() {
       </button>
       {note && <p className="form__note form__note--err" role="alert">{note}</p>}
       {!note && reason && <p className="form__note form__note--info" role="status">{IC.lock} {t(reason)}</p>}
-      <p className="gx-form__foot gx-form__foot--sm">
-        {t("Login va parolni maktabingiz ma'muriyati beradi.")}{' '}
-        {t("O'quvchimisiz?")} <Link className="gx-form__link" to="/join">{t("Sinf kodi bilan ro'yxatdan o'ting")}</Link>
-      </p>
+      {IS_ADMIN_HOST ? (
+        <p className="gx-form__foot gx-form__foot--sm">
+          {t("O'qituvchi yoki o'quvchimisiz?")} <a className="gx-form__link" href={`${MAIN_ORIGIN}/login`}>{t('Platformaga kiring')}</a>
+        </p>
+      ) : (
+        <p className="gx-form__foot gx-form__foot--sm">
+          {t("Login va parolni maktabingiz ma'muriyati beradi.")}{' '}
+          {t("O'quvchimisiz?")} <Link className="gx-form__link" to="/join">{t("Sinf kodi bilan ro'yxatdan o'ting")}</Link>
+        </p>
+      )}
       <HelpLink />
       <HoneypotField guard={guard} />
     </form>

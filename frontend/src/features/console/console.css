@@ -1,0 +1,203 @@
+/* ══ admin.kuragoniy.uz — the Boshqaruv paneli (features/console) ══ */
+
+.acon {
+  --acon-side: #151a2e;
+  --acon-side-2: #1d2340;
+  --acon-side-ink: #c9cee3;
+  --acon-side-mute: #7c84a6;
+  /* the side menu is fixed to the viewport (inset, not 100dvh: under
+     body { zoom: 1.1 } a 100dvh box is 10% taller than the screen) */
+  padding-left: 264px;
+  background: var(--paper);
+  color: var(--ink);
+}
+[data-theme="dark"] .acon { --acon-side: #11142a; --acon-side-2: #1a1f3a; }
+
+/* side menu */
+.acon__side {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 30;
+  width: 264px;
+  display: flex;
+  flex-direction: column;
+  background: var(--acon-side);
+  color: var(--acon-side-ink);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, .18) transparent;
+}
+.acon__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 18px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, .07);
+}
+.acon__brand img { border-radius: 10px; background: #fff; padding: 3px; flex: none; }
+.acon__brand span { display: grid; line-height: 1.25; min-width: 0; }
+.acon__brand b { color: #fff; font-size: 14px; letter-spacing: .04em; }
+.acon__brand small { color: var(--acon-side-mute); font-size: 12px; }
+.acon__x { display: none; margin-left: auto; }
+
+.acon__nav { flex: 1; padding: 12px 10px; }
+.acon__group + .acon__group { margin-top: 14px; }
+.acon__gt {
+  margin: 0 10px 6px;
+  color: var(--acon-side-mute);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.acon__link, .acon__site {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 10px;
+  border-radius: 9px;
+  color: var(--acon-side-ink);
+  font-size: 14px;
+  text-decoration: none;
+  transition: background .15s, color .15s;
+}
+.acon__link:hover, .acon__site:hover { background: var(--acon-side-2); color: #fff; }
+.acon__link.is-on { background: var(--pick); color: #fff; box-shadow: 0 6px 16px rgba(106, 115, 250, .3); }
+.acon__link:focus-visible, .acon__site:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+.acon__ic { display: inline-flex; flex: none; }
+.acon__ic svg { width: 18px; height: 18px; }
+.acon__lt { flex: 1; min-width: 0; }
+.acon__badge {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #f5a524;
+  color: #1b1300;
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+.acon__site { margin: 8px 10px 16px; border: 1px solid rgba(255, 255, 255, .1); }
+
+/* top bar */
+.acon__main { min-width: 0; display: flex; flex-direction: column; }
+.acon__top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule);
+}
+.acon__title { flex: 1; min-width: 0; }
+.acon__title h1 { margin: 0; font-size: 20px; line-height: 1.25; font-weight: 700; }
+.acon__title p { margin: 2px 0 0; color: var(--ink-2); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acon__tools { display: flex; align-items: center; gap: 8px; }
+.acon__tool {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.acon__tool:hover { color: var(--pick); border-color: var(--pick); }
+.acon__tool svg { width: 18px; height: 18px; }
+.acon__burger { display: none; }
+.acon__me { display: flex; align-items: center; gap: 10px; padding: 0 6px 0 4px; }
+.acon__av {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+  background: var(--rule-2);
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+.acon__who { display: grid; line-height: 1.3; }
+.acon__who b { font-size: 13.5px; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acon__who > span[style] { margin-left: 0 !important; justify-self: start; }
+
+.acon__page { padding: 24px 28px 40px; max-width: 1280px; width: 100%; }
+.acon__page > * + * { margin-top: 0; }
+
+.acon__scrim { display: none; }
+
+/* phones and narrow tablets: the menu slides in */
+@media (max-width: 1023px) {
+  .acon { padding-left: 0; }
+  .acon__side {
+    z-index: 60;
+    width: min(300px, 86vw);
+    transform: translateX(-102%);
+    transition: transform .22s ease;
+    box-shadow: 0 0 40px rgba(0, 0, 0, .3);
+  }
+  .acon.is-menu .acon__side { transform: none; }
+  .acon__scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    border: 0;
+    background: rgba(10, 12, 25, .45);
+  }
+  .acon.is-menu .acon__scrim { display: block; }
+  .acon__x {
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--acon-side-2);
+    color: var(--acon-side-ink);
+    cursor: pointer;
+  }
+  .acon__x svg { width: 16px; height: 16px; }
+  .acon__burger { display: inline-grid; }
+  .acon__top { padding: 10px 16px; gap: 10px; }
+  .acon__who { display: none; }
+  .acon__me { padding: 0; }
+  .acon__page { padding: 16px 16px 32px; }
+}
+@media (max-width: 560px) {
+  .acon__title h1 { font-size: 17px; }
+  .acon__title p { display: none; }
+  .acon__me { display: none; }
+  .acon__tool { width: 38px; height: 38px; }
+}
+
+/* signed in, but not an administrator */
+.acon-deny {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background: var(--paper);
+}
+.acon-deny__card {
+  max-width: 420px;
+  padding: 32px 28px;
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  background: var(--surface);
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.acon-deny__card h1 { margin: 14px 0 8px; font-size: 20px; }
+.acon-deny__card p { margin: 0 0 20px; color: var(--ink-2); line-height: 1.5; }
+.acon-deny__acts { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }

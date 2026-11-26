@@ -255,8 +255,7 @@ FORM_GUARD_BITS = env.int('FORM_GUARD_BITS', default=16)
 FORM_GUARD_MIN_SECONDS = env.float('FORM_GUARD_MIN_SECONDS', default=1.0)
 FORM_GUARD_TTL_SECONDS = 900
 # Password spraying from one address (common/loginguard.py): this many
-# different logins failing within the window block password sign-in from
-# it (phone sign-in keeps working).
+# different logins failing within the window block sign-in from it.
 LOGIN_IP_THRESHOLD = env.int('LOGIN_IP_THRESHOLD', default=25)
 LOGIN_IP_WINDOW_MINUTES = 15
 LOGIN_IP_BLOCK_MINUTES = env.int('LOGIN_IP_BLOCK_MINUTES', default=15)
@@ -264,6 +263,9 @@ FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:5173')
 # The site's public address, for links inside Telegram messages (the bot
 # reminders open the right page with one tap).
 SITE_URL = env('SITE_URL', default='https://kuragoniy.uz').rstrip('/')
+# The administration's own panel (common/adminhost.py): only an Admin or
+# the developer may sign in at these addresses.
+ADMIN_HOSTS = [h.lower() for h in env.list('ADMIN_HOSTS', default=['admin.kuragoniy.uz'])]
 
 # Password-reset codes go out by email too, but only when SMTP is actually
 # configured (EMAIL_HOST in .env) — Telegram is the primary channel.

@@ -22,7 +22,7 @@ import { useUIStore } from '@/store/uiStore'
 // kuragoniy.uz for a guest — its own chunk, never loaded once signed in
 const LandingPage = lazy(() => import('@/features/landing/LandingPage').then((m) => ({ default: m.LandingPage })))
 
-function FullScreenSpinner() {
+export function FullScreenSpinner() {
   return (
     <div style={{ display: 'flex', minHeight: '100dvh', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div className="skeleton" style={{ width: 120 }} />

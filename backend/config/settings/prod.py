@@ -2,6 +2,8 @@ from .base import *  # noqa: F401,F403
 
 DEBUG = False
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')  # noqa: F405
+# admin.kuragoniy.uz answers too, without a separate .env line
+ALLOWED_HOSTS += [h for h in ADMIN_HOSTS if h not in ALLOWED_HOSTS]  # noqa: F405
 
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
