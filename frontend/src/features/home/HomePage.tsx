@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
@@ -15,6 +15,9 @@ import { useUIStore } from '@/store/uiStore'
 
 import { TelegramNudge } from './TelegramNudge'
 import './home.css'
+
+// the administration's platform overview — its own chunk, never loaded for a teacher
+const HomeMonitoring = lazy(() => import('@/features/monitoring/Monitoring').then((m) => ({ default: m.HomeMonitoring })))
 
 const WEEK = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba']
 const SCHOOL_DAYS = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma']
@@ -161,6 +164,8 @@ export function HomePage() {
       </header>
 
       {timetableOn && <TelegramNudge hasLessons={(week ?? []).some((s) => !s.band)} />}
+
+      {admin && <Suspense fallback={<Skeleton lines={4} />}><HomeMonitoring /></Suspense>}
 
       <div className={`hh-grid ${timetableOn ? '' : 'hh-grid--solo'}`}>
         {timetableOn && (

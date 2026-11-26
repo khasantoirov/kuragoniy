@@ -1,3 +1,4 @@
+import { lazy } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 
 import { PageTabs } from '@/components/PageTabs'
@@ -10,6 +11,9 @@ import { DirectoryPage } from './DirectoryPage'
 import { YearPicker } from './YearPicker'
 import { SchoolsPage } from './SchoolsPage'
 import { STATS_FILTER_PARAMS, StatsFilterBar, StatsFilterProvider, type StatsField } from './statsFilter'
+
+// the administration's overview (owner's mock-ups, 2026-11-26) — its own chunk
+const MonitoringTab = lazy(() => import('@/features/monitoring/Monitoring').then((m) => ({ default: m.MonitoringTab })))
 
 /** What each tab can be filtered by. */
 const FIELDS: Record<string, StatsField[]> = {
@@ -33,6 +37,7 @@ export function StatsHub() {
   const viewMode = useUIStore((s) => s.viewMode)
   const admin = isAdminInView(user, viewMode)
   const tabs = [
+    { key: 'monitoring', label: 'Monitoring', element: <MonitoringTab /> },
     { key: 'umumiy', label: "Umumiy ko'rinish", element: <StatisticsPage />, show: admin },
     { key: 'jurnal', label: 'Jurnal', element: <SchoolsPage /> },
     { key: 'onlayn', label: "Onlayn ta'lim", element: <OnlineLearningTab /> },
