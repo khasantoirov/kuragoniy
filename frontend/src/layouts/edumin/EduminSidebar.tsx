@@ -21,8 +21,10 @@ export interface EduminNavItem {
  *  yangi marshrut yo'qolib qolmasligi uchun Ma'muriyat bo'limiga tushadi. */
 const GROUPS: { title: string; paths: string[]; rest?: boolean }[] = [
   { title: 'Asosiy', paths: ['/', '/my-school'] },
-  { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/staffroom', '/assignments', '/reports', '/training', '/achievements', '/feed', '/library', '/lab'] },
-  { title: "Ma'muriyat", paths: ['/statistics', '/manage/schools', '/admin', '/manage/equipment', '/equipment-sheet', '/shop', '/guide'], rest: true },
+  { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/assignments', '/reports', '/achievements', '/feed', '/library', '/lab'] },
+  // the owner's mock-ups: preparation and subscriptions as a group of their own
+  { title: 'Tayyorgarlik va obuna', paths: ['/staffroom', '/training', '/obuna', '/shop'] },
+  { title: "Ma'muriyat", paths: ['/statistics', '/manage/schools', '/admin', '/manage/equipment', '/equipment-sheet', '/guide'], rest: true },
   // no heading: these simply close the menu, at its bottom
   { title: '', paths: ['/qollanmalar', '/settings', '/about', '/help'] },
 ]

@@ -9,7 +9,10 @@ import { isAdminInView, isObserver, isOversight, isSchoolAdmin, isTeacherLike, u
 import { useModules } from '@/lib/modules'
 import { useUIStore, type ViewMode } from '@/store/uiStore'
 
-import { RequireAdmin, RequireAuth, RequireFan, RequireOversight, RequirePasswordChange, RequireModule, RequireSchoolView, RequireStaff, RequireStudent, RequireTeacher } from './guards'
+import {
+  RequireAdmin, RequireAuth, RequireFan, RequireOversight, RequirePasswordChange, RequireModule, RequireSchoolView, RequireShop,
+  RequireStaff, RequireStudent, RequireTeacher,
+} from './guards'
 
 // Every portal feature is its own lazy chunk: students never download the
 // staff pages (and vice versa), and the shop (administration only for
@@ -46,6 +49,7 @@ const TrainingPage = named(() => import('@/features/training/TrainingPage'), 'Tr
 const StaffroomPage = named(() => import('@/features/staffroom/StaffroomPage'), 'StaffroomPage')
 const HelpPage = named(() => import('@/features/help/HelpPage'), 'HelpPage')
 const GuidesPage = named(() => import('@/features/guides/GuidesPage'), 'GuidesPage')
+const SubscriptionsPage = named(() => import('@/features/subscriptions/SubscriptionsPage'), 'SubscriptionsPage')
 const AchievementsPage = named(() => import('@/features/achievements/AchievementsPage'), 'AchievementsPage')
 const FeedPage = named(() => import('@/features/feed/FeedPage'), 'FeedPage')
 const KitsPage = named(() => import('@/features/kits/KitsPage'), 'KitsPage')
@@ -79,11 +83,14 @@ function ShopTabs() {
   const { user } = useAuth()
   const viewMode = useUIStore((s) => s.viewMode)
   const admin = isAdminInView(user, viewMode)
+  const buyer = isTeacherLike(user) || isSchoolAdmin(user)
+  const seller = admin || isObserver(user)
   return (
     <PageTabs tabs={[
-      { key: 'dokon', label: "Do'kon", element: <ShopPage />, show: admin },
-      { key: 'orders', label: 'Buyurtmalarim', element: <OrdersPage />, show: admin },
-      { key: 'sotuv', label: "Sotuv bo'limi", element: <ShopAdminPage /> },
+      // teachers and schools' ma'muriyat buy; the administration sells
+      { key: 'dokon', label: "STEM do'kon", element: <ShopPage />, show: buyer },
+      { key: 'orders', label: 'Buyurtmalarim', element: <OrdersPage />, show: buyer },
+      { key: 'sotuv', label: "Sotuv bo'limi", element: <ShopAdminPage />, show: seller },
     ]} />
   )
 }
@@ -169,7 +176,9 @@ export const staffPortalRoutes: RouteObject[] = [
   { path: '/results', element: <MovedTo to="/statistics" bolim="onlayn" /> },
   { path: '/class-stats', element: <MovedTo to="/journal" bolim="sinflarim" /> },
   { path: '/games', element: <MovedTo to="/assignments" bolim="oyinlar" /> },
-  { path: '/shop', element: oversight(<RequireModule keys={['shop']}><ShopTabs /></RequireModule>) },
+  { path: '/shop', element: <RequireShop><RequireModule keys={['shop']}><Lazy><ShopTabs /></Lazy></RequireModule></RequireShop> },
+  // obuna tariflari, the contract and how to pay (features/subscriptions)
+  { path: '/obuna', element: <RequireShop><Lazy><SubscriptionsPage /></Lazy></RequireShop> },
   { path: '/shop/orders', element: <MovedTo to="/shop" bolim="orders" /> },
   { path: '/statistics', element: oversight(<StatsHub />) },
   { path: '/manage', element: <MovedTo to="/statistics" bolim="onlayn" /> },

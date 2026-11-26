@@ -150,6 +150,22 @@ class OrderCreateSerializer(serializers.Serializer):
     delivery_address = serializers.CharField(required=False, allow_blank=True, max_length=500)
 
 
+def _tell_admins_new(order):
+    """A new order waits for the administration (no payment online yet):
+    everyone who runs the shop hears of it at once."""
+    from django.db.models import Q as _Q
+
+    from accounts.models import User
+
+    if order.status != Order.Status.PENDING:
+        return  # a free one is done already
+    admins = list(User.objects.filter(is_active=True).filter(
+        _Q(is_dev_superuser=True) | _Q(role__in=[User.Role.ADMIN, User.Role.BOSHLIQ])).exclude(pk=order.buyer_id))
+    body = f"{order.buyer.name} · {order.total:,} so'm".replace(',', ' ')
+    notify(admins, NotifyKind.DOKON, f"Yangi buyurtma {order.number}", body, '/shop?bolim=sotuv',
+           telegram_text=f"🛒 Yangi buyurtma {order.number}\n{body}")
+
+
 class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     serializer_class = OrderSerializer
     permission_classes = [IsApproved]
@@ -170,8 +186,9 @@ class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
         return obj
 
     def create(self, request):
-        if not IsTeacher().has_permission(request, self):
-            raise PermissionDenied("Xarid faqat o'qituvchilar uchun.")
+        # teachers and a school's ma'muriyat (owner's choice, 2026-11-26)
+        if not (IsTeacher().has_permission(request, self) or request.user.is_school_admin):
+            raise PermissionDenied("Buyurtmani o'qituvchilar va maktab ma'muriyati beradi.")
         settings_obj = ShopSettings.get()
         if not settings_obj.is_open:
             raise ValidationError({'detail': "Do'kon vaqtincha yopiq."})
@@ -220,6 +237,7 @@ class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
                 OrderItem(order=order, product=products[pid], title=products[pid].title, unit_price=products[pid].price, quantity=qty)
                 for pid, qty in wanted.items()
             ])
+        _tell_admins_new(order)
         return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'], url_path='report-payment')

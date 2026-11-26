@@ -3,7 +3,7 @@ import type { User } from '@/lib/api/types'
 import { isAdminInView, isObserver, isOversight, isTeacherLike } from '@/lib/auth/AuthContext'
 import type { ViewMode } from '@/store/uiStore'
 
-type Audience = 'teacher' | 'staff' | 'oversight' | 'admin'
+type Audience = 'teacher' | 'staff' | 'oversight' | 'admin' | 'buyer'
 
 interface PortalLink {
   to: string
@@ -25,7 +25,9 @@ const PORTAL_LINKS: PortalLink[] = [
   { to: '/statistics', label: 'Statistika', sub: "Tahlil, maktablar, natijalar va o'quvchilar bazasi", icon: 'chart', audience: 'oversight' },
   { to: '/manage/schools', label: 'Hamkor maktablar', sub: "Ro'yxat, shartnoma va nomlarni moslashtirish", icon: 'school', audience: 'oversight' },
   { to: '/manage/equipment', label: 'Jihozlar jadvali', sub: "Tajriba jihozlari, narxlari va Excel", icon: 'flask', audience: 'oversight' },
-  { to: '/shop', label: "Do'kon", sub: "Dars ishlanmalari va tajribalar", icon: 'cards', audience: 'oversight' },
+  // teachers and schools' ma'muriyat order; the administration sells (owner, 2026-11-26)
+  { to: '/shop', label: "STEM do'kon", sub: "Jihozlar, to'plamlar va qo'llanmalar", icon: 'cards', audience: 'buyer' },
+  { to: '/obuna', label: 'Obunalar', sub: "Tariflar, shartnoma va to'lov", icon: 'calendar', audience: 'oversight' },
 ]
 
 function allowed(audience: Audience, user: User | null, viewMode: ViewMode) {
@@ -38,6 +40,8 @@ function allowed(audience: Audience, user: User | null, viewMode: ViewMode) {
       return isObserver(user) || (isOversight(user) && viewMode !== 'teacher')
     case 'admin':
       return isAdminInView(user, viewMode)
+    case 'buyer':
+      return isTeacherLike(user) || isObserver(user) || (isOversight(user) && viewMode !== 'teacher')
   }
 }
 

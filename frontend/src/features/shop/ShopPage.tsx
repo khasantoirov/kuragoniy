@@ -98,7 +98,11 @@ function Cart({ products, onClose }: { products: Product[]; onClose: () => void 
             <input className="input" value={address} onChange={(e) => setAddress(e.target.value)} /></label>
         </div>
       )}
-      <p className="form__note">{t("Buyurtmadan keyin karta orqali to'lov qilasiz; administrator tasdiqlagach, material «Xaridlarim»da ochiladi.")}</p>
+      <p className="form__note">
+        {settings.data?.card_number
+          ? t("Buyurtmadan keyin karta orqali to'lov qilasiz; administrator tasdiqlagach, material «Xaridlarim»da ochiladi.")
+          : t("Buyurtma ma'muriyatga yuboriladi: u siz bilan bog'lanib, to'lov (shartnoma asosida) va yetkazib berishni kelishadi.")}
+      </p>
     </Modal>
   )
 }

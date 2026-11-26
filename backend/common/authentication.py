@@ -35,7 +35,7 @@ STUDENT_ALLOWED_PREFIXES = (
 )
 SELF_SERVICE_PREFIXES = ('/api/auth/', '/api/accounts/me/', '/api/push/', '/api/notifications/',
                          '/api/common/protection-event/', '/api/help/tickets/',
-                         '/api/kits/requests/')
+                         '/api/kits/requests/', '/api/shop/orders/')
 PASSWORD_CHANGE_PREFIXES = ('/api/auth/', '/api/accounts/me/')
 
 

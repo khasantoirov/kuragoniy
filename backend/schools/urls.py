@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from . import views
+from . import offers, views
 
 router = DefaultRouter()
 router.register('', views.SchoolViewSet, basename='school')
@@ -11,6 +11,9 @@ router.register('', views.SchoolViewSet, basename='school')
 urlpatterns = [
     path('unlinked/', views.UnlinkedView.as_view(), name='schools-unlinked'),
     path('licenses/', views.LicensesView.as_view(), name='schools-licenses'),
+    # obuna tariflari and the contract template (schools/offers.py)
+    path('offers/', offers.OffersView.as_view(), name='schools-offers'),
+    path('offers/contract/', offers.ContractView.as_view(), name='schools-offers-contract'),
     path('licenses/enforce/', views.LicenseEnforceView.as_view(), name='schools-licenses-enforce'),
     path('licenses/<int:pk>/', views.LicenseView.as_view(), name='schools-license'),
     path('link/', views.LinkView.as_view(), name='schools-link'),

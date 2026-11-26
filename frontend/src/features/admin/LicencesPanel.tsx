@@ -12,6 +12,7 @@ import { LICENCE_TONE, seats, som } from '@/features/schools/licence'
 import { IS_ADMIN_HOST, siteUrl } from '@/lib/adminHost'
 import { api } from '@/lib/api/client'
 import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
+import { OffersEditor } from '@/features/subscriptions/OffersEditor'
 
 const iso = (d: Date) => d.toISOString().slice(0, 10)
 const addDays = (s: string, n: number) => {
@@ -114,6 +115,9 @@ export function LicencesPanel() {
           </table>
         </div>
       </section>
+
+      {/* the plans' prices and contents, the contract template (the owner enters them) */}
+      {admin && <OffersEditor />}
 
       {editing && <LicenceModal row={editing.row} licence={editing.licence} plans={data.plans} onClose={() => setEditing(null)} />}
     </div>

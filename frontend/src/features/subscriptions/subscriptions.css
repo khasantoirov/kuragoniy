@@ -1,0 +1,57 @@
+/* ══ Obunalar va tariflar (features/subscriptions) ═══════════════════ */
+
+.sub-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.sub-head h1 { margin: 0; font-size: 22px; font-weight: 700; }
+.sub-head p { margin: 4px 0 0; color: var(--ink-2); font-size: 14px; }
+.sub-mine { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 14px; padding: 10px 14px; border-radius: 12px;
+  background: color-mix(in srgb, var(--logo-blue, #1d3fae) 8%, var(--surface)); color: var(--ink-2); font-size: 13px; }
+.sub-mine .svic { width: 16px; height: 16px; color: var(--logo-blue, #1d3fae); }
+.sub-mine a { color: var(--logo-blue, var(--pick)); font-weight: 600; text-decoration: none; }
+
+.sub-figs { list-style: none; margin: 0 0 14px; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.sub-fig { display: grid; gap: 2px; padding: 14px 16px; border: 1px solid var(--rule); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
+.sub-fig__l { color: var(--ink-2); font-size: 12.5px; }
+.sub-fig__v { font-size: 26px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.sub-fig__s { color: var(--ink-3); font-size: 12px; }
+.sub-fig__s.is-warn { color: #b45309; font-weight: 600; }
+[data-theme="dark"] .sub-fig__s.is-warn { color: #fbbf24; }
+
+.sub-card { margin-bottom: 14px; padding: 16px 18px; border: 1px solid var(--rule); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
+.sub-card h2 { margin: 0 0 12px; font-size: 16px; font-weight: 700; }
+.sub-empty { margin: 0; color: var(--ink-3); font-size: 13px; }
+
+.sub-plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.sub-plan { position: relative; padding: 16px; border: 1px solid var(--rule); border-radius: 14px; background: var(--paper); }
+.sub-plan.is-rec {
+  border-color: transparent; color: #fff;
+  background: linear-gradient(150deg, #19379b, #2f6be6);
+  box-shadow: 0 10px 24px rgba(29, 63, 174, .25);
+}
+.sub-plan h3 { margin: 0; font-size: 16px; }
+.sub-plan__rec { position: absolute; top: 12px; right: 12px; padding: 2px 9px; border-radius: 999px; background: var(--logo-gold, #e9ab06);
+  color: #1b1300; font-size: 11.5px; font-weight: 700; }
+.sub-plan__price { margin: 6px 0 10px; font-size: 15px; font-weight: 700; }
+.sub-plan__list { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; }
+.sub-plan.is-rec .sub-plan__list { color: rgba(255, 255, 255, .9); }
+
+.sub-pay { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.sub-note { margin: 10px 0 0; color: var(--ink-2); font-size: 13.5px; line-height: 1.55; white-space: pre-line; }
+.sub-methods__t { margin: 0 0 8px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.sub-methods ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.sub-methods li { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--rule); border-radius: 999px;
+  font-size: 13px; font-weight: 600; color: var(--ink-3); }
+.sub-methods li small { font-weight: 400; }
+.sub-methods li.is-on { color: var(--ink); border-color: var(--logo-blue, #1d3fae); }
+.sub-methods li .svic { width: 15px; height: 15px; }
+
+/* the panel's editor (OffersEditor) */
+.ofed__plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.ofed__plan { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--rule); border-radius: 12px; }
+.ofed__plan h4 { margin: 0; font-size: 14.5px; }
+.ofed__checks { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.ofed__checks label { display: inline-flex; align-items: center; gap: 6px; }
+.ofed__contract { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+
+@media (max-width: 760px) {
+  .sub-pay { grid-template-columns: minmax(0, 1fr); }
+}

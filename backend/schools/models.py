@@ -238,3 +238,37 @@ class SchoolManager(models.Model):
 
     def __str__(self):
         return f'{self.user} — {self.get_position_display()}, {self.school}'
+
+
+class PlanOffer(models.Model):
+    """What a subscription plan costs and gives, as the administration words
+    it in the panel (Boshqaruv › Litsenziyalar › Tariflar) — the owner's
+    choice (2026-11-26): the prices are theirs to enter, never invented.
+    Shown to schools on their page; one row per SchoolLicense plan."""
+
+    plan = models.CharField(max_length=10, choices=SchoolLicense.Plan.choices, unique=True)
+    price = models.CharField(max_length=120, blank=True)  # "15 000 so'm / o'quvchi / chorak"
+    features = models.TextField(blank=True)  # one per line
+    recommended = models.BooleanField(default=False)
+    is_visible = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['id']
+
+    def __str__(self):
+        return f'{self.get_plan_display()}: {self.price}'
+
+
+class SubscriptionInfo(models.Model):
+    """Singleton (pk=1): the contract template schools download and how to
+    pay until Click/Payme are connected (after the merchant contract)."""
+
+    contract = models.FileField(upload_to='subscription/', null=True, blank=True)
+    payment_note = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @classmethod
+    def get(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj

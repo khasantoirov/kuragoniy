@@ -87,6 +87,14 @@ export function RequireOversight({ children }: { children: ReactNode }) {
   return children
 }
 
+/** STEM do'kon and Obunalar: teachers, a school's ma'muriyat and the
+ *  administration (the Kuzatuvchi looks, read-only). */
+export function RequireShop({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
+  if (!(isTeacherLike(user) || isSchoolAdmin(user) || isOversight(user))) return <Navigate to={homePathFor(user)} replace />
+  return children
+}
+
 /** Teacher tools — everyone on staff except the read-only Kuzatuvchi. */
 export function RequireTeacher({ children }: { children: ReactNode }) {
   const { user } = useAuth()

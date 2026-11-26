@@ -110,7 +110,7 @@ class Order(models.Model):
 
     @property
     def number(self):
-        return f'AF-{self.created_at:%y%m}-{self.pk:05d}' if self.pk and self.created_at else ''
+        return f'KE-{self.created_at:%y%m}-{self.pk:05d}' if self.pk and self.created_at else ''
 
     @property
     def needs_delivery(self):

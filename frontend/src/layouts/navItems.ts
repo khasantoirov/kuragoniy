@@ -48,6 +48,11 @@ const FIZIKA_ONLY = new Set(['/manage/equipment'])
  *  item of its own; in Fizika it is a tab of the Jihozlar jadvali. */
 const STEAM_ONLY = new Set(['/equipment-sheet'])
 const MY_SCHOOL: NavItem = { to: '/my-school', label: 'Maktabim', icon: 'home' }
+// a school's ma'muriyat orders from the shop and reads the plans too
+const SCHOOL_SHOP: NavItem[] = [
+  { to: '/shop', label: "STEM do'kon", icon: 'cards' },
+  { to: '/obuna', label: 'Obunalar', icon: 'calendar' },
+]
 
 export function useVisibleNavItems(): NavItem[] {
   const { user } = useAuth()
@@ -57,7 +62,7 @@ export function useVisibleNavItems(): NavItem[] {
   const inWindow = (to: string) => (fan === 'fizika' ? !STEAM_ONLY.has(to) : !FIZIKA_ONLY.has(to))
   if (isSchoolAdmin(user)) {
     return [MY_SCHOOL, ...NAV_ITEMS.filter((item) => !item.adminOnly && !SCHOOL_ADMIN_HIDDEN.has(item.to))
-      .map(({ to, label, icon }) => ({ to, label, icon }))].filter((item) => routeOn(item.to, on) && inWindow(item.to))
+      .map(({ to, label, icon }) => ({ to, label, icon })), ...SCHOOL_SHOP].filter((item) => routeOn(item.to, on) && inWindow(item.to))
   }
   return [
     ...NAV_ITEMS.filter((item) => (!item.adminOnly || isAdminInView(user, viewMode)) && (!item.panelOnly || mayUseAdminPanel(user))
