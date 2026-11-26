@@ -56,11 +56,12 @@ function cmpUser(a: User, b: User) {
 
 const fmtBday = (d: string | null) => (d ? `${d.slice(8, 10)}.${d.slice(5, 7)}.${d.slice(0, 4)}` : '—')
 
-function NewPasswordModal({ email, password, onClose, title = 'Parolni tiklash' }: {
+function NewPasswordModal({ email, password, onClose, title = 'Parolni tiklash', note }: {
   email: string
   password: string
   onClose: () => void
   title?: string
+  note?: string
 }) {
   const { t } = useTranslation()
   const toast = useToast()
@@ -83,6 +84,7 @@ function NewPasswordModal({ email, password, onClose, title = 'Parolni tiklash' 
       <p className="prose prose--note">
         {t('Yangi parol yaratildi. Uni foydalanuvchiga yetkazing — bu oyna yopilgach qayta ko\'rsatib bo\'lmaydi.')}
       </p>
+      {note && <p className="prose prose--note">{t(note)}</p>}
       <label className="field">
         <span className="field__label">{email}</span>
         <div className="row row--2">
@@ -191,6 +193,69 @@ function CreateStaffModal({ onClose, onCreated, canObserver }: {
         </div>
       )}
       {role === 'maktab' && <p className="prose prose--note">{t("Bu xodim platformada faqat tanlangan maktabning statistikasi, o'qituvchilari va jurnallarini ko'radi; hech narsani o'zgartira olmaydi.")}</p>}
+      {error && <p className="form__note form__note--err" role="alert">{error}</p>}
+    </Modal>
+  )
+}
+
+/** An admin account (the developer only): signs in at admin.kuragoniy.uz
+ * alone, with the authenticator set up at its first sign-in. */
+function CreateAdminAccountModal({ onClose, onCreated }: {
+  onClose: () => void
+  onCreated: (login: string, password: string) => void
+}) {
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
+  const [first, setFirst] = useState('')
+  const [last, setLast] = useState('')
+  const [login, setLogin] = useState('')
+  const [dev, setDev] = useState(false)
+  const [error, setError] = useState('')
+  const create = useMutation({
+    mutationFn: async () => (await api.post<{ login: string; password: string }>('/accounts/users/create-admin-account/',
+      { first_name: first.trim(), last_name: last.trim(), login: login.trim().toLowerCase(), dev })).data,
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      onCreated(res.login, res.password)
+    },
+    onError: (err: unknown) => {
+      const data = (err as { response?: { data?: Record<string, string[] | string> } }).response?.data
+      const first = data && Object.values(data)[0]
+      setError(t(Array.isArray(first) ? first[0] : first || "Amalni bajarib bo'lmadi"))
+    },
+  })
+  const loginOk = /^[a-z][a-z0-9._]{2,29}$/.test(login.trim().toLowerCase())
+  return (
+    <Modal
+      title={t('Admin akkaunt yaratish')}
+      onClose={onClose}
+      footer={<>
+        <button className="btn" onClick={onClose}>{t('Bekor qilish')}</button>
+        <button className="btn btn--primary" disabled={create.isPending || !first.trim() || /\s/.test(first.trim()) || !loginOk}
+          onClick={() => { setError(''); create.mutate() }}>{t('Yaratish')}</button>
+      </>}
+    >
+      <p className="prose prose--note">{t("Admin akkaunt faqat admin.kuragoniy.uz ga kiradi — kuragoniy.uz uni qabul qilmaydi va u dars bermaydi. Birinchi kirishda telefondagi Authenticator ilovasi ulanadi, keyin har kirishda parol bilan birga 6 xonali kod so'raladi.")}</p>
+      <div className="row row--2">
+        <label className="field">
+          <span className="field__label">{t('Ism')} <span className="field__req" aria-hidden="true">*</span></span>
+          <input className="input" autoFocus value={first} onChange={(e) => setFirst(e.target.value)} placeholder="Hasan" />
+        </label>
+        <label className="field">
+          <span className="field__label">{t('Familiya')} <small className="muted">({t('ixtiyoriy')})</small></span>
+          <input className="input" value={last} onChange={(e) => setLast(e.target.value)} placeholder="Toirov" />
+        </label>
+      </div>
+      <label className="field">
+        <span className="field__label">{t('Login')} <span className="field__req" aria-hidden="true">*</span></span>
+        <input className="input" value={login} onChange={(e) => setLogin(e.target.value)} placeholder="hasan.admin"
+          autoCapitalize="none" spellCheck={false} aria-invalid={!!login && !loginOk} />
+        <span className="field__hint">{t("Lotin harfi bilan boshlanadi; harf, raqam, nuqta — masalan hasan.admin")}</span>
+      </label>
+      <label className="check">
+        <input type="checkbox" checked={dev} onChange={(e) => setDev(e.target.checked)} />
+        <span>{t('Dasturchi huquqi bilan')} <small className="muted">({t("rollarni berish, admin akkaunt yaratish")})</small></span>
+      </label>
       {error && <p className="form__note form__note--err" role="alert">{error}</p>}
     </Modal>
   )
@@ -355,7 +420,8 @@ export function AdminPage() {
   const toast = useToast()
   const confirm = useConfirm()
   const queryClient = useQueryClient()
-  const [newPassword, setNewPassword] = useState<{ email: string; password: string; title?: string } | null>(null)
+  const [newPassword, setNewPassword] = useState<{ email: string; password: string; title?: string; note?: string } | null>(null)
+  const [creatingAdmin, setCreatingAdmin] = useState(false)
   const [editingLogin, setEditingLogin] = useState<User | null>(null)
   const [editingPerson, setEditingPerson] = useState<User | null>(null)  // the developer's "Tahrirlash"
   // Never oneself, never the developer, and another administrator only by
@@ -438,6 +504,21 @@ export function AdminPage() {
     if (!(await confirm({ title: t('Kuzatuvchi qilish'), text: `${who(u)} — ${t("barcha ma'lumotlarni faqat ko'rish huquqi beriladi.")}` }))) return
     act.mutate({ id: u.id, action: 'set-kuzatuvchi' }, { onSuccess: () => toast(t('Kuzatuvchi qilindi')) })
   }
+  const onDropDev = async (u: User) => {
+    if (!(await confirm({
+      title: t('Dasturchi huquqini olish'),
+      text: `${who(u)} — ${t("dasturchi huquqi olib tashlanadi; akkaunt o'qituvchi bo'lib qoladi.")}`,
+      danger: true,
+    }))) return
+    try {
+      await api.post(`/accounts/users/${u.id}/drop-dev/`)
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+      toast(t('Dasturchi huquqi olindi'))
+    } catch (err) {
+      const detail = (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
+      toast(t(detail || "Amalni bajarib bo'lmadi"), 'error')
+    }
+  }
   const onUnlock = (u: User) => act.mutate({ id: u.id, action: 'unlock' }, { onSuccess: () => toast(t('Blok ochildi')) })
   const onBlock = async (u: User) => {
     if (!(await confirm({ title: t("Kirishni to'xtatish"), text: `${who(u)} ${t('endi tizimga kira olmaydi. Keyin qayta tasdiqlashingiz mumkin.')}` }))) return
@@ -465,6 +546,7 @@ export function AdminPage() {
         <div className="urow__id">
           <p className="person__name">
             {u.name || '—'} <RoleBadge user={u} />
+            {u.is_panel_account && <span className="urow__panel" title={t('Faqat admin.kuragoniy.uz ga kiradi')}>{IC.shield} {t('Admin akkaunt')}</span>}
             {me?.is_dev_superuser && (
               <button type="button" className="stf__edit" onClick={() => setEditingPerson(u)}
                 title={t("Ma'lumotlarni tahrirlash")} aria-label={t("Ma'lumotlarni tahrirlash")}>{IC.edit}</button>
@@ -492,7 +574,7 @@ export function AdminPage() {
         ) : canManage ? (
           <div className="person__acts">
             {me?.is_dev_superuser && <button className="btn btn--sm btn--ghost" onClick={() => setEditingPerson(u)}>{t('Tahrirlash')}</button>}
-            {me?.is_dev_superuser &&
+            {me?.is_dev_superuser && !u.is_panel_account &&
               (targetIsAdm ? (
                 <button className="btn btn--sm btn--ghost" onClick={() => onDemote(u)}>
                   {u.role === 'boshliq' ? t('Boshliqlikni olish') : u.role === 'kuzatuvchi' ? t('Kuzatuvchilikni olish') : t('Adminlikni olish')}
@@ -513,6 +595,9 @@ export function AdminPage() {
         ) : me?.is_dev_superuser ? (
           <div className="person__acts">
             <button className="btn btn--sm btn--ghost" onClick={() => setEditingPerson(u)}>{t('Tahrirlash')}</button>
+            {u.is_dev_superuser && !u.is_panel_account && me?.is_panel_account && (
+              <button className="btn btn--sm btn--ghost" onClick={() => onDropDev(u)}>{t('Dasturchi huquqini olish')}</button>
+            )}
           </div>
         ) : null}
       </li>
@@ -557,7 +642,12 @@ export function AdminPage() {
                   <span className="presence__dot" aria-hidden="true" />{t('Hozir onlayn')}: {approved.filter((u) => u.online).length}
                 </span>
               </h3>
-              <button className="btn btn--primary btn--sm" onClick={() => setCreatingStaff(true)}>+ {t('Yangi xodim')}</button>
+              <span className="thead__acts">
+                {me?.is_dev_superuser && (
+                  <button className="btn btn--sm" onClick={() => setCreatingAdmin(true)}>{IC.shield} {t('Admin akkaunt yaratish')}</button>
+                )}
+                <button className="btn btn--primary btn--sm" onClick={() => setCreatingStaff(true)}>+ {t('Yangi xodim')}</button>
+              </span>
             </div>
 
             <div className="seg settabs utabs" role="tablist" aria-label={t('Rollar')}>
@@ -604,6 +694,18 @@ export function AdminPage() {
             )}
           </section>
 
+          {creatingAdmin && (
+            <CreateAdminAccountModal
+              onClose={() => setCreatingAdmin(false)}
+              onCreated={(login, password) => {
+                setCreatingAdmin(false)
+                setNewPassword({
+                  email: `${t('Login')}: ${login}`, password, title: 'Admin akkaunt',
+                  note: "Birinchi kirish: admin.kuragoniy.uz → shu login va parol → telefondagi Authenticator ilovasi bilan QR kodni skanerlash → 6 xonali kod → yangi parol.",
+                })
+              }}
+            />
+          )}
           {creatingStaff && (
             <CreateStaffModal
               canObserver={!!me?.is_dev_superuser}
@@ -621,7 +723,7 @@ export function AdminPage() {
           {editingPerson && <EditPersonModal person={editingPerson} onClose={() => setEditingPerson(null)} />}
           {editingFans && <SubjectsModal user={editingFans} onClose={() => setEditingFans(null)} />}
           {newPassword && (
-            <NewPasswordModal email={newPassword.email} password={newPassword.password} title={newPassword.title}
+            <NewPasswordModal email={newPassword.email} password={newPassword.password} title={newPassword.title} note={newPassword.note}
               onClose={() => setNewPassword(null)} />
           )}
         </>

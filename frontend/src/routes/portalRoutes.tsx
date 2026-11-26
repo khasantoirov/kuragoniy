@@ -79,7 +79,7 @@ const oversees = (user: Parameters<typeof isObserver>[0], viewMode: ViewMode) =>
 
 /** Do'kon — the catalogue and one's orders (administrators: the shop is
  * theirs for now) beside the selling side, Sotuv bo'limi. */
-function ShopTabs() {
+export function ShopTabs() {
   const { user } = useAuth()
   const viewMode = useUIStore((s) => s.viewMode)
   const fan = useUIStore((s) => s.subject)
@@ -98,7 +98,7 @@ function ShopTabs() {
 
 /** Dars hisobotlari — teachers hand in their lessons, the administration
  * grades them (Baholash, their first tab). */
-function ReportsTabs() {
+export function ReportsTabs() {
   const { user } = useAuth()
   const viewMode = useUIStore((s) => s.viewMode)
   const mine = { key: 'mine', label: 'Mening hisobotlarim', element: <ReportsPage />, show: isTeacherLike(user) }
@@ -153,7 +153,7 @@ function AssignmentsTabs() {
 const teacher = (el: ReactNode) => <RequireTeacher><Lazy>{el}</Lazy></RequireTeacher>
 /** Jihozlar jadvali — the priced registry of the physics lessons'
  * equipment, and (administrators) the picture sheet maker, Jihozlar varag'i. */
-function EquipmentTabs() {
+export function EquipmentTabs() {
   const { user } = useAuth()
   const viewMode = useUIStore((s) => s.viewMode)
   return (

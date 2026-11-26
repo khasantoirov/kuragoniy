@@ -202,3 +202,18 @@
 .acon-deny__card h1 { margin: 14px 0 8px; font-size: 20px; }
 .acon-deny__card p { margin: 0 0 20px; color: var(--ink-2); line-height: 1.5; }
 .acon-deny__acts { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+
+/* the account card on top opens Sozlamalar */
+a.acon__me { color: inherit; text-decoration: none; border-radius: 12px; }
+a.acon__me:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+
+/* a daily (teaching) account in the panel: make an admin account */
+.acon-note {
+  display: flex; gap: 12px; align-items: flex-start; margin: 0 0 16px; padding: 12px 14px; border-radius: 12px;
+  border: 1px solid color-mix(in srgb, #e9ab06 45%, var(--rule)); background: color-mix(in srgb, #e9ab06 10%, var(--surface));
+  font-size: 13.5px; line-height: 1.5;
+}
+.acon-note p { margin: 0; }
+.acon-note__ic { flex: none; color: #b07a00; }
+.acon-note__ic .svic { width: 20px; height: 20px; }
+[data-theme="dark"] .acon-note__ic { color: #f7c948; }

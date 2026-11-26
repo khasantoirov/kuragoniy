@@ -18,6 +18,7 @@ auth_urlpatterns = [
     path('phone/verify/', phone_views.PhoneVerifyView.as_view(), name='auth-phone-verify'),
     path('guard/', GuardChallengeView.as_view(), name='auth-guard'),
     path('2fa/verify/', views.TwoFactorVerifyView.as_view(), name='auth-2fa-verify'),
+    path('2fa/enroll/', views.TwoFactorEnrollView.as_view(), name='auth-2fa-enroll'),
     path('refresh/', views.RefreshView.as_view(), name='auth-refresh'),
     path('logout/', views.LogoutView.as_view(), name='auth-logout'),
     path('sessions/', sessions.SessionListView.as_view(), name='auth-sessions'),

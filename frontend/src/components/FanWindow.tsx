@@ -32,7 +32,7 @@ function useEnterWindow() {
 
 /** The top bar's window switch — for whoever sees both fans; a quiet
  *  label of the one window for everyone else. */
-export function FanSwitch() {
+export function FanSwitch({ stay = false }: { stay?: boolean } = {}) {
   const { t } = useTranslation()
   const lang = useUIStore((s) => s.lang)
   const { visible, current, mixed } = useSubjects()
@@ -44,7 +44,7 @@ export function FanSwitch() {
     <div className="fanswitch" role="group" aria-label={t('Oyna')}>
       {visible.map((s) => (
         <button key={s} type="button" className={`fanswitch__b fanswitch__b--${s} ${s === current ? 'is-on' : ''}`}
-          aria-pressed={s === current} title={subjectLabel(s, lang)} onClick={() => s !== current && enter(s)}>
+          aria-pressed={s === current} title={subjectLabel(s, lang)} onClick={() => s !== current && enter(s, !stay)}>
           {IC[ICONS[s]]} <span>{subjectShort(s, lang)}</span>
         </button>
       ))}

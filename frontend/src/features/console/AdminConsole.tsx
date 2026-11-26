@@ -1,23 +1,28 @@
 import { lazy, Suspense, useEffect, useState, type ComponentType, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Navigate, NavLink, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { Avatar } from '@/components/Avatar'
+import { FanSwitch } from '@/components/FanWindow'
 import { RoleBadge } from '@/components/RoleBadge'
 import { Skeleton } from '@/components/Skeleton'
+import type { Subject } from '@/features/lessons/labels'
 import { IC, themeIconMoon, themeIconSun } from '@/icons'
-import { MAIN_ORIGIN } from '@/lib/adminHost'
+import { MAIN_ORIGIN, panelSendsFan } from '@/lib/adminHost'
 import { useAuth } from '@/lib/auth/AuthContext'
+import { routeOn, useModules } from '@/lib/modules'
 import { useUIStore } from '@/store/uiStore'
 
 import { useStaffList } from '@/features/admin/staffApi'
 import './console.css'
 import './i18n'
 
-/* admin.kuragoniy.uz — the Boshqaruv paneli: the administration's
-   settings as a console of its own (side menu, one section at a time).
-   The everyday work (Darslar, Jurnal, Jadval, Statistika) stays on
-   kuragoniy.uz; "Platformaga o'tish" goes there. */
+/* admin.kuragoniy.uz — the administration's whole work, apart from the
+   teaching (owner, 2026-11-26: "to'liq ajratish"): the Boshqaruv sections
+   (the console's own, both fans at once) and the Ma'muriyat, content and
+   requests pages of the platform, each in the Fizika or STEAM window
+   picked on top. An admin account signs in here only; kuragoniy.uz is
+   for teaching. */
 
 function named<T extends string>(load: () => Promise<Record<T, ComponentType>>, name: T) {
   return lazy(() => load().then((m) => ({ default: m[name] })))
@@ -32,7 +37,9 @@ const LicencesPanel = named(() => import('@/features/admin/LicencesPanel'), 'Lic
 const AcademicYearsPanel = named(() => import('@/features/admin/AcademicYearsPanel'), 'AcademicYearsPanel')
 const SitePanel = named(() => import('@/features/admin/SitePanel'), 'SitePanel')
 const SecurityLogPage = named(() => import('@/features/manage/ManagePages'), 'SecurityLogPage')
+const HomeMonitoring = named(() => import('@/features/monitoring/Monitoring'), 'HomeMonitoring')
 
+/** A section of the console itself (/:bolim) … */
 interface Section {
   slug: string
   label: string
@@ -40,8 +47,53 @@ interface Section {
   icon: keyof typeof IC
   page: ReactNode
 }
+/** … or a page of the platform shown in the console (its own path). */
+interface PageLink {
+  to: string
+  label: string
+  icon: keyof typeof IC
+  /** of one fan window only */
+  fan?: Subject
+}
+type Item = Section | PageLink
+const isSection = (x: Item): x is Section => 'slug' in x
 
-const GROUPS: { title: string; items: Section[] }[] = [
+const GROUPS: { title: string; items: Item[] }[] = [
+  {
+    title: "Ma'muriyat",
+    items: [
+      { slug: 'monitoring', label: 'Monitoring', sub: "Platformaning bugungi holati, so'rovlar va maktablar", icon: 'chart', page: <HomeMonitoring /> },
+      { to: '/statistics', label: 'Statistika', icon: 'chart' },
+      { to: '/timetable', label: 'Jadvallar', icon: 'timetable' },
+      { to: '/manage/schools', label: 'Hamkor maktablar', icon: 'school' },
+      { to: '/manage/equipment', label: 'Jihozlar jadvali', icon: 'flask', fan: 'fizika' },
+      { to: '/equipment-sheet', label: "Jihozlar varag'i", icon: 'grid', fan: 'steam' },
+      { to: '/reports', label: 'Dars hisobotlari', icon: 'file' },
+      { to: '/obuna', label: 'Obunalar', icon: 'calendar' },
+      { to: '/shop', label: "Do'kon", icon: 'cards' },
+    ],
+  },
+  {
+    title: 'Kontent',
+    items: [
+      { to: '/lessons', label: 'Darslar', icon: 'lessons' },
+      { to: '/lessons?bolim=chamadonlar', label: 'Kerakli jihozlar', icon: 'cards', fan: 'steam' },
+      { to: '/library', label: 'Kutubxona', icon: 'book' },
+      { to: '/qollanmalar', label: "Qo'llanmalar", icon: 'file' },
+      { to: '/training', label: 'Malaka oshirish', icon: 'cap' },
+      { to: '/guide', label: "Yo'riqnoma", icon: 'book' },
+    ],
+  },
+  {
+    title: 'Aloqa',
+    items: [
+      { to: '/help', label: 'Yordam markazi', icon: 'help' },
+      { to: '/mehmon', label: 'Mehmon ustoz', icon: 'users' },
+      { to: '/feed', label: 'Ustozlar lentasi', icon: 'megaphone' },
+      { to: '/achievements', label: 'Reyting va nishonlar', icon: 'star' },
+      { to: '/notifications', label: 'Bildirishnomalar', icon: 'bell' },
+    ],
+  },
   {
     title: 'Odamlar',
     items: [
@@ -73,30 +125,49 @@ const GROUPS: { title: string; items: Section[] }[] = [
   },
 ]
 
-const SECTIONS = GROUPS.flatMap((g) => g.items)
+const SECTIONS = GROUPS.flatMap((g) => g.items).filter(isSection)
 export const FIRST_SECTION = SECTIONS[0].slug
+
+/** The menu item a page path belongs to (the longest matching link). */
+function pageItem(pathname: string, search: string): PageLink | undefined {
+  const links = GROUPS.flatMap((g) => g.items).filter((x): x is PageLink => !isSection(x))
+  const here = `${pathname}${search}`
+  const exact = links.find((l) => l.to.includes('?') && here.startsWith(l.to))
+  if (exact) return exact
+  return links
+    .filter((l) => !l.to.includes('?') && (pathname === l.to || pathname.startsWith(`${l.to}/`)))
+    .sort((a, b) => b.to.length - a.to.length)[0]
+}
 
 export function AdminConsole() {
   const { t } = useTranslation()
   const { bolim } = useParams()
+  const location = useLocation()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const { theme, toggleTheme } = useUIStore()
+  const fan = useUIStore((s) => s.subject)
+  const { on } = useModules()
   const [menuOpen, setMenuOpen] = useState(false)
   // people waiting for approval, beside Foydalanuvchilar
   const { data: staff } = useStaffList()
   const waiting = (staff ?? []).filter((u) => !u.approved && u.role !== 'admin' && u.role !== 'boshliq').length
 
   const section = SECTIONS.find((s) => s.slug === bolim)
+  const page = section ? undefined : pageItem(location.pathname, location.search)
+  const inFan = panelSendsFan(location.pathname)
+  const title = section ? t(section.label) : page ? t(page.label)
+    : location.pathname.startsWith('/settings') ? t('Sozlamalar') : t('Boshqaruv paneli')
 
   useEffect(() => {
-    // the panel has its own accent, whichever fan window was last open
-    document.documentElement.setAttribute('data-fan', 'panel')
-  }, [])
+    // the Boshqaruv sections have the panel's own accent; the platform's
+    // pages the open fan window's
+    document.documentElement.setAttribute('data-fan', inFan ? fan : 'panel')
+  }, [inFan, fan])
   useEffect(() => {
-    document.title = section ? `${t(section.label)} — ${t('Boshqaruv paneli')}` : t('Boshqaruv paneli')
+    document.title = `${title} — ${t('Boshqaruv paneli')}`
     setMenuOpen(false)
-  }, [section, t])
+  }, [title, t, location.pathname])
   useEffect(() => {
     if (!menuOpen) return
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false)
@@ -104,12 +175,13 @@ export function AdminConsole() {
     return () => document.removeEventListener('keydown', onKey)
   }, [menuOpen])
 
-  if (!section) return <Navigate to={`/${FIRST_SECTION}`} replace />
+  if (bolim && !section) return <Navigate to={`/${FIRST_SECTION}`} replace />
 
   const signOut = async () => {
     await logout()
     navigate('/login', { replace: true })
   }
+  const shows = (x: Item) => isSection(x) || ((!x.fan || x.fan === fan) && routeOn(x.to.split('?')[0], on))
 
   return (
     <div className={`acon ${menuOpen ? 'is-menu' : ''}`}>
@@ -127,7 +199,7 @@ export function AdminConsole() {
           {GROUPS.map((g) => (
             <div key={g.title} className="acon__group">
               <p className="acon__gt">{t(g.title)}</p>
-              {g.items.map((s) => (
+              {g.items.filter(shows).map((s) => isSection(s) ? (
                 <NavLink key={s.slug} to={`/${s.slug}`} className={({ isActive }) => `acon__link ${isActive ? 'is-on' : ''}`}>
                   <span className="acon__ic" aria-hidden="true">{IC[s.icon]}</span>
                   <span className="acon__lt">{t(s.label)}</span>
@@ -135,15 +207,23 @@ export function AdminConsole() {
                     <span className="acon__badge" title={t('Tasdiq kutmoqda')}>{waiting}</span>
                   )}
                 </NavLink>
+              ) : (
+                <Link key={s.to} to={s.to} className={`acon__link ${page === s ? 'is-on' : ''}`}>
+                  <span className="acon__ic" aria-hidden="true">{IC[s.icon]}</span>
+                  <span className="acon__lt">{t(s.label)}</span>
+                </Link>
               ))}
             </div>
           ))}
         </nav>
 
-        <a className="acon__site" href={MAIN_ORIGIN}>
-          <span className="acon__ic" aria-hidden="true">{IC.external}</span>
-          <span>{t("Platformaga o'tish")}</span>
-        </a>
+        {/* an admin account has no place on kuragoniy.uz */}
+        {!user?.is_panel_account && (
+          <a className="acon__site" href={MAIN_ORIGIN}>
+            <span className="acon__ic" aria-hidden="true">{IC.external}</span>
+            <span>{t("Platformaga o'tish")}</span>
+          </a>
+        )}
       </aside>
       <button type="button" className="acon__scrim" aria-label={t('Yopish')} tabIndex={-1} onClick={() => setMenuOpen(false)} />
 
@@ -151,28 +231,40 @@ export function AdminConsole() {
         <header className="acon__top">
           <button type="button" className="acon__tool acon__burger" aria-label={t('Menyu')} onClick={() => setMenuOpen(true)}>{IC.menu}</button>
           <div className="acon__title">
-            <h1>{t(section.label)}</h1>
-            <p>{t(section.sub)}</p>
+            <h1>{title}</h1>
+            {section && <p>{t(section.sub)}</p>}
           </div>
           <div className="acon__tools">
+            {/* the platform's pages: in the Fizika or the STEAM window */}
+            {inFan && <FanSwitch stay />}
             <button type="button" className="acon__tool" title={t('Rejim')} aria-label={t('Rejim')} onClick={toggleTheme}>
               {theme === 'dark' ? themeIconMoon() : themeIconSun()}
             </button>
             {user && (
-              <div className="acon__me">
+              <Link className="acon__me" to="/settings/profile" title={t('Sozlamalar')}>
                 <Avatar name={user.name} photo={user.photo} className="acon__av" />
                 <span className="acon__who">
                   <b>{user.name}</b>
                   <RoleBadge user={user} />
                 </span>
-              </div>
+              </Link>
             )}
             <button type="button" className="acon__tool" title={t('Chiqish')} aria-label={t('Chiqish')} onClick={signOut}>{IC.logout}</button>
           </div>
         </header>
 
         <main className="acon__page">
-          <Suspense fallback={<Skeleton lines={6} />}>{section.page}</Suspense>
+          {user && !user.is_panel_account && (
+            <div className="acon-note" role="note">
+              <span className="acon-note__ic" aria-hidden="true">{IC.shield}</span>
+              <p>
+                {user.is_dev_superuser
+                  ? t("Siz kundalik akkauntingiz bilan kirdingiz. Boshqaruv uchun alohida admin akkaunt yarating: Foydalanuvchilar → «Admin akkaunt yaratish». U bilan kirib ko'rgach, kundalik akkauntdan dasturchi huquqini oling — u oddiy o'qituvchi bo'lib qoladi.")
+                  : t("Siz kundalik akkauntingiz bilan kirdingiz. Boshqaruv uchun dasturchidan alohida admin akkaunt so'rang — kundalik akkaunt keyin oddiy o'qituvchi bo'lib qoladi.")}
+              </p>
+            </div>
+          )}
+          <Suspense fallback={<Skeleton lines={6} />}>{section ? section.page : <Outlet />}</Suspense>
         </main>
       </div>
     </div>

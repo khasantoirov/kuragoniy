@@ -48,6 +48,16 @@ export function panelUrl(bolim?: string | null): string {
   return `${ADMIN_ORIGIN}/${slug}`
 }
 
+/** The panel's pages that work inside a fan window (Fizika or STEAM):
+ *  they send it as X-Fan. The Boshqaruv sections see both fans at once. */
+const PANEL_FAN_PATHS = ['/monitoring', '/statistics', '/timetable', '/manage', '/equipment-sheet', '/reports', '/obuna',
+  '/shop', '/lessons', '/kits', '/library', '/qollanmalar', '/training', '/guide', '/help', '/mehmon', '/feed',
+  '/achievements', '/notifications', '/journal']
+
+export function panelSendsFan(pathname: string): boolean {
+  return PANEL_FAN_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))
+}
+
 /** A page of the platform, from inside the panel. */
 export function siteUrl(path: string): string {
   return `${MAIN_ORIGIN}${path}`

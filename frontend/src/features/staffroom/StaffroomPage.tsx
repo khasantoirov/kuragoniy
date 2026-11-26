@@ -344,6 +344,18 @@ function RequestsTab() {
   )
 }
 
+/** admin.kuragoniy.uz: the guest requests to answer, on their own. */
+export function GuestRequestsPage() {
+  const { t } = useTranslation()
+  return (
+    <div>
+      <PageHead title={t("Mehmon ustoz so'rovlari")}
+        sub={t("O'qituvchilar darsiga chaqirgan mehmon ustozlar: qabul qilish, ustoz tayinlash, rad etish.")} />
+      <RequestsTab />
+    </div>
+  )
+}
+
 /** Ustozlar xonasi — the teacher's next school day from the timetable
  * (each hour's lesson and what it needs), guest teachers, and for the
  * administration the guest requests to answer. */

@@ -10,7 +10,7 @@ import { IDLE_LIMIT_MS, IDLE_WARN_MS, idleMs, markActive } from './idle'
 
 /** Why the app signed the user out — shown once on the login page. */
 export const LOGOUT_REASON_KEY = 'af-logout-reason'
-const REASONS = ['idle', 'expired', 'revoked', 'not_admin']
+const REASONS = ['idle', 'expired', 'revoked', 'not_admin', 'panel_account']
 
 function noteReason(code: string) {
   if (!REASONS.includes(code)) return
@@ -25,7 +25,9 @@ const ACTIVITY_EVENTS = ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touc
 
 // renamedLogin: signed in with a login that has since been regenerated —
 // the new one, to show the student (the old one still works meanwhile).
-type LoginResult = { totpRequired: false; user: User; renamedLogin?: string } | { totpRequired: true; challenge: string }
+// setup: an admin account's first sign-in — the authenticator is set up now
+type LoginResult = { totpRequired: false; user: User; renamedLogin?: string }
+  | { totpRequired: true; challenge: string; setup?: { secret: string; otpauthUrl: string } }
 
 interface AuthState {
   user: User | null
@@ -33,7 +35,8 @@ interface AuthState {
   /** `login` is an email (staff) or a username (student). */
   /** `extra`: the sign-in form's bot-check fields (lib/formGuard.ts). */
   login: (login: string, password: string, remember?: boolean, extra?: Record<string, unknown>) => Promise<LoginResult>
-  verifyTotp: (challenge: string, code: string) => Promise<User>
+  /** `enroll`: the first code of a new authenticator (an admin account) */
+  verifyTotp: (challenge: string, code: string, enroll?: boolean) => Promise<User>
   logout: () => Promise<void>
   refreshMe: () => Promise<User>
   /** Applies the fresh session the change-password endpoint hands back
@@ -143,6 +146,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (loginName: string, password: string, remember = true, extra: Record<string, unknown> = {}): Promise<LoginResult> => {
     const res = await api.post('/auth/login/', { ...extra, login: loginName, password, remember })
+    if (res.data.totp_setup_required) {
+      return { totpRequired: true, challenge: res.data.challenge, setup: { secret: res.data.secret, otpauthUrl: res.data.otpauth_url } }
+    }
     if (res.data.totp_required) return { totpRequired: true, challenge: res.data.challenge }
     markActive(true)
     setAccessToken(res.data.access)
@@ -150,8 +156,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { totpRequired: false, user: res.data.user, renamedLogin: res.data.renamed_login }
   }, [])
 
-  const verifyTotp = useCallback(async (challenge: string, code: string) => {
-    const res = await api.post('/auth/2fa/verify/', { challenge, code })
+  const verifyTotp = useCallback(async (challenge: string, code: string, enroll = false) => {
+    const res = await api.post(enroll ? '/auth/2fa/enroll/' : '/auth/2fa/verify/', { challenge, code })
     markActive(true)
     setAccessToken(res.data.access)
     setUser(res.data.user)
@@ -233,7 +239,8 @@ export function isOversight(user: User | null): boolean {
 
 /** Runs classes: approved staff that isn't the read-only observer. */
 export function isTeacherLike(user: User | null): boolean {
-  return isApproved(user) && !isStudent(user) && !isObserver(user) && !isSchoolAdmin(user)
+  // an admin account (admin.kuragoniy.uz) never teaches
+  return isApproved(user) && !isStudent(user) && !isObserver(user) && !isSchoolAdmin(user) && !user?.is_panel_account
 }
 
 /** Where a freshly logged-in user lands — each role has its own portal. */
