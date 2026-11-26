@@ -1,0 +1,44 @@
+/* ══ Platforma haqida: the two directions (features/about) ══════════ */
+
+.abdirs__title { display: flex; align-items: center; gap: 8px; margin: 22px 0 12px; font-size: 17px; font-weight: 700; }
+.abdirs__title .svic { width: 18px; height: 18px; color: var(--logo-blue, #1d3fae); }
+.abdirs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+
+.abdir { min-width: 0; padding: 18px 20px; border: 1px solid var(--rule); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
+.abdir.is-open { border-color: color-mix(in srgb, var(--pick) 55%, var(--rule)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pick) 12%, transparent), var(--shadow); }
+.abdir__head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.abdir__head h3 { margin: 0; font-size: 18px; font-weight: 700; }
+.abdir__head small { color: var(--ink-3); font-size: 12.5px; }
+.abdir__ic {
+  position: relative; display: grid; place-items: center; flex: none; width: 46px; height: 46px; border-radius: 14px;
+  color: #fff; background: linear-gradient(140deg, #19379b, #2f6be6); box-shadow: inset 0 0 0 1px rgba(79, 216, 245, .45);
+}
+.abdir__ic::after {
+  content: ''; position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--logo-gold, #e9ab06); box-shadow: 0 0 0 1.5px #1d3fae;
+}
+.abdir__ic .svic { width: 24px; height: 24px; }
+.abdir__here {
+  margin-left: auto; padding: 3px 10px; border-radius: 999px; white-space: nowrap;
+  background: color-mix(in srgb, var(--pick) 12%, transparent); color: var(--pick); font-size: 12px; font-weight: 600;
+}
+.abdir__lead { margin: 0 0 12px; color: var(--ink-2); font-size: 14px; line-height: 1.6; }
+.abdir__sub { margin: 4px 0 6px; font-size: 14px; font-weight: 700; }
+.abdir .abtracks__list { border: 1px solid var(--rule-2); border-radius: 12px; overflow: hidden; }
+.abdir .abtrack { padding: 11px 14px; }
+
+.abdir__points { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.abdir__points li { display: flex; gap: 10px; align-items: flex-start; }
+.abdir__points b { display: block; font-size: 14px; }
+.abdir__points small { display: block; color: var(--ink-2); font-size: 13px; line-height: 1.45; }
+.abdir__pic {
+  display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 9px;
+  color: var(--logo-blue, #1d3fae); background: color-mix(in srgb, var(--logo-blue, #1d3fae) 10%, transparent);
+}
+.abdir__pic .svic { width: 16px; height: 16px; }
+
+.abmission { margin-top: 14px; }
+
+@media (max-width: 900px) {
+  .abdirs { grid-template-columns: minmax(0, 1fr); }
+}

@@ -1,14 +1,16 @@
 /* Fan oynalari (components/FanWindow.tsx). Har bir oyna o'z urg'u rangida:
    STEAM — platformaning odatiy binafsharang-ko'k rangi, Amaliy fizika —
-   firuza. html[data-fan] uiStore.subject'dan o'rnatiladi. */
+   moviy (2026-11-26, egasi: "Fizikada firuza rangni moviy rangga
+   almashtir"; oq matn bilan 4.85:1, tungi rejimda to'q fonda 5.7:1).
+   html[data-fan] uiStore.subject'dan o'rnatiladi. */
 
 [data-skin="r2"][data-fan="fizika"] {
-  --pick: #0B7C74; --pick-2: #14968D; --solid: #0B7C74;
-  --navacc: #0B7C74; --navacc-2: #14968D; --navglow: rgba(11,124,116,.45);
+  --pick: #1E6FD9; --pick-2: #3B87EC; --solid: #1E6FD9;
+  --navacc: #1E6FD9; --navacc-2: #3B87EC; --navglow: rgba(30,111,217,.45);
 }
 [data-skin="r2"][data-fan="fizika"][data-theme="dark"] {
-  --pick: #2CC4B8; --pick-2: #52D3C9; --solid: #1FA79D;
-  --navacc: #2CC4B8; --navacc-2: #52D3C9; --navglow: rgba(44,196,184,.45);
+  --pick: #5BA4FF; --pick-2: #84BBFF; --solid: #2672DE;
+  --navacc: #5BA4FF; --navacc-2: #84BBFF; --navglow: rgba(91,164,255,.45);
 }
 
 .fanswitch {
@@ -25,8 +27,8 @@
 .fanswitch__b:hover { color: var(--ink); }
 .fanswitch__b.is-on { color: #fff; }
 .fanswitch__b--steam.is-on { background: #6A73FA; }
-.fanswitch__b--fizika.is-on { background: #0B7C74; }
-[data-theme="dark"] .fanswitch__b--fizika.is-on { background: #1FA79D; }
+.fanswitch__b--fizika.is-on { background: #1E6FD9; }
+[data-theme="dark"] .fanswitch__b--fizika.is-on { background: #2672DE; }
 .fanpill {
   display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; flex: none;
   border-radius: 999px; font: 600 13px/1 var(--f-body, inherit); white-space: nowrap;

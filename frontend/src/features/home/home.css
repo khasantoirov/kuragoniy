@@ -2,7 +2,7 @@
    Tepada fan rangidagi blok: salom, sana, chorak/hafta, qisqa raqamlar va
    o'ngda hozirgi yoki keyingi dars (qolgan vaqt bilan). Ostida kunning
    darslari vaqt chizig'i ko'rinishida (mavzu, jurnal) va har biri o'z
-   rangidagi bo'limlar. Rang fan oynasidan keladi (--pick: Fizika teal,
+   rangidagi bo'limlar. Rang fan oynasidan keladi (--pick: Fizika moviy,
    STEAM indigo), tungi rejim tokenlar orqali. */
 
 .hh { display: grid; gap: 18px; min-width: 0; }
