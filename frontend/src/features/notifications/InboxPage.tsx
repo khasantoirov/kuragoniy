@@ -51,6 +51,8 @@ export function InboxPage() {
   const confirm = useConfirm()
   const [box, setBox] = useState<'inbox' | 'archive'>('inbox')
   const [kind, setKind] = useState<NotifyKind | ''>('')
+  // Kerakli jihozlar are the STEAM window's
+  const fan = useUIStore((s) => s.subject)
   const [reading, setReading] = useState<AppNotification | null>(null)
   const list = useInbox(box, kind)
   const act = useNotifyAction()
@@ -113,7 +115,7 @@ export function InboxPage() {
         <span className="inbox__tl">{t('Tur')}:</span>
         <div className="inbox__kinds">
           <button type="button" className={`ikind ${kind === '' ? 'is-on' : ''}`} onClick={() => setKind('')}>{t('Hammasi')}</button>
-          {ALL_KINDS.map((k) => (
+          {ALL_KINDS.filter((k) => fan !== 'fizika' || k !== 'chamadon').map((k) => (
             <button key={k} type="button" className={`ikind ${kind === k ? 'is-on' : ''}`} onClick={() => setKind(k)}>{t(KIND_META[k].label)}</button>
           ))}
         </div>

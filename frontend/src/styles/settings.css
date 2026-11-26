@@ -733,9 +733,9 @@ select.jscale:focus-visible { outline: 2px solid var(--pick, var(--ok)); outline
   display: block; margin-bottom: 3px; font: 600 8.5px/1 var(--f-mono, inherit);
   letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.78);
 }
-/* ══ Amaliy ish (journal PracticalWork: laboratoriya "L-1", STEM "STEM-1") ══
+/* ══ Amaliy ish (journal PracticalWork: laboratoriya "L-1", STEAM "STEAM-1") ══
    the teacher's own columns, out of every average: a gold head for
-   laboratoriya, cyan for STEM — the logo's colours */
+   laboratoriya, cyan for STEAM — the logo's colours */
 .jt thead th.jt__prac--lab { background: color-mix(in srgb, var(--solid) 55%, #b07a00); }
 .jt thead th.jt__prac--stem { background: color-mix(in srgb, var(--solid) 55%, #0e8fae); }
 .jt td.jt__prac { background: color-mix(in srgb, var(--surface) 94%, #e9ab06); }

@@ -225,7 +225,7 @@ export function LessonDetail() {
       </header>
 
       <LessonDocCard lesson={lesson} admin={admin} onDelete={onDeleteDoc} />
-      <Suspense fallback={null}><LessonKitPanel lessonId={lesson.id} lessonTitle={lesson.title} /></Suspense>
+      {!many && <Suspense fallback={null}><LessonKitPanel lessonId={lesson.id} lessonTitle={lesson.title} /></Suspense>}
 
       <section className="tasksec">
         <h3 className="panel__title">

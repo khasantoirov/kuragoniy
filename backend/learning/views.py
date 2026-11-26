@@ -231,7 +231,8 @@ class StudentManageViewSet(viewsets.GenericViewSet):
         profile.user.save(update_fields=['approved'])
         log_event('student_approved', actor=request.user, request=request, detail=profile.user.username or '')
         notify(profile.user, NotifyKind.TIZIM, 'Hisobingiz tasdiqlandi', "O'qituvchingiz hisobingizni tasdiqladi. Endi kirishingiz mumkin.", '/s',
-               telegram_text="✅ KO'RAGONIY EDU: o'qituvchingiz hisobingizni tasdiqladi. Endi kirishingiz mumkin.")
+               telegram_text="✅ KO'RAGONIY EDU: o'qituvchingiz hisobingizni tasdiqladi. Endi kirishingiz mumkin.",
+               fan=profile.journal_class.subject if profile.journal_class_id else '')
         return Response({'ok': True})
 
     @action(detail=True, methods=['post'])
@@ -482,7 +483,7 @@ class AssignmentViewSet(viewsets.ModelViewSet):
             student_profile__journal_class=assignment.journal_class, approved=True, is_active=True,
         )[:200])
         notify(students, NotifyKind.VAZIFA, f"Yangi uyga vazifa: «{assignment.title}»", f"Muddat: {due}", '/s/homework',
-               telegram_text=text)
+               telegram_text=text, fan=assignment.journal_class.subject)
 
     @action(detail=True, methods=['get'])
     def results(self, request, pk=None):
@@ -613,6 +614,16 @@ class ReadinessStatusView(APIView):
 
 # ── Lesson reports ("dars hisoboti") ──────────────────────────────────
 
+def _report_fan(report) -> str:
+    """A lesson report's fan window: its class's, else its lesson's (as
+    analytics.report_in_fan reads it); neither — both windows."""
+    from common.subjects import subject_of_grade
+
+    if report.journal_class_id:
+        return report.journal_class.subject
+    return subject_of_grade(report.lesson.grade) if report.lesson_id else ''
+
+
 class LessonReportViewSet(viewsets.ModelViewSet):
     serializer_class = LessonReportSerializer
     permission_classes = [IsApproved]
@@ -651,7 +662,7 @@ class LessonReportViewSet(viewsets.ModelViewSet):
         # Admins already get the Telegram audit feed above — inbox (+ email) only.
         admins = [u for u in User.objects.filter(is_active=True).exclude(pk=self.request.user.pk) if u.is_admin]
         notify(admins, NotifyKind.HISOBOT, f"Yangi dars hisoboti: {self.request.user.name}",
-               f"«{report.topic}» · {report.date:%d.%m.%Y}", '/manage/reports', channels=('app', 'email'))
+               f"«{report.topic}» · {report.date:%d.%m.%Y}", '/manage/reports', channels=('app', 'email'), fan=_report_fan(report))
 
     def perform_update(self, serializer):
         report = serializer.instance
@@ -686,7 +697,8 @@ class LessonReportViewSet(viewsets.ModelViewSet):
         notify(report.teacher, NotifyKind.HISOBOT, "Dars hisobotingiz ko'rib chiqildi",
                f"«{report.topic}» — {verdict}" + (f". Izoh: {report.review_comment}" if report.review_comment else ''), '/reports',
                telegram_text=f"📝 Dars hisobotingiz («{report.topic}») ko'rib chiqildi: {verdict}."
-                             + (f"\nIzoh: {report.review_comment}" if report.review_comment else ''))
+                             + (f"\nIzoh: {report.review_comment}" if report.review_comment else ''),
+               fan=_report_fan(report))
         notify_admin_action(request.user, f"Dars hisobotini baholadi: {report.teacher.name} — «{report.topic}» — {verdict}")
         return Response(LessonReportSerializer(report).data)
 

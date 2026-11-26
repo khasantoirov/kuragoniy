@@ -1,4 +1,4 @@
-"""Amaliy ishlar — laboratoriya ishlari and STEM loyihalari in the journal
+"""Amaliy ishlar — laboratoriya ishlari and STEAM loyihalari in the journal
 (journal PracticalWork): the class's teacher gives and grades them on the
 class's scale; they show in the grid and stay out of every average; a
 pupil carried to another class takes them along."""
@@ -18,6 +18,8 @@ def _vali(journal_class):
 
 
 def test_the_teacher_gives_and_grades_one(as_user, teacher, journal_class):
+    journal_class.subject = 'fizika'  # laboratoriya ishlari are a Fizika class's
+    journal_class.save(update_fields=['subject'])
     vali = _vali(journal_class)
     api = as_user(teacher)
     r = api.post(URL, {'journal_class': journal_class.pk, 'kind': 'lab', 'chorak': 2, 'date': '2026-11-20',
@@ -70,3 +72,16 @@ def test_a_carried_pupil_takes_them_along_and_undo_brings_them_back(as_user, tea
     pm.refresh_from_db()
     assert (pm.work_id, pm.mark, pm.level) == (work.pk, 4, 4)
     assert not PracticalWork.objects.filter(journal_class=target).exists()  # the twin it had to make is gone
+
+
+def test_each_fan_has_its_own_kind(as_user, teacher, journal_class):
+    """A STEAM class does STEAM loyihalari, a Fizika class laboratoriya
+    ishlari — whatever the client sends."""
+    api = as_user(teacher)
+    body = {'journal_class': journal_class.pk, 'kind': 'lab', 'chorak': 2, 'date': '2026-11-20'}
+    assert api.post(URL, body, format='json').data['kind'] == 'stem'  # the fixture's class is STEAM's
+    journal_class.subject = 'fizika'
+    journal_class.save(update_fields=['subject'])
+    assert api.post(URL, {**body, 'kind': 'stem'}, format='json').data['kind'] == 'lab'
+    # and each window lists its own classes' works only
+    assert len(api.get(URL, {'journal_class': journal_class.pk}, HTTP_X_FAN='fizika').data) == 2

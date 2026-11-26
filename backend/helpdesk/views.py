@@ -187,7 +187,7 @@ class TicketsView(APIView):
         TicketMessage.objects.create(ticket=t, author=user, body=body)
         notify([a for a in _admins() if a.id != user.id and _answers(a, fan)], NotifyKind.YORDAM,
                f"Yangi murojaat: {subject}",
-               f"{user.name} · {t.get_category_display()}\n{body[:300]}", url=f'/help?bolim=murojaatlar&t={t.id}')
+               f"{user.name} · {t.get_category_display()}\n{body[:300]}", url=f'/help?bolim=murojaatlar&t={t.id}', fan=fan)
         log_event('help_ticket', actor=user, request=request, detail=f'#{t.id} {subject}')
         return Response(_detail(t), status=status.HTTP_201_CREATED)
 
@@ -208,7 +208,7 @@ class TicketView(APIView):
         t.solved_at = timezone.now() if new == Ticket.Status.SOLVED else None
         t.save(update_fields=['status', 'solved_at', 'updated_at'])
         if new == Ticket.Status.SOLVED and t.author_id != request.user.id:
-            notify(t.author, NotifyKind.YORDAM, f"Murojaatingiz hal qilindi: {t.subject}", '', url=f'/help?bolim=mening&t={t.id}')
+            notify(t.author, NotifyKind.YORDAM, f"Murojaatingiz hal qilindi: {t.subject}", '', url=f'/help?bolim=mening&t={t.id}', fan=t.fan)
         return Response(_detail(t))
 
 
@@ -228,10 +228,10 @@ class TicketMessagesView(APIView):
         t.save(update_fields=['status', 'solved_at', 'updated_at'])
         if staff:
             notify(t.author, NotifyKind.YORDAM, f"Murojaatingizga javob: {t.subject}", body[:300],
-                   url=f'/help?bolim=mening&t={t.id}')
+                   url=f'/help?bolim=mening&t={t.id}', fan=t.fan)
         else:
             replied = set(t.messages.filter(staff=True).values_list('author_id', flat=True))
             to = [a for a in _admins() if a.id != user.id and (a.id in replied if replied else _answers(a, t.fan))]
             notify(to, NotifyKind.YORDAM, f"Murojaatga yangi xabar: {t.subject}", f"{user.name}\n{body[:300]}",
-                   url=f'/help?bolim=murojaatlar&t={t.id}')
+                   url=f'/help?bolim=murojaatlar&t={t.id}', fan=t.fan)
         return Response(_detail(t), status=status.HTTP_201_CREATED)

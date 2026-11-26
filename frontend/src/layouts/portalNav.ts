@@ -26,7 +26,7 @@ const PORTAL_LINKS: PortalLink[] = [
   { to: '/manage/schools', label: 'Hamkor maktablar', sub: "Ro'yxat, shartnoma va nomlarni moslashtirish", icon: 'school', audience: 'oversight' },
   { to: '/manage/equipment', label: 'Jihozlar jadvali', sub: "Tajriba jihozlari, narxlari va Excel", icon: 'flask', audience: 'oversight' },
   // teachers and schools' ma'muriyat order; the administration sells (owner, 2026-11-26)
-  { to: '/shop', label: "STEM do'kon", sub: "Jihozlar, to'plamlar va qo'llanmalar", icon: 'cards', audience: 'buyer' },
+  { to: '/shop', label: "STEAM do'kon", sub: "Jihozlar, to'plamlar va qo'llanmalar", icon: 'cards', audience: 'buyer' },
   { to: '/obuna', label: 'Obunalar', sub: "Tariflar, shartnoma va to'lov", icon: 'calendar', audience: 'oversight' },
 ]
 

@@ -1,4 +1,4 @@
-"""STEM do'kon for schools (owner's choice, 2026-11-26): teachers and a
+"""STEAM do'kon for schools (owner's choice, 2026-11-26): teachers and a
 school's ma'muriyat order, the administration hears of every new order at
 once, the read-only Kuzatuvchi doesn't buy. Real tokens (jwt_as), so the
 read-only gate of common/authentication.py is on the way."""
@@ -15,7 +15,7 @@ ORDERS = '/api/shop/orders/'
 
 @pytest.fixture
 def kit():
-    return Product.objects.create(title="STEM to'plam 1", kind='jihoz', delivery='physical', price=3_200_000)
+    return Product.objects.create(title="STEAM to'plam 1", kind='jihoz', delivery='physical', price=3_200_000)
 
 
 def _order(client, kit):

@@ -19,10 +19,11 @@ import './guides.css'
    (Kutubxona › material › "Qo'llanmalar markazida"), in the window's fan;
    the questions are the Yordam markazi's FAQ. */
 
-const SECTIONS: { k: GuideSection; ic: keyof typeof IC; sub: string }[] = [
-  { k: 'platforma', ic: 'monitor', sub: "Tizimga kirish, sinf va o'quvchilarni qo'shish, jurnalni yuritish" },
-  { k: 'metodika', ic: 'book', sub: "Amaliy fizika va STEAM darslarini tashkil etish, baholash" },
-  { k: 'xavfsizlik', ic: 'shield', sub: "Jihozlar, elektronika va 3D printer bilan ishlash qoidalari" },
+// each window's own words: Fizika's never mention STEAM, nor the other way round
+const SECTIONS: { k: GuideSection; ic: keyof typeof IC; sub: { fizika: string; steam: string } }[] = [
+  { k: 'platforma', ic: 'monitor', sub: { fizika: "Tizimga kirish, sinf va o'quvchilarni qo'shish, jurnalni yuritish", steam: "Tizimga kirish, sinf va o'quvchilarni qo'shish, jurnalni yuritish" } },
+  { k: 'metodika', ic: 'book', sub: { fizika: "Fizika darslarini tashkil etish, tajriba o'tkazish va baholash", steam: "STEAM va robototexnika darslarini tashkil etish, baholash" } },
+  { k: 'xavfsizlik', ic: 'shield', sub: { fizika: "Laboratoriya jihozlari, elektr va issiqlik bilan ishlash qoidalari", steam: "Jihozlar, elektronika va 3D printer bilan ishlash qoidalari" } },
 ]
 
 function GuideRow({ item }: { item: LibraryItem }) {
@@ -49,6 +50,7 @@ export function GuidesPage() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const viewMode = useUIStore((s) => s.viewMode)
+  const fan = useUIStore((s) => s.subject)
   const admin = isAdminInView(user, viewMode)
   const { on } = useModules()
   const { data: items, isLoading } = useLibraryItems()
@@ -90,7 +92,7 @@ export function GuidesPage() {
                   <span className="gd-card__ic" aria-hidden="true">{IC[s.ic]}</span>
                   <span>
                     <h2>{t(SECTION_LABELS[s.k])}</h2>
-                    <small>{t(s.sub)}</small>
+                    <small>{t(s.sub[fan])}</small>
                   </span>
                 </header>
                 {rows.length

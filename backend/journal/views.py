@@ -336,7 +336,7 @@ class StudentTransferView(APIView):
             title = f"{row.full_name} sinfingizga ko'chirildi"
             body = f'{class_label(source)} → {class_label(target)} · {how}'
             notify(target.teacher, Kind.OQUVCHI, title, body, f'/journal?class={target.pk}',
-                   telegram_text=f'👤 {title}\n{body}')
+                   telegram_text=f'👤 {title}\n{body}', fan=target.subject)
         return Response({'student': row.id, 'class': target.pk, 'mode': mode, 'transfer': record.id})
 
 
@@ -434,11 +434,11 @@ class ControlWorkViewSet(viewsets.ModelViewSet):
         title = 'Nazorat ishi natijalari kiritildi'
         body = f'{class_label(work.journal_class)} · {work.date:%d.%m.%Y}' + (f' · {work.title}' if work.title else '')
         notify(teacher, Kind.JURNAL, title, body, f'/journal?class={work.journal_class_id}',
-               telegram_text=f'📝 {title}\n{body}')
+               telegram_text=f'📝 {title}\n{body}', fan=work.journal_class.subject)
 
 
 class PracticalWorkViewSet(viewsets.ModelViewSet):
-    """Amaliy ish (PracticalWork): laboratoriya ishlari and STEM loyihalari
+    """Amaliy ish (PracticalWork): laboratoriya ishlari and STEAM loyihalari
     the class's teacher gives and grades on the class's scale. Read like the
     journal (administrators any class, a school's ma'muriyat its schools,
     a teacher their own); written by the class's own teacher only, while
@@ -459,6 +459,8 @@ class PracticalWorkViewSet(viewsets.ModelViewSet):
             qs = qs.filter(journal_class__partner_school_id__in=managed_school_ids(user))
         elif not user.is_admin:
             qs = qs.filter(journal_class__teacher=user)
+        if (fan := window(self.request)):  # the Fizika or STEAM window's classes
+            qs = qs.filter(journal_class__subject=fan)
         class_id = self.request.query_params.get('journal_class')
         if class_id:
             qs = qs.filter(journal_class_id=class_id)
@@ -571,7 +573,7 @@ class EditGrantViewSet(viewsets.GenericViewSet):
                 f"Sinf: {class_label(journal_class)}\nSana: {_dates(grant)}\nSabab: {grant.reason}\n\n"
                 "Ruxsat berish: Jurnal → Ruxsatlar."
             ),
-            dedupe_key=f'jgrant:{grant.id}',
+            dedupe_key=f'jgrant:{grant.id}', fan=journal_class.subject,
         )
         return Response(EditGrantSerializer(grant).data, status=status.HTTP_201_CREATED)
 
@@ -626,7 +628,8 @@ class EditGrantViewSet(viewsets.GenericViewSet):
             title, body = "Jurnal so'rovingiz rad etildi", f'{where}{note}'
         else:
             title, body = 'Jurnal ruxsati bekor qilindi', where
-        notify(grant.teacher, Kind.JURNAL, title, body, '/journal', telegram_text=f'📒 {title}\n{body}')
+        notify(grant.teacher, Kind.JURNAL, title, body, '/journal', telegram_text=f'📒 {title}\n{body}',
+               fan=grant.journal_class.subject if grant.journal_class_id else '')  # a teacher-wide grant: both
 
     def _settle_inbox(self, grant):
         """Once one administrator has answered, the request stops waiting

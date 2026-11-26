@@ -38,13 +38,15 @@ def _mark_initialized():
 
 
 @sync_to_async
-def _linked_users():
+def _linked_users(fan=None):
     """Linked accounts that keep Telegram on for announcements
-    (Sozlamalar → Bildirishnomalar)."""
+    (Sozlamalar → Bildirishnomalar); a one-window announcement (`fan`)
+    skips the other fan's teachers."""
+    from common.subjects import window_people
     from notifications.models import Kind
     from notifications.prefs import channels_for_users
 
-    rows = list(User.objects.filter(telegram_linked=True).values_list("id", "telegram_chat_id"))
+    rows = list(window_people(User.objects.filter(telegram_linked=True), fan).values_list("id", "telegram_chat_id"))
     prefs = channels_for_users([uid for uid, _ in rows])
     return [(uid, chat) for uid, chat in rows if prefs[uid][Kind.ELON]["telegram"]]
 
@@ -93,7 +95,7 @@ async def _send_announcement(bot: Bot, payload: dict):
     by = payload.get("by")
     message = _compose_announcement_message(text, by)
 
-    recipients = await _linked_users()
+    recipients = await _linked_users(payload.get("fan") or None)
     logger.info("Fanning out announcement %r to %d linked user(s)", text[:40], len(recipients))
 
     sent = 0

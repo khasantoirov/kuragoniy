@@ -21,7 +21,7 @@ from common.permissions import IsApproved
 from common.security import log_event
 from lessons.models import Lesson
 from lessons.visibility import visible_lessons
-from common.subjects import window
+from common.subjects import main_subject, subject_of_grade, window
 from notifications.models import Kind as NotifyKind
 from notifications.service import notify
 
@@ -74,7 +74,7 @@ class PlanView(APIView):
             return Response({'ok': True})
         lesson = None
         if request.data.get('lesson'):
-            lesson = get_object_or_404(visible_lessons(Lesson.objects.all(), request.user), pk=request.data['lesson'])
+            lesson = get_object_or_404(visible_lessons(Lesson.objects.all(), request.user, window(request)), pk=request.data['lesson'])
         PlannedLesson.objects.update_or_create(teacher=request.user, date=day, period_index=period,
                                                defaults={'lesson': lesson})
         return Response({'ok': True})
@@ -139,20 +139,24 @@ class GuestRequestsView(APIView):
                 qs = qs.filter(status=st)
         else:
             qs = qs.filter(Q(requester=request.user) | Q(guest=request.user))
+        if (fan := window(request)):  # the Fizika or STEAM window's requests
+            qs = qs.filter(fan__in=['', fan])
         return Response(GuestRequestSerializer(qs[:300], many=True).data)
 
     def post(self, request):
         _teacher(request)
         s = GuestRequestSerializer(data=request.data)
         s.is_valid(raise_exception=True)
-        g = s.save(requester=request.user)
+        lesson = s.validated_data.get('lesson')
+        fan = subject_of_grade(lesson.grade) if lesson else (window(request) or main_subject(request.user))
+        g = s.save(requester=request.user, fan=fan)
         if g.school and not g.school_name:
             g.school_name = g.school.name
             g.save(update_fields=['school_name'])
         notify([a for a in _admins() if a.id != request.user.id], NotifyKind.USTOZ,
                f"Mehmon ustoz so'raldi: {request.user.name}",
                f"{_where(g)} · {_when(g)}{f' · {g.lesson.title}' if g.lesson else (f' · {g.topic}' if g.topic else '')}",
-               url='/staffroom?bolim=sorovlar')
+               url='/staffroom?bolim=sorovlar', fan=g.fan)
         log_event('guest_requested', actor=request.user, request=request, detail=f'{_where(g)} {_when(g)}')
         return Response(GuestRequestSerializer(g).data, status=status.HTTP_201_CREATED)
 
@@ -200,10 +204,11 @@ class GuestRequestView(APIView):
         label = g.get_status_display()
         body = f"{_where(g)} · {_when(g)}" + (f" · Mehmon ustoz: {g.guest.name}" if g.guest else '') + (f"\n{g.reply}" if g.reply else '')
         if new != GuestRequest.Status.DONE:
-            notify(g.requester, NotifyKind.USTOZ, f"Mehmon ustoz so'rovingiz: {label.lower()}", body, url='/staffroom?bolim=mehmon')
+            notify(g.requester, NotifyKind.USTOZ, f"Mehmon ustoz so'rovingiz: {label.lower()}", body, url='/staffroom?bolim=mehmon',
+                   fan=g.fan)
         if guest is not None and guest != prev_guest and guest.id != user.id:
             notify(guest, NotifyKind.USTOZ, f"Siz mehmon ustoz sifatida taklif qilindingiz: {_where(g)}",
                    f"{_when(g)} · {g.requester.name}" + (f" · {g.lesson.title}" if g.lesson else '') + (f"\n{g.reply}" if g.reply else ''),
-                   url='/staffroom?bolim=mehmon')
+                   url='/staffroom?bolim=mehmon', fan=g.fan)
         log_event('guest_answered', actor=user, request=request, detail=f'{_where(g)} {_when(g)}: {label}')
         return Response(GuestRequestSerializer(g).data)

@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { api } from '@/lib/api/client'
 
-/* STEM chamadonlar (backend kits/). */
+/* STEAM chamadonlar (backend kits/). */
 
 export interface OwnedRow { id: number; name: string; quantity: number }
 export interface SchoolRef { id: number; name: string }

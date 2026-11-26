@@ -23,13 +23,13 @@ Q_NUM = {"kind": "number", "text": "g = ? (m/s²)", "answer_value": 9.8, "tolera
 @pytest.fixture
 def course(as_user, admin):
     c = as_user(admin)
-    resp = c.post("/api/training/courses/", {"title": "STEM metodikasi", "hours": 36, "pass_percent": 70},
+    resp = c.post("/api/training/courses/", {"title": "STEAM metodikasi", "hours": 36, "pass_percent": 70},
                   format="json")
     assert resp.status_code == 201, resp.data
     cid = resp.data["id"]
     m1 = c.post(f"/api/training/courses/{cid}/modules/", {
         "title": "1. Kirish",
-        "lessons": [{"title": "Nima uchun STEM", "body": "Matn", "video_url": "https://youtu.be/x"},
+        "lessons": [{"title": "Nima uchun STEAM", "body": "Matn", "video_url": "https://youtu.be/x"},
                     {"title": "Darsni rejalash", "body": "Matn 2"}],
         "questions": [Q_TEST, Q_NUM],
     }, format="json")
@@ -127,7 +127,7 @@ def test_public_verify_shows_only_the_certificate(api_client, as_user, teacher, 
     api_client.force_authenticate(user=None)
     resp = api_client.get(f"/api/training/verify/{cert.code.lower()}/")
     assert resp.status_code == 200
-    assert resp.data == {"valid": True, "name": cert.name, "course_title": "STEM metodikasi", "hours": 36,
+    assert resp.data == {"valid": True, "name": cert.name, "course_title": "STEAM metodikasi", "hours": 36,
                          "number": cert.number, "issued_at": resp.data["issued_at"]}
     assert api_client.get("/api/training/verify/NOPE123456/").status_code == 404
 
@@ -199,7 +199,7 @@ def test_assign_a_school_and_its_page(as_user, admin, teacher, course, make_user
     SchoolManager.objects.create(school=school, user=boss, position="direktor")
     other = School.objects.create(name="Iftixor")
     data = as_user(boss).get(f"/api/training/schools/{school.id}/").data
-    assert data["teachers"][0]["courses"][0]["title"] == "STEM metodikasi"
+    assert data["teachers"][0]["courses"][0]["title"] == "STEAM metodikasi"
     assert as_user(boss).get(f"/api/training/schools/{other.id}/").status_code == 403
     # and doesn't take courses
     m1 = course.modules.order_by("order").first()
@@ -239,4 +239,4 @@ def test_revoke_certificate_and_observer_read_only(as_user, admin, observer, tea
         _finish_module(c, m.id)
     as_user(admin).delete(f"/api/training/courses/{course.id}/")
     kept = Certificate.objects.get()
-    assert kept.course is None and kept.course_title == "STEM metodikasi"
+    assert kept.course is None and kept.course_title == "STEAM metodikasi"

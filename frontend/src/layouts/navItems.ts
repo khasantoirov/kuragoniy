@@ -50,7 +50,7 @@ const STEAM_ONLY = new Set(['/equipment-sheet'])
 const MY_SCHOOL: NavItem = { to: '/my-school', label: 'Maktabim', icon: 'home' }
 // a school's ma'muriyat orders from the shop and reads the plans too
 const SCHOOL_SHOP: NavItem[] = [
-  { to: '/shop', label: "STEM do'kon", icon: 'cards' },
+  { to: '/shop', label: "STEAM do'kon", icon: 'cards' },
   { to: '/obuna', label: 'Obunalar', icon: 'calendar' },
 ]
 
@@ -60,14 +60,16 @@ export function useVisibleNavItems(): NavItem[] {
   const fan = useUIStore((s) => s.subject)
   const { on } = useModules()
   const inWindow = (to: string) => (fan === 'fizika' ? !STEAM_ONLY.has(to) : !FIZIKA_ONLY.has(to))
+  // the shop is the window's own: "STEAM do'kon" in STEAM, "Do'kon" in Fizika
+  const named = (item: NavItem): NavItem => (item.to === '/shop' && fan === 'fizika' ? { ...item, label: "Do'kon" } : item)
   if (isSchoolAdmin(user)) {
     return [MY_SCHOOL, ...NAV_ITEMS.filter((item) => !item.adminOnly && !SCHOOL_ADMIN_HIDDEN.has(item.to))
-      .map(({ to, label, icon }) => ({ to, label, icon })), ...SCHOOL_SHOP].filter((item) => routeOn(item.to, on) && inWindow(item.to))
+      .map(({ to, label, icon }) => ({ to, label, icon })), ...SCHOOL_SHOP].filter((item) => routeOn(item.to, on) && inWindow(item.to)).map(named)
   }
   return [
     ...NAV_ITEMS.filter((item) => (!item.adminOnly || isAdminInView(user, viewMode)) && (!item.panelOnly || mayUseAdminPanel(user))
       && !(isObserver(user) && OBSERVER_HIDDEN.has(item.to)))
       .map(({ to, label, icon }) => ({ to, label, icon })),
     ...portalNavItems(user, viewMode),
-  ].filter((item) => routeOn(item.to, on) && inWindow(item.to))
+  ].filter((item) => routeOn(item.to, on) && inWindow(item.to)).map(named)
 }

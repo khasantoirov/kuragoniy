@@ -51,8 +51,10 @@ DESCRIPTIONS = {
 }
 
 
-def kinds_for(user) -> list[str]:
-    """Kinds that can actually reach this user — the rows Settings shows."""
+def kinds_for(user, fan=None) -> list[str]:
+    """Kinds that can actually reach this user — the rows Settings shows.
+    `fan` — the open window: Kerakli jihozlar are STEAM's, so the Fizika
+    window leaves them out."""
     if user.is_student:
         return [Kind.VAZIFA, Kind.RAGBAT, Kind.XAVFSIZLIK, Kind.TIZIM]
     out = [Kind.ELON, Kind.HISOBOT, Kind.RAGBAT, Kind.OQUVCHI, Kind.TUGILGAN, Kind.XAVFSIZLIK]
@@ -63,7 +65,7 @@ def kinds_for(user) -> list[str]:
     if user.is_admin:
         out += [Kind.DOKON, Kind.JAMOA]
     if not user.is_observer:
-        out += [Kind.CHAMADON, Kind.LENTA]
+        out += [Kind.CHAMADON, Kind.LENTA] if fan != 'fizika' else [Kind.LENTA]
     out += [Kind.YORDAM, Kind.TIZIM]
     return out
 

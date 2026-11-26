@@ -14,6 +14,7 @@ from notifications.models import Kind as NotifyKind
 from notifications.service import notify
 from common.audit import notify_admin_action
 from common.permissions import IsAdminOrDevSuperuser, IsApproved, IsOversight, IsTeacher
+from common.subjects import one_fan, subject_of_grade, window
 
 from .models import Order, OrderItem, Product, ShopSettings
 
@@ -44,9 +45,9 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'kind', 'delivery', 'title', 'short', 'description', 'grade', 'lesson', 'price', 'old_price',
             'cover_url', 'preview_url', 'content_url', 'content_note', 'stock', 'is_active', 'created_at',
-            'updated_at', 'purchased', 'sales',
+            'updated_at', 'purchased', 'sales', 'subject',
         ]
-        read_only_fields = ['created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at', 'subject']
 
     def get_purchased(self, obj):
         return obj.id in self.context.get('purchased', set())
@@ -74,6 +75,11 @@ class ProductSerializer(serializers.ModelSerializer):
             attrs['old_price'] = None
         if price > 100_000_000:
             raise serializers.ValidationError({'price': "Narx juda katta."})
+        grade = attrs.get('grade', getattr(self.instance, 'grade', None))
+        fan = window(self.context['request'])
+        if grade and fan and subject_of_grade(grade) != fan:
+            raise serializers.ValidationError({'grade': "Bu sinf boshqa fan oynasiniki."})
+        attrs['subject'] = subject_of_grade(grade) if grade else (fan or getattr(self.instance, 'subject', None) or 'steam')
         return attrs
 
 
@@ -88,6 +94,8 @@ class ProductViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         qs = Product.objects.all()
+        if (fan := window(self.request)):  # the Fizika or STEAM window's products only
+            qs = qs.filter(subject=fan)
         if not (user.is_admin and self.request.query_params.get('all')):
             qs = qs.filter(is_active=True)
         if user.is_admin:
@@ -163,7 +171,7 @@ def _tell_admins_new(order):
         _Q(is_dev_superuser=True) | _Q(role__in=[User.Role.ADMIN, User.Role.BOSHLIQ])).exclude(pk=order.buyer_id))
     body = f"{order.buyer.name} · {order.total:,} so'm".replace(',', ' ')
     notify(admins, NotifyKind.DOKON, f"Yangi buyurtma {order.number}", body, '/shop?bolim=sotuv',
-           telegram_text=f"🛒 Yangi buyurtma {order.number}\n{body}")
+           telegram_text=f"🛒 Yangi buyurtma {order.number}\n{body}", fan=order.fan)
 
 
 class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
@@ -173,6 +181,8 @@ class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
     def get_queryset(self):
         user = self.request.user
         qs = Order.objects.select_related('buyer').prefetch_related('items')
+        if (fan := window(self.request)):
+            qs = qs.filter(fan__in=['', fan])
         if user.is_oversight and self.request.query_params.get('all'):
             st = self.request.query_params.get('status')
             return qs.filter(status=st) if st else qs
@@ -207,7 +217,10 @@ class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
             if not 1 <= qty <= 50:
                 raise ValidationError({'items': "Miqdor 1–50."})
             wanted[pid] = wanted.get(pid, 0) + qty
-        products = {p.id: p for p in Product.objects.filter(id__in=wanted, is_active=True)}
+        on_sale = Product.objects.filter(id__in=wanted, is_active=True)
+        if (fan := window(request)):  # only the window's own products
+            on_sale = on_sale.filter(subject=fan)
+        products = {p.id: p for p in on_sale}
         if len(products) != len(wanted):
             raise ValidationError({'items': "Ba'zi mahsulotlar mavjud emas."})
         owned = purchased_product_ids(request.user)
@@ -229,6 +242,7 @@ class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
         with transaction.atomic():
             order = Order.objects.create(
                 buyer=request.user, total=total, phone=phone, delivery_address=address,
+                fan=one_fan(p.subject for p in products.values()),
                 payment_method=Order.Method.FREE if total == 0 else Order.Method.CARD_TRANSFER,
                 status=Order.Status.PAID if total == 0 else Order.Status.PENDING,
                 paid_at=timezone.now() if total == 0 else None,
@@ -272,7 +286,8 @@ class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
         order.save(update_fields=['status', 'admin_note', 'updated_at'])
         if not is_owner:
             notify(order.buyer, NotifyKind.DOKON, f"Buyurtma {order.number} bekor qilindi", order.admin_note or '', '/shop/orders',
-                   telegram_text=f"Buyurtma {order.number} bekor qilindi." + (f" Izoh: {order.admin_note}" if order.admin_note else ''))
+                   telegram_text=f"Buyurtma {order.number} bekor qilindi." + (f" Izoh: {order.admin_note}" if order.admin_note else ''),
+                   fan=order.fan)
         return Response(OrderSerializer(order).data)
 
     def _admin(self, request):
@@ -300,7 +315,8 @@ class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
             order.save(update_fields=['status', 'paid_at', 'confirmed_by', 'admin_note', 'updated_at'])
         notify(order.buyer, NotifyKind.DOKON, f"Buyurtma {order.number} to'lovi tasdiqlandi", "Xaridlaringiz «Do'kon → Xaridlarim» bo'limida.",
                '/shop/orders?tab=purchases',
-               telegram_text=f"✅ Buyurtma {order.number} to'lovi tasdiqlandi. Xaridlaringiz «Do'kon → Xaridlarim» bo'limida.")
+               telegram_text=f"✅ Buyurtma {order.number} to'lovi tasdiqlandi. Xaridlaringiz «Do'kon → Xaridlarim» bo'limida.",
+               fan=order.fan)
         notify_admin_action(request.user, f"Buyurtma {order.number} to'lovini tasdiqladi — {order.buyer.name}, {order.total:,} so'm".replace(',', ' '))
         return Response(OrderSerializer(order).data)
 
@@ -313,7 +329,7 @@ class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
         order.status = Order.Status.DELIVERED
         order.save(update_fields=['status', 'updated_at'])
         notify(order.buyer, NotifyKind.DOKON, f"Buyurtma {order.number} yetkazildi", '', '/shop/orders',
-               telegram_text=f"📦 Buyurtma {order.number} yetkazildi.")
+               telegram_text=f"📦 Buyurtma {order.number} yetkazildi.", fan=order.fan)
         return Response(OrderSerializer(order).data)
 
     @action(detail=True, methods=['post'])
@@ -357,6 +373,8 @@ class PurchasesView(APIView):
             OrderItem.objects.filter(order__buyer=request.user, order__status__in=Order.PAID_STATUSES)
             .select_related('product', 'order').order_by('-order__paid_at')
         )
+        if (fan := window(request)):
+            items = items.filter(product__subject=fan)
         seen, out = set(), []
         for it in items:
             if it.product_id in seen:
@@ -375,12 +393,15 @@ class ShopStatsView(APIView):
     permission_classes = [IsOversight]
 
     def get(self, request):
-        paid = Order.objects.filter(status__in=Order.PAID_STATUSES)
+        orders = Order.objects.all()
+        if (fan := window(request)):
+            orders = orders.filter(fan__in=['', fan])
+        paid = orders.filter(status__in=Order.PAID_STATUSES)
         by_month = (
             paid.annotate(m=TruncMonth('paid_at')).values('m').annotate(revenue=Sum('total'), orders=Count('id')).order_by('m')
         )
         top = (
-            OrderItem.objects.filter(order__status__in=Order.PAID_STATUSES)
+            OrderItem.objects.filter(order__in=paid)
             .values('product', 'title').annotate(qty=Sum('quantity'), revenue=Sum(F('unit_price') * F('quantity')))
             .order_by('-revenue')[:10]
         )
@@ -388,7 +409,7 @@ class ShopStatsView(APIView):
             'revenue': paid.aggregate(s=Sum('total'))['s'] or 0,
             'orders_paid': paid.count(),
             'buyers': paid.values('buyer').distinct().count(),
-            'by_status': dict(Order.objects.values('status').annotate(n=Count('id')).values_list('status', 'n')),
+            'by_status': dict(orders.values('status').annotate(n=Count('id')).values_list('status', 'n')),
             'by_month': [{'month': r['m'].date().isoformat() if r['m'] else None, 'revenue': r['revenue'], 'orders': r['orders']}
                          for r in by_month],
             'top_products': list(top),

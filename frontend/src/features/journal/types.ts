@@ -65,7 +65,7 @@ export interface ControlWork {
 }
 
 /** Amaliy ish (backend journal PracticalWork): a laboratoriya ishi or a
- * STEM loyiha the teacher grades on the class's scale — its own column,
+ * STEAM loyiha the teacher grades on the class's scale — its own column,
  * out of every average. */
 export interface PracticalWork {
   id: number

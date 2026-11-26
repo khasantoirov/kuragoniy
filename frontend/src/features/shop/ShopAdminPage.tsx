@@ -15,7 +15,8 @@ import { api } from '@/lib/api/client'
 import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
 
 import { KIND_LABEL, ORDER_STATUS, useOrders, useProducts, useShopSettings, type Order, type Product, type ProductKind } from './api'
-import { GRADES, type Grade } from '@/features/lessons/labels'
+import { gradeLabel, SUBJECT_GRADES, type Grade } from '@/features/lessons/labels'
+import { useUIStore } from '@/store/uiStore'
 
 const EMPTY: Partial<Product> = { kind: 'ishlanma', delivery: 'digital', title: '', short: '', description: '', price: 0, old_price: null, cover_url: '', preview_url: '', content_url: '', content_note: '', stock: null, is_active: true, grade: null }
 
@@ -24,6 +25,8 @@ function ProductEditor({ initial, onClose }: { initial: Partial<Product>; onClos
   const toast = useToast()
   const qc = useQueryClient()
   const [p, setP] = useState<Partial<Product>>(initial)
+  const fan = useUIStore((s) => s.subject)
+  const lang = useUIStore((s) => s.lang)
   const set = (patch: Partial<Product>) => setP({ ...p, ...patch })
   const [busy, setBusy] = useState(false)
 
@@ -58,7 +61,7 @@ function ProductEditor({ initial, onClose }: { initial: Partial<Product>; onClos
           </select></label>
         <label className="field"><span className="field__label">{t('Sinf')}</span>
           <select className="input" value={p.grade ?? ''} onChange={(e) => set({ grade: (e.target.value || null) as Grade | null })}>
-            <option value="">—</option>{GRADES.map((g) => <option key={g} value={g}>{g}</option>)}
+            <option value="">—</option>{SUBJECT_GRADES[fan].map((g) => <option key={g} value={g}>{gradeLabel(g, lang)}</option>)}
           </select></label>
       </div>
       <div className="row row--3">

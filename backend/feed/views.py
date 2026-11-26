@@ -190,7 +190,7 @@ class CommentsView(APIView):
         user = request.user
         c = Comment.objects.create(post=p, author=user, body=_text(request.data.get('body'), 1000, 'body', 'Izoh'))
         if p.author_id != user.id and p.kind == Post.Kind.POST:
-            notify(p.author, NotifyKind.LENTA, f"{user.name} postingizga izoh yozdi", c.body[:200], url='/feed')
+            notify(p.author, NotifyKind.LENTA, f"{user.name} postingizga izoh yozdi", c.body[:200], url='/feed', fan=p.fan)
         return Response({'id': c.id, 'body': c.body, 'created_at': c.created_at, 'mine': True,
                          'author': {'id': user.id, 'name': user.name, 'photo': user.photo.url if user.photo else None}},
                         status=status.HTTP_201_CREATED)

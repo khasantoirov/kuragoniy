@@ -9,6 +9,8 @@
 from django.conf import settings
 from django.db import models
 
+from common.subjects import CHOICES as SUBJECT_CHOICES
+
 
 class PlannedLesson(models.Model):
     teacher = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='planned_lessons', on_delete=models.CASCADE)
@@ -47,6 +49,8 @@ class GuestRequest(models.Model):
     handled_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='+', null=True, blank=True,
                                    on_delete=models.SET_NULL)
     handled_at = models.DateTimeField(null=True, blank=True)
+    # the fan window it was asked from ('' — older ones: both windows)
+    fan = models.CharField(max_length=10, choices=SUBJECT_CHOICES, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

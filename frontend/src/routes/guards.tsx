@@ -87,7 +87,7 @@ export function RequireOversight({ children }: { children: ReactNode }) {
   return children
 }
 
-/** STEM do'kon and Obunalar: teachers, a school's ma'muriyat and the
+/** STEAM do'kon and Obunalar: teachers, a school's ma'muriyat and the
  *  administration (the Kuzatuvchi looks, read-only). */
 export function RequireShop({ children }: { children: ReactNode }) {
   const { user } = useAuth()

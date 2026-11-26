@@ -11,6 +11,7 @@ import { GuideLink } from '@/features/guide/GuideLink'
 import { IC } from '@/icons'
 import { record } from '@/lib/history'
 import { tablePdf } from '@/lib/pdf'
+import { useUIStore } from '@/store/uiStore'
 
 import { AddDayModal } from './AddDayModal'
 import { useBulkMarks, useDecideGrant, useDeleteClass, useDropDay, useGrid, useSetFinal, useUpdateClass } from './api'
@@ -37,11 +38,13 @@ const errDetail = (err: unknown) => (isAxiosError<{ detail?: string }>(err) ? er
  * administrator is looking at that teacher's journal: everything is
  * read-only, and the lock on a closed day opens it for the teacher.
  * Nazorat ishi columns (0-100) are graded by administrators only; amaliy
- * ish columns (laboratoriya "L-1", STEM "STEM-1") by the class's teacher,
+ * ish columns (laboratoriya "L-1", STEAM "STEAM-1") by the class's teacher,
  * on its scale, outside every average. Davomat % and the Faollik holati
  * close each row (owner's mock-ups, 2026-11-26). */
 export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chorak: number; teacherId?: string }) {
   const { t } = useTranslation()
+  // the window's practical works: laboratoriya ishlari (Fizika) or STEAM loyihalari
+  const fizika = useUIStore((s) => s.subject) === 'fizika'
   const { data: grid, isLoading } = useGrid(cls.id, teacherId)
   const bulkMarks = useBulkMarks(cls.id)
   const dropDay = useDropDay(cls.id)
@@ -101,7 +104,7 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
   const archived = grid.archived ?? []
   const archivedStats = computeStats({ students: archived }, days, scale)
   const finalsAvg = meanOf(students, finals)
-  // amaliy ishlar of this chorak, numbered "L-1", "STEM-1"; the teacher's own
+  // amaliy ishlar of this chorak, numbered "L-1", "STEAM-1"; the teacher's own
   const pracs = numbered((grid.practicals ?? []).filter((w) => w.chorak === chorak))
   const att = students.map((s) => attendancePct(s.id, days))
   const activity = students.map((_, i) => activityOf(stats.perStudent[i].lvl, att[i]))
@@ -241,7 +244,7 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
               {IC.clipboard} + {t('Nazorat ishi')}
             </button>
           )}
-          {owner && <button className="btn btn--sm" onClick={() => setPractical('new')}>{IC.flask} + {t('Amaliy ish')}</button>}
+          {owner && <button className="btn btn--sm" onClick={() => setPractical('new')}>{IC.flask} + {t(fizika ? 'Laboratoriya ishi' : 'STEAM loyiha')}</button>}
           {owner && <button className="btn btn--sm btn--primary" onClick={() => openDay(lock?.today ?? localToday())}>{IC.calendar} {t('Bugungi dars')}</button>}
           {owner && <button className="btn btn--sm" onClick={() => setAddingDay(true)}>+ {t('Dars kuni')}</button>}
           {owner && <button className="btn btn--sm" onClick={() => setEditingStudents(true)}>{t("O'quvchilar ro'yxati")}</button>}
@@ -419,13 +422,16 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
         </section>
         <section className="jins__card">
           <h4>{t('Amaliy ishlar')}</h4>
-          <p><span>{t('Laboratoriya ishlari')}</span><b>{pracs.filter((p) => p.work.kind === 'lab').length}</b></p>
-          <p><span>{t('STEM loyihalar')}</span><b>{pracs.filter((p) => p.work.kind === 'stem').length}</b></p>
+          {fizika
+            ? <p><span>{t('Laboratoriya ishlari')}</span><b>{pracs.filter((p) => p.work.kind === 'lab').length}</b></p>
+            : <p><span>{t('STEAM loyihalar')}</span><b>{pracs.filter((p) => p.work.kind === 'stem').length}</b></p>}
           <p><span>{t('Baho olganlar')}</span><b>{pracDone} / {students.length}</b></p>
         </section>
         <section className="jins__card jins__card--note">
           <h4>{t("O'qituvchi uchun eslatma")}</h4>
-          <p className="jins__note">{t("Laboratoriya (L) va STEM loyiha baholari alohida ustunda turadi: o'rtacha ballga va chorak bahosiga ta'sir qilmaydi. «Ogohlantirish» — o'rtacha 3,5 dan past yoki davomat 85% dan kam bo'lgan o'quvchi.")}</p>
+          <p className="jins__note">{fizika
+            ? t("Laboratoriya ishi (L) baholari alohida ustunda turadi: o'rtacha ballga va chorak bahosiga ta'sir qilmaydi. «Ogohlantirish» — o'rtacha 3,5 dan past yoki davomat 85% dan kam bo'lgan o'quvchi.")
+            : t("STEAM loyiha baholari alohida ustunda turadi: o'rtacha ballga va chorak bahosiga ta'sir qilmaydi. «Ogohlantirish» — o'rtacha 3,5 dan past yoki davomat 85% dan kam bo'lgan o'quvchi.")}</p>
         </section>
       </div>
 

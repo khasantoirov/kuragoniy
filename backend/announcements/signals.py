@@ -20,6 +20,7 @@ def push_announcement(sender, instance: Announcement, created, **kwargs):
         'text': instance.text,
         'at': instance.at.isoformat(),
         'by': instance.by.name if instance.by_id else None,
+        'fan': instance.fan,  # '' everyone, else one fan window's people
     })
 
     _send_web_push(instance)
@@ -44,7 +45,7 @@ def _send_web_push(instance: Announcement):
                 'body': instance.text[:180],
                 'url': '/',
                 'tag': f'announcement-{instance.id}',
-            })
+            }, fan=instance.fan)
         finally:
             close_old_connections()
 

@@ -20,15 +20,20 @@ def announcement_to_inbox(sender, instance: Announcement, created, **kwargs):
     if not created:
         return
     User = get_user_model()
-    staff = list(
-        User.objects.filter(is_active=True, approved=True).exclude(role=User.Role.STUDENT).exclude(pk=instance.by_id)
-    )
+    from common.subjects import window_people
+
+    # a notice for one fan window reaches that fan's people (and the
+    # administration, who run both) — never the other fan's teachers
+    staff = list(window_people(
+        User.objects.filter(is_active=True, approved=True).exclude(role=User.Role.STUDENT).exclude(pk=instance.by_id),
+        instance.fan or None,
+    ))
     text = instance.text.strip()
     first_line = text.splitlines()[0] if text else ''
     notify(
         staff, Kind.ELON, "E'lon", text, '/notifications',
         channels=('app', 'email'), data={'announcement': instance.id, 'preview': first_line[:120]},
-        dedupe_key=_announcement_key(instance.id),
+        dedupe_key=_announcement_key(instance.id), fan=instance.fan,
     )
 
 

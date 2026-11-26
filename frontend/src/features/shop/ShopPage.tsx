@@ -13,10 +13,12 @@ import { api } from '@/lib/api/client'
 import { isTeacherLike, useAuth } from '@/lib/auth/AuthContext'
 
 import { KIND_LABEL, useCart, useProducts, useShopSettings, type Order, type Product, type ProductKind } from './api'
-import { GRADES } from '@/features/lessons/labels'
+import { gradeLabel, SUBJECT_GRADES, type Grade } from '@/features/lessons/labels'
+import { useUIStore } from '@/store/uiStore'
 
 function ProductModal({ p, onClose }: { p: Product; onClose: () => void }) {
   const { t } = useTranslation()
+  const lang = useUIStore((s) => s.lang)
   const add = useCart((s) => s.add)
   const inCart = useCart((s) => !!s.items[p.id])
   const toast = useToast()
@@ -30,7 +32,7 @@ function ProductModal({ p, onClose }: { p: Product; onClose: () => void }) {
         </button>
       )}>
       {p.cover_url && <img className="pmodal__cover" src={p.cover_url} alt="" referrerPolicy="no-referrer" />}
-      <p className="pmodal__meta">{t(KIND_LABEL[p.kind])}{p.grade ? ` · ${p.grade}-${t('sinf')}` : ''} · {p.delivery === 'digital' ? t('Elektron') : t('Yetkazib beriladi')}</p>
+      <p className="pmodal__meta">{t(KIND_LABEL[p.kind])}{p.grade ? ` · ${gradeLabel(p.grade as Grade, lang)}` : ''} · {p.delivery === 'digital' ? t('Elektron') : t('Yetkazib beriladi')}</p>
       <p className="prose" style={{ whiteSpace: 'pre-wrap' }}>{p.description || p.short}</p>
       {p.preview_url && <a className="btn btn--sm" href={p.preview_url} target="_blank" rel="noopener noreferrer">{IC.eye} {t('Namunani ko\'rish')}</a>}
       {p.stock != null && p.delivery === 'physical' && <p className="form__note">{t('Omborda')}: {p.stock}</p>}
@@ -110,6 +112,8 @@ function Cart({ products, onClose }: { products: Product[]; onClose: () => void 
 export function ShopPage() {
   const { t } = useTranslation()
   const { user } = useAuth()
+  const fan = useUIStore((s) => s.subject)
+  const lang = useUIStore((s) => s.lang)
   const [kind, setKind] = useState<ProductKind | ''>('')
   const [grade, setGrade] = useState('')
   const [q, setQ] = useState('')
@@ -136,7 +140,7 @@ export function ShopPage() {
         </div>
         <select className="input input--sm" value={grade} onChange={(e) => setGrade(e.target.value)}>
           <option value="">{t('Barcha sinflar')}</option>
-          {GRADES.map((g) => <option key={g} value={g}>{g}-{t('sinf')}</option>)}
+          {SUBJECT_GRADES[fan].map((g) => <option key={g} value={g}>{gradeLabel(g, lang)}</option>)}
         </select>
         <input className="input input--sm" placeholder={t('Qidirish…')} value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
@@ -149,7 +153,7 @@ export function ShopPage() {
               {!p.cover_url && <span className="pcard__ph">{IC.book}</span>}
               {p.purchased && <span className="pcard__owned">✓ {t('Sotib olingan')}</span>}
             </span>
-            <span className="pcard__kind">{t(KIND_LABEL[p.kind])}{p.grade ? ` · ${p.grade}-${t('sinf')}` : ''}</span>
+            <span className="pcard__kind">{t(KIND_LABEL[p.kind])}{p.grade ? ` · ${gradeLabel(p.grade as Grade, lang)}` : ''}</span>
             <span className="pcard__title">{p.title}</span>
             {p.short && <span className="pcard__short">{p.short}</span>}
             <span className="pcard__price">

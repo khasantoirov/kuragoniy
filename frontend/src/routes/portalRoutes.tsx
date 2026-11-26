@@ -82,13 +82,14 @@ const oversees = (user: Parameters<typeof isObserver>[0], viewMode: ViewMode) =>
 function ShopTabs() {
   const { user } = useAuth()
   const viewMode = useUIStore((s) => s.viewMode)
+  const fan = useUIStore((s) => s.subject)
   const admin = isAdminInView(user, viewMode)
   const buyer = isTeacherLike(user) || isSchoolAdmin(user)
   const seller = admin || isObserver(user)
   return (
     <PageTabs tabs={[
       // teachers and schools' ma'muriyat buy; the administration sells
-      { key: 'dokon', label: "STEM do'kon", element: <ShopPage />, show: buyer },
+      { key: 'dokon', label: fan === 'fizika' ? "Do'kon" : "STEAM do'kon", element: <ShopPage />, show: buyer },
       { key: 'orders', label: 'Buyurtmalarim', element: <OrdersPage />, show: buyer },
       { key: 'sotuv', label: "Sotuv bo'limi", element: <ShopAdminPage />, show: seller },
     ]} />

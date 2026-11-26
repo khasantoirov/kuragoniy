@@ -203,7 +203,7 @@ function AllRequests() {
   )
 }
 
-/** Darslar › STEM chamadonlar — the catalogue, one's requests, and for the
+/** Darslar › STEAM chamadonlar — the catalogue, one's requests, and for the
  * administration every request to answer. */
 export function KitsPage() {
   const { t } = useTranslation()

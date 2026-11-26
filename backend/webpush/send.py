@@ -46,7 +46,10 @@ def send_web_push(subscription: PushSubscription, payload: dict) -> bool:
         return False
 
 
-def send_push_to_approved(payload: dict):
+def send_push_to_approved(payload: dict, fan: str = ''):
+    """`fan` — a one-window announcement: that fan's people only."""
+    from common.subjects import in_window
+
     for sub in PushSubscription.objects.select_related('user').all():
-        if sub.user.is_approved_effective:
+        if sub.user.is_approved_effective and in_window(sub.user, fan or None):
             send_web_push(sub, payload)

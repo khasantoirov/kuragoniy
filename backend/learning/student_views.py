@@ -124,6 +124,7 @@ class StudentRegisterView(APIView):
             "O'quvchi sinf kodi bilan ro'yxatdan o'tdi." if inv.auto_approve else "Tasdiqlashingizni kutmoqda.", '/students',
             telegram_text=f"👤 {user.name} «{inv.journal_class.name}» sinfiga ro'yxatdan o'tdi"
             + ("." if inv.auto_approve else " — tasdiqlashingizni kutmoqda (O'quvchilar bo'limi)."),
+            fan=inv.journal_class.subject,
         )
         return Response({'username': user.username, 'approved': user.approved}, status=status.HTTP_201_CREATED)
 

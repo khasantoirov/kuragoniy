@@ -138,6 +138,13 @@ def window_grades(request, user=None) -> list[str]:
     return list(GRADES[fan]) if fan else grades_for(user or getattr(request, 'user', None))
 
 
+def one_fan(codes) -> str:
+    """The one fan all of `codes` share ('fizika' / 'steam'), or '' when
+    they are of both (or none) — e.g. a day's lessons for a notification."""
+    found = {c for c in codes if c}
+    return found.pop() if len(found) == 1 else ''
+
+
 def main_subject(user) -> str:
     """The one subject to read a class number with ("8-A" → '8-9' or 'F8')
     when only one can be used: STEAM unless the person teaches physics only."""

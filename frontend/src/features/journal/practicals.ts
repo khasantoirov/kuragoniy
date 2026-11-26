@@ -2,20 +2,20 @@ import { isAbsent } from './attendance'
 import type { GridDay, PracticalWork } from './types'
 
 /* Amaliy ishlar and the journal's per-pupil extras (owner's mock-ups,
-   2026-11-26): the "L-1" / "STEM-1" column labels, attendance in %, and
+   2026-11-26): the "L-1" / "STEAM-1" column labels, attendance in %, and
    the Faollik holati. */
 
 /** The chorak's works in column order — laboratoriya first, then STEAM,
- *  each by date — with their numbers: "L-1", "L-2", "STEM-1". */
+ *  each by date — with their numbers: "L-1", "L-2", "STEAM-1". */
 export function numbered(works: PracticalWork[]) {
   const sorted = [...works].sort((a, b) => (a.kind === b.kind ? a.date.localeCompare(b.date) || a.id - b.id : a.kind === 'lab' ? -1 : 1))
   const seen = { lab: 0, stem: 0 }
-  return sorted.map((w) => ({ work: w, tag: `${w.kind === 'lab' ? 'L' : 'STEM'}-${++seen[w.kind]}` }))
+  return sorted.map((w) => ({ work: w, tag: `${w.kind === 'lab' ? 'L' : 'STEAM'}-${++seen[w.kind]}` }))
 }
 
 export const KIND_LABEL: Record<PracticalWork['kind'], string> = {
   lab: 'Laboratoriya ishi',
-  stem: 'STEM loyiha',
+  stem: 'STEAM loyiha',
 }
 
 /** A pupil's attendance over the chorak's lesson days, in %: late counts

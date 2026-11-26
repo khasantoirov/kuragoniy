@@ -1,4 +1,4 @@
-"""STEM chamadonlar (/api/kits/).
+"""STEAM chamadonlar (/api/kits/).
 
   ''                       — the catalogue; POST (admin) a new kit
   <id>/                    — a kit: contents, instructions, lessons it serves
@@ -22,6 +22,7 @@ from rest_framework.views import APIView
 
 from accounts.models import User
 from common.security import log_event
+from common.subjects import STEAM, window
 from lessons.models import Lesson
 from lessons.visibility import visible_lessons
 from notifications.models import Kind as NotifyKind
@@ -49,9 +50,9 @@ def _admins():
         Q(is_dev_superuser=True) | Q(role__in=[User.Role.ADMIN, User.Role.BOSHLIQ])))
 
 
-def _visible_lessons(user):
-    # the open quarters and the person's own fan(s) (lessons/visibility.py)
-    return visible_lessons(Lesson.objects.all(), user)
+def _visible_lessons(user, request=None):
+    # the open quarters and the window's fan (lessons/visibility.py)
+    return visible_lessons(Lesson.objects.all(), user, window(request))
 
 
 def _my_schools(user) -> list[dict]:
@@ -88,7 +89,7 @@ class KitsView(APIView):
         user = request.user
         kits = list(Kit.objects.all() if user.is_admin else Kit.objects.filter(is_active=True))
         contents = kit_contents([k.id for k in kits])
-        lessons = {lesson.id for lesson in _visible_lessons(user).only('id')}
+        lessons = {lesson.id for lesson in _visible_lessons(user, request).only('id')}
         needs = {lid: n for lid, n in lesson_needs(lessons).items() if n}
         cat = prices({key for c in contents.values() for key in c})
         owned = _owned([k.id for k in kits], viewer_school_ids(user))
@@ -119,7 +120,7 @@ def _kit_detail(request, kit: Kit) -> dict:
     c = kit_contents([kit.id]).get(kit.id, {})
     items = list(kit.items.all())
     cat = prices([i.key for i in items])
-    lessons = {lesson.id: lesson for lesson in _visible_lessons(user)}
+    lessons = {lesson.id: lesson for lesson in _visible_lessons(user, request)}
     rows = []
     for lid, n in lesson_needs(lessons.keys()).items():
         if not n:
@@ -254,7 +255,7 @@ class LessonKitsView(APIView):
 
     def get(self, request, lesson_id):
         user = request.user
-        lesson = get_object_or_404(_visible_lessons(user), pk=lesson_id)
+        lesson = get_object_or_404(_visible_lessons(user, request), pk=lesson_id)
         needs = lesson_needs([lesson.id]).get(lesson.id, {})
         kits = list(Kit.objects.filter(is_active=True))
         contents = kit_contents([k.id for k in kits])
@@ -348,7 +349,7 @@ class KitRequestsView(APIView):
         items = [{'name': n, 'quantity': q} for _, n, q in _clean_items(data.get('items') or [])]
         if not kit and not items:
             raise ValidationError({'detail': "Chamadonni yoki jihozlarni tanlang."})
-        lesson = get_object_or_404(_visible_lessons(user), pk=data['lesson']) if data.get('lesson') else None
+        lesson = get_object_or_404(_visible_lessons(user, request), pk=data['lesson']) if data.get('lesson') else None
         mine = viewer_school_ids(user)
         school_id = data.get('school') or (next(iter(mine)) if len(mine) == 1 else None)
         if school_id and not user.is_admin and int(school_id) not in mine:
@@ -362,7 +363,7 @@ class KitRequestsView(APIView):
         what = f"«{kit.name}» ×{qty}" if kit else f"{len(items)} ta jihoz" + (f" («{lesson.title}» uchun)" if lesson else '')
         where = r.school.name if r.school else ''
         notify([a for a in _admins() if a.id != user.id], NotifyKind.CHAMADON, f"Chamadon so'raldi: {user.name}",
-               f"{what}{f' · {where}' if where else ''}", url='/lessons?bolim=chamadonlar&sub=sorovlar')
+               f"{what}{f' · {where}' if where else ''}", url='/lessons?bolim=chamadonlar&sub=sorovlar', fan=STEAM)
         log_event('kit_requested', actor=user, request=request, detail=f'{what} {where}'.strip())
         return Response(KitRequestSerializer(r).data, status=status.HTTP_201_CREATED)
 
@@ -405,6 +406,6 @@ class KitRequestView(APIView):
         what = f"«{r.kit.name}»" if r.kit else "jihozlar"
         notify(r.requester, NotifyKind.CHAMADON, f"Chamadon so'rovingiz: {r.get_status_display().lower()}",
                f"{what}{f' · {r.school.name}' if r.school else ''}" + (f"\n{r.reply}" if r.reply else ''),
-               url='/lessons?bolim=chamadonlar&sub=mening')
+               url='/lessons?bolim=chamadonlar&sub=mening', fan=STEAM)
         log_event('kit_request_answered', actor=user, request=request, detail=f'#{r.id} {what}: {r.get_status_display()}')
         return Response(KitRequestSerializer(r).data)

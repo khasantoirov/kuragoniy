@@ -14,6 +14,8 @@ from django.conf import settings
 from django.db import models
 from django.db.models import Q
 
+from common.subjects import CHOICES as SUBJECT_CHOICES
+
 
 class Kind(models.TextChoices):
     ELON = 'elon', "E'lonlar"
@@ -44,6 +46,9 @@ class Notification(models.Model):
     # Free-form extras the UI needs to render a richer view (e.g. the
     # colleague's name for a birthday greeting). Never trusted for access.
     data = models.JSONField(default=dict, blank=True)
+    # the fan window it belongs to — Fizika's stay out of STEAM's and the
+    # other way round; '' (accounts, security, the organisation) in both
+    fan = models.CharField(max_length=10, choices=SUBJECT_CHOICES, blank=True, default='')
     dedupe_key = models.CharField(max_length=120, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     read_at = models.DateTimeField(null=True, blank=True)

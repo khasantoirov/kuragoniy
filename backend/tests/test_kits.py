@@ -1,4 +1,4 @@
-"""STEM chamadonlar: a kit's contents against the lessons' equipment (which
+"""STEAM chamadonlar: a kit's contents against the lessons' equipment (which
 kit a lesson needs, what is short), a school's kits, and "chamadon so'rash"
 answered by the administration (a delivered kit lands in the school)."""
 

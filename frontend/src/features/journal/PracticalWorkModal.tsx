@@ -19,7 +19,7 @@ import type { PracticalWork, Student } from './types'
 const parse = (v: string) => (v.trim() === '' ? null : Number(v))
 
 /** The class's teacher: give or grade an amaliy ish — a laboratoriya ishi
- *  or a STEM loyiha — every pupil's mark on the class's scale, its colour
+ *  or a STEAM loyiha — every pupil's mark on the class's scale, its colour
  *  band beside it as it's typed. Enter moves down. It stays out of the
  *  averages and the quarter grade. */
 export function PracticalWorkModal({ classId, chorak, scale, students, work, onClose }: {
@@ -37,7 +37,9 @@ export function PracticalWorkModal({ classId, chorak, scale, students, work, onC
   const save = useSavePractical(classId)
   const remove = useDeletePractical(classId)
   const { data: years } = useYears()
-  const [kind, setKind] = useState<PracticalWork['kind']>(work?.kind ?? 'lab')
+  // the window's own kind — never the other fan's (backend sets it too)
+  const fan = useUIStore((s) => s.subject)
+  const kind: PracticalWork['kind'] = work?.kind ?? (fan === 'fizika' ? 'lab' : 'stem')
   const [date, setDate] = useState(work?.date ?? localToday())
   const [quarter, setQuarter] = useState(() => work?.chorak ?? (years ? chorakOf(localToday(), years) : chorak))
   const pickDate = (v: string) => {
@@ -89,7 +91,7 @@ export function PracticalWorkModal({ classId, chorak, scale, students, work, onC
 
   return (
     <Modal
-      title={work ? t(KIND_LABEL[work.kind]) : t("Amaliy ish qo'shish")}
+      title={work ? t(KIND_LABEL[work.kind]) : `${t(KIND_LABEL[kind])} — ${t("qo'shish")}`}
       onClose={onClose}
       footer={
         <>
@@ -99,12 +101,6 @@ export function PracticalWorkModal({ classId, chorak, scale, students, work, onC
         </>
       }
     >
-      <div className="seg prac__kind" role="radiogroup" aria-label={t('Turi')}>
-        {(['lab', 'stem'] as const).map((k) => (
-          <button key={k} type="button" role="radio" aria-checked={kind === k} className={`seg__b ${kind === k ? 'is-on' : ''}`}
-            onClick={() => setKind(k)}>{t(KIND_LABEL[k])}</button>
-        ))}
-      </div>
       <div className="ctl__meta">
         <label className="field">
           <span className="field__label">{t('Sana')}</span>

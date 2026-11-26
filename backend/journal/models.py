@@ -224,7 +224,7 @@ class ControlMark(models.Model):
 
 
 class PracticalWork(models.Model):
-    """Amaliy ish — a laboratoriya ishi ("L-1") or a STEM loyiha ("STEM-1")
+    """Amaliy ish — a laboratoriya ishi ("L-1") or a STEAM loyiha ("STEAM-1")
     the class's teacher gives in a chorak and grades on the class's own
     scale (the owner's mock-ups, 2026-11-26). Its own column in the
     journal, numbered per kind and chorak by date. Shown only: it stays out
@@ -233,7 +233,7 @@ class PracticalWork(models.Model):
 
     class Kind(models.TextChoices):
         LAB = 'lab', 'Laboratoriya ishi'
-        STEM = 'stem', 'STEM loyiha'
+        STEM = 'stem', 'STEAM loyiha'
 
     journal_class = models.ForeignKey(JournalClass, related_name='practicals', on_delete=models.CASCADE)
     kind = models.CharField(max_length=8, choices=Kind.choices, default=Kind.LAB)

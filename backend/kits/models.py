@@ -1,4 +1,4 @@
-"""STEM chamadonlar — the equipment kits Muhandis D gives schools.
+"""STEAM chamadonlar — the equipment kits Muhandis D gives schools.
 
   Kit        — one kit: its name, code, contents and how to use it
   KitItem    — a piece of equipment in it, matched to the lessons'

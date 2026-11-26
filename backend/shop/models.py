@@ -11,6 +11,7 @@ revealed only to buyers of a paid order — nothing is stored on the server.
 from django.conf import settings
 from django.db import models
 
+from common.subjects import CHOICES as SUBJECT_CHOICES
 from learning.models import GRADE_CHOICES
 
 
@@ -49,6 +50,8 @@ class Product(models.Model):
     short = models.CharField(max_length=300, blank=True)
     description = models.TextField(blank=True)
     grade = models.CharField(max_length=5, choices=GRADE_CHOICES, null=True, blank=True)
+    # the fan window it is sold in (a grade's own fan when it has one)
+    subject = models.CharField(max_length=10, choices=SUBJECT_CHOICES, default='steam', db_index=True)
     lesson = models.ForeignKey('lessons.Lesson', related_name='+', null=True, blank=True, on_delete=models.SET_NULL)
     price = models.PositiveIntegerField(default=0)  # so'm
     old_price = models.PositiveIntegerField(null=True, blank=True)
@@ -97,6 +100,8 @@ class Order(models.Model):
     phone = models.CharField(max_length=32, blank=True)
     delivery_address = models.CharField(max_length=500, blank=True)
     admin_note = models.CharField(max_length=500, blank=True)
+    # the fan window it was ordered in — its products' fan
+    fan = models.CharField(max_length=10, choices=SUBJECT_CHOICES, blank=True, default='')
     confirmed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name='+', null=True, blank=True, on_delete=models.SET_NULL,
     )

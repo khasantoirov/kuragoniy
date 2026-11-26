@@ -159,7 +159,7 @@ class PracticalMarkInSerializer(serializers.Serializer):
 
 
 class PracticalWorkSerializer(serializers.ModelSerializer):
-    """Amaliy ish (laboratoriya / STEM). In: journal_class, kind, date,
+    """Amaliy ish (laboratoriya / STEAM). In: journal_class, kind, date,
     chorak, title and `marks` as [{student_id, mark}] on the class's scale
     (an empty mark clears it); out: `marks` as {student_id: mark}."""
 
@@ -181,6 +181,9 @@ class PracticalWorkSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'marks': "O'quvchi bu sinfda emas."})
         if any(m.get('mark') is not None and m['mark'] > journal_class.scale for m in marks):
             raise serializers.ValidationError({'marks': f"Baho 0 dan {journal_class.scale} gacha bo'ladi."})
+        # one kind per fan: a Fizika class does laboratoriya ishlari, a
+        # STEAM class STEAM loyihalari — never the other fan's
+        attrs['kind'] = PracticalWork.Kind.LAB if journal_class.subject == 'fizika' else PracticalWork.Kind.STEM
         return attrs
 
     def to_representation(self, obj):

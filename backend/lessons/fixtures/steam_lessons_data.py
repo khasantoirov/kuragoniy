@@ -206,7 +206,7 @@ LESSONS = [
          concepts=["Loyiha himoyasi", "Taqdimot ko'nikmalari", "Texnik xulosa"],
          image=None),
 
-    # ── 5-6-sinf: Muhandislik 2 (STEM 2 & Elektronika) ──────────────
+    # ── 5-6-sinf: Muhandislik 2 (STEAM 2 & Elektronika) ──────────────
     dict(grade='5-6', hafta=1, title="Muhandis D2 kirish (Elektronika asoslari)",
          goal="Elektr xavfsizligi, multimetr bilan ishlash va asosiy radioelementlar.",
          desc="Elektr xavfsizligi, multimetr bilan ishlash va asosiy radioelementlar.",

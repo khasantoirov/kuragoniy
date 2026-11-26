@@ -50,7 +50,7 @@ function AddModal({ schoolId, onClose }: { schoolId: number; onClose: () => void
   )
 }
 
-/** A school's page: the STEM chamadonlar it has. */
+/** A school's page: the STEAM chamadonlar it has. */
 export function SchoolKitsPanel({ schoolId, admin }: { schoolId: number; admin: boolean }) {
   const { t } = useTranslation()
   const toast = useToast()

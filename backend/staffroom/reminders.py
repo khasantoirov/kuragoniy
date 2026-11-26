@@ -22,6 +22,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from accounts.models import User
+from common.subjects import one_fan
 from journal.models import ClassDay, JournalClass
 from notifications.models import Kind
 from notifications.service import notify
@@ -98,7 +99,8 @@ def send_morning(now: datetime | None = None) -> int:
         title = f"Bugun {n} ta darsingiz bor"
         body = '\n'.join(_line(s) for s in slots)
         notify(teachers[tid], Kind.DARS, title, body, url='/timetable',
-               telegram_text=f"☀️ {title}:\n{body}" + _open('Jadval', '/timetable'))
+               telegram_text=f"☀️ {title}:\n{body}" + _open('Jadval', '/timetable'),
+               fan=one_fan(s.subject for s in slots))
         sent += 1
     return sent
 
@@ -132,7 +134,7 @@ def send_evening(now: datetime | None = None) -> int:
         url = f'/journal?class={missing[0].id}'
         notify(teachers[tid], Kind.DARS, title, body, url=url,
                telegram_text=f"📋 {title}:\n" + '\n'.join(names) + '\nDavomat va baholarni kiriting.'
-               + _open('Jurnal', url))
+               + _open('Jurnal', url), fan=one_fan(jc.subject for jc in missing))
         sent += 1
     return sent
 

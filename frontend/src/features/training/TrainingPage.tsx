@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/Skeleton'
 import { useToast } from '@/components/Toast'
 import { errText, fmtDate, Meter, PageHead, Segmented, StatusPill } from '@/features/portal/ui'
 import { IC } from '@/icons'
+import { useUIStore } from '@/store/uiStore'
 import { api } from '@/lib/api/client'
 import { isAdmin, isOversight, useAuth } from '@/lib/auth/AuthContext'
 
@@ -18,6 +19,7 @@ import './training.css'
 
 function NewCourseModal({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation()
+  const fan = useUIStore((s) => s.subject)
   const toast = useToast()
   const navigate = useNavigate()
   const invalidate = useInvalidateTraining()
@@ -41,7 +43,7 @@ function NewCourseModal({ onClose }: { onClose: () => void }) {
       <label className="field">
         <span className="field__label">{t('Kurs nomi')}</span>
         <input className="input" autoFocus maxLength={200} value={title} onChange={(e) => setTitle(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && title.trim() && create()} placeholder={t('Masalan: STEM darsini tashkil etish')} />
+          onKeyDown={(e) => e.key === 'Enter' && title.trim() && create()} placeholder={fan === 'fizika' ? t("Masalan: Fizikadan tajriba darsini tashkil etish") : t('Masalan: STEAM darsini tashkil etish')} />
       </label>
       <p className="form__note">{t("Keyingi sahifada modullar, darslar va testlarni qo'shasiz. Kurs e'lon qilinmaguncha o'qituvchilarga ko'rinmaydi.")}</p>
     </Modal>

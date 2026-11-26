@@ -138,7 +138,9 @@ export function AboutPage() {
       <div className="panel abmission">
         <h3 className="panel__title">{IC.info} {t('Platforma haqida')}</h3>
         <p className="prose">
-          {t("Maqsadimiz — O'zbekistonda yaxshi muhandislarni tarbiyalash: yoshlar maktab partasidanoq fizikani his qilib o'rgansa va o'z loyihalarini yaratsa, yurtimiz bu sohada dunyoda yuqori o'rinlarga ko'tariladi.")}
+          {fizika
+            ? t("Maqsadimiz — yoshlarga fizikani his qilib o'rgatish: maktab partasidanoq tajriba qilib, hodisani o'z ko'zi bilan ko'rgan o'quvchi kelajakda yaxshi muhandis va olim bo'ladi.")
+            : t("Maqsadimiz — O'zbekistonda yaxshi muhandislarni tarbiyalash: yoshlar maktab partasidanoq o'z loyihalarini yaratsa, yurtimiz bu sohada dunyoda yuqori o'rinlarga ko'tariladi.")}
         </p>
         <p className="prose">
           {t('Loyiha')} <strong>Ko'ragoniy Education</strong> {t('va')} <strong>Muhandis_D</strong> {t('hamkorligida tayyorlangan.')} {t('Dastur yaratuvchisi')} — <strong>Hasan Toirov</strong> · {new Date().getFullYear()}.

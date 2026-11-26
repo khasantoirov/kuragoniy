@@ -45,6 +45,9 @@ const LINKS: { view: string; ic: keyof typeof IC; title: string; sub: string; to
   { view: '/statistics', ic: 'chart', title: 'Statistika', sub: "Ko'rsatkichlar va sinflar kesimi", tone: 'rose', adminOnly: true },
 ]
 
+// the lab tile in the window's own words
+const LAB_SUB = { fizika: 'Virtual laboratoriya, videolar va materiallar', steam: 'Kerakli jihozlar, videolar va materiallar' } as const
+
 const hm = (v: string | null) => (v ? v.slice(0, 5) : '')
 const minutesOf = (v: string | null) => {
   if (!v) return null
@@ -121,7 +124,16 @@ export function HomePage() {
   const planSlots = plan?.slots ?? []
   const statuses = statusesOf(planSlots.filter((s) => !s.band), nowMin, showToday)
 
-  const weekCount = (week ?? []).filter((s) => !s.band && (s.maktab || s.sinf)).length
+  const weekLessons = (week ?? []).filter((s) => !s.band && (s.maktab || s.sinf))
+  const weekCount = weekLessons.length
+  // of the week's load, how many are behind us: the earlier days' all, and
+  // today's whose bell has gone (owner, 2026-11-26: "15/18")
+  const todayIdx = (now.getDay() + 6) % 7 // Dushanba = 0
+  const weekDone = weekLessons.filter((s) => {
+    if (s.day_index !== todayIdx) return s.day_index < todayIdx
+    const end = minutesOf(s.time_to)
+    return end != null && nowMin >= end
+  }).length
   const where = today.data?.place
   const links = LINKS.filter((l) => (!l.adminOnly || admin) && (!l.fizikaOnly || fan === 'fizika') && routeOn(l.view, on))
 
@@ -144,7 +156,7 @@ export function HomePage() {
             <ul className="hh-stats">
               <li><b>{todayLessons.length}</b><span>{t('bugun dars')}</span></li>
               <li><b>{weekCount}</b><span>{t('bu hafta')}</span></li>
-              <li><b>{statuses.filter((s) => s === 'done').length}/{showToday ? todayLessons.length : 0}</b><span>{t("o'tildi")}</span></li>
+              <li><b>{weekDone}/{weekCount}</b><span>{t("o'tildi")}</span></li>
             </ul>
           )}
         </div>
@@ -200,7 +212,7 @@ export function HomePage() {
               <span className="hh-q__ic" aria-hidden="true">{IC[l.ic]}</span>
               <span className="hh-q__tx">
                 <span className="hh-q__t">{t(l.title)}</span>
-                <span className="hh-q__s">{t(l.sub)}</span>
+                <span className="hh-q__s">{t(l.view === '/lab' ? LAB_SUB[fan] : l.sub)}</span>
               </span>
               <span className="hh-q__go" aria-hidden="true">›</span>
             </button>

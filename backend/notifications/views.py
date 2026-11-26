@@ -7,6 +7,8 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from common.subjects import window
+
 from .birthdays import ensure_birthday_notices
 from .models import Kind, Notification, NotificationPreference
 from .prefs import CHANNELS, DESCRIPTIONS, kinds_for, merged
@@ -43,6 +45,13 @@ class NotificationSerializer(serializers.ModelSerializer):
         fields = ['id', 'kind', 'kind_label', 'title', 'body', 'url', 'data', 'created_at', 'read_at', 'archived_at']
 
 
+def _in_window(qs, request):
+    """The open fan window's messages and the shared ones — Fizika's
+    never show in STEAM's window, nor the other way round."""
+    fan = window(request)
+    return qs.filter(fan__in=['', fan]) if fan else qs
+
+
 class NotificationViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """GET /api/notifications/?box=inbox|archive&kind=… — the user's own
     inbox only."""
@@ -51,7 +60,7 @@ class NotificationViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     permission_classes = [IsStaffMember]
 
     def get_queryset(self):
-        qs = Notification.objects.filter(user=self.request.user)
+        qs = _in_window(Notification.objects.filter(user=self.request.user), self.request)
         box = self.request.query_params.get('box', 'inbox')
         qs = qs.filter(archived_at__isnull=box != 'archive')
         kind = self.request.query_params.get('kind')
@@ -95,7 +104,7 @@ class NotificationViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     @action(detail=False, methods=['post'], url_path='read-all')
     def read_all(self, request):
-        n = Notification.objects.filter(user=request.user, read_at__isnull=True).update(read_at=timezone.now())
+        n = _in_window(Notification.objects.filter(user=request.user, read_at__isnull=True), request).update(read_at=timezone.now())
         return Response({'updated': n})
 
     @action(detail=False, methods=['get'])
@@ -103,7 +112,7 @@ class NotificationViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         """Polled by every open tab: the unread count, plus anything newer
         than ?after=<id> so the tab can play a sound / show a popup."""
         ensure_birthday_notices(request.user)
-        mine = Notification.objects.filter(user=request.user, archived_at__isnull=True)
+        mine = _in_window(Notification.objects.filter(user=request.user, archived_at__isnull=True), request)
         try:
             after = int(request.query_params.get('after') or 0)
         except (TypeError, ValueError):
@@ -143,7 +152,7 @@ class PreferencesView(APIView):
     permission_classes = [IsStaffMember]
 
     def _payload(self, user, pref):
-        kinds = kinds_for(user)
+        kinds = kinds_for(user, window(self.request))
         channels = merged(pref.channels if pref else None)
         return {
             'kinds': [{'key': str(k), 'label': Kind(k).label, 'desc': DESCRIPTIONS.get(k, '')} for k in kinds],

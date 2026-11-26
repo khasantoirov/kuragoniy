@@ -143,7 +143,7 @@ function FillModal({ kit, onClose }: { kit: KitDetail; onClose: () => void }) {
   )
 }
 
-/** One STEM chamadon: what is inside, how to use it, which lessons it
+/** One STEAM chamadon: what is inside, how to use it, which lessons it
  * serves, which schools have it — and asking for one. */
 export function KitPage() {
   const { t } = useTranslation()

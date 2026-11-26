@@ -39,7 +39,8 @@ def _send_emails(batch):
     threading.Thread(target=run, daemon=True).start()
 
 
-def notify(users, kind, title, body='', url='', *, telegram_text=None, channels=CHANNELS, data=None, dedupe_key=''):
+def notify(users, kind, title, body='', url='', *, telegram_text=None, channels=CHANNELS, data=None, dedupe_key='',
+           fan=''):
     """Deliver one event to one user or many.
 
     channels   — narrows which channels this event may use at all (e.g. an
@@ -47,6 +48,8 @@ def notify(users, kind, title, body='', url='', *, telegram_text=None, channels=
                  feed passes ('app',)); the user's settings narrow further.
     dedupe_key — a generated message (birthday, announcement) is created at
                  most once per user for the same key.
+    fan        — the fan window it belongs to ('fizika' / 'steam'); shown
+                 only there. '' — an account or organisation matter, both.
     """
     if users is None:
         return []
@@ -61,7 +64,7 @@ def notify(users, kind, title, body='', url='', *, telegram_text=None, channels=
         if 'app' in channels and allowed['app']:
             rows.append(Notification(
                 user=user, kind=kind, title=title[:200], body=body, url=url[:300],
-                data=data or {}, dedupe_key=dedupe_key,
+                data=data or {}, dedupe_key=dedupe_key, fan=fan or '',
             ))
         if 'telegram' in channels and allowed['telegram']:
             notify_user(user, telegram_text or (f'{title}\n{body}' if body else title))

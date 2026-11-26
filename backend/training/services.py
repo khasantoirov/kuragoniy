@@ -265,6 +265,7 @@ def complete_if_done(user, course) -> Certificate | None:
     notify(
         user, NotifyKind.MALAKA, 'Sertifikat berildi',
         f"«{course.title}» kursini tugatdingiz — sertifikat №{cert.number}.", url=f'/training?cert={cert.id}',
+        fan=course.subject,
     )
     return cert
 
@@ -288,7 +289,7 @@ def assign(course, users, by, due_on=None) -> dict:
         when = f" Muddat: {due_on:%d.%m.%Y}." if due_on else ''
         notify(
             [e.user for e in fresh], NotifyKind.MALAKA, 'Yangi malaka oshirish kursi',
-            f"Sizga «{course.title}» kursi biriktirildi.{when}", url=f'/training/{course.id}',
+            f"Sizga «{course.title}» kursi biriktirildi.{when}", url=f'/training/{course.id}', fan=course.subject,
         )
     return {'assigned': len(fresh), 'updated': updated}
 
@@ -343,7 +344,7 @@ def send_due_reminders(day=None) -> int:
         when = 'bugun tugaydi' if left == 0 else ('ertaga tugaydi' if left == 1 else f'{left} kundan keyin tugaydi')
         notify(e.user, NotifyKind.MALAKA, f"«{e.course.title}» kursi muddati {when}",
                f"Muddat: {e.due_on:%d.%m.%Y}", url=f'/training/{e.course_id}',
-               dedupe_key=f'training-due:{e.id}:{mark}')
+               dedupe_key=f'training-due:{e.id}:{mark}', fan=e.course.subject)
         e.reminded = sorted({*(e.reminded or []), *due})
         e.save(update_fields=['reminded'])
         sent += 1

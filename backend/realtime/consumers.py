@@ -23,7 +23,12 @@ class AnnouncementConsumer(AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     async def announcement_created(self, event):
-        await self.send_json(event['payload'])
+        from common.subjects import in_window
+
+        payload = event['payload']
+        if not in_window(self.scope['user'], payload.get('fan') or None):
+            return  # the other fan's teachers never see it
+        await self.send_json(payload)
 
 
 class TranslationConsumer(AsyncJsonWebsocketConsumer):
