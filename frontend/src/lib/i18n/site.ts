@@ -65,8 +65,8 @@ const ru: Record<string, string> = {
     'У каждого предмета своё окно. Переключиться можно кнопкой вверху.',
   "Nazariya va tajriba: darslar, laboratoriya, kutubxona, jurnallar — fizika o'qituvchilari va sinflari":
     'Теория и опыт: уроки, лаборатория, библиотека, журналы — учителя и классы физики',
-  "Robototexnika, STEAM loyihalar, STEM chamadonlar — o'z o'qituvchilari, sinflari va jurnallari bilan":
-    'Робототехника, STEAM-проекты, STEM-чемоданы — со своими учителями, классами и журналами',
+  "Robototexnika, STEAM loyihalar, kerakli jihozlar — o'z o'qituvchilari, sinflari va jurnallari bilan":
+    'Робототехника, STEAM-проекты, необходимое оборудование — со своими учителями, классами и журналами',
   'Fan': 'Предмет',
   'Fan biriktirish': 'Назначить предмет',
   'Fan biriktirilmagan': 'Предмет не назначен',
@@ -137,8 +137,8 @@ const en: Record<string, string> = {
     'Each subject has its own window. Switch later with the button at the top.',
   "Nazariya va tajriba: darslar, laboratoriya, kutubxona, jurnallar — fizika o'qituvchilari va sinflari":
     'Theory and experiment: lessons, lab, library, journals — physics teachers and classes',
-  "Robototexnika, STEAM loyihalar, STEM chamadonlar — o'z o'qituvchilari, sinflari va jurnallari bilan":
-    'Robotics, STEAM projects, STEM kits — with their own teachers, classes and journals',
+  "Robototexnika, STEAM loyihalar, kerakli jihozlar — o'z o'qituvchilari, sinflari va jurnallari bilan":
+    'Robotics, STEAM projects, the equipment needed — with their own teachers, classes and journals',
   'Fan': 'Subject',
   'Fan biriktirish': 'Assign a subject',
   'Fan biriktirilmagan': 'No subject yet',

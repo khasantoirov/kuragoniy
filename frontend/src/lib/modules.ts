@@ -27,7 +27,7 @@ export const MODULES: { key: ModuleKey; label: string; sub: string }[] = [
   { key: 'training', label: "Malaka oshirish", sub: "O'qituvchilar uchun kurslar: modullar, testlar va sertifikat" },
   { key: 'staffroom', label: "Ustozlar xonasi", sub: "Jadvaldan ertangi darslar va ularning fayllari, mehmon ustoz chaqirish" },
   { key: 'help', label: "Yordam markazi", sub: "Ko'p beriladigan savollar va ma'muriyatga murojaat" },
-  { key: 'kits', label: "STEM chamadonlar", sub: "Darsga kerakli chamadon, yo'riqnoma, maktabdagi chamadonlar va so'rovlar" },
+  { key: 'kits', label: "Kerakli jihozlar", sub: "Darsga kerakli chamadon, yo'riqnoma, maktabdagi chamadonlar va so'rovlar" },
   { key: 'achievements', label: "Reyting va nishonlar", sub: "Ustozlarning oylik faollik reytingi, ustoz va o'quvchilar nishonlari" },
   { key: 'feed', label: "Ustozlar lentasi", sub: "O'qituvchilar post, havola va izoh bilan tajriba almashadi" },
 ]

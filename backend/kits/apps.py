@@ -4,4 +4,4 @@ from django.apps import AppConfig
 class KitsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'kits'
-    verbose_name = 'STEM chamadonlar'
+    verbose_name = 'Kerakli jihozlar'

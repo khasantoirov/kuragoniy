@@ -45,7 +45,7 @@ DESCRIPTIONS = {
     Kind.USTOZ: "Mehmon ustoz so'rovingizga javob berilganda yoki sizni mehmon ustoz qilib taklif qilishganda "
                 "(ma'muriyatga — yangi so'rov kelganda)",
     Kind.YORDAM: "Murojaatingizga javob berilganda (ma'muriyatga — yangi murojaat yoki xabar kelganda)",
-    Kind.CHAMADON: "Chamadon so'rovingizga javob berilganda (ma'muriyatga — yangi so'rov kelganda)",
+    Kind.CHAMADON: "Jihoz so'rovingizga javob berilganda (ma'muriyatga — yangi so'rov kelganda)",
     Kind.LENTA: "Ustozlar lentasidagi postingizga izoh yozilganda",
     Kind.DARS: "Ertalab bugungi darslaringiz, kechqurun jurnalga yozilmagan darslar (dars kunlari)",
 }

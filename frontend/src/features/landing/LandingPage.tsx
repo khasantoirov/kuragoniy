@@ -282,7 +282,7 @@ function Subjects() {
       key: 'steam', icon: IC.robot, tag: t('1–9-sinflar'), title: t('STEAM / Robototexnika'),
       text: t("Fan, texnologiya, muhandislik, san'at va matematika loyiha asosida o'qitiladi: boshlang'ich sinflarda konstruktorlar, yuqori sinflarda dasturlash va robototexnika."),
       points: [
-        t("STEM chamadonlar bilan amaliy mashg'ulotlar"),
+        t("Kerakli jihozlar bilan amaliy mashg'ulotlar"),
         t("Robot yig'ish va dasturlash"),
         t('Jamoaviy muhandislik loyihalari'),
         t('Tanlov va musobaqalarga tayyorgarlik'),

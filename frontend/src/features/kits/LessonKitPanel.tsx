@@ -11,7 +11,7 @@ import { useLessonKits } from './api'
 import { RequestModal } from './RequestModal'
 import './kits.css'
 
-/** A lesson page: which STEM chamadon it needs, whether the teacher's school
+/** A lesson page: the kit of equipment it needs (Kerakli jihozlar), whether the teacher's school
  * has it, what is still short — and asking for it. */
 export function LessonKitPanel({ lessonId, lessonTitle }: { lessonId: number; lessonTitle: string }) {
   const { t } = useTranslation()
@@ -30,7 +30,7 @@ export function LessonKitPanel({ lessonId, lessonTitle }: { lessonId: number; le
       <div className="kpanel__head">
         <span className="kpanel__ic">{IC.cards}</span>
         <div className="kpanel__txt">
-          <h3 className="panel__title">{t('STEM chamadon')}</h3>
+          <h3 className="panel__title">{t('Kerakli jihozlar')}</h3>
           {best ? (
             <p>
               <Link to={`/kits/${best.id}`}><b>{best.name}</b></Link>{best.code && ` · ${best.code}`}
@@ -54,7 +54,7 @@ export function LessonKitPanel({ lessonId, lessonTitle }: { lessonId: number; le
 
       <div className="kpanel__acts">
         <button type="button" className="btn btn--sm btn--ghost" onClick={() => setShowNeeds((v) => !v)}>
-          {showNeeds ? t('Yashirish') : `${t('Kerakli jihozlar')} (${data.needs.length})`}
+          {showNeeds ? t('Yashirish') : `${t("Jihozlar ro'yxati")} (${data.needs.length})`}
         </button>
         {best?.instructions_url && <a className="btn btn--sm" href={best.instructions_url} target="_blank" rel="noreferrer noopener">{IC.book} {t("Yo'riqnoma")}</a>}
         {best && <Link className="btn btn--sm" to={`/kits/${best.id}`}>{t('Chamadon tarkibi')}</Link>}

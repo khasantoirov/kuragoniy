@@ -72,7 +72,7 @@ export function SchoolKitsPanel({ schoolId, admin }: { schoolId: number; admin: 
   return (
     <section className="panel">
       <div className="thead">
-        <h3 className="panel__title">{t('STEM chamadonlar')}</h3>
+        <h3 className="panel__title">{t('Kerakli jihozlar')}</h3>
         {admin && <button className="btn btn--sm" onClick={() => setAdding(true)}>+ {t("Qo'shish")}</button>}
       </div>
       {!data.length ? <p className="prose prose--note">{t("Bu maktabga hali chamadon berilmagan.")}</p> : (

@@ -158,7 +158,7 @@ export function KitPage() {
   const [modal, setModal] = useState<'edit' | 'items' | 'fill' | 'ask' | null>(null)
 
   if (isLoading) return <Skeleton lines={6} />
-  if (isError || !kit) return <EmptyState title={t('Chamadon topilmadi')} action={<Link className="btn" to="/lessons?bolim=chamadonlar">{t('STEM chamadonlar')}</Link>} />
+  if (isError || !kit) return <EmptyState title={t('Chamadon topilmadi')} action={<Link className="btn" to="/lessons?bolim=chamadonlar">{t('Kerakli jihozlar')}</Link>} />
 
   const ours = kit.owned.reduce((n, o) => n + o.quantity, 0)
   const total = kit.items.reduce((s, i) => s + (i.price != null ? i.price * i.quantity : 0), 0)
@@ -177,7 +177,7 @@ export function KitPage() {
 
   return (
     <div>
-      <Link className="backlink" to="/lessons?bolim=chamadonlar">← {t('STEM chamadonlar')}</Link>
+      <Link className="backlink" to="/lessons?bolim=chamadonlar">← {t('Kerakli jihozlar')}</Link>
       <PageHead title={kit.name} sub={kit.description || undefined}
         actions={<>
           {!isObserver(user) && <button className="btn btn--primary" onClick={() => setModal('ask')}>{t("Chamadon so'rash")}</button>}

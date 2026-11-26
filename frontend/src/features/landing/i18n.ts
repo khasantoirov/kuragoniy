@@ -29,7 +29,7 @@ const ru: Record<string, string> = {
   'STEAM / Robototexnika': 'STEAM / Робототехника',
   "Fan, texnologiya, muhandislik, san'at va matematika — loyiha orqali: kichik sinflarda konstruktor, kattalarida dasturlash va robot.":
     'Наука, технологии, инженерия, искусство и математика — через проекты: в младших классах конструктор, в старших программирование и роботы.',
-  "STEM chamadonlar bilan amaliy mashg'ulotlar": 'Практические занятия со STEM-чемоданами',
+  "Kerakli jihozlar bilan amaliy mashg'ulotlar": 'Практические занятия с необходимым оборудованием',
   "Robot yig'ish va dasturlash": 'Сборка и программирование роботов',
   'Jamoaviy muhandislik loyihalari': 'Командные инженерные проекты',
   'Tanlov va musobaqalarga tayyorgarlik': 'Подготовка к конкурсам и соревнованиям',
@@ -188,7 +188,7 @@ const en: Record<string, string> = {
   'STEAM / Robototexnika': 'STEAM / Robotics',
   "Fan, texnologiya, muhandislik, san'at va matematika — loyiha orqali: kichik sinflarda konstruktor, kattalarida dasturlash va robot.":
     'Science, technology, engineering, art and maths through projects: building kits in the lower grades, programming and robots later on.',
-  "STEM chamadonlar bilan amaliy mashg'ulotlar": 'Hands-on sessions with STEM kits',
+  "Kerakli jihozlar bilan amaliy mashg'ulotlar": 'Hands-on sessions with the equipment needed',
   "Robot yig'ish va dasturlash": 'Building and programming robots',
   'Jamoaviy muhandislik loyihalari': 'Team engineering projects',
   'Tanlov va musobaqalarga tayyorgarlik': 'Preparation for contests and competitions',

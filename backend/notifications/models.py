@@ -30,7 +30,7 @@ class Kind(models.TextChoices):
     MALAKA = 'malaka', 'Malaka oshirish'
     USTOZ = 'ustoz', 'Mehmon ustoz'
     YORDAM = 'yordam', 'Yordam markazi'
-    CHAMADON = 'chamadon', 'STEM chamadon'
+    CHAMADON = 'chamadon', 'Kerakli jihozlar'
     LENTA = 'lenta', 'Ustozlar lentasi'
     DARS = 'dars', 'Dars eslatmalari'
 
