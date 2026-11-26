@@ -7,10 +7,11 @@ import { LoginPage } from '@/features/auth/LoginPage'
 import { SettingsTabs } from '@/features/settings/SettingsTabs'
 import { AppShell } from '@/layouts/AppShell'
 import { AuthLayout } from '@/layouts/AuthLayout'
-import { IS_ADMIN_HOST } from '@/lib/adminHost'
+import { IS_ADMIN_HOST, PANEL_ENABLED } from '@/lib/adminHost'
 
 import { RequireAdmin, RequireApproved, RequireAuth, RequireFan, RequireGuest, RequireModule, RequireNotApproved } from './guards'
 import { adminRoutes, GoToPanel } from './adminRoutes'
+import { AdminTabsLegacy } from './legacyAdmin'
 import { guestPortalRoutes, JournalTabs, LessonsTabs, StaffHome, staffPortalRoutes, topLevelPortalRoutes } from './portalRoutes'
 
 // Sozlamalar and the inbox: their own chunks (QR codes, sound synth, charts
@@ -65,9 +66,10 @@ const mainRoutes: RouteObject[] = [
       { path: '/lab', element: <RequireModule keys={['lab']}>{page(<LabEntry />)}</RequireModule> },
       { path: '/lab/:simId', element: <RequireFan fan="fizika"><RequireModule keys={['lab']}>{page(<LabSimDetail />)}</RequireModule></RequireFan> },
       {
-        // Boshqaruv is the panel at admin.kuragoniy.uz now (lib/adminHost.ts)
+        // Boshqaruv is the panel at admin.kuragoniy.uz (lib/adminHost.ts) —
+        // here as tabs until that address has its DNS record and certificate
         path: '/admin',
-        element: <RequireAdmin><GoToPanel /></RequireAdmin>,
+        element: <RequireAdmin>{PANEL_ENABLED ? <GoToPanel /> : page(<AdminTabsLegacy />)}</RequireAdmin>,
       },
       {
         path: '/equipment-sheet',
