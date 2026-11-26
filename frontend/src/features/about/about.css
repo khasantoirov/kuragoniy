@@ -39,6 +39,11 @@
 
 .abmission { margin-top: 14px; }
 
+/* one direction: the open window's, the whole width; its points side by side */
+.abdirs--one { grid-template-columns: minmax(0, 1fr); margin-top: 18px; }
+.abdirs--one .abdir__points { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 24px; }
+
 @media (max-width: 900px) {
   .abdirs { grid-template-columns: minmax(0, 1fr); }
+  .abdirs--one .abdir__points { grid-template-columns: minmax(0, 1fr); }
 }

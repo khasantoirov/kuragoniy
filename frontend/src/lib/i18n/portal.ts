@@ -122,6 +122,9 @@ const ru: Record<string, string> = {
   "Maqsadimiz — O'zbekistonda yaxshi muhandislarni tarbiyalash: yoshlar maktab partasidanoq fizikani his qilib o'rgansa va o'z loyihalarini yaratsa, yurtimiz bu sohada dunyoda yuqori o'rinlarga ko'tariladi.": "Наша цель — воспитать в Узбекистане хороших инженеров: если молодёжь со школьной скамьи прочувствует физику и создаст свои проекты, страна поднимется в этой области на высокие места в мире.",
   "va": "и",
   "hamkorligida tayyorlangan.": "при сотрудничестве.",
+  // Platforma haqida: the window's own text (2026-11-26)
+  "Ko'ragoniy Education va Muhandis D loyihasi: 7–9-sinflar uchun Fizika (nazariy va amaliy). Darslikka mos darslar, amaliy tajribalar, WOW-namoyishlar va virtual laboratoriya — barchasi bitta platformada.": "Проект Ko'ragoniy Education и Muhandis D: физика (теория и практика) для 7–9 классов. Уроки по учебнику, практические опыты, WOW-демонстрации и виртуальная лаборатория — всё на одной платформе.",
+  "Ko'ragoniy Education va Muhandis D loyihasi: 1–9-sinflar uchun STEAM / Robototexnika. Konstruktorlar, muhandislik, elektronika va Arduino loyihalari — barchasi bitta platformada.": "Проект Ko'ragoniy Education и Muhandis D: STEAM / робототехника для 1–9 классов. Конструкторы, инженерия, электроника и проекты на Arduino — всё на одной платформе.",
   // Jurnal: amaliy ishlar, davomat, faollik (2026-11-26)
   "Amaliy ish": "Практическая работа",
   "Amaliy ish qo'shish": "Добавить практическую работу",
@@ -1497,6 +1500,9 @@ const en: Record<string, string> = {
   "Maqsadimiz — O'zbekistonda yaxshi muhandislarni tarbiyalash: yoshlar maktab partasidanoq fizikani his qilib o'rgansa va o'z loyihalarini yaratsa, yurtimiz bu sohada dunyoda yuqori o'rinlarga ko'tariladi.": "Our aim is to raise good engineers in Uzbekistan: if young people feel physics and build their own projects from school onwards, the country will rise high in this field worldwide.",
   "va": "and",
   "hamkorligida tayyorlangan.": "in partnership.",
+  // Platforma haqida: the window's own text (2026-11-26)
+  "Ko'ragoniy Education va Muhandis D loyihasi: 7–9-sinflar uchun Fizika (nazariy va amaliy). Darslikka mos darslar, amaliy tajribalar, WOW-namoyishlar va virtual laboratoriya — barchasi bitta platformada.": "A Ko'ragoniy Education and Muhandis D project: physics (theory and practice) for grades 7–9. Textbook lessons, hands-on experiments, WOW demonstrations and a virtual lab, all on one platform.",
+  "Ko'ragoniy Education va Muhandis D loyihasi: 1–9-sinflar uchun STEAM / Robototexnika. Konstruktorlar, muhandislik, elektronika va Arduino loyihalari — barchasi bitta platformada.": "A Ko'ragoniy Education and Muhandis D project: STEAM / robotics for grades 1–9. Building kits, engineering, electronics and Arduino projects, all on one platform.",
   // Jurnal: amaliy ishlar, davomat, faollik (2026-11-26)
   "Amaliy ish": "Practical work",
   "Amaliy ish qo'shish": "Add practical work",

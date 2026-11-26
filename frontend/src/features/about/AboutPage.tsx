@@ -5,9 +5,9 @@ import { useUIStore } from '@/store/uiStore'
 
 import './about.css'
 
-/* Platforma haqida — the whole platform: both fan directions, Fizika and
-   STEAM / Robototexnika (owner, 2026-11-26: "Fizika va STEAM Robototexnika
-   qilib o'zgartir"). The open window's direction comes first. */
+/* Platforma haqida — the open fan window's direction only: Fizika or
+   STEAM / Robototexnika (owner, 2026-11-26: "qaysi fan oynasi ochiq bo'lsa
+   faqat o'shaniki bo'lsin"). */
 
 // STEAM / Robototexnika: what each grade group builds
 const STEAM_TRACKS: { grades: string; name: string; desc: string }[] = [
@@ -32,17 +32,16 @@ const SOCIAL_LINKS: { ic: keyof typeof IC; label: string; handle: string; url: s
   { ic: 'youtube', label: 'YouTube', handle: '@Muhandis_D', url: 'https://youtube.com/@Muhandis_D' },
 ]
 
-function FizikaCard({ open }: { open: boolean }) {
+function FizikaCard() {
   const { t } = useTranslation()
   return (
-    <section className={`abdir abdir--fizika ${open ? 'is-open' : ''}`}>
+    <section className="abdir abdir--fizika">
       <header className="abdir__head">
         <span className="abdir__ic" aria-hidden="true">{IC.atom}</span>
         <span>
           <h3>{t('Fizika')}</h3>
           <small>{t('Nazariy va amaliy fizika · 7–9-sinflar')}</small>
         </span>
-        {open && <span className="abdir__here">{t('Siz shu oynadasiz')}</span>}
       </header>
       <p className="abdir__lead">
         {t("Fizikani quruq formulalar emas, jonli tajribalar orqali o'rgatish: o'quvchida hayrat uyg'otish, hodisani o'z ko'zi bilan ko'rsatish va «nega bunday bo'ldi?» degan savolni tug'dirish.")}
@@ -59,17 +58,16 @@ function FizikaCard({ open }: { open: boolean }) {
   )
 }
 
-function SteamCard({ open }: { open: boolean }) {
+function SteamCard() {
   const { t } = useTranslation()
   return (
-    <section className={`abdir abdir--steam ${open ? 'is-open' : ''}`}>
+    <section className="abdir abdir--steam">
       <header className="abdir__head">
         <span className="abdir__ic" aria-hidden="true">{IC.robot}</span>
         <span>
           <h3>{t('STEAM / Robototexnika')}</h3>
           <small>{t('Muhandislik va robototexnika · 1–9-sinflar')}</small>
         </span>
-        {open && <span className="abdir__here">{t('Siz shu oynadasiz')}</span>}
       </header>
       <p className="abdir__lead">
         {t("Muhandislik fikrlashini boshlang'ich sinfdan: konstruktorlar, elektronika va Arduino, o'quvchilarning o'z loyihalari.")}
@@ -91,7 +89,7 @@ function SteamCard({ open }: { open: boolean }) {
 export function AboutPage() {
   const { t } = useTranslation()
   const fan = useUIStore((s) => s.subject)
-  const fizikaFirst = fan === 'fizika'
+  const fizika = fan === 'fizika'
 
   return (
     <div>
@@ -105,7 +103,9 @@ export function AboutPage() {
             <span className="abhero__accent">KO'RAGONIY EDU</span> {t('platformasi')}
           </h2>
           <p className="abhero__sub">
-            {t("Ko'ragoniy Education va Muhandis D loyihasi: maktablar uchun Fizika (nazariy va amaliy) hamda STEAM / Robototexnika ta'limi. Darslar, laboratoriya, jurnal, jadval va kutubxona — barchasi bitta platformada.")}
+            {fizika
+              ? t("Ko'ragoniy Education va Muhandis D loyihasi: 7–9-sinflar uchun Fizika (nazariy va amaliy). Darslikka mos darslar, amaliy tajribalar, WOW-namoyishlar va virtual laboratoriya — barchasi bitta platformada.")
+              : t("Ko'ragoniy Education va Muhandis D loyihasi: 1–9-sinflar uchun STEAM / Robototexnika. Konstruktorlar, muhandislik, elektronika va Arduino loyihalari — barchasi bitta platformada.")}
           </p>
           <div className="abhero__credit">
             <img className="abhero__credit-av" src="/logo.png" alt="Muhandis_D" />
@@ -131,11 +131,8 @@ export function AboutPage() {
         </div>
       </div>
 
-      <h3 className="abdirs__title">{IC.file} {t("Ta'lim yo'nalishlari")}</h3>
-      <div className="abdirs">
-        {fizikaFirst
-          ? <><FizikaCard open /><SteamCard open={false} /></>
-          : <><SteamCard open /><FizikaCard open={false} /></>}
+      <div className="abdirs abdirs--one">
+        {fizika ? <FizikaCard /> : <SteamCard />}
       </div>
 
       <div className="panel abmission">
