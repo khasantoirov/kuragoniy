@@ -3,21 +3,27 @@ import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
+import { PhoneField, fullPhone } from '@/components/PhoneField'
+import { errText } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { IS_ADMIN_HOST, MAIN_ORIGIN } from '@/lib/adminHost'
+import { api } from '@/lib/api/client'
 import { homePathFor, LOGOUT_REASON_KEY, useAuth } from '@/lib/auth/AuthContext'
 import { HoneypotField, useFormGuard } from '@/lib/formGuard'
 
 import { HelpLink } from './HelpLink'
+import { PhoneVerify, type VerifyDone, type VerifyStart } from './phone'
 
-// One way in: the login and password every account has. Staff accounts are
-// made by the administration (Boshqaruv → Foydalanuvchilar, a one-time
-// password changed at the first sign-in); pupils join with their class code.
-// Signing in or up with a phone number was taken out at the owner's request
-// (2026-11-25). Where people land is decided by their role (homePathFor).
+// Two ways in, one screen: the login and password every account has, or
+// the phone number on one's account proven through our Telegram bot (taken
+// out on 2026-11-25, back at the owner's request on 2026-11-26). Nobody
+// signs up here: staff accounts are made by the administration (a one-time
+// password changed at the first sign-in); pupils join with their class
+// code. Where people land is decided by their role (homePathFor).
 // The last login is remembered only when "Eslab qolish" is ticked, so a
 // shared school computer forgets it.
 const LAST_LOGIN_KEY = 'af-last-login'
+const MODE_KEY = 'ke-login-mode'
 export const RENAMED_LOGIN_KEY = 'af-renamed-login'
 
 function readLastLogin() {
@@ -35,7 +41,6 @@ function rememberLogin(login: string | null) {
     if (login) localStorage.setItem(LAST_LOGIN_KEY, login)
     else localStorage.removeItem(LAST_LOGIN_KEY)
     localStorage.removeItem('af-portal') // the old per-role tab choice
-    localStorage.removeItem('ke-login-mode') // the phone / password tab, gone
   } catch {
     // storage blocked — nothing to remember
   }
@@ -60,16 +65,39 @@ function takeLogoutReason() {
 }
 
 type NavState = { note?: string } | null
+type Mode = 'phone' | 'password'
+
+/** The tab picked last time; the password one at first (pupils mostly
+ *  have no phone on their account). */
+function readMode(): Mode {
+  try {
+    return localStorage.getItem(MODE_KEY) === 'phone' ? 'phone' : 'password'
+  } catch {
+    return 'password'
+  }
+}
+
+function saveMode(m: Mode) {
+  try {
+    localStorage.setItem(MODE_KEY, m)
+  } catch {
+    // storage blocked — the password tab opens next time
+  }
+}
 
 export function LoginPage() {
   const { t } = useTranslation()
-  const { login, verifyTotp } = useAuth()
+  const { login, verifyTotp, applySession } = useAuth()
   const navigate = useNavigate()
   const navState = useLocation().state as NavState
-  // the bot check of the form, solved in the background
-  const guard = useFormGuard('login')
+  const [mode, setModeState] = useState<Mode>(readMode)
+  // the bot check of the form on screen, solved in the background
+  const guard = useFormGuard('login', mode === 'password')
+  const guardPhone = useFormGuard('phone_start', mode === 'phone')
   const [loginName, setLoginName] = useState(readLastLogin)
   const [password, setPassword] = useState('')
+  const [phone, setPhone] = useState('')
+  const [verify, setVerify] = useState<VerifyStart | null>(null)
   const [remember, setRemember] = useState(true)
   const [showPw, setShowPw] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -77,6 +105,12 @@ export function LoginPage() {
   const [reason, setReason] = useState(takeLogoutReason)
   const [challenge, setChallenge] = useState<string | null>(null)
   const [totpCode, setTotpCode] = useState('')
+
+  const setMode = (m: Mode) => {
+    setModeState(m)
+    saveMode(m)
+    setNote('')
+  }
 
   const failMessage = (err: unknown) => {
     if (isAxiosError(err)) {
@@ -118,6 +152,39 @@ export function LoginPage() {
     }
   }
 
+  const onPhone = async (e: FormEvent) => {
+    e.preventDefault()
+    if (phone.length !== 9) return setNote(t("Telefon raqamni to'liq kiriting: +998 90 123 45 67."))
+    setBusy(true)
+    setNote('')
+    setReason('')
+    try {
+      const r = await api.post<VerifyStart>('/auth/phone/start/', { ...(await guardPhone.fields()), phone: fullPhone(phone) })
+      setVerify(r.data)
+    } catch (err) {
+      const data = isAxiosError(err) ? (err.response?.data as { step?: string; detail?: string } | undefined) : undefined
+      // a number on no account, or on several: the login and password
+      if (data?.step === 'password') {
+        setModeState('password')
+        setNote(t(data.detail ?? ''))
+      } else {
+        setNote(t(errText(err)))
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const onVerified = (data: VerifyDone) => {
+    if ('totp_required' in data) {
+      setVerify(null)
+      setChallenge(data.challenge)
+      return
+    }
+    applySession(data.access, data.user)
+    navigate(homePathFor(data.user))
+  }
+
   const onVerifyTotp = async (e: FormEvent) => {
     e.preventDefault()
     if (!challenge) return
@@ -125,7 +192,7 @@ export function LoginPage() {
     setNote('')
     try {
       const user = await verifyTotp(challenge, totpCode)
-      rememberLogin(remember ? loginName.trim() : null)
+      if (mode === 'password') rememberLogin(remember ? loginName.trim() : null)
       navigate(homePathFor(user))
     } catch (err) {
       setNote(isAxiosError(err) && err.response?.status === 429 ? failMessage(err) : t("Kod noto'g'ri"))
@@ -167,12 +234,69 @@ export function LoginPage() {
     )
   }
 
+  if (verify) {
+    return <PhoneVerify phone={fullPhone(phone)} start={verify} remember={remember} onDone={onVerified} onBack={() => setVerify(null)} />
+  }
+
+  const title = <h1 className="gx-form__title">{IS_ADMIN_HOST ? t('Boshqaruv paneli') : t('Hisobingizga kiring')}</h1>
+  const tabs = (
+    <div className="gx-tabs" role="tablist" aria-label={t('Kirish usuli')}>
+      <button type="button" role="tab" aria-selected={mode === 'password'} className={mode === 'password' ? 'is-on' : ''} onClick={() => setMode('password')}>
+        {IC.lock} {t('Login va parol')}
+      </button>
+      <button type="button" role="tab" aria-selected={mode === 'phone'} className={mode === 'phone' ? 'is-on' : ''} onClick={() => setMode('phone')}>
+        {IC.smartphone} {t('Telefon raqam')}
+      </button>
+    </div>
+  )
+  const notes = (
+    <>
+      {note && <p className="form__note form__note--err" role="alert">{note}</p>}
+      {!note && reason && <p className="form__note form__note--info" role="status">{IC.lock} {t(reason)}</p>}
+    </>
+  )
+  const foot = IS_ADMIN_HOST ? (
+    <p className="gx-form__foot gx-form__foot--sm">
+      {t("O'qituvchi yoki o'quvchimisiz?")} <a className="gx-form__link" href={`${MAIN_ORIGIN}/login`}>{t('Platformaga kiring')}</a>
+    </p>
+  ) : (
+    <p className="gx-form__foot gx-form__foot--sm">
+      {t("Login va parolni maktabingiz ma'muriyati beradi.")}{' '}
+      {t("O'quvchimisiz?")} <Link className="gx-form__link" to="/join">{t("Sinf kodi bilan ro'yxatdan o'ting")}</Link>
+    </p>
+  )
+
+  if (mode === 'phone') {
+    return (
+      <form className="form gx-form" onSubmit={onPhone}>
+        {title}
+        <p className="gx-form__sub gx-form__sub--opt">{t('Hisobingizdagi telefon raqamni kiriting — kod Telegram orqali keladi.')}</p>
+        {tabs}
+        <PhoneField value={phone} onChange={setPhone} autoFocus />
+        <div className="gx-form__row">
+          <label className="gx-check">
+            <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+            <span>{t('Eslab qolish')}</span>
+          </label>
+        </div>
+        <button className="btn btn--primary btn--block gx-form__go" type="submit" disabled={busy}>
+          {busy ? t('Tekshirilmoqda…') : t('Davom etish')}
+        </button>
+        {notes}
+        {foot}
+        <HelpLink />
+        <HoneypotField guard={guardPhone} />
+      </form>
+    )
+  }
+
   return (
     <form className="form gx-form" onSubmit={onPassword}>
-      <h1 className="gx-form__title">{IS_ADMIN_HOST ? t('Boshqaruv paneli') : t('Hisobingizga kiring')}</h1>
+      {title}
       <p className="gx-form__sub gx-form__sub--opt">
         {IS_ADMIN_HOST ? t('Faqat administratorlar uchun. Login va parolingiz bilan kiring.') : t('Login va parolingiz bilan kiring.')}
       </p>
+      {tabs}
       <label className="field">
         <span className="field__label">{t('Login')}</span>
         <span className="ifield">
@@ -226,18 +350,8 @@ export function LoginPage() {
       <button className="btn btn--primary btn--block gx-form__go" type="submit" disabled={busy}>
         {busy ? t('Tekshirilmoqda…') : t('Kirish')}
       </button>
-      {note && <p className="form__note form__note--err" role="alert">{note}</p>}
-      {!note && reason && <p className="form__note form__note--info" role="status">{IC.lock} {t(reason)}</p>}
-      {IS_ADMIN_HOST ? (
-        <p className="gx-form__foot gx-form__foot--sm">
-          {t("O'qituvchi yoki o'quvchimisiz?")} <a className="gx-form__link" href={`${MAIN_ORIGIN}/login`}>{t('Platformaga kiring')}</a>
-        </p>
-      ) : (
-        <p className="gx-form__foot gx-form__foot--sm">
-          {t("Login va parolni maktabingiz ma'muriyati beradi.")}{' '}
-          {t("O'quvchimisiz?")} <Link className="gx-form__link" to="/join">{t("Sinf kodi bilan ro'yxatdan o'ting")}</Link>
-        </p>
-      )}
+      {notes}
+      {foot}
       <HelpLink />
       <HoneypotField guard={guard} />
     </form>

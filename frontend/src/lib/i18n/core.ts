@@ -261,6 +261,9 @@ const ru = {
     'Сотрудники и роли, четверти, модули, лицензии и настройки сайта — для администраторов платформы.',
   'Faqat administratorlar': 'Только администраторы',
   'Alohida kirish': 'Отдельный вход',
+  'Hisobingizdagi telefon raqamni kiriting — kod Telegram orqali keladi.': 'Введите номер телефона из вашей учётной записи — код придёт в Telegram.',
+  "Bu raqam hech bir hisobga biriktirilmagan. Login va parol bilan kiring yoki raqamingizni hisobingizga qo'shish uchun maktab ma'muriyatiga murojaat qiling.":
+    'Этот номер не привязан ни к одной учётной записи. Войдите по логину и паролю или попросите администрацию школы добавить номер в вашу учётную запись.',
   "Boshqaruv paneliga faqat administratorlar kiradi. Platformaga kuragoniy.uz orqali kiring.":
     'В панель управления входят только администраторы. На платформу входите через kuragoniy.uz.',
   'Jihoz nomi': 'Название оборудования', 'Soni': 'Количество',
@@ -972,6 +975,9 @@ const en = {
     "Staff and roles, quarters, modules, licences and the website's settings — for the platform's administrators.",
   'Faqat administratorlar': 'Administrators only',
   'Alohida kirish': 'A separate sign-in',
+  'Hisobingizdagi telefon raqamni kiriting — kod Telegram orqali keladi.': 'Enter the phone number on your account — the code comes via Telegram.',
+  "Bu raqam hech bir hisobga biriktirilmagan. Login va parol bilan kiring yoki raqamingizni hisobingizga qo'shish uchun maktab ma'muriyatiga murojaat qiling.":
+    'This number is not on any account. Sign in with your login and password, or ask your school administration to add the number to your account.',
   "Boshqaruv paneliga faqat administratorlar kiradi. Platformaga kuragoniy.uz orqali kiring.":
     'Only administrators sign in to the admin panel. Sign in to the platform at kuragoniy.uz.',
   'Jihoz nomi': 'Equipment name', 'Soni': 'Quantity',

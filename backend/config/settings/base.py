@@ -193,6 +193,8 @@ REST_FRAMEWORK = {
         'student_register': '200/hour',
         'password_reset': '30/hour',
         'lead': '10/hour',
+        'phone_start': '30/hour',
+        'phone_verify': '120/hour',
         'password_reset_confirm': '60/hour',
         'game_answer': '120/min',
         # the public forms' challenges (common/formguard.py) — a class

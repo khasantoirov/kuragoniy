@@ -4,13 +4,18 @@ from django.urls import include, path
 
 from common.formguard import GuardChallengeView
 
-from . import sessions, views
+from . import phone_views, sessions, views
 
 router = DefaultRouter()
 router.register('users', views.UserAdminViewSet, basename='user-admin')
 
 auth_urlpatterns = [
     path('login/', views.LoginView.as_view(), name='auth-login'),
+    # phone + a code from @kuragoniybot (accounts/phone_views.py) — sign-in only
+    path('phone/start/', phone_views.PhoneStartView.as_view(), name='auth-phone-start'),
+    path('phone/status/', phone_views.PhoneStatusView.as_view(), name='auth-phone-status'),
+    path('phone/resend/', phone_views.PhoneResendView.as_view(), name='auth-phone-resend'),
+    path('phone/verify/', phone_views.PhoneVerifyView.as_view(), name='auth-phone-verify'),
     path('guard/', GuardChallengeView.as_view(), name='auth-guard'),
     path('2fa/verify/', views.TwoFactorVerifyView.as_view(), name='auth-2fa-verify'),
     path('refresh/', views.RefreshView.as_view(), name='auth-refresh'),

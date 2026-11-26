@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 SALT = 'common.formguard'
 HONEYPOT = 'ke_hp'
 FAILED = "Xavfsizlik tekshiruvidan o'tilmadi. Sahifani yangilab, qayta urinib ko'ring."
-ACTIONS = {'login', 'password_reset', 'lead', 'student_register'}
+ACTIONS = {'login', 'phone_start', 'password_reset', 'lead', 'student_register'}
 
 
 def _bits() -> int:

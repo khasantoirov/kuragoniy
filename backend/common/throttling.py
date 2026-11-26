@@ -29,6 +29,14 @@ class LeadRateThrottle(AnonRateThrottle):
     scope = 'lead'
 
 
+class PhoneStartRateThrottle(AnonRateThrottle):
+    scope = 'phone_start'
+
+
+class PhoneVerifyRateThrottle(AnonRateThrottle):
+    scope = 'phone_verify'
+
+
 class PasswordResetRateThrottle(AnonRateThrottle):
     scope = 'password_reset'
 
