@@ -14,11 +14,12 @@ export const NAV_ITEMS: (NavItem & { adminOnly?: boolean; panelOnly?: boolean })
   { to: '/journal', label: 'Jurnal', icon: 'gradebook' },
   { to: '/timetable', label: 'Jadval', icon: 'timetable' },
   { to: '/library', label: 'Kutubxona', icon: 'book' },
-  // the Fizika window's own (FIZIKA_ONLY below)
+  // both windows: the hub; Fizika adds the virtual lab (features/lab/LabEntry)
   { to: '/lab', label: 'Laboratoriya', icon: 'flask' },
   { to: '/notifications', label: 'Bildirishnomalar', icon: 'bell' },
   { to: '/settings', label: 'Sozlamalar', icon: 'gear' },
   { to: '/guide', label: "Yo'riqnoma", icon: 'book', adminOnly: true },
+  { to: '/qollanmalar', label: "Qo'llanmalar", icon: 'file' },
   { to: '/help', label: 'Yordam markazi', icon: 'help' },
   { to: '/about', label: 'Platforma haqida', icon: 'info' },
   // opens admin.kuragoniy.uz (an Admin's or the developer's only)
@@ -40,9 +41,9 @@ export const SETTINGS_PAGES: { to: string; label: string; icon: keyof typeof IC 
 
 /** A school's ma'muriyat: their school instead of the teacher's home,
  *  and none of the teacher's own work pages. */
-const SCHOOL_ADMIN_HIDDEN = new Set(['/', '/journal', '/timetable'])
+const SCHOOL_ADMIN_HIDDEN = new Set(['/', '/journal', '/timetable', '/qollanmalar'])
 /** Pages of one fan window only (components/FanWindow.tsx). */
-const FIZIKA_ONLY = new Set(['/lab', '/manage/equipment'])
+const FIZIKA_ONLY = new Set(['/manage/equipment'])
 /** …and of the STEAM window only: there the picture sheet maker is a menu
  *  item of its own; in Fizika it is a tab of the Jihozlar jadvali. */
 const STEAM_ONLY = new Set(['/equipment-sheet'])

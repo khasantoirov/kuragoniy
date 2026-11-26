@@ -1,0 +1,57 @@
+/* ══ Yo'riqnomalar va qo'llanmalar (features/guides) ═══════════════ */
+
+.gd-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.gd-head h1 { margin: 0; font-size: 22px; font-weight: 700; }
+.gd-head p { margin: 4px 0 0; color: var(--ink-2); font-size: 14px; }
+.gd-head__q { flex: 0 1 320px; }
+.gd-admin {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 14px; padding: 10px 14px;
+  border-radius: 12px; background: color-mix(in srgb, var(--logo-blue, #1d3fae) 8%, var(--surface)); color: var(--ink-2); font-size: 13px;
+}
+.gd-admin .svic { width: 16px; height: 16px; color: var(--logo-blue, #1d3fae); }
+.gd-admin a { color: var(--logo-blue, var(--pick)); font-weight: 600; text-decoration: none; }
+
+.gd-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.gd-card { padding: 16px 18px; border: 1px solid var(--rule); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
+.gd-card__head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.gd-card__head h2 { margin: 0; font-size: 16px; font-weight: 700; }
+.gd-card__head small { color: var(--ink-3); font-size: 12.5px; }
+.gd-card__ic {
+  position: relative; display: grid; place-items: center; flex: none; width: 42px; height: 42px; border-radius: 12px;
+  color: #fff; background: linear-gradient(140deg, #19379b, #2f6be6); box-shadow: inset 0 0 0 1px rgba(79, 216, 245, .45);
+}
+.gd-card__ic::after {
+  content: ''; position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--logo-gold, #e9ab06); box-shadow: 0 0 0 1.5px #1d3fae;
+}
+.gd-card__ic .svic { width: 21px; height: 21px; }
+.gd-card__cta { margin-top: 10px; }
+
+.gd-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.gd-item { display: flex; align-items: center; gap: 10px; padding: 9px 6px; border-bottom: 1px solid var(--rule-2); }
+.gd-item:last-child { border-bottom: 0; }
+.gd-item__ic {
+  display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 9px;
+  color: var(--logo-blue, #1d3fae); background: color-mix(in srgb, var(--logo-blue, #1d3fae) 10%, transparent);
+}
+.gd-item__ic .svic { width: 16px; height: 16px; }
+.gd-item__tx { display: grid; flex: 1; min-width: 0; line-height: 1.3; }
+.gd-item__tx b { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gd-item__tx small { color: var(--ink-3); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gd-item .btn { flex: none; }
+.gd-empty { margin: 4px 0; color: var(--ink-3); font-size: 13px; }
+
+.gd-faq { list-style: none; margin: 0; padding: 0; }
+.gd-faq li { border-bottom: 1px solid var(--rule-2); }
+.gd-faq li:last-child { border-bottom: 0; }
+.gd-faq__q {
+  display: flex; width: 100%; padding: 10px 2px; border: 0; background: none; color: var(--ink);
+  font: inherit; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer;
+}
+.gd-faq__q::before { content: '›'; margin-right: 8px; color: var(--ink-3); transition: transform .15s; }
+.gd-faq__q.is-open::before { transform: rotate(90deg); }
+.gd-faq__a { margin: 0 0 10px 16px; color: var(--ink-2); font-size: 13.5px; line-height: 1.55; white-space: pre-line; }
+
+@media (max-width: 900px) {
+  .gd-grid { grid-template-columns: minmax(0, 1fr); }
+}

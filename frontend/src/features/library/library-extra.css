@@ -1,0 +1,20 @@
+/* ══ Kutubxona: filters and statistics (owner's mock-ups, 2026-11-26) ══ */
+
+.libf { display: flex; flex-wrap: wrap; gap: 8px; margin: -4px 0 12px; }
+.libf__s { width: auto; min-width: 150px; height: 38px; padding: 0 10px; font-size: 13.5px; }
+
+.libstats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+.libstats__card { padding: 14px 16px; border: 1px solid var(--rule); border-radius: 14px; background: var(--surface); }
+.libstats__card h3 { margin: 0 0 8px; font-size: 14.5px; font-weight: 700; }
+.libstats__card p { display: flex; justify-content: space-between; gap: 10px; margin: 4px 0; font-size: 13px; color: var(--ink-2); }
+.libstats__card p b, .libstats__top b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.libstats__top { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 13px; }
+.libstats__top li { padding-left: 2px; }
+.libstats__top li span { display: inline-block; max-width: calc(100% - 40px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
+.libstats__top li b { float: right; }
+.libstats__empty { margin: 0; color: var(--ink-3); font-size: 13px; }
+
+@media (max-width: 760px) {
+  .libstats { grid-template-columns: minmax(0, 1fr); }
+  .libf__s { flex: 1 1 140px; }
+}

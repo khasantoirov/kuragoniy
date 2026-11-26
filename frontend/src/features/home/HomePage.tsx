@@ -41,7 +41,7 @@ const LINKS: { view: string; ic: keyof typeof IC; title: string; sub: string; to
   { view: '/timetable', ic: 'timetable', title: 'Jadval', sub: 'Haftalik dars jadvali', tone: 'orange' },
   { view: '/staffroom', ic: 'users', title: 'Ustozlar xonasi', sub: 'Ertangi darslarga tayyorgarlik', tone: 'violet' },
   { view: '/library', ic: 'book', title: 'Kutubxona', sub: "Kitob, qo'llanma, video", tone: 'brown' },
-  { view: '/lab', ic: 'flask', title: 'Laboratoriya', sub: 'Interaktiv simulyatsiyalar', tone: 'teal', fizikaOnly: true },
+  { view: '/lab', ic: 'flask', title: 'Laboratoriya', sub: 'Tajribalar, jihozlar va videolar', tone: 'teal' },
   { view: '/statistics', ic: 'chart', title: 'Statistika', sub: "Ko'rsatkichlar va sinflar kesimi", tone: 'rose', adminOnly: true },
 ]
 

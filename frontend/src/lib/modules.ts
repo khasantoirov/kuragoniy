@@ -86,6 +86,7 @@ export function useModules() {
 const ROUTE_MODULES: Record<string, ModuleKey[]> = {
   '/timetable': ['timetable'],
   '/library': ['library'],
+  '/qollanmalar': ['library'],
   '/lab': ['lab'],
   '/assignments': ['assignments', 'games'],
   '/reports': ['reports'],

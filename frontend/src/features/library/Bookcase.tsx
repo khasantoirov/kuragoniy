@@ -6,9 +6,10 @@ import { Modal } from '@/components/Modal'
 import { IC } from '@/icons'
 import { useUIStore, type Lang } from '@/store/uiStore'
 
+import { markOpened } from './api'
 import { mediaSrc } from './cover'
 import { pdfSource } from './reader/source'
-import { KIND_LABELS, KINDS, type LibraryItem, type LibraryKind } from './types'
+import { KIND_LABELS, KINDS, LANG_LABELS, type LibraryItem, type LibraryKind } from './types'
 
 // Decorative cover colours (not a data encoding) — fixed per item id.
 const COVERS = [
@@ -244,11 +245,11 @@ function BookCard({ item, admin, onClose, onEdit, onDelete }: {
         <>
           {admin && <button type="button" className="btn btn--ghost" onClick={onDelete}>{IC.trash} {t("O'chirish")}</button>}
           {admin && <button type="button" className="btn" onClick={onEdit}>{IC.edit} {t('Tahrirlash')}</button>}
-          {item.file && <a className="btn" href={item.file} download={downloadFilename(item)}>{IC.download} {t('Yuklab olish')}</a>}
+          {item.file && <a className="btn" href={item.file} download={downloadFilename(item)} onClick={() => markOpened(item.id)}>{IC.download} {t('Yuklab olish')}</a>}
           {readable ? (
-            <button type="button" className="btn btn--primary" onClick={() => navigate(`/library/${item.id}/read`)}>{IC.book} {t('Varaqlash')}</button>
+            <button type="button" className="btn btn--primary" onClick={() => { markOpened(item.id); navigate(`/library/${item.id}/read`) }}>{IC.book} {t('Varaqlash')}</button>
           ) : href ? (
-            <a className="btn btn--primary" href={href} target="_blank" rel="noopener noreferrer">{IC.external} {t('Ochish')}</a>
+            <a className="btn btn--primary" href={href} target="_blank" rel="noopener noreferrer" onClick={() => markOpened(item.id)}>{IC.external} {t('Ochish')}</a>
           ) : null}
         </>
       }
@@ -258,6 +259,8 @@ function BookCard({ item, admin, onClose, onEdit, onDelete }: {
         <dl className="vcard__meta">
           <dt>{t('Turi')}</dt><dd>{t(KIND_LABELS[item.kind])}</dd>
           {item.grade ? <><dt>{t('Sinf')}</dt><dd>{libraryGradeLabel(item.grade, lang)}</dd></> : null}
+          {item.lang && <><dt>{t('Til')}</dt><dd>{t(LANG_LABELS[item.lang])}</dd></>}
+          {item.opens ? <><dt>{t('Ochilgan')}</dt><dd>{item.opens} {t('marta')}</dd></> : null}
           {ext && <><dt>{t('Format')}</dt><dd>{ext}</dd></>}
           {size && <><dt>{t('Hajmi')}</dt><dd>{size}</dd></>}
           <dt>{t('Yangilangan')}</dt><dd>{new Date(item.updated_at).toLocaleDateString('ru-RU')}</dd>

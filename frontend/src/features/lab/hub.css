@@ -1,0 +1,42 @@
+/* ══ Laboratoriya — the hub on top (features/lab/LabHub) ══════════════ */
+
+.labhub { margin-bottom: 18px; }
+.labhub__head h1 { margin: 0; font-size: 22px; font-weight: 700; }
+.labhub__head p { margin: 4px 0 14px; color: var(--ink-2); font-size: 14px; }
+.labhub__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.labhub__card {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color .15s, transform .15s;
+}
+.labhub__card:hover { border-color: var(--logo-blue, var(--pick)); transform: translateY(-1px); }
+.labhub__ic {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(140deg, #19379b, #2f6be6);
+  box-shadow: inset 0 0 0 1px rgba(79, 216, 245, .45);
+}
+.labhub__ic::after {
+  content: ''; position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--logo-gold, #e9ab06); box-shadow: 0 0 0 1.5px #1d3fae;
+}
+.labhub__ic .svic { width: 22px; height: 22px; }
+.labhub__t { font-size: 16px; }
+.labhub__s { color: var(--ink-2); font-size: 13px; line-height: 1.45; }
+.labhub__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 6px; border-top: 1px solid var(--rule-2); }
+.labhub__n { color: var(--ink-3); font-size: 12.5px; }
+.labhub__go { color: var(--logo-blue, var(--pick)); font-size: 13px; font-weight: 600; white-space: nowrap; }
+#lab-room { scroll-margin-top: 90px; }

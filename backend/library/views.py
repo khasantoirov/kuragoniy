@@ -19,6 +19,7 @@ COVER_MAX_MB = 5
 LIBRARY_AUDIT_FIELDS = ['title', 'url', 'kind', 'grade', 'subject', 'note']
 LIBRARY_AUDIT_LABELS = {
     'title': 'Nomi', 'url': 'Havola', 'kind': 'Turi', 'grade': 'Sinf', 'subject': 'Fan', 'note': 'Izoh',
+    'lang': 'Til', 'section': "Qo'llanma bo'limi",
 }
 
 
@@ -51,7 +52,9 @@ class LibraryItemViewSet(viewsets.ModelViewSet):
         return visible_items(qs, self.request.user, window(self.request))
 
     def get_permissions(self):
-        if self.request.method in SAFE_METHODS:
+        # reading, and counting an open, is anyone's who may see the item
+        # (this override replaces a per-action permission_classes)
+        if self.request.method in SAFE_METHODS or self.action == 'opened':
             return [IsApproved()]
         return [IsApproved(), IsAdminOrDevSuperuser()]
 
@@ -87,6 +90,20 @@ class LibraryItemViewSet(viewsets.ModelViewSet):
         delete_file_field(instance, 'cover')
         instance.delete()
         notify_admin_action(self.request.user, '\n'.join(lines))
+
+    @action(detail=True, methods=['post'], permission_classes=[IsApproved])
+    def opened(self, request, pk=None):
+        """POST when someone opens, reads or downloads it: counted once per
+        person a day, so reopening the same book doesn't inflate it."""
+        from django.core.cache import cache
+        from django.db.models import F
+        from django.utils import timezone
+
+        item = self.get_object()  # only what this person may see
+        key = f'library:opened:{item.pk}:{request.user.pk}:{timezone.localdate():%Y%m%d}'
+        if cache.add(key, 1, 60 * 60 * 26):
+            LibraryItem.objects.filter(pk=item.pk).update(opens=F('opens') + 1)  # updated_at stays
+        return Response({'ok': True})
 
     @action(detail=True, methods=['post'], url_path='upload-file', parser_classes=[MultiPartParser, FormParser])
     def upload_file(self, request, pk=None):

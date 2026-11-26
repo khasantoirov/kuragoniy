@@ -21,7 +21,11 @@ import { Bookcase } from './Bookcase'
 import { fileToDataUrl, mediaSrc, shrinkImage } from './cover'
 import { CoverField } from './CoverField'
 import { pdfSource } from './reader/source'
-import { KIND_ICONS, KIND_LABELS, KINDS, type LibraryItem, type LibraryKind, UPLOADABLE_KINDS } from './types'
+import {
+  KIND_ICONS, KIND_LABELS, KINDS, LANG_LABELS, type GuideSection, type LibraryItem, type LibraryKind, type LibraryLang,
+  SECTION_LABELS, UPLOADABLE_KINDS,
+} from './types'
+import './library-extra.css'
 
 const LIBRARY_FILE_ACCEPT = '.pdf,.doc,.docx,.epub,.jpg,.jpeg,.png,.webp'
 const LIBRARY_GRADES = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -183,6 +187,23 @@ function LibraryEditor({ item, onClose }: { item: LibraryItem | null; onClose: (
           </select>
         </label>
       </div>
+      <div className="row row--2">
+        <label className="field">
+          <span className="field__label">{t('Til')}</span>
+          <select className="input" value={draft.lang ?? 'uz'} onChange={(e) => setDraft({ ...draft, lang: e.target.value as LibraryLang })}>
+            {(Object.keys(LANG_LABELS) as LibraryLang[]).map((l) => <option key={l} value={l}>{t(LANG_LABELS[l])}</option>)}
+          </select>
+        </label>
+        {(draft.kind === 'qollanma' || draft.kind === 'video') && (
+          <label className="field">
+            <span className="field__label">{t("Qo'llanmalar markazida")}</span>
+            <select className="input" value={draft.section ?? ''} onChange={(e) => setDraft({ ...draft, section: e.target.value as '' | GuideSection })}>
+              <option value="">{t("Ko'rsatilmasin")}</option>
+              {(Object.keys(SECTION_LABELS) as GuideSection[]).map((k) => <option key={k} value={k}>{t(SECTION_LABELS[k])}</option>)}
+            </select>
+          </label>
+        )}
+      </div>
       <label className="field">
         <span className="field__label">{t('Fan')}</span>
         <select className="input" value={draft.subject ?? ''} onChange={(e) => setDraft({ ...draft, subject: e.target.value as LibraryItem['subject'] })}>
@@ -267,6 +288,11 @@ export function LibraryPage() {
   const { data, isLoading } = useLibraryItems()
   const [editing, setEditing] = useState<LibraryItem | null | 'new'>(null)
   const [q, setQ] = useState('')
+  // Sinf / Turi / Til filters (owner's mock-ups, 2026-11-26)
+  const [fGrade, setFGrade] = useState<number | ''>('')
+  const [fKind, setFKind] = useState<LibraryKind | ''>('')
+  const [fLang, setFLang] = useState<LibraryLang | ''>('')
+  const { lang: uiLang } = useUIStore()
   const del = useDeleteLibraryItem()
   const save = useSaveLibraryItem()
   const confirm = useConfirm()
@@ -307,7 +333,14 @@ export function LibraryPage() {
   }
 
   const term = q.trim().toLowerCase()
-  const rows = term ? data.filter((x) => x.title.toLowerCase().includes(term) || (x.note ?? '').toLowerCase().includes(term)) : data
+  const rows = data.filter((x) => (!term || x.title.toLowerCase().includes(term) || (x.note ?? '').toLowerCase().includes(term))
+    && (fGrade === '' || x.grade === fGrade)
+    && (!fKind || x.kind === fKind)
+    && (!fLang || (x.lang ?? 'uz') === fLang))
+  const grades = [...new Set(data.map((x) => x.grade).filter((g): g is number => g != null))].sort((a, b) => a - b)
+  const langs = [...new Set(data.map((x) => x.lang ?? 'uz'))] as LibraryLang[]
+  const popular = [...data].filter((x) => (x.opens ?? 0) > 0).sort((a, b) => (b.opens ?? 0) - (a.opens ?? 0)).slice(0, 5)
+  const totalOpens = data.reduce((n, x) => n + (x.opens ?? 0), 0)
 
   return (
     <div>
@@ -318,12 +351,49 @@ export function LibraryPage() {
         </div>
         {admin && <button className="btn btn--sm btn--primary" onClick={() => setEditing('new')}>+ {t('Material')}</button>}
       </div>
+      <div className="libf" role="group" aria-label={t('Saralash')}>
+        {grades.length > 0 && (
+          <select className="input libf__s" value={fGrade} onChange={(e) => setFGrade(e.target.value ? Number(e.target.value) : '')} aria-label={t('Sinf')}>
+            <option value="">{t('Barcha sinflar')}</option>
+            {grades.map((g) => <option key={g} value={g}>{libraryGradeLabel(g, uiLang)}</option>)}
+          </select>
+        )}
+        <select className="input libf__s" value={fKind} onChange={(e) => setFKind(e.target.value as LibraryKind | '')} aria-label={t('Turi')}>
+          <option value="">{t('Barcha turlar')}</option>
+          {KINDS.filter((k) => data.some((x) => x.kind === k)).map((k) => <option key={k} value={k}>{t(KIND_LABELS[k])}</option>)}
+        </select>
+        {langs.length > 1 && (
+          <select className="input libf__s" value={fLang} onChange={(e) => setFLang(e.target.value as LibraryLang | '')} aria-label={t('Til')}>
+            <option value="">{t('Barcha tillar')}</option>
+            {langs.map((l) => <option key={l} value={l}>{t(LANG_LABELS[l])}</option>)}
+          </select>
+        )}
+      </div>
 
       {rows.length ? (
         <Bookcase items={rows} admin={admin} onEdit={setEditing} onDelete={onDelete} />
       ) : (
         <p className="prose">{t('Hech narsa topilmadi')}.</p>
       )}
+
+      <div className="libstats">
+        <section className="libstats__card">
+          <h3>{t("Eng ko'p ochilganlar")}</h3>
+          {popular.length ? (
+            <ol className="libstats__top">
+              {popular.map((x) => <li key={x.id}><span>{x.title}</span><b>{x.opens}</b></li>)}
+            </ol>
+          ) : <p className="libstats__empty">{t("Hali hech narsa ochilmagan.")}</p>}
+        </section>
+        <section className="libstats__card">
+          <h3>{t('Kutubxona statistikasi')}</h3>
+          <p><span>{t('Jami materiallar')}</span><b>{data.length}</b></p>
+          {KINDS.filter((k) => data.some((x) => x.kind === k)).map((k) => (
+            <p key={k}><span>{t(KIND_LABELS[k])}</span><b>{data.filter((x) => x.kind === k).length}</b></p>
+          ))}
+          <p><span>{t('Jami ochilishlar')}</span><b>{totalOpens}</b></p>
+        </section>
+      </div>
 
       {editing && <LibraryEditor item={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}
     </div>

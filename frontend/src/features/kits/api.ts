@@ -76,8 +76,8 @@ export const REQUEST_TONE: Record<KitRequestStatus, 'ok' | 'mid' | 'bad' | 'mute
   yangi: 'info', qabul: 'mid', rad: 'bad', yetkazildi: 'ok', bekor: 'muted',
 }
 
-export function useKits() {
-  return useQuery({ queryKey: ['kits', 'list'], queryFn: async () => (await api.get<KitCard[]>('/kits/')).data })
+export function useKits(enabled = true) {
+  return useQuery({ queryKey: ['kits', 'list'], queryFn: async () => (await api.get<KitCard[]>('/kits/')).data, enabled })
 }
 
 export function useKit(id: string | number | undefined) {

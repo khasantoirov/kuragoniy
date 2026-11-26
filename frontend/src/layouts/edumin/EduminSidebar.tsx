@@ -24,7 +24,7 @@ const GROUPS: { title: string; paths: string[]; rest?: boolean }[] = [
   { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/staffroom', '/assignments', '/reports', '/training', '/achievements', '/feed', '/library', '/lab'] },
   { title: "Ma'muriyat", paths: ['/statistics', '/manage/schools', '/admin', '/manage/equipment', '/equipment-sheet', '/shop', '/guide'], rest: true },
   // no heading: these simply close the menu, at its bottom
-  { title: '', paths: ['/settings', '/about', '/help'] },
+  { title: '', paths: ['/qollanmalar', '/settings', '/about', '/help'] },
 ]
 
 function groupItems(items: EduminNavItem[]) {

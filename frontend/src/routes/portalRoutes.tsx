@@ -22,6 +22,7 @@ const named = <T extends Record<string, unknown>>(loader: () => Promise<T>, key:
 // and AppShell warms these up once the browser is idle (routes/prefetch.ts)
 const JournalPage = named(() => import('@/features/journal/JournalPage'), 'JournalPage')
 const LessonsPage = named(() => import('@/features/lessons/LessonsPage'), 'LessonsPage')
+const AssignmentsMonitor = named(() => import('@/features/lessons/AssignmentsMonitor'), 'AssignmentsMonitor')
 const ChangePasswordPage = named(() => import('@/features/auth/ChangePasswordPage'), 'ChangePasswordPage')
 const StudentRegisterPage = named(() => import('@/features/auth/StudentRegisterPage'), 'StudentRegisterPage')
 const StudentsPage = named(() => import('@/features/teacher/StudentsPage'), 'StudentsPage')
@@ -44,6 +45,7 @@ const MySchoolPage = named(() => import('@/features/schools/MySchoolPage'), 'MyS
 const TrainingPage = named(() => import('@/features/training/TrainingPage'), 'TrainingPage')
 const StaffroomPage = named(() => import('@/features/staffroom/StaffroomPage'), 'StaffroomPage')
 const HelpPage = named(() => import('@/features/help/HelpPage'), 'HelpPage')
+const GuidesPage = named(() => import('@/features/guides/GuidesPage'), 'GuidesPage')
 const AchievementsPage = named(() => import('@/features/achievements/AchievementsPage'), 'AchievementsPage')
 const FeedPage = named(() => import('@/features/feed/FeedPage'), 'FeedPage')
 const KitsPage = named(() => import('@/features/kits/KitsPage'), 'KitsPage')
@@ -107,7 +109,8 @@ export function LessonsTabs() {
   const fan = useUIStore((s) => s.subject)
   return (
     <PageTabs tabs={[
-      { key: 'darslar', label: 'Darslar', element: <LessonsPage /> },
+      // the lessons, then the window's assignments: who handed in, results
+      { key: 'darslar', label: 'Darslar', element: <><LessonsPage /><AssignmentsMonitor /></> },
       { key: 'tayyorgarlik', label: 'Darsga tayyorgarlik', element: <ReadinessPage />, show: isTeacherLike(user) && on('readiness') },
       // Kerakli jihozlar (the kits) belong to the STEAM window
       { key: 'chamadonlar', label: 'Kerakli jihozlar', element: <KitsPage />, show: on('kits') && fan === 'steam' },
@@ -182,6 +185,8 @@ export const staffPortalRoutes: RouteObject[] = [
   { path: '/feed', element: staff(<RequireModule keys={['feed']}><FeedPage /></RequireModule>) },
   { path: '/achievements', element: staff(<RequireModule keys={['achievements']}><AchievementsPage /></RequireModule>) },
   { path: '/help', element: <RequireModule keys={['help']}><Lazy><HelpPage /></Lazy></RequireModule> },
+  // the teachers' guides centre — the library's guides by section, and the FAQ
+  { path: '/qollanmalar', element: staff(<RequireModule keys={['library']}><GuidesPage /></RequireModule>) },
   { path: '/staffroom', element: teacher(<RequireModule keys={['staffroom']}><StaffroomPage /></RequireModule>) },
   { path: '/training', element: staff(<RequireModule keys={['training']}><TrainingPage /></RequireModule>) },
   { path: '/training/:id', element: staff(<RequireModule keys={['training']}><CoursePage /></RequireModule>) },

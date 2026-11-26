@@ -15,10 +15,11 @@ class LibraryItemSerializer(ProtectedFilesMixin, serializers.ModelSerializer):
     class Meta:
         model = LibraryItem
         fields = ['id', 'title', 'url', 'file', 'file_name', 'file_size', 'cover', 'kind', 'grade', 'subject', 'note',
-                  'updated_at']
+                  'lang', 'section', 'opens', 'updated_at']
         # `file` and `cover` are written only via LibraryItemViewSet's
-        # upload-file / upload-cover (dedicated multipart actions).
-        read_only_fields = ['updated_at', 'file', 'file_name', 'file_size', 'cover']
+        # upload-file / upload-cover (dedicated multipart actions); `opens`
+        # only by the opened action.
+        read_only_fields = ['updated_at', 'file', 'file_name', 'file_size', 'cover', 'opens']
 
     def get_file_name(self, obj):
         return os.path.basename(obj.file.name) if obj.file else None

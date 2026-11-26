@@ -5,6 +5,12 @@ import type { Paginated } from '@/lib/api/types'
 
 import type { LibraryItem } from './types'
 
+/** Opened, read or downloaded: counted on the server once per person a
+ *  day (it never holds anything up, and a failure says nothing). */
+export function markOpened(id: number) {
+  void api.post(`/library/${id}/opened/`).catch(() => {})
+}
+
 export function useLibraryItems() {
   return useQuery({
     queryKey: ['library'],

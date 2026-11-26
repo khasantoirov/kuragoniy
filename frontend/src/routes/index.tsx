@@ -36,7 +36,8 @@ const BookReaderPage = lazy(() => import('@/features/library/reader/BookReaderPa
 // the public front page, also for a signed-in administrator checking it
 const LandingPage = lazy(() => import('@/features/landing/LandingPage').then((m) => ({ default: m.LandingPage })))
 // the virtual lab (from amaliyfizika.uz) — the Fizika window's, its own chunk
-const LabPage = lazy(() => import('@/features/lab/LabPage').then((m) => ({ default: m.LabPage })))
+// /lab in both windows: the hub, and in Fizika the virtual lab under it
+const LabEntry = lazy(() => import('@/features/lab/LabEntry').then((m) => ({ default: m.LabEntry })))
 const LabSimDetail = lazy(() => import('@/features/lab/LabSimDetail').then((m) => ({ default: m.LabSimDetail })))
 const GuidePage = lazy(() => import('@/features/guide/GuidePage').then((m) => ({ default: m.GuidePage })))
 const page = (el: React.ReactNode) => <Suspense fallback={<Skeleton lines={5} />}>{el}</Suspense>
@@ -61,7 +62,7 @@ const mainRoutes: RouteObject[] = [
       { path: '/timetable', element: <RequireModule keys={['timetable']}>{page(<TimetablePage />)}</RequireModule> },
       { path: '/library', element: <RequireModule keys={['library']}>{page(<LibraryPage />)}</RequireModule> },
       { path: '/library/:id/read', element: <RequireModule keys={['library']}>{page(<BookReaderPage />)}</RequireModule> },
-      { path: '/lab', element: <RequireFan fan="fizika"><RequireModule keys={['lab']}>{page(<LabPage />)}</RequireModule></RequireFan> },
+      { path: '/lab', element: <RequireModule keys={['lab']}>{page(<LabEntry />)}</RequireModule> },
       { path: '/lab/:simId', element: <RequireFan fan="fizika"><RequireModule keys={['lab']}>{page(<LabSimDetail />)}</RequireModule></RequireFan> },
       {
         // Boshqaruv is the panel at admin.kuragoniy.uz now (lib/adminHost.ts)
