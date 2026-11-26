@@ -25,9 +25,7 @@ export type VerifyStart = {
 }
 
 /** What /auth/phone/verify/ hands back. */
-export type VerifyDone =
-  | { access: string; user: User }
-  | { totp_required: true; challenge: string }
+export type VerifyDone = { access: string; user: User }
 
 /** Six boxes over one real input — paste, autofill and the keyboard's
  * "one-time code" suggestion all land in it whole. */

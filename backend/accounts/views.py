@@ -3,11 +3,9 @@ import secrets
 from datetime import datetime, timedelta
 from datetime import timezone as dt_timezone
 
-import pyotp
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
-from django.core import signing
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.mail import send_mail
 from django.core.validators import EmailValidator
@@ -52,8 +50,6 @@ REFRESH_COOKIE = settings.JWT_REFRESH_COOKIE_NAME
 REFRESH_COOKIE_PATH = settings.JWT_REFRESH_COOKIE_PATH
 REMEMBER_CLAIM = 'rmb'
 
-TOTP_CHALLENGE_SALT = 'accounts.totp-challenge'
-TOTP_CHALLENGE_MAX_AGE = 300  # 5 minutes to enter the code after password step
 
 RESET_CODE_SALT = 'accounts.password-reset-code'
 RESET_CODES_PER_DAY = 5
@@ -65,43 +61,6 @@ PANEL_ROLE_FIXED = "Admin akkauntning roli o'zgarmaydi — keraksiz bo'lsa, uni 
 # A login an administrator types for a staff member; never an "@" — that
 # is what tells an email from a login at sign-in.
 STAFF_LOGIN_RE = re.compile(r'[a-z][a-z0-9._]{2,29}')
-
-
-def _make_totp_challenge(user, remember=True) -> str:
-    return signing.TimestampSigner(salt=TOTP_CHALLENGE_SALT).sign(f'{user.pk}:{int(bool(remember))}')
-
-
-def _resolve_totp_challenge(challenge: str):
-    """Returns the pending-login user for a still-fresh challenge, or None
-    — used instead of just handing out a JWT after the password step so a
-    2FA-enabled account can't be logged into with password alone."""
-    signer = signing.TimestampSigner(salt=TOTP_CHALLENGE_SALT)
-    try:
-        value = signer.unsign(str(challenge), max_age=TOTP_CHALLENGE_MAX_AGE)
-    except signing.BadSignature:
-        return None, True
-    user_id, _, remember = value.partition(':')
-    user = User.objects.filter(pk=user_id, totp_enabled=True, is_active=True).first()
-    return user, remember != '0'
-
-
-ENROLL_CHALLENGE_SALT = 'accounts.totp-enroll'
-
-
-def _make_enroll_challenge(user, remember=True) -> str:
-    return signing.TimestampSigner(salt=ENROLL_CHALLENGE_SALT).sign(f'{user.pk}:{int(bool(remember))}')
-
-
-def _resolve_enroll_challenge(challenge: str):
-    """The admin account that passed its password a moment ago and is
-    setting up the authenticator (LoginView), or None."""
-    try:
-        value = signing.TimestampSigner(salt=ENROLL_CHALLENGE_SALT).unsign(str(challenge), max_age=TOTP_CHALLENGE_MAX_AGE * 2)
-    except signing.BadSignature:
-        return None, True
-    user_id, _, remember = value.partition(':')
-    user = User.objects.filter(pk=user_id, is_panel_account=True, totp_enabled=False, is_active=True).exclude(totp_secret='').first()
-    return user, remember != '0'
 
 
 def _cookie_remember(request) -> bool:
@@ -238,156 +197,12 @@ class LoginView(generics.GenericAPIView):
             log_event('admin_panel_refused', actor=user, request=request)
             return refused
 
-        if user.is_panel_account and not user.totp_enabled:
-            # an admin account can't go on without the authenticator: its
-            # first sign-in sets it up (TwoFactorEnrollView finishes it)
-            secret = pyotp.random_base32()
-            user.totp_secret = secret
-            user.save(update_fields=['totp_secret'])
-            uri = pyotp.TOTP(secret).provisioning_uri(name=user.login_name, issuer_name="KO'RAGONIY EDU")
-            return Response({'totp_setup_required': True, 'secret': secret, 'otpauth_url': uri,
-                             'challenge': _make_enroll_challenge(user, _wants_remember(request))})
-
-        if user.totp_enabled:
-            # Correct password alone must not be enough for a 2FA-enabled
-            # account — hand back a short-lived challenge instead of
-            # tokens; TwoFactorVerifyView issues the real tokens only once
-            # a matching TOTP code comes back for it.
-            return Response({'totp_required': True, 'challenge': _make_totp_challenge(user, _wants_remember(request))})
-
         extra = {}
         if user.username and login.lower() != user.username and login.lower() == (user.previous_username or '').lower():
             # Signed in with a login that has since been regenerated — tell
             # them the new one (the old one keeps working meanwhile).
             extra['renamed_login'] = user.username
         return _issue_tokens_response(user, request, remember=_wants_remember(request), extra=extra)
-
-
-class TwoFactorVerifyView(generics.GenericAPIView):
-    """Second step of login for a 2FA-enabled account — takes the
-    challenge from LoginView plus a 6-digit TOTP code and, if it matches,
-    issues the same tokens LoginView would have for a non-2FA account."""
-
-    permission_classes = [permissions.AllowAny]
-    authentication_classes = []
-    throttle_classes = [LoginRateThrottle]
-
-    def post(self, request, *args, **kwargs):
-        user, remember = _resolve_totp_challenge(request.data.get('challenge', ''))
-        if not user:
-            return Response({'detail': "Sessiya muddati tugagan, qaytadan kiring."}, status=status.HTTP_401_UNAUTHORIZED)
-        if _is_locked(user):
-            return _locked_response(user)
-
-        from common.adminhost import refusal
-        refused = refusal(request, user)  # a challenge from kuragoniy.uz brought to the panel
-        if refused:
-            return refused
-
-        code = str(request.data.get('code', ''))
-        if not pyotp.TOTP(user.totp_secret).verify(code, valid_window=1):
-            _register_failed_login(user, request, reason='2fa')
-            return Response({'detail': "Kod noto'g'ri."}, status=status.HTTP_400_BAD_REQUEST)
-
-        return _issue_tokens_response(user, request, remember=remember)
-
-
-class TwoFactorEnrollView(generics.GenericAPIView):
-    """An admin account's first sign-in: the password was right, the QR
-    code was scanned — the first code from the app turns the
-    authenticator on and opens the session."""
-
-    permission_classes = [permissions.AllowAny]
-    authentication_classes = []
-    throttle_classes = [LoginRateThrottle]
-
-    def post(self, request, *args, **kwargs):
-        user, remember = _resolve_enroll_challenge(request.data.get('challenge', ''))
-        if not user:
-            return Response({'detail': "Sessiya muddati tugagan, qaytadan kiring."}, status=status.HTTP_401_UNAUTHORIZED)
-        if _is_locked(user):
-            return _locked_response(user)
-        from common.adminhost import refusal
-        refused = refusal(request, user)
-        if refused:
-            return refused
-        code = str(request.data.get('code', ''))
-        if not pyotp.TOTP(user.totp_secret).verify(code, valid_window=1):
-            _register_failed_login(user, request, reason='2fa')
-            return Response({'detail': "Kod noto'g'ri."}, status=status.HTTP_400_BAD_REQUEST)
-        user.totp_enabled = True
-        user.save(update_fields=['totp_enabled'])
-        log_event('2fa_enabled', actor=user, request=request, detail='admin akkaunt')
-        return _issue_tokens_response(user, request, remember=remember)
-
-
-class TwoFactorSetupView(generics.GenericAPIView):
-    """Starts (or restarts) 2FA enrollment: generates a fresh secret and
-    returns it plus an otpauth:// URI for a QR code. Not yet enabled —
-    TwoFactorConfirmView flips totp_enabled only once the user proves they
-    can generate a matching code, so an abandoned setup never locks
-    anyone out or silently turns on 2FA behind their back."""
-
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        user = request.user
-        if user.totp_enabled:
-            # Re-running setup on an enabled account used to silently
-            # replace (and so disable) the working secret — a hijacked
-            # session could switch 2FA off that way without the password.
-            return Response({'detail': "Ikki bosqichli tasdiqlash allaqachon yoqilgan."}, status=status.HTTP_400_BAD_REQUEST)
-        secret = pyotp.random_base32()
-        user.totp_secret = secret
-        user.totp_enabled = False
-        user.save(update_fields=['totp_secret', 'totp_enabled'])
-        uri = pyotp.TOTP(secret).provisioning_uri(name=user.login_name, issuer_name="KO'RAGONIY EDU")
-        return Response({'secret': secret, 'otpauth_url': uri})
-
-
-class TwoFactorConfirmView(generics.GenericAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        user = request.user
-        if not user.totp_secret:
-            return Response({'detail': "Avval sozlashni boshlang."}, status=status.HTTP_400_BAD_REQUEST)
-        code = str(request.data.get('code', ''))
-        if not pyotp.TOTP(user.totp_secret).verify(code, valid_window=1):
-            return Response({'detail': "Kod noto'g'ri."}, status=status.HTTP_400_BAD_REQUEST)
-
-        user.totp_enabled = True
-        user.save(update_fields=['totp_enabled'])
-        notify_admin_action(user, "Ikki bosqichli tasdiqlashni yoqdi")
-        log_event('2fa_enabled', actor=user, request=request)
-        notify(user, NotifyKind.XAVFSIZLIK, 'Ikki bosqichli tasdiqlash yoqildi', 'Endi kirishda parol bilan birga kod ham so\'raladi.',
-               '/settings/profile?tab=security')
-        return Response(MeSerializer(user).data)
-
-
-class TwoFactorDisableView(generics.GenericAPIView):
-    """Self-service disable — requires the current password so a hijacked
-    but still-logged-in session can't be used to quietly turn 2FA off."""
-
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        user = request.user
-        if user.is_panel_account:
-            return Response({'detail': "Admin akkauntda ikki bosqichli tasdiqlash doim yoqiq turadi."},
-                            status=status.HTTP_400_BAD_REQUEST)
-        password = request.data.get('password', '')
-        if user.has_usable_password() and not user.check_password(password):
-            return Response({'detail': "Parol noto'g'ri."}, status=status.HTTP_400_BAD_REQUEST)
-
-        user.totp_secret = ''
-        user.totp_enabled = False
-        user.save(update_fields=['totp_secret', 'totp_enabled'])
-        notify_admin_action(user, "Ikki bosqichli tasdiqlashni o'chirdi")
-        log_event('2fa_disabled', actor=user, request=request)
-        notify(user, NotifyKind.XAVFSIZLIK, "Ikki bosqichli tasdiqlash o'chirildi",
-               "Agar buni siz qilmagan bo'lsangiz, darhol parolni almashtiring.", '/settings/profile?tab=security')
-        return Response(MeSerializer(user).data)
 
 
 class RefreshView(TokenRefreshView):
@@ -969,8 +784,8 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['post'], url_path='create-admin-account')
     def create_admin_account(self, request):
         """An admin account (the developer only): signs in at
-        admin.kuragoniy.uz alone, sets up the authenticator at its first
-        sign-in and changes the one-time password. `dev` makes it a
+        admin.kuragoniy.uz alone, with its login and password (it changes
+        the one-time one at the first sign-in). `dev` makes it a
         developer's."""
         from .profile import clean_first_name, clean_last_name, full_name
 
@@ -1245,15 +1060,3 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
         target.save(update_fields=['failed_login_count', 'locked_until'])
         notify_admin_action(request.user, f"Hisob blokini ochdi: {self._label(target)}")
         return Response(AdminUserSerializer(target).data)
-
-    @action(detail=True, methods=['post'], url_path='disable-2fa')
-    def disable_2fa(self, request, pk=None):
-        """Recovery path for a teacher who lost their authenticator device
-        — mirrors reset_password's "admin does it for you" pattern."""
-        target = self.get_object()
-        self._guard_target(request, target)
-        target.totp_secret = ''
-        target.totp_enabled = False
-        target.save(update_fields=['totp_secret', 'totp_enabled'])
-        notify_admin_action(request.user, f"Ikki bosqichli tasdiqlashini o'chirdi: {self._label(target)}")
-        return Response(UserSerializer(target).data)

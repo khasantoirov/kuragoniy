@@ -469,9 +469,3 @@
 @media (prefers-reduced-motion: reduce) {
   .gx-wait__dot { animation: none; }
 }
-
-/* an admin account's first sign-in: the authenticator's QR code */
-.totp-setup { display: grid; justify-items: center; gap: 10px; margin: 0 0 16px; }
-.totp-setup img, .totp-setup__ph { width: 200px; height: 200px; border-radius: 12px; background: #fff; padding: 8px; box-sizing: content-box; }
-.totp-setup p { margin: 0; text-align: center; font-size: 13px; color: var(--gx-ink-2); }
-.totp-setup code { font-family: var(--f-mono); letter-spacing: .04em; word-break: break-all; color: var(--gx-ink); }

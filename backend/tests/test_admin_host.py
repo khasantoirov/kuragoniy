@@ -2,7 +2,6 @@
 (common/adminhost.py). Everyone else is refused at the panel's address
 and still signs in on kuragoniy.uz as before."""
 
-import pyotp
 import pytest
 
 from accounts.models import User
@@ -60,18 +59,4 @@ def test_demoted_admin_is_out_of_the_panel_at_the_next_refresh(api_client, admin
     api_client.cookies['refresh_token'] = login.cookies['refresh_token'].value
     resp = api_client.post('/api/auth/refresh/', HTTP_HOST=ADMIN_HOST)
     assert resp.status_code == 401
-    assert resp.data['code'] == 'not_admin'
-
-
-@pytest.mark.django_db
-def test_a_two_step_challenge_from_the_site_does_not_open_the_panel(api_client, teacher):
-    teacher.totp_secret = pyotp.random_base32()
-    teacher.totp_enabled = True
-    teacher.save(update_fields=['totp_secret', 'totp_enabled'])
-    first = sign_in(api_client, teacher)  # kuragoniy.uz
-    assert first.data['totp_required']
-    code = pyotp.TOTP(teacher.totp_secret).now()
-    resp = api_client.post('/api/auth/2fa/verify/', {'challenge': first.data['challenge'], 'code': code},
-                           format='json', HTTP_HOST=ADMIN_HOST)
-    assert resp.status_code == 403
     assert resp.data['code'] == 'not_admin'

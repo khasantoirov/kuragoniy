@@ -37,7 +37,6 @@ export interface User {
   /** an admin account: signs in at admin.kuragoniy.uz only, never teaches */
   is_panel_account?: boolean
   created_at: string
-  totp_enabled: boolean
   /** Fanlar the administration pointed this person to ('fizika', 'steam');
    *  empty = not set yet (sees both) — lib/subjects.ts. */
   subjects?: ('fizika' | 'steam')[]

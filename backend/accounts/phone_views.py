@@ -117,7 +117,7 @@ class PhoneVerifyView(_Public):
     def post(self, request, *args, **kwargs):
         from common.adminhost import refusal
 
-        from .views import _issue_tokens_response, _make_totp_challenge, _wants_remember
+        from .views import _issue_tokens_response, _wants_remember
 
         v = phone_auth.by_ticket(request.data.get('ticket'))
         if v is None or v.purpose != PhoneVerification.Purpose.LOGIN:
@@ -136,7 +136,4 @@ class PhoneVerifyView(_Public):
         if refused:
             return refused
         log_event('login_phone', actor=user, request=request)
-        remember = _wants_remember(request)
-        if user.totp_enabled:
-            return Response({'totp_required': True, 'challenge': _make_totp_challenge(user, remember)})
-        return _issue_tokens_response(user, request, remember=remember)
+        return _issue_tokens_response(user, request, remember=_wants_remember(request))

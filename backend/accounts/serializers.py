@@ -43,10 +43,10 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'first_name', 'last_name', 'name_guess', 'profile_complete', 'email', 'role', 'approved',
             'photo', 'bday', 'phone', 'telegram_linked', 'telegram_username',
-            'is_dev_superuser', 'created_at', 'totp_enabled', 'subjects', 'is_panel_account',
+            'is_dev_superuser', 'created_at', 'subjects', 'is_panel_account',
         ]
         # subjects: set by the administration only (UserAdminViewSet.set_subjects)
-        read_only_fields = ['id', 'name', 'email', 'role', 'approved', 'is_dev_superuser', 'created_at', 'totp_enabled',
+        read_only_fields = ['id', 'name', 'email', 'role', 'approved', 'is_dev_superuser', 'created_at',
                             'subjects', 'is_panel_account']
 
     def get_name_guess(self, user):

@@ -511,11 +511,6 @@ label.btn { display: inline-flex; align-items: center; }
 .tgbox--on { border-color: var(--ok); background: rgba(27,110,95,.07); }
 [data-theme="dark"] .tgbox--on { background: rgba(79,179,155,.09); }
 
-.totp-qr {
-  display: block; width: 180px; height: 180px; margin: 4px auto;
-  border-radius: 8px; border: 1px solid var(--rule); background: #fff; padding: 8px;
-}
-
 /* ── Brend va hisob menyusi ──────────────────────────────── */
 .brand { display: flex; align-items: center; gap: 11px; text-decoration: none; color: inherit; }
 .brand__logo { border-radius: 9px; display: block; flex: none; }

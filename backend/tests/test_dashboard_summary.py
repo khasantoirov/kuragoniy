@@ -200,18 +200,15 @@ def test_admin_timetable_is_org_wide_and_can_scope_to_one_teacher(as_user, admin
 
 # ── Users / engagement additions ────────────────────────────
 
-def test_telegram_and_two_factor_counts(as_user, admin, make_user):
+def test_telegram_counts(as_user, admin, make_user):
     linked = make_user("tg-linked@example.com", approved=True)
     linked.telegram_linked = True
     linked.save()
-    secure = make_user("tfa@example.com", approved=True)
-    secure.totp_enabled = True
-    secure.save()
     make_user("plain@example.com", approved=True)
 
     users = as_user(admin).get(URL).data["users"]
     assert users["telegram_linked"] == 1
-    assert users["two_factor_enabled"] == 1
+    assert "two_factor_enabled" not in users
 
 
 @pytest.mark.parametrize("public,private,expected", [

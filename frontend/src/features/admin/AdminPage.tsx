@@ -235,7 +235,7 @@ function CreateAdminAccountModal({ onClose, onCreated }: {
           onClick={() => { setError(''); create.mutate() }}>{t('Yaratish')}</button>
       </>}
     >
-      <p className="prose prose--note">{t("Admin akkaunt faqat admin.kuragoniy.uz ga kiradi — kuragoniy.uz uni qabul qilmaydi va u dars bermaydi. Birinchi kirishda telefondagi Authenticator ilovasi ulanadi, keyin har kirishda parol bilan birga 6 xonali kod so'raladi.")}</p>
+      <p className="prose prose--note">{t("Admin akkaunt faqat admin.kuragoniy.uz ga login va parol bilan kiradi — kuragoniy.uz uni qabul qilmaydi va u dars bermaydi. Bir martalik parol birinchi kirishda almashtiriladi.")}</p>
       <div className="row row--2">
         <label className="field">
           <span className="field__label">{t('Ism')} <span className="field__req" aria-hidden="true">*</span></span>
@@ -701,7 +701,7 @@ export function AdminPage() {
                 setCreatingAdmin(false)
                 setNewPassword({
                   email: `${t('Login')}: ${login}`, password, title: 'Admin akkaunt',
-                  note: "Birinchi kirish: admin.kuragoniy.uz → shu login va parol → telefondagi Authenticator ilovasi bilan QR kodni skanerlash → 6 xonali kod → yangi parol.",
+                  note: "Birinchi kirish: admin.kuragoniy.uz → shu login va parol → yangi parol o'rnatiladi.",
                 })
               }}
             />

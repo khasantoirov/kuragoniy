@@ -147,12 +147,6 @@ export function SystemStats() {
               icon="telegram"
               progressPct={pctOf(data.users.telegram_linked, data.users.total)}
             />
-            <StatCard
-              label={t('Ikki bosqichli tasdiq')}
-              value={`${data.users.two_factor_enabled} / ${data.users.total}`}
-              icon="lock"
-              progressPct={pctOf(data.users.two_factor_enabled, data.users.total)}
-            />
             {/* Kalit sozlanmagan bo'lsa "0 obunachi" chalg'itadi — hech kim
                 obuna bo'la olmaydi. Buni "sozlanmagan" deb aytamiz. */}
             <StatCard

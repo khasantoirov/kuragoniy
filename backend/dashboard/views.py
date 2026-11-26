@@ -131,7 +131,6 @@ class DashboardSummaryView(APIView):
                 'by_role': _role_breakdown(),
                 'signups_by_day': _signups_by_day(days),
                 'telegram_linked': User.objects.filter(telegram_linked=True).count(),
-                'two_factor_enabled': User.objects.filter(totp_enabled=True).count(),
             }
             payload['lessons'] = _lessons_section()
             payload['engagement'] = {

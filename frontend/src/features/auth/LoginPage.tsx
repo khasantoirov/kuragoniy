@@ -1,5 +1,5 @@
 import { isAxiosError } from 'axios'
-import { useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
@@ -88,7 +88,7 @@ function saveMode(m: Mode) {
 
 export function LoginPage() {
   const { t } = useTranslation()
-  const { login, verifyTotp, applySession } = useAuth()
+  const { login, applySession } = useAuth()
   const navigate = useNavigate()
   const navState = useLocation().state as NavState
   const [mode, setModeState] = useState<Mode>(readMode)
@@ -104,19 +104,6 @@ export function LoginPage() {
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState(navState?.note ?? '')
   const [reason, setReason] = useState(takeLogoutReason)
-  const [challenge, setChallenge] = useState<string | null>(null)
-  const [totpCode, setTotpCode] = useState('')
-  // an admin account's first sign-in: the authenticator is set up here
-  const [setup, setSetup] = useState<{ secret: string; otpauthUrl: string } | null>(null)
-  const [qr, setQr] = useState('')
-  useEffect(() => {
-    if (!setup) return setQr('')
-    let live = true
-    // the QR library only for this one step
-    void import('qrcode').then((m) => m.default.toDataURL(setup.otpauthUrl, { margin: 1, width: 200 })).then((url) => live && setQr(url))
-    return () => { live = false }
-  }, [setup])
-
   const setMode = (m: Mode) => {
     setModeState(m)
     saveMode(m)
@@ -143,11 +130,6 @@ export function LoginPage() {
     setReason('')
     try {
       const result = await login(loginName.trim(), password, remember, await guard.fields())
-      if (result.totpRequired) {
-        setChallenge(result.challenge)
-        setSetup(result.setup ?? null)
-        return
-      }
       rememberLogin(remember ? result.renamedLogin || loginName.trim() : null)
       if (result.renamedLogin) {
         try {
@@ -188,72 +170,8 @@ export function LoginPage() {
   }
 
   const onVerified = (data: VerifyDone) => {
-    if ('totp_required' in data) {
-      setVerify(null)
-      setChallenge(data.challenge)
-      return
-    }
     applySession(data.access, data.user)
     navigate(homePathFor(data.user))
-  }
-
-  const onVerifyTotp = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!challenge) return
-    setBusy(true)
-    setNote('')
-    try {
-      const user = await verifyTotp(challenge, totpCode, !!setup)
-      if (mode === 'password') rememberLogin(remember ? loginName.trim() : null)
-      navigate(homePathFor(user))
-    } catch (err) {
-      setNote(isAxiosError(err) && err.response?.status === 429 ? failMessage(err) : t("Kod noto'g'ri"))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  if (challenge) {
-    return (
-      <form className="form gx-form" onSubmit={onVerifyTotp}>
-        <h1 className="gx-form__title">{setup ? t("Authenticator'ni ulang") : t('Ikki bosqichli tekshiruv')}</h1>
-        {setup ? (
-          <>
-            <p className="gx-form__sub">{t("Admin akkaunt doim ikki bosqichli tasdiq bilan kiradi. Telefoningizda Google Authenticator (yoki shunga o'xshash ilova)ni oching, «+» → QR kodni skanerlang, so'ng ilova ko'rsatgan 6 xonali kodni kiriting.")}</p>
-            <div className="totp-setup">
-              {qr ? <img src={qr} alt={t('QR kod')} width={200} height={200} /> : <span className="totp-setup__ph" />}
-              <p className="muted">{t("Skanerlab bo'lmasa, kalitni qo'lda kiriting:")} <code>{setup.secret}</code></p>
-            </div>
-          </>
-        ) : (
-          <p className="gx-form__sub">{t("Ilova (Google Authenticator va h.k.) ko'rsatayotgan 6 xonali kodni kiriting.")}</p>
-        )}
-        <label className="field">
-          <span className="field__label">{t('Tasdiqlash kodi')}</span>
-          <input
-            className="input"
-            type="text"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            required
-            autoFocus
-            maxLength={6}
-            placeholder="123456"
-            value={totpCode}
-            onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
-          />
-        </label>
-        <button className="btn btn--primary btn--block gx-form__go" type="submit" disabled={busy}>
-          {busy ? t('Tekshirilmoqda…') : t('Tasdiqlash')}
-        </button>
-        {note && <p className="form__note form__note--err" role="alert">{note}</p>}
-        <p className="gx-form__foot">
-          <button type="button" className="linklike" onClick={() => { setChallenge(null); setSetup(null); setTotpCode('') }}>
-            {t('Orqaga')}
-          </button>
-        </p>
-      </form>
-    )
   }
 
   if (verify) {

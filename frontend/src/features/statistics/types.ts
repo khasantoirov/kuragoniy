@@ -19,7 +19,6 @@ export interface UsersSection {
   by_role: RoleCount[]
   signups_by_day: SignupDay[]
   telegram_linked: number
-  two_factor_enabled: number
 }
 
 export interface ChorakCount {

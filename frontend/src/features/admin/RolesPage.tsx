@@ -28,7 +28,7 @@ const ROLES: RoleInfo[] = [
   { key: 'dev', badge: { is_dev_superuser: true, role: 'teacher' }, tab: 'mamuriyat',
     sub: "Platformaning texnik egasi: hamma narsa, rollarni berish", count: (s) => s.filter((u) => u.is_dev_superuser).length },
   { key: 'admin', badge: { is_dev_superuser: false, role: 'admin' }, tab: 'mamuriyat',
-    sub: "Admin akkaunt: faqat admin.kuragoniy.uz, doim Authenticator kodi bilan; dars bermaydi", count: (s) => s.filter((u) => !u.is_dev_superuser && u.role === 'admin').length },
+    sub: "Admin akkaunt: faqat admin.kuragoniy.uz, login va parol bilan; dars bermaydi", count: (s) => s.filter((u) => !u.is_dev_superuser && u.role === 'admin').length },
   { key: 'boshliq', badge: { is_dev_superuser: false, role: 'boshliq' }, tab: 'mamuriyat',
     sub: "Rahbar: darslar va natijalarni nazorat qiladi", count: (s) => s.filter((u) => !u.is_dev_superuser && u.role === 'boshliq').length },
   { key: 'kuzatuvchi', badge: { is_dev_superuser: false, role: 'kuzatuvchi' }, tab: 'kuzatuvchilar',

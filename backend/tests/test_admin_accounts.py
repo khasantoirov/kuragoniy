@@ -1,10 +1,8 @@
 """Admin accounts apart from the daily (teaching) ones — owner, 2026-11-26:
-an admin account signs in only at admin.kuragoniy.uz, always with the
-authenticator code (set up at its first sign-in), never with a phone code,
-and its role stays Admin. Only the developer makes them; the developer's
-rights then leave the daily account."""
+an admin account signs in only at admin.kuragoniy.uz, with its login and
+password (never with a phone code), and its role stays Admin. Only the
+developer makes them; the developer's rights then leave the daily account."""
 
-import pyotp
 import pytest
 
 from accounts.models import User
@@ -42,40 +40,30 @@ def test_only_the_developer_makes_one(as_user, admin, dev_superuser):
     assert _create(as_user(dev_superuser)).status_code == 400
 
 
-def test_it_signs_in_at_the_panel_only_and_sets_up_the_authenticator(api_client, as_user, dev_superuser):
+def test_it_signs_in_at_the_panel_only_with_login_and_password(api_client, as_user, dev_superuser):
     password = _create(as_user(dev_superuser)).data['password']
     # kuragoniy.uz refuses it
     refused = _login(api_client, 'hasan.admin', password)
     assert refused.status_code == 403 and refused.data['code'] == 'panel_account'
-    # the panel: the password is right, the authenticator has to be set up first
-    step = _login(api_client, 'hasan.admin', password, ADMIN_HOST)
-    assert step.status_code == 200 and step.data['totp_setup_required'] and 'access' not in step.data
-    assert 'refresh_token' not in step.cookies
-    bad = api_client.post('/api/auth/2fa/enroll/', {'challenge': step.data['challenge'], 'code': '000000'}, format='json', **PANEL)
-    assert bad.status_code == 400
-    code = pyotp.TOTP(step.data['secret']).now()
-    done = api_client.post('/api/auth/2fa/enroll/', {'challenge': step.data['challenge'], 'code': code}, format='json', **PANEL)
-    assert done.status_code == 200 and done.data['access'], done.data
-    assert User.objects.get(username='hasan.admin').totp_enabled
-    # from now on: the password and then the code, every time
-    again = _login(api_client, 'hasan.admin', password, ADMIN_HOST)
-    assert again.data.get('totp_required') and 'access' not in again.data
+    assert 'refresh_token' not in refused.cookies
+    # the panel: the login and the password are enough
+    resp = _login(api_client, 'hasan.admin', password, ADMIN_HOST)
+    assert resp.status_code == 200 and resp.data['access'], resp.data
+    assert 'totp_required' not in resp.data and 'totp_setup_required' not in resp.data
+    assert resp.data['user']['is_panel_account']
 
 
-def test_a_challenge_from_the_panel_does_not_open_kuragoniy_uz(api_client, as_user, dev_superuser):
+def test_a_panel_session_does_not_open_kuragoniy_uz(api_client, as_user, dev_superuser):
     password = _create(as_user(dev_superuser)).data['password']
-    step = _login(api_client, 'hasan.admin', password, ADMIN_HOST)
-    code = pyotp.TOTP(step.data['secret']).now()
-    resp = api_client.post('/api/auth/2fa/enroll/', {'challenge': step.data['challenge'], 'code': code}, format='json')
-    assert resp.status_code == 403 and resp.data['code'] == 'panel_account'
+    login = _login(api_client, 'hasan.admin', password, ADMIN_HOST)
+    api_client.cookies['refresh_token'] = login.cookies['refresh_token'].value
+    resp = api_client.post('/api/auth/refresh/')  # kuragoniy.uz
+    assert resp.status_code == 401 and resp.data['code'] == 'panel_account'
 
 
-def test_its_authenticator_stays_on_and_its_role_stays_admin(as_user, dev_superuser):
+def test_its_role_stays_admin(as_user, dev_superuser):
     _create(as_user(dev_superuser))
     made = User.objects.get(username='hasan.admin')
-    made.totp_secret, made.totp_enabled = pyotp.random_base32(), True
-    made.save()
-    assert as_user(made).post('/api/accounts/me/2fa/disable/', {'password': 'x'}, format='json', **PANEL).status_code == 400
     assert as_user(dev_superuser).post(f'/api/accounts/users/{made.pk}/demote/', **PANEL).status_code == 403
     assert as_user(dev_superuser).post(f'/api/accounts/users/{made.pk}/set-boshliq/', **PANEL).status_code == 403
 
@@ -87,9 +75,17 @@ def test_no_phone_code_for_an_admin_account(api_client, as_user, dev_superuser):
     assert resp.status_code == 403 and resp.data['code'] == 'panel_no_phone'
 
 
+def test_the_authenticator_is_gone(api_client, as_user, teacher):
+    for url in ('/api/auth/2fa/verify/', '/api/auth/2fa/enroll/'):
+        assert api_client.post(url, {}, format='json').status_code == 404
+    api = as_user(teacher)
+    for url in ('/api/accounts/me/2fa/setup/', '/api/accounts/me/2fa/confirm/', '/api/accounts/me/2fa/disable/'):
+        assert api.post(url, {}, format='json').status_code == 404
+    assert 'totp_enabled' not in api.get('/api/accounts/me/').data
+
+
 def test_the_developer_rights_leave_the_daily_account(as_user, dev_superuser):
     api = as_user(dev_superuser)
-    # not before a developer's admin account exists
     assert api.post(f'/api/accounts/users/{dev_superuser.pk}/drop-dev/', **PANEL).status_code == 403  # never one's own
     _create(api, dev=True)
     panel_dev = User.objects.get(username='hasan.admin')
@@ -97,7 +93,7 @@ def test_the_developer_rights_leave_the_daily_account(as_user, dev_superuser):
     assert resp.status_code == 200, resp.data
     dev_superuser.refresh_from_db()
     assert not dev_superuser.is_dev_superuser
-    # and the last developer's admin account keeps its rights
+    # the last developer's admin account keeps its rights
     other = User.objects.create_user(email=None, username='other.dev', password='x', name='Boshqa Dasturchi')
     User.objects.filter(pk=other.pk).update(is_dev_superuser=True, role=User.Role.TEACHER, approved=True)
     resp = as_user(User.objects.get(pk=other.pk)).post(f'/api/accounts/users/{panel_dev.pk}/drop-dev/', **PANEL)

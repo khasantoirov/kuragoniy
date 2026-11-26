@@ -22,8 +22,7 @@ NOT_ADMIN = ("Boshqaruv paneliga faqat administratorlar kiradi. "
 # an admin account (User.is_panel_account) is the panel's only
 PANEL_ONLY = ("Bu admin akkaunt — u faqat admin.kuragoniy.uz orqali kiradi. "
               "Dars berish uchun o'z kundalik akkauntingiz bilan kiring.")
-PANEL_NO_PHONE = ("Admin akkaunt telefon kodi bilan kirmaydi — login, parol va "
-                  "Authenticator kodi bilan kiring.")
+PANEL_NO_PHONE = "Admin akkaunt telefon kodi bilan kirmaydi — login va parol bilan kiring."
 
 
 def is_admin_host(request) -> bool:

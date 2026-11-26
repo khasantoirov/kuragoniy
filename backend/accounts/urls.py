@@ -17,8 +17,6 @@ auth_urlpatterns = [
     path('phone/resend/', phone_views.PhoneResendView.as_view(), name='auth-phone-resend'),
     path('phone/verify/', phone_views.PhoneVerifyView.as_view(), name='auth-phone-verify'),
     path('guard/', GuardChallengeView.as_view(), name='auth-guard'),
-    path('2fa/verify/', views.TwoFactorVerifyView.as_view(), name='auth-2fa-verify'),
-    path('2fa/enroll/', views.TwoFactorEnrollView.as_view(), name='auth-2fa-enroll'),
     path('refresh/', views.RefreshView.as_view(), name='auth-refresh'),
     path('logout/', views.LogoutView.as_view(), name='auth-logout'),
     path('sessions/', sessions.SessionListView.as_view(), name='auth-sessions'),
@@ -37,9 +35,6 @@ account_urlpatterns = [
     path('me/overview/', sessions.OverviewView.as_view(), name='account-overview'),
     path('me/telegram-link/', views.TelegramLinkView.as_view(), name='account-telegram-link'),
     path('me/telegram-unlink/', views.TelegramUnlinkView.as_view(), name='account-telegram-unlink'),
-    path('me/2fa/setup/', views.TwoFactorSetupView.as_view(), name='account-2fa-setup'),
-    path('me/2fa/confirm/', views.TwoFactorConfirmView.as_view(), name='account-2fa-confirm'),
-    path('me/2fa/disable/', views.TwoFactorDisableView.as_view(), name='account-2fa-disable'),
     path('audit-log/', views.AuditLogView.as_view(), name='account-audit-log'),
     path('', include(router.urls)),
 ]

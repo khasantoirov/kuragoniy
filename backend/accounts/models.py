@@ -116,8 +116,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     # addresses in settings.DEV_SUPERUSER_EMAILS.
     is_dev_superuser = models.BooleanField(default=False)
     # An admin account (owner, 2026-11-26): signs in only at
-    # admin.kuragoniy.uz, always with the authenticator code, and never
-    # teaches — the Admin's / developer's daily account is a teacher's.
+    # admin.kuragoniy.uz, with its login and password, and never teaches —
+    # the Admin's / developer's daily account is a teacher's.
     is_panel_account = models.BooleanField(default=False)
 
     approved = models.BooleanField(default=False)
@@ -135,12 +135,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     telegram_chat_id = models.BigIntegerField(null=True, blank=True)
     telegram_username = models.CharField(max_length=64, blank=True)
 
-    # TOTP two-factor auth (RFC 6238) — totp_secret holds the pending or
-    # active base32 secret; totp_enabled only flips to True once the user
-    # has proven they can generate a valid code for it (accounts/views.py's
-    # TwoFactorConfirmView), so a secret alone never gates login.
-    totp_secret = models.CharField(max_length=32, blank=True)
-    totp_enabled = models.BooleanField(default=False)
 
     # Set on teacher/admin-generated passwords: the account can do nothing
     # but change its password until it does (enforced server-side in

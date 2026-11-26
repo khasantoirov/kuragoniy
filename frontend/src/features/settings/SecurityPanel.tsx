@@ -1,5 +1,4 @@
 import { isAxiosError } from 'axios'
-import QRCode from 'qrcode'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -13,118 +12,6 @@ import { useAuth } from '@/lib/auth/AuthContext'
 import { useRevokeSession, useSecurityLog, useSessions } from './api'
 
 const errDetail = (err: unknown) => (isAxiosError<{ detail?: string }>(err) ? err.response?.data?.detail : undefined)
-
-/** Two-step verification on/off (moved here from the old one-page Settings). */
-export function TwoFactorBox() {
-  const { t } = useTranslation()
-  const { user, refreshMe } = useAuth()
-  const toast = useToast()
-  const [setupOpen, setSetupOpen] = useState(false)
-  const [qr, setQr] = useState<string | null>(null)
-  const [secret, setSecret] = useState('')
-  const [code, setCode] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [disableOpen, setDisableOpen] = useState(false)
-  const [disablePw, setDisablePw] = useState('')
-
-  const closeSetup = () => {
-    setSetupOpen(false)
-    setQr(null)
-    setSecret('')
-    setCode('')
-  }
-
-  const start = async () => {
-    setBusy(true)
-    try {
-      const res = await api.post('/accounts/me/2fa/setup/')
-      setSecret(res.data.secret)
-      setQr(await QRCode.toDataURL(res.data.otpauth_url))
-      setCode('')
-      setSetupOpen(true)
-    } catch (err) {
-      toast(t(errDetail(err) ?? "Amalni bajarib bo'lmadi"), 'error')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const confirm = async () => {
-    setBusy(true)
-    try {
-      await api.post('/accounts/me/2fa/confirm/', { code })
-      await refreshMe()
-      toast(t('Ikki bosqichli tasdiqlash yoqildi'))
-      closeSetup()
-    } catch (err) {
-      toast(t(errDetail(err) ?? "Kod noto'g'ri"), 'error')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const disable = async () => {
-    setBusy(true)
-    try {
-      await api.post('/accounts/me/2fa/disable/', { password: disablePw })
-      await refreshMe()
-      toast(t("Ikki bosqichli tasdiqlash o'chirildi"))
-      setDisableOpen(false)
-      setDisablePw('')
-    } catch (err) {
-      toast(t(errDetail(err) ?? "Amalni bajarib bo'lmadi"), 'error')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  if (user?.totp_enabled) {
-    return disableOpen ? (
-      <div className="pf__pw">
-        <span className="ifield">
-          <span className="ifield__ic">{IC.lock}</span>
-          <input className="input input--ic input--pw" type="password" autoComplete="current-password"
-            placeholder={t('Joriy parol')} value={disablePw} onChange={(e) => setDisablePw(e.target.value)} />
-        </span>
-        <div className="row row--2">
-          <button type="button" className="btn btn--sm btn--danger" onClick={disable} disabled={busy}>{t("O'chirish")}</button>
-          <button type="button" className="btn btn--sm btn--ghost" onClick={() => { setDisableOpen(false); setDisablePw('') }}>{t('Bekor qilish')}</button>
-        </div>
-      </div>
-    ) : (
-      <div className="tgbox tgbox--on">
-        <span>✅ {t('Yoqilgan')} — {t("kirishda tasdiqlash kodi so'raladi")}</span>
-        <button type="button" className="btn btn--sm btn--ghost" onClick={() => setDisableOpen(true)}>{t("O'chirish")}</button>
-      </div>
-    )
-  }
-  if (setupOpen) {
-    return (
-      <div className="pf__pw">
-        <p className="prose prose--note">
-          {t("Google Authenticator yoki shunga o'xshash ilovada QR kodni skanerlang, so'ng ilovada chiqqan 6 xonali kodni kiriting.")}
-        </p>
-        {qr && <img src={qr} alt="QR kod" className="totp-qr" />}
-        <p className="prose prose--note">{t("QR skanerlab bo'lmasa, kalitni qo'lda kiriting:")} <code>{secret}</code></p>
-        <label className="field">
-          <span className="field__label">{t('Tasdiqlash kodi')}</span>
-          <input className="input" type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="123456"
-            value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} />
-        </label>
-        <div className="row row--2">
-          <button type="button" className="btn btn--sm btn--primary" onClick={confirm} disabled={busy || code.length !== 6}>{t('Tasdiqlash')}</button>
-          <button type="button" className="btn btn--sm btn--ghost" onClick={closeSetup}>{t('Bekor qilish')}</button>
-        </div>
-      </div>
-    )
-  }
-  return (
-    <div className="tgbox">
-      <span>{t("Hisobingizni parolga qo'shimcha kod bilan himoyalang.")}</span>
-      <button type="button" className="btn btn--sm" onClick={start} disabled={busy}>{t('Yoqish')}</button>
-    </div>
-  )
-}
 
 const ACTION_LABEL: Record<string, string> = {
   login_ok: 'Kirish',
@@ -152,10 +39,6 @@ export function SecurityTab() {
         <p className="prose prose--note">{t("Yangi parol saqlangach, boshqa barcha qurilmalardagi seanslar yopiladi.")}</p>
         {pwOpen ? <ChangePasswordForm onDone={() => setPwOpen(false)} />
           : <button type="button" className="btn btn--sm" onClick={() => setPwOpen(true)}>{IC.lock} {t("O'zgartirish")}</button>}
-      </section>
-      <section className="panel">
-        <h3 className="panel__title">{t('Ikki bosqichli tasdiqlash')}</h3>
-        <TwoFactorBox />
       </section>
       <section className="panel setgrid__wide">
         <h3 className="panel__title">{t('Kirishlar tarixi')}</h3>
