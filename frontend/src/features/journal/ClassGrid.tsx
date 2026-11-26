@@ -21,10 +21,12 @@ import { EditRequestModal } from './EditRequestModal'
 import { AvgChip, GradeCell, GradeChip } from './GradeCell'
 import { GrantDayModal } from './GrantDayModal'
 import { EditStudentsModal } from './EditStudentsModal'
+import { activityOf, attendancePct, KIND_LABEL, numbered } from './practicals'
+import { PracticalWorkModal } from './PracticalWorkModal'
 import { canEditDay, grantFor, isPending, localToday } from './lock'
 import { asScale, fmtAvg, SCALES, type Scale } from './scales'
 import { computeStats, controlAvg, meanOf } from './stats'
-import type { ControlWork, JournalClass } from './types'
+import type { ControlWork, JournalClass, PracticalWork } from './types'
 
 /** The server's reason (e.g. "this day is closed") when it gives one. */
 const errDetail = (err: unknown) => (isAxiosError<{ detail?: string }>(err) ? err.response?.data?.detail : undefined)
@@ -34,7 +36,10 @@ const errDetail = (err: unknown) => (isAxiosError<{ detail?: string }>(err) ? er
  * cell; here only the quarter grade is edited. With `teacherId` an
  * administrator is looking at that teacher's journal: everything is
  * read-only, and the lock on a closed day opens it for the teacher.
- * Nazorat ishi columns (0-100) are graded by administrators only. */
+ * Nazorat ishi columns (0-100) are graded by administrators only; amaliy
+ * ish columns (laboratoriya "L-1", STEM "STEM-1") by the class's teacher,
+ * on its scale, outside every average. Davomat % and the Faollik holati
+ * close each row (owner's mock-ups, 2026-11-26). */
 export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chorak: number; teacherId?: string }) {
   const { t } = useTranslation()
   const { data: grid, isLoading } = useGrid(cls.id, teacherId)
@@ -53,6 +58,7 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
   const [asking, setAsking] = useState<string | null>(null)
   const [granting, setGranting] = useState<string | null>(null)
   const [control, setControl] = useState<ControlWork | 'new' | null>(null)
+  const [practical, setPractical] = useState<PracticalWork | 'new' | null>(null)
   const decide = useDecideGrant()
 
   if (isLoading || !grid) return <Skeleton lines={4} />
@@ -95,6 +101,14 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
   const archived = grid.archived ?? []
   const archivedStats = computeStats({ students: archived }, days, scale)
   const finalsAvg = meanOf(students, finals)
+  // amaliy ishlar of this chorak, numbered "L-1", "STEM-1"; the teacher's own
+  const pracs = numbered((grid.practicals ?? []).filter((w) => w.chorak === chorak))
+  const att = students.map((s) => attendancePct(s.id, days))
+  const activity = students.map((_, i) => activityOf(stats.perStudent[i].lvl, att[i]))
+  const attKnown = att.filter((v): v is number => v !== null)
+  const classAtt = attKnown.length ? Math.round(attKnown.reduce((a, b) => a + b, 0) / attKnown.length) : null
+  const warnN = activity.filter((a) => a === 'ogoh').length
+  const pracDone = students.filter((s) => pracs.some(({ work }) => work.marks[s.id] != null)).length
 
   if (!students.length && !owner) {
     return <p className="prose prose--note">{cls.name} — {t("o'quvchi yo'q")}</p>
@@ -180,20 +194,26 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
   }
   const exportPdf = () => {
     const head = ['№', t("To'liq ism"), ...days.map((d) => fmtD(d.date)),
-      ...controls.map((w) => `${t('Nazorat ishi')} ${fmtD(w.date)}`), t("O'rtacha"), t('Chorak')]
+      ...controls.map((w) => `${t('Nazorat ishi')} ${fmtD(w.date)}`), ...pracs.map((p) => `${p.tag} ${fmtD(p.work.date)}`),
+      t("O'rtacha"), t('Chorak'), t('Davomat'), t('Holat')]
     const rows = students.map((s, i) => [
       i + 1, s.full_name,
       ...days.map((d) => d.marks[s.id] ?? (d.attendance[s.id] ? attOf(d.attendance[s.id]).ic : '')),
       ...controls.map((w) => w.marks[s.id] ?? ''),
+      ...pracs.map((p) => p.work.marks[s.id] ?? ''),
       stats.perStudent[i].avg != null ? fmtAvg(stats.perStudent[i].avg, scale) : '',
       finals[s.id] ?? '',
+      att[i] !== null ? `${att[i]}%` : '',
+      activity[i] ? t(activity[i] === 'faol' ? 'Faol' : 'Ogohlantirish') : '',
     ])
     const avgText = (v: number | null, sc: Scale) => (v != null ? fmtAvg(v, sc) : '')
     rows.push([
       '', t("Sinf o'rtachasi"),
       ...days.map((d) => avgText(meanOf(students, d.marks), scale)),
       ...controls.map((w) => controlAvg(students, [w]) ?? ''),
+      ...pracs.map((p) => avgText(meanOf(students, p.work.marks), scale)),
       avgText(stats.classAvg, scale), avgText(finalsAvg, scale),
+      classAtt !== null ? `${classAtt}%` : '', '',
     ])
     tablePdf(`${t('Jurnal')} — ${cls.name}`, head, rows, { orientation: 'landscape' })
   }
@@ -221,6 +241,7 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
               {IC.clipboard} + {t('Nazorat ishi')}
             </button>
           )}
+          {owner && <button className="btn btn--sm" onClick={() => setPractical('new')}>{IC.flask} + {t('Amaliy ish')}</button>}
           {owner && <button className="btn btn--sm btn--primary" onClick={() => openDay(lock?.today ?? localToday())}>{IC.calendar} {t('Bugungi dars')}</button>}
           {owner && <button className="btn btn--sm" onClick={() => setAddingDay(true)}>+ {t('Dars kuni')}</button>}
           {owner && <button className="btn btn--sm" onClick={() => setEditingStudents(true)}>{t("O'quvchilar ro'yxati")}</button>}
@@ -279,8 +300,19 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
                   </th>
                 )
               })}
+              {pracs.map(({ work: w, tag }) => (
+                <th key={`pr${w.id}`} className={`jt__d jt__prac jt__prac--${w.kind} ${owner ? 'is-link' : ''}`}
+                  onClick={owner ? () => setPractical(w) : undefined}
+                  title={[t(KIND_LABEL[w.kind]), w.title, t("O'rtacha ballga ta'sir qilmaydi")].filter(Boolean).join(' · ')}>
+                  <span className="jt__ptag">{tag}</span>
+                  <span className={owner ? 'jt__dt' : undefined}>{fmtD(w.date)}</span>
+                  {w.title && <span className="jt__topic">{w.title}</span>}
+                </th>
+              ))}
               <th className="jt__avg">{t("O'rtacha")}</th>
               <th className="jt__fin">{t('Chorak')}</th>
+              <th className="jt__att" title={t("Chorakdagi darslarga qatnashish (kechikish — qatnashgan)")}>{t('Davomat')}</th>
+              <th className="jt__act" title={t("«Ogohlantirish» — o'rtacha 3,5 dan past yoki davomat 85% dan kam")}>{t('Holat')}</th>
             </tr>
           </thead>
           <tbody>
@@ -306,9 +338,20 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
                     <GradeChip v={w.marks[s.id]} scale={100} />
                   </td>
                 ))}
+                {pracs.map(({ work: w }) => (
+                  <td key={`pr${w.id}`} className={`jt__c jt__prac ${owner ? 'is-link' : ''}`} onClick={owner ? () => setPractical(w) : undefined}>
+                    <GradeChip v={w.marks[s.id]} scale={scale} />
+                  </td>
+                ))}
                 <td className="jt__avg"><AvgChip avg={stats.perStudent[i].avg} scale={scale} /></td>
                 <td className="jt__fin">
                   <GradeCell value={finals[s.id]} scale={scale} disabled={!finalsOpen} onChange={(v) => onFinalChange(s.id, v)} />
+                </td>
+                <td className={`jt__att ${att[i] !== null && att[i]! < 85 ? 'is-low' : ''}`}>{att[i] !== null ? `${att[i]}%` : '—'}</td>
+                <td className="jt__act">
+                  {activity[i] ? (
+                    <span className={`pill pill--${activity[i] === 'faol' ? 'ok' : 'mid'}`}>{t(activity[i] === 'faol' ? 'Faol' : 'Ogohlantirish')}</span>
+                  ) : '—'}
                 </td>
               </tr>
             ))}
@@ -323,8 +366,13 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
               {controls.map((w) => (
                 <td key={`ctl${w.id}`} className="jt__c jt__ctl"><GradeChip v={controlAvg(students, [w])} scale={100} empty="—" /></td>
               ))}
+              {pracs.map(({ work: w }) => (
+                <td key={`pr${w.id}`} className="jt__c jt__prac"><AvgChip avg={meanOf(students, w.marks)} scale={scale} /></td>
+              ))}
               <td className="jt__avg"><AvgChip avg={stats.classAvg} scale={scale} /></td>
               <td className="jt__fin"><AvgChip avg={finalsAvg} scale={scale} /></td>
+              <td className="jt__att">{classAtt !== null ? `${classAtt}%` : '—'}</td>
+              <td className="jt__act">{warnN ? <span className="jt__warn">{warnN} ⚠</span> : ''}</td>
             </tr>
           </tbody>
           {archived.length > 0 && (
@@ -348,13 +396,37 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
                   {controls.map((w) => (
                     <td key={`ctl${w.id}`} className="jt__c jt__ctl"><GradeChip v={w.marks[s.id]} scale={100} /></td>
                   ))}
+                  {pracs.map(({ work: w }) => (
+                    <td key={`pr${w.id}`} className="jt__c jt__prac"><GradeChip v={w.marks[s.id]} scale={scale} /></td>
+                  ))}
                   <td className="jt__avg"><AvgChip avg={archivedStats.perStudent[i].avg} scale={scale} /></td>
                   <td className="jt__fin"><GradeChip v={finals[s.id]} scale={scale} /></td>
+                  <td className="jt__att">—</td>
+                  <td className="jt__act" />
                 </tr>
               ))}
             </tbody>
           )}
         </table>
+      </div>
+
+      <div className="jins">
+        <section className="jins__card">
+          <h4>{t("Sinf o'zlashtirish tahlili")}</h4>
+          <p><span>{t("O'zlashtirish")}</span><b>{stats.pct !== null ? `${stats.pct}%` : '—'}</b></p>
+          <p><span>{t('Sifat')}</span><b>{stats.sifat !== null ? `${stats.sifat}%` : '—'}</b></p>
+          <p><span>{t('Darsda ishtirok')}</span><b>{classAtt !== null ? `${classAtt}%` : '—'}</b></p>
+        </section>
+        <section className="jins__card">
+          <h4>{t('Amaliy ishlar')}</h4>
+          <p><span>{t('Laboratoriya ishlari')}</span><b>{pracs.filter((p) => p.work.kind === 'lab').length}</b></p>
+          <p><span>{t('STEM loyihalar')}</span><b>{pracs.filter((p) => p.work.kind === 'stem').length}</b></p>
+          <p><span>{t('Baho olganlar')}</span><b>{pracDone} / {students.length}</b></p>
+        </section>
+        <section className="jins__card jins__card--note">
+          <h4>{t("O'qituvchi uchun eslatma")}</h4>
+          <p className="jins__note">{t("Laboratoriya (L) va STEM loyiha baholari alohida ustunda turadi: o'rtacha ballga va chorak bahosiga ta'sir qilmaydi. «Ogohlantirish» — o'rtacha 3,5 dan past yoki davomat 85% dan kam bo'lgan o'quvchi.")}</p>
+        </section>
       </div>
 
       {addingDay && <AddDayModal classId={cls.id} chorak={chorak} lock={lock} onClose={() => setAddingDay(false)} onCreated={openDay} />}
@@ -366,6 +438,10 @@ export function ClassGrid({ cls, chorak, teacherId }: { cls: JournalClass; chora
       {control && (
         <ControlWorkModal classId={cls.id} chorak={chorak} students={students}
           work={control === 'new' ? null : control} onClose={() => setControl(null)} />
+      )}
+      {practical && (
+        <PracticalWorkModal classId={cls.id} chorak={chorak} scale={scale} students={students}
+          work={practical === 'new' ? null : practical} onClose={() => setPractical(null)} />
       )}
       {editingClass && <ClassModal cls={cls} onClose={() => setEditingClass(false)} />}
       {editingStudents && <EditStudentsModal cls={cls} onClose={() => setEditingStudents(false)} />}

@@ -64,6 +64,19 @@ export interface ControlWork {
   by_name: string
 }
 
+/** Amaliy ish (backend journal PracticalWork): a laboratoriya ishi or a
+ * STEM loyiha the teacher grades on the class's scale — its own column,
+ * out of every average. */
+export interface PracticalWork {
+  id: number
+  journal_class: number
+  kind: 'lab' | 'stem'
+  date: string
+  chorak: number
+  title: string
+  marks: Record<string, number>
+}
+
 /** A pupil moved to another class with their marks left here as an
  * archive (backend journal/transfer.py) — shown greyed under the roster. */
 export interface ArchivedStudent {
@@ -79,6 +92,7 @@ export interface Grid {
   days: GridDay[]
   finals: Record<string, Record<string, number>>
   controls?: ControlWork[]
+  practicals?: PracticalWork[]
   lock?: GridLock
 }
 

@@ -18,3 +18,24 @@
   .qtrnav .qtrnav__tabs .seg__b { flex: 1 1 0; min-width: 0; height: 30px; justify-content: center; padding-inline: 2px; font-size: 13px; }
   .qtrnav__hint { display: none; }
 }
+
+/* ══ Darslar jarayoni va topshiriqlar monitoringi (AssignmentsMonitor) ══ */
+.amon { margin-top: 22px; padding: 16px 18px; border: 1px solid var(--rule); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
+.amon__head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.amon__title { margin: 0; font-size: 16px; font-weight: 700; }
+.amon__more { flex: none; color: var(--logo-blue, var(--pick)); font-size: 13px; font-weight: 600; text-decoration: none; }
+.amon__empty { margin: 0; color: var(--ink-3); font-size: 13px; }
+.amon__wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--rule); border-radius: 12px; }
+.amon__t { width: 100%; min-width: 680px; border-collapse: collapse; font-size: 13px; }
+.amon__t th, .amon__t td { padding: 9px 12px; border-bottom: 1px solid var(--rule-2); text-align: left; vertical-align: middle; }
+.amon__t thead th { background: var(--rule-2); font-weight: 600; white-space: nowrap; }
+.amon__t tbody tr:last-child > * { border-bottom: 0; }
+.amon__t .num { text-align: right; font-variant-numeric: tabular-nums; }
+.amon__t a { color: var(--ink); font-weight: 600; text-decoration: none; }
+.amon__t a:hover { text-decoration: underline; }
+.amon__cls { font-weight: 700; white-space: nowrap; }
+.amon__sub { display: flex; align-items: center; gap: 8px; min-width: 170px; }
+.amon__bar { flex: 1; height: 7px; border-radius: 999px; background: var(--rule-2); overflow: hidden; }
+.amon__bar > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #1d3fae, #2f6be6); }
+.amon__n { flex: none; color: var(--ink-2); font-size: 12px; font-variant-numeric: tabular-nums; }
+.amon .pill { white-space: nowrap; }

@@ -4,7 +4,7 @@ import { api } from '@/lib/api/client'
 import type { Paginated } from '@/lib/api/types'
 import { useYearStore } from '@/lib/year'
 
-import type { AttendanceStatus, ControlWork, EditGrant, Grid, GrantTeacher, JournalClass, Student } from './types'
+import type { AttendanceStatus, ControlWork, EditGrant, Grid, GrantTeacher, JournalClass, PracticalWork, Student } from './types'
 
 /** Own classes, or (administrators) another teacher's, to look at. */
 export function useClasses(teacherId?: string) {
@@ -215,6 +215,35 @@ export function useDeleteControl(classId: number) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (id: number) => api.delete(`/journal/controls/${id}/`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['journal', 'grid', classId] }),
+  })
+}
+
+// ── Amaliy ishlar (the class's teacher grades, on the class's scale) ───
+
+interface PracticalInput {
+  kind: 'lab' | 'stem'
+  date: string
+  chorak: number
+  title: string
+  marks: { student_id: number; mark: number | null }[]
+}
+
+export function useSavePractical(classId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (data: PracticalInput & ({ id: number } | { journal_class: number })) =>
+      'id' in data
+        ? (await api.patch<PracticalWork>(`/journal/practicals/${data.id}/`, data)).data
+        : (await api.post<PracticalWork>('/journal/practicals/', data)).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['journal', 'grid', classId] }),
+  })
+}
+
+export function useDeletePractical(classId: number) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: number) => api.delete(`/journal/practicals/${id}/`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['journal', 'grid', classId] }),
   })
 }

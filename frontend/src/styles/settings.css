@@ -733,6 +733,40 @@ select.jscale:focus-visible { outline: 2px solid var(--pick, var(--ok)); outline
   display: block; margin-bottom: 3px; font: 600 8.5px/1 var(--f-mono, inherit);
   letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.78);
 }
+/* ══ Amaliy ish (journal PracticalWork: laboratoriya "L-1", STEM "STEM-1") ══
+   the teacher's own columns, out of every average: a gold head for
+   laboratoriya, cyan for STEM — the logo's colours */
+.jt thead th.jt__prac--lab { background: color-mix(in srgb, var(--solid) 55%, #b07a00); }
+.jt thead th.jt__prac--stem { background: color-mix(in srgb, var(--solid) 55%, #0e8fae); }
+.jt td.jt__prac { background: color-mix(in srgb, var(--surface) 94%, #e9ab06); }
+.jt th.jt__prac.is-link, .jt td.jt__prac.is-link { cursor: pointer; }
+.jt th.jt__prac.is-link:hover .jt__dt { text-decoration: underline; }
+.jt td.jt__prac.is-link:hover { background: color-mix(in srgb, var(--surface) 86%, #e9ab06); }
+.jt__ptag {
+  display: block; margin-bottom: 3px; font: 700 10px/1 var(--f-mono, inherit);
+  letter-spacing: .04em; color: #fff;
+}
+/* attendance and the activity status close each row */
+.jt__att, .jt__act { width: 86px; text-align: center; background: var(--paper); font-size: 12.5px; white-space: nowrap; }
+.jt__att { font-family: var(--f-mono, inherit); }
+.jt td.jt__att.is-low { color: #b45309; font-weight: 700; }
+[data-theme="dark"] .jt td.jt__att.is-low { color: #fbbf24; }
+.jt__act .pill { font-size: 11px; padding: 2px 8px; }
+.jt__warn { color: #b45309; font-weight: 700; }
+[data-theme="dark"] .jt__warn { color: #fbbf24; }
+/* the class's analysis under the journal */
+.jins { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.jins__card { padding: 14px 16px; border: 1px solid var(--rule); border-radius: 14px; background: var(--surface); }
+.jins__card h4 { margin: 0 0 8px; font-size: 14px; font-weight: 700; }
+.jins__card p { display: flex; justify-content: space-between; gap: 10px; margin: 4px 0; font-size: 13px; color: var(--ink-2); }
+.jins__card p b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.jins__card--note { background: color-mix(in srgb, var(--surface) 92%, #e9ab06); }
+.jins__card p.jins__note { display: block; line-height: 1.5; }
+.prac__kind { margin-bottom: 12px; }
+.prac__note { margin: -2px 0 10px; }
+@media (max-width: 760px) {
+  .jins { grid-template-columns: minmax(0, 1fr); }
+}
 .ctl__meta { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
 .ctl__title { grid-column: 1 / -1; }
 .ctl__list { list-style: none; margin: 4px 0 0; padding: 0; border: 1px solid var(--rule); border-radius: 10px; }

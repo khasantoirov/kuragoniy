@@ -2,7 +2,8 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
-    ControlWorkViewSet, EditGrantViewSet, FinalGradeViewSet, JournalClassViewSet, StudentTransferView, StudentViewSet,
+    ControlWorkViewSet, EditGrantViewSet, FinalGradeViewSet, JournalClassViewSet, PracticalWorkViewSet, StudentTransferView,
+    StudentViewSet,
     TransferUndoView,
 )
 
@@ -12,6 +13,7 @@ router.register('students', StudentViewSet, basename='journal-student')
 router.register('finals', FinalGradeViewSet, basename='journal-final')
 router.register('grants', EditGrantViewSet, basename='journal-grant')
 router.register('controls', ControlWorkViewSet, basename='journal-control')
+router.register('practicals', PracticalWorkViewSet, basename='journal-practical')
 
 urlpatterns = [
     path('students/<int:pk>/transfer/', StudentTransferView.as_view(), name='journal-student-transfer'),

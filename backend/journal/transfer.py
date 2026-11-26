@@ -20,7 +20,8 @@ from django.db import transaction
 from django.db.models import Max
 from django.utils import timezone
 
-from .models import AttendanceEntry, ClassDay, ControlMark, ControlWork, FinalGrade, GradeEntry, Student, StudentTransfer
+from .models import (AttendanceEntry, ClassDay, ControlMark, ControlWork, FinalGrade, GradeEntry, PracticalMark,
+                     PracticalWork, Student, StudentTransfer)
 from .scales import convert, level
 
 MODES = ('carry', 'archive')
@@ -73,7 +74,8 @@ def transfer_student(student: Student, target, mode: str, actor=None) -> Student
         'attendance': [[a.pk, a.day_id] for a in student.attendance.all()],
         'finals': [[f.pk, f.mark, f.level] for f in student.finals.all()],
         'control_marks': [[c.pk, c.work_id] for c in student.control_marks.all()],
-        'created_days': [], 'created_works': [],
+        'practical_marks': [[p.pk, p.work_id, p.mark, p.level] for p in student.practical_marks.all()],
+        'created_days': [], 'created_works': [], 'created_practicals': [],
     })
     days: dict[int, ClassDay] = {}
 
@@ -109,6 +111,20 @@ def transfer_student(student: Student, target, mode: str, actor=None) -> Student
         cm.work = twin
         used.add(twin.pk)
         cm.save(update_fields=['work'])  # control works are 0-100 everywhere
+    used_p: set[int] = set()
+    for pm in student.practical_marks.select_related('work'):
+        w = pm.work
+        twin = (PracticalWork.objects.filter(journal_class=target, kind=w.kind, date=w.date, chorak=w.chorak, title=w.title)
+                .exclude(pk__in=used_p).first())
+        if twin is None:
+            twin = PracticalWork.objects.create(journal_class=target, kind=w.kind, date=w.date, chorak=w.chorak,
+                                                title=w.title, created_by=w.created_by)
+            state['created_practicals'].append(twin.id)
+        used_p.add(twin.pk)
+        # on the new class's scale, in the same colour band
+        PracticalMark.objects.filter(pk=pm.pk).update(
+            work=twin, mark=convert(pm.mark, source.scale, target.scale),
+            level=level(convert(pm.mark, source.scale, target.scale), target.scale))
 
     student.journal_class = target
     student.order = _next_order(target)
@@ -134,7 +150,8 @@ def undo_transfer(record: StudentTransfer) -> Student:
     if record.mode == 'archive':
         new = record.new_row
         if new is not None:
-            if new.grades.exists() or new.attendance.exists() or new.finals.exists() or new.control_marks.exists():
+            if (new.grades.exists() or new.attendance.exists() or new.finals.exists() or new.control_marks.exists()
+                    or new.practical_marks.exists()):
                 raise UndoRefused(f"{record.target.name} sinfida o'quvchiga baho yoki davomat qo'yilgan — ko'chirishni bekor qilib bo'lmaydi.")
             if new.transfers.filter(undone_at__isnull=True).exists():
                 raise UndoRefused("O'quvchi keyin yana ko'chirilgan — avval o'sha ko'chirishni bekor qiling.")
@@ -155,11 +172,16 @@ def undo_transfer(record: StudentTransfer) -> Student:
         att = {pk: day for pk, day in state.get('attendance', [])}
         finals = {pk: (mark, lvl) for pk, mark, lvl in state.get('finals', [])}
         cms = {pk: work for pk, work in state.get('control_marks', [])}
+        pms = {pk: (work, mark, lvl) for pk, work, mark, lvl in state.get('practical_marks', [])}
         days = {d for d, _m, _l in grades.values()} | set(att.values())
         if len(days) != ClassDay.objects.filter(pk__in=days).count() or len(set(cms.values())) != ControlWork.objects.filter(pk__in=set(cms.values())).count():
             raise UndoRefused(f"{record.source.name} sinfida o'sha dars kunlari yoki nazorat ishlari o'chirilgan — ko'chirishni bekor qilib bo'lmaydi.")
+        p_works = {w for w, _m, _l in pms.values()}
+        if len(p_works) != PracticalWork.objects.filter(pk__in=p_works).count():
+            raise UndoRefused(f"{record.source.name} sinfida o'sha amaliy ishlar o'chirilgan — ko'chirishni bekor qilib bo'lmaydi.")
         newer = (st.grades.exclude(pk__in=grades).exists() or st.attendance.exclude(pk__in=att).exists()
-                 or st.finals.exclude(pk__in=finals).exists() or st.control_marks.exclude(pk__in=cms).exists())
+                 or st.finals.exclude(pk__in=finals).exists() or st.control_marks.exclude(pk__in=cms).exists()
+                 or st.practical_marks.exclude(pk__in=pms).exists())
         if newer:
             raise UndoRefused(f"{record.target.name} sinfida o'quvchiga yangi baho yoki davomat qo'yilgan — ko'chirishni bekor qilib bo'lmaydi.")
         for pk, (day, mark, lvl) in grades.items():
@@ -170,6 +192,8 @@ def undo_transfer(record: StudentTransfer) -> Student:
             FinalGrade.objects.filter(pk=pk, student=st).update(mark=mark, level=lvl)
         for pk, work in cms.items():
             ControlMark.objects.filter(pk=pk, student=st).update(work_id=work)
+        for pk, (work, mark, lvl) in pms.items():
+            PracticalMark.objects.filter(pk=pk, student=st).update(work_id=work, mark=mark, level=lvl)
         Student.objects.filter(pk=st.pk).update(journal_class_id=record.source_id, order=state.get('order', st.order))
         _restore_profiles(state)
         # what the move had to create in the new class goes, if it's still empty
@@ -177,6 +201,9 @@ def undo_transfer(record: StudentTransfer) -> Student:
             if not d.grades.exists() and not d.attendance.exists():
                 d.delete()
         for w in ControlWork.objects.filter(pk__in=state.get('created_works', []), journal_class_id=record.target_id):
+            if not w.marks.exists():
+                w.delete()
+        for w in PracticalWork.objects.filter(pk__in=state.get('created_practicals', []), journal_class_id=record.target_id):
             if not w.marks.exists():
                 w.delete()
     record.undone_at = timezone.now()

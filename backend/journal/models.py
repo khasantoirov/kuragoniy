@@ -221,3 +221,47 @@ class ControlMark(models.Model):
     def save(self, *args, **kwargs):
         self.level = level_of(self.mark, 100)
         super().save(*args, **kwargs)
+
+
+class PracticalWork(models.Model):
+    """Amaliy ish — a laboratoriya ishi ("L-1") or a STEM loyiha ("STEM-1")
+    the class's teacher gives in a chorak and grades on the class's own
+    scale (the owner's mock-ups, 2026-11-26). Its own column in the
+    journal, numbered per kind and chorak by date. Shown only: it stays out
+    of the lesson averages, O'zlashtirish and the quarter grade (owner's
+    choice: "Ta'sir qilmasin")."""
+
+    class Kind(models.TextChoices):
+        LAB = 'lab', 'Laboratoriya ishi'
+        STEM = 'stem', 'STEM loyiha'
+
+    journal_class = models.ForeignKey(JournalClass, related_name='practicals', on_delete=models.CASCADE)
+    kind = models.CharField(max_length=8, choices=Kind.choices, default=Kind.LAB)
+    chorak = models.PositiveSmallIntegerField()
+    date = models.DateField()
+    title = models.CharField(max_length=200, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name='+', null=True, blank=True, on_delete=models.SET_NULL,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['kind', 'date', 'id']
+
+    def __str__(self):
+        return f'{self.journal_class} {self.get_kind_display()} {self.date}'
+
+
+class PracticalMark(models.Model):
+    work = models.ForeignKey(PracticalWork, related_name='marks', on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, related_name='practical_marks', on_delete=models.CASCADE)
+    # on the class's scale (0..journal_class.scale), with its colour band
+    mark = models.PositiveSmallIntegerField()
+    level = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('work', 'student')
+
+    def save(self, *args, **kwargs):
+        self.level = level_of(self.mark, self.work.journal_class.scale)
+        super().save(*args, **kwargs)

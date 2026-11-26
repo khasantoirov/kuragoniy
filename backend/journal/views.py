@@ -38,6 +38,7 @@ from .serializers import (
     BulkDaySerializer,
     ClassDaySerializer,
     ControlWorkSerializer,
+    PracticalWorkSerializer,
     EditGrantSerializer,
     FinalGradeSerializer,
     GrantCreateSerializer,
@@ -154,6 +155,10 @@ class JournalClassViewSet(viewsets.ModelViewSet):
             'finals': finals_by_chorak,
             'controls': ControlWorkSerializer(
                 journal_class.control_works.select_related('created_by').prefetch_related('marks'), many=True,
+            ).data,
+            # amaliy ishlar: shown beside the days, out of every average
+            'practicals': PracticalWorkSerializer(
+                journal_class.practicals.prefetch_related('marks'), many=True,
             ).data,
             'lock': lock_info(request.user, journal_class),
         })
@@ -430,6 +435,54 @@ class ControlWorkViewSet(viewsets.ModelViewSet):
         body = f'{class_label(work.journal_class)} · {work.date:%d.%m.%Y}' + (f' · {work.title}' if work.title else '')
         notify(teacher, Kind.JURNAL, title, body, f'/journal?class={work.journal_class_id}',
                telegram_text=f'📝 {title}\n{body}')
+
+
+class PracticalWorkViewSet(viewsets.ModelViewSet):
+    """Amaliy ish (PracticalWork): laboratoriya ishlari and STEM loyihalari
+    the class's teacher gives and grades on the class's scale. Read like the
+    journal (administrators any class, a school's ma'muriyat its schools,
+    a teacher their own); written by the class's own teacher only, while
+    the journal is writable (not a past o'quv yili, licence in force)."""
+
+    serializer_class = PracticalWorkSerializer
+    permission_classes = [IsApproved]
+    pagination_class = None
+
+    def get_queryset(self):
+        from .models import PracticalWork
+
+        user = self.request.user
+        qs = PracticalWork.objects.select_related('journal_class__teacher').prefetch_related('marks')
+        if user.is_school_admin:
+            from schools.access import managed_school_ids
+
+            qs = qs.filter(journal_class__partner_school_id__in=managed_school_ids(user))
+        elif not user.is_admin:
+            qs = qs.filter(journal_class__teacher=user)
+        class_id = self.request.query_params.get('journal_class')
+        if class_id:
+            qs = qs.filter(journal_class_id=class_id)
+        return qs
+
+    def _check(self, journal_class):
+        if journal_class.teacher_id != self.request.user.pk:
+            raise PermissionDenied("Amaliy ishni sinfning o'z o'qituvchisi kiritadi.")
+        if is_past_year(journal_class):
+            raise PermissionDenied(PAST_YEAR_DETAIL)
+        if (reason := licence_lock(journal_class)):
+            raise PermissionDenied(reason)
+
+    def perform_create(self, serializer):
+        self._check(serializer.validated_data['journal_class'])
+        serializer.save(created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        self._check(serializer.instance.journal_class)
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        self._check(instance.journal_class)
+        instance.delete()
 
 
 def _dates(grant) -> str:

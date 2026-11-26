@@ -10,6 +10,8 @@ from .models import (
     GradeEntry,
     JournalClass,
     JournalEditGrant,
+    PracticalMark,
+    PracticalWork,
     Student,
 )
 
@@ -149,6 +151,65 @@ class ControlWorkSerializer(serializers.ModelSerializer):
                 ControlMark.objects.filter(work=work, student_id=m['student_id']).delete()
             else:
                 ControlMark.objects.update_or_create(work=work, student_id=m['student_id'], defaults={'mark': m['mark']})
+
+
+class PracticalMarkInSerializer(serializers.Serializer):
+    student_id = serializers.IntegerField()
+    mark = serializers.IntegerField(min_value=0, required=False, allow_null=True)
+
+
+class PracticalWorkSerializer(serializers.ModelSerializer):
+    """Amaliy ish (laboratoriya / STEM). In: journal_class, kind, date,
+    chorak, title and `marks` as [{student_id, mark}] on the class's scale
+    (an empty mark clears it); out: `marks` as {student_id: mark}."""
+
+    marks = PracticalMarkInSerializer(many=True, write_only=True, required=False)
+
+    class Meta:
+        model = PracticalWork
+        fields = ['id', 'journal_class', 'kind', 'date', 'chorak', 'title', 'marks', 'created_at']
+        read_only_fields = ['created_at']
+        extra_kwargs = {'chorak': {'min_value': 1, 'max_value': 4}}
+
+    def validate(self, attrs):
+        if self.instance is not None:
+            attrs.pop('journal_class', None)  # stays in its class
+        journal_class = self.instance.journal_class if self.instance else attrs['journal_class']
+        roster = set(journal_class.students.values_list('id', flat=True))
+        marks = attrs.get('marks', [])
+        if any(m['student_id'] not in roster for m in marks):
+            raise serializers.ValidationError({'marks': "O'quvchi bu sinfda emas."})
+        if any(m.get('mark') is not None and m['mark'] > journal_class.scale for m in marks):
+            raise serializers.ValidationError({'marks': f"Baho 0 dan {journal_class.scale} gacha bo'ladi."})
+        return attrs
+
+    def to_representation(self, obj):
+        data = super().to_representation(obj)
+        data['marks'] = {m.student_id: m.mark for m in obj.marks.all()}
+        return data
+
+    @transaction.atomic
+    def create(self, validated_data):
+        marks = validated_data.pop('marks', [])
+        work = super().create(validated_data)
+        self._set_marks(work, marks)
+        return work
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        marks = validated_data.pop('marks', None)
+        work = super().update(instance, validated_data)
+        if marks is not None:
+            self._set_marks(work, marks)
+        return work
+
+    @staticmethod
+    def _set_marks(work, marks):
+        for m in marks:
+            if m.get('mark') is None:
+                PracticalMark.objects.filter(work=work, student_id=m['student_id']).delete()
+            else:
+                PracticalMark.objects.update_or_create(work=work, student_id=m['student_id'], defaults={'mark': m['mark']})
 
 
 def class_label(journal_class) -> str:
