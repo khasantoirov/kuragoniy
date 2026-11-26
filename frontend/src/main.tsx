@@ -14,6 +14,8 @@ import './styles/portal.css'
 import './styles/gate.css'
 import './styles/settings.css'
 import './styles/protection.css'
+// menu and section icons in the logo's colours — after the skin
+import './styles/brand-icons.css'
 import { startDeviceMode } from './lib/deviceMode'
 
 // Service-worker registration/update handling lives in <AutoUpdate>

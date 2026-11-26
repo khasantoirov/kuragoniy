@@ -132,32 +132,28 @@
 .hh-quick { display: grid; gap: 10px; min-width: 0; }
 .hh-grid--solo .hh-quick { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 .hh-q {
-  --tc: #2563eb;
+  --tc: var(--logo-blue, #1d3fae); /* the logo's blue for every section */
   display: flex; align-items: center; gap: 12px; width: 100%; min-width: 0; padding: 12px 14px;
   border: 1px solid var(--rule); border-radius: 16px; background: var(--surface); color: var(--ink);
   text-align: left; cursor: pointer; box-shadow: var(--shadow); transition: border-color .15s, transform .15s, box-shadow .15s;
 }
 .hh-q:hover { border-color: color-mix(in srgb, var(--tc) 55%, var(--rule)); transform: translateY(-1px); }
-.hh-q__ic { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 13px; color: var(--tc); background: color-mix(in srgb, var(--tc) 13%, transparent); }
+/* the icon as a small logo: deep-blue tile, cyan rim, a gold chip dot
+   (styles/brand-icons.css; owner: "iconlarni logoga mosla") */
+.hh-q__ic {
+  position: relative; display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 13px;
+  color: #fff; background: linear-gradient(140deg, #19379b, #2f6be6);
+  box-shadow: inset 0 0 0 1px rgba(79, 216, 245, .45), 0 4px 10px rgba(29, 63, 174, .2);
+}
+.hh-q__ic::after {
+  content: ''; position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--logo-gold, #e9ab06); box-shadow: 0 0 0 1.5px #1d3fae;
+}
 .hh-q__ic .svic { width: 23px; height: 23px; }
 .hh-q__tx { display: grid; gap: 2px; min-width: 0; }
 .hh-q__t { font: 700 15px/1.2 var(--f-body, inherit); }
 .hh-q__s { font-size: 12.5px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hh-q__go { margin-left: auto; font-size: 22px; line-height: 1; color: var(--ink-3); }
-.hh-q--blue { --tc: #2563eb; }
-.hh-q--green { --tc: #16a34a; }
-.hh-q--orange { --tc: #ea7a12; }
-.hh-q--violet { --tc: #7c3aed; }
-.hh-q--brown { --tc: #b0702a; }
-.hh-q--teal { --tc: #0d9488; }
-.hh-q--rose { --tc: #e11d48; }
-[data-theme="dark"] .hh-q--blue { --tc: #60a5fa; }
-[data-theme="dark"] .hh-q--green { --tc: #4ade80; }
-[data-theme="dark"] .hh-q--orange { --tc: #fb9a3c; }
-[data-theme="dark"] .hh-q--violet { --tc: #a78bfa; }
-[data-theme="dark"] .hh-q--brown { --tc: #d6a15e; }
-[data-theme="dark"] .hh-q--teal { --tc: #2dd4bf; }
-[data-theme="dark"] .hh-q--rose { --tc: #fb7185; }
 
 /* ── a phone ── */
 @media (max-width: 900px) {

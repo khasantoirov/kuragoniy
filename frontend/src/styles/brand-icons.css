@@ -1,0 +1,48 @@
+/* ══ Ikonkalar logo ranglarida ══════════════════════════════════════
+   The owner, 2026-11-26: "iconlarni logoga mosla". The logo is a deep-blue
+   star with cyan circuit lines and a gold chip in the middle, so every menu
+   and section icon takes those colours — in both fan windows. The fan's
+   own accent (--pick) stays as the background of the open menu item; the
+   icon on it is the chip's gold. */
+
+:root {
+  --logo-blue: #1d3fae;
+  --logo-blue-2: #2f6be6;
+  --logo-cyan: #13a9cc;
+  --logo-gold: #e9ab06;
+  --logo-gold-on: #ffd65a; /* gold on a coloured background */
+}
+[data-theme="dark"] {
+  --logo-blue: #8aa4ff;
+  --logo-blue-2: #a9bcff;
+  --logo-cyan: #4fd8f5;
+  --logo-gold: #f7c948;
+}
+
+/* the side menu (computer) */
+[data-skin="r2"] .edside__ic { color: var(--logo-blue); }
+[data-skin="r2"][data-theme="dark"] .edside__ic { color: var(--logo-cyan); }
+[data-skin="r2"] .edside__item:hover .edside__ic { color: var(--logo-blue-2); }
+[data-skin="r2"][data-theme="dark"] .edside__item:hover .edside__ic { color: var(--logo-blue-2); }
+[data-skin="r2"] .edside__item.is-on .edside__ic,
+[data-skin="r2"][data-theme="dark"] .edside__item.is-on .edside__ic { color: var(--logo-gold-on); }
+
+/* the bottom bar (phone): blue icons, the open one marked with a gold dot */
+@media (max-width: 760px) {
+  [data-skin="r2"] .bottomnav .bottomnav__item { color: var(--logo-blue); }
+  [data-skin="r2"][data-theme="dark"] .bottomnav .bottomnav__item { color: var(--logo-cyan); }
+  [data-skin="r2"] .bottomnav .bottomnav__item.is-on { color: var(--logo-blue); }
+  [data-skin="r2"][data-theme="dark"] .bottomnav .bottomnav__item.is-on { color: var(--logo-cyan); }
+  [data-skin="r2"] .bottomnav .bottomnav__ic { position: relative; }
+  [data-skin="r2"] .bottomnav .bottomnav__item.is-on .bottomnav__ic::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -7px;
+    width: 5px;
+    height: 5px;
+    margin-left: -2.5px;
+    border-radius: 50%;
+    background: var(--logo-gold);
+  }
+}

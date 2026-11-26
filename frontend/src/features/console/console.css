@@ -66,7 +66,8 @@
 .acon__link:hover, .acon__site:hover { background: var(--acon-side-2); color: #fff; }
 .acon__link.is-on { background: var(--pick); color: #fff; box-shadow: 0 6px 16px rgba(106, 115, 250, .3); }
 .acon__link:focus-visible, .acon__site:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
-.acon__ic { display: inline-flex; flex: none; }
+.acon__ic { display: inline-flex; flex: none; color: #5fd9f2; } /* the logo's cyan */
+.acon__link.is-on .acon__ic { color: #ffd65a; } /* the logo's gold */
 .acon__ic svg { width: 18px; height: 18px; }
 .acon__lt { flex: 1; min-width: 0; }
 .acon__badge {
