@@ -5,7 +5,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { Avatar } from '@/components/Avatar'
 import { ContentGuard } from '@/components/ContentGuard'
 import { FanSwitch } from '@/components/FanWindow'
-import { RoleSwitch } from '@/components/RoleSwitch'
+import { RoleSwitch, useViewFromLink } from '@/components/RoleSwitch'
 import { isAnyModalOpen } from '@/components/Modal'
 import { RoleBadge } from '@/components/RoleBadge'
 import { ScrollTopButton } from '@/components/ScrollTopButton'
@@ -43,6 +43,7 @@ export function AppShell() {
   const toast = useToast()
   useGradePalette()  // the platform's mark colours (the developer's pick)
   useSubjectGuard()  // the Darslar fan/grade stay inside what this person sees
+  useViewFromLink()  // a view the panel asked for (admin.kuragoniy.uz → Ko'rinish)
   const lessonGrades = useSubjects().grades
 
   const [acctOpen, setAcctOpen] = useState(false)

@@ -52,7 +52,7 @@ export function panelUrl(bolim?: string | null): string {
  *  they send it as X-Fan. The Boshqaruv sections see both fans at once. */
 const PANEL_FAN_PATHS = ['/monitoring', '/statistics', '/timetable', '/manage', '/equipment-sheet', '/reports', '/obuna',
   '/shop', '/lessons', '/kits', '/library', '/qollanmalar', '/training', '/guide', '/help', '/mehmon', '/feed',
-  '/achievements', '/notifications', '/journal']
+  '/achievements', '/notifications', '/journal', '/korinish']
 
 export function panelSendsFan(pathname: string): boolean {
   return PANEL_FAN_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))
@@ -72,6 +72,13 @@ export function panelLinkFor(url: string | null | undefined): string | null {
     || (path === '/help' && has('bolim', 'murojaatlar')) || (path === '/shop' && has('bolim', 'sotuv'))
     || (path === '/reports' && has('bolim', 'baholash')) || (path === '/lessons' && has('sub', 'sorovlar'))
   return panelOnly ? `${ADMIN_ORIGIN}${url}` : null
+}
+
+/** kuragoniy.uz opened in someone's view (panel → Ko'rinish): `korinish`
+ *  a view key (a person's id, role:admin, role:boshliq) or `oquvchi` a
+ *  pupil's id, with the fan window. lib/viewAs.ts picks it up there. */
+export function viewLink(params: Record<string, string>): string {
+  return `${MAIN_ORIGIN}/?${new URLSearchParams(params).toString()}`
 }
 
 /** A page of the platform, from inside the panel. */

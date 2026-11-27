@@ -1,18 +1,7 @@
 import { lazy, Suspense, type ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 
-import {
-  homePathFor,
-  isAdmin,
-  isAdminInView,
-  isApproved,
-  isObserver,
-  isOversight,
-  isSchoolAdmin,
-  isStudent,
-  isTeacherLike,
-  useAuth,
-} from '@/lib/auth/AuthContext'
+import { homePathFor, isAdmin, isAdminInView, isApproved, isObserver, isOversight, isSchoolAdmin, isStudent, isTeacherLike, teachesHere, useAuth } from '@/lib/auth/AuthContext'
 import { useModules, type ModuleKey } from '@/lib/modules'
 import { useSubjects } from '@/lib/subjects'
 import type { Subject } from '@/features/lessons/labels'
@@ -57,7 +46,9 @@ export function RequireStudent({ children }: { children: ReactNode }) {
   const viewing = useViewAs((s) => s.pupil)
   // an administrator looking at the portal as one pupil (Ko'rish rejimi);
   // without one picked, the place to pick one
-  if (isAdmin(user) && !isStudent(user)) return viewing ? children : <Navigate to="/settings/appearance" replace />
+  // (on kuragoniy.uz an Admin / the developer counts as a teacher — teachesHere —
+  // and still looks through a pupil the panel's Ko'rinish opened)
+  if ((isAdmin(user) || teachesHere(user)) && !isStudent(user)) return viewing ? children : <Navigate to="/settings/appearance" replace />
   if (!isStudent(user)) return <Navigate to={homePathFor(user)} replace />
   if (!user?.approved) return <Navigate to="/pending-approval" replace />
   return children

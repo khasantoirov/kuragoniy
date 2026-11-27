@@ -203,7 +203,8 @@ const TEACHING_HERE = PANEL_ENABLED && !IS_ADMIN_HOST
 /** On kuragoniy.uz an Admin and the developer only teach — like any
  * teacher: their own fan, no administration, no role switch. */
 export function teachesHere(user: User | null): boolean {
-  return TEACHING_HERE && !!user && !user.viewing && (user.is_dev_superuser || user.role === 'admin')
+  // (while the developer looks through someone, the viewed account's role decides)
+  return TEACHING_HERE && !!user && (user.is_dev_superuser || user.role === 'admin')
 }
 
 /** Mirrors accounts.models.User.is_admin on the backend — Boshliq (a

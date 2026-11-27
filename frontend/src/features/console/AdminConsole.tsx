@@ -38,6 +38,7 @@ const AcademicYearsPanel = named(() => import('@/features/admin/AcademicYearsPan
 const SitePanel = named(() => import('@/features/admin/SitePanel'), 'SitePanel')
 const SecurityLogPage = named(() => import('@/features/manage/ManagePages'), 'SecurityLogPage')
 const HomeMonitoring = named(() => import('@/features/monitoring/Monitoring'), 'HomeMonitoring')
+const ViewAsPanel = named(() => import('./ViewAsPanel'), 'ViewAsPanel')
 
 /** A section of the console itself (/:bolim) … */
 interface Section {
@@ -46,6 +47,8 @@ interface Section {
   sub: string
   icon: keyof typeof IC
   page: ReactNode
+  /** the developer's only */
+  devOnly?: boolean
 }
 /** … or a page of the platform shown in the console (its own path). */
 interface PageLink {
@@ -92,6 +95,13 @@ const GROUPS: { title: string; items: Item[] }[] = [
       { to: '/feed', label: 'Ustozlar lentasi', icon: 'megaphone' },
       { to: '/achievements', label: 'Reyting va nishonlar', icon: 'star' },
       { to: '/notifications', label: 'Bildirishnomalar', icon: 'bell' },
+    ],
+  },
+  {
+    title: 'Tekshirish',
+    items: [
+      { slug: 'korinish', label: "Ko'rinish", sub: "Platformani o'qituvchi, o'quvchi, admin ko'zi bilan ko'rish", icon: 'eye',
+        page: <ViewAsPanel />, devOnly: true },
     ],
   },
   {
@@ -175,13 +185,15 @@ export function AdminConsole() {
     return () => document.removeEventListener('keydown', onKey)
   }, [menuOpen])
 
-  if (bolim && !section) return <Navigate to={`/${FIRST_SECTION}`} replace />
+  if ((bolim && !section) || (section?.devOnly && !user?.is_dev_superuser)) return <Navigate to={`/${FIRST_SECTION}`} replace />
 
   const signOut = async () => {
     await logout()
     navigate('/login', { replace: true })
   }
-  const shows = (x: Item) => isSection(x) || ((!x.fan || x.fan === fan) && routeOn(x.to.split('?')[0], on))
+  const shows = (x: Item) => isSection(x)
+    ? !x.devOnly || !!user?.is_dev_superuser
+    : (!x.fan || x.fan === fan) && routeOn(x.to.split('?')[0], on)
 
   return (
     <div className={`acon ${menuOpen ? 'is-menu' : ''}`}>
@@ -196,7 +208,7 @@ export function AdminConsole() {
         </div>
 
         <nav className="acon__nav">
-          {GROUPS.map((g) => (
+          {GROUPS.filter((g) => g.items.some(shows)).map((g) => (
             <div key={g.title} className="acon__group">
               <p className="acon__gt">{t(g.title)}</p>
               {g.items.filter(shows).map((s) => isSection(s) ? (

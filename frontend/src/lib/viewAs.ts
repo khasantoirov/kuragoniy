@@ -54,3 +54,42 @@ export function viewAsHeaderFor(url: string | undefined): string | null {
   const pupil = useViewAs.getState().pupil
   return pupil && url?.startsWith('/student/') ? pupil.id : null
 }
+
+/** admin.kuragoniy.uz → Ko'rinish opens kuragoniy.uz with ?korinish=<key>
+ *  (or ?oquvchi=<pupil id>) and &fan=…. The ask is kept for this tab until
+ *  the developer is signed in here (the sign-in page may come first); then
+ *  the view starts (components/RoleSwitch.tsx useViewFromLink). */
+export interface PendingView {
+  key?: string
+  pupil?: string
+  fan?: string
+}
+const PENDING_KEY = 'ke-view-pending'
+
+;(() => {
+  try {
+    const params = new URLSearchParams(window.location.search)
+    const key = params.get('korinish')
+    const pupil = params.get('oquvchi')
+    if (!key && !pupil) return
+    const fan = params.get('fan') ?? undefined
+    sessionStorage.setItem(PENDING_KEY, JSON.stringify({ key: key ?? undefined, pupil: pupil ?? undefined, fan }))
+    for (const k of ['korinish', 'oquvchi', 'fan']) params.delete(k)
+    const rest = params.toString()
+    window.history.replaceState(null, '', `${window.location.pathname}${rest ? `?${rest}` : ''}${window.location.hash}`)
+  } catch {
+    // storage blocked — the link just opens the platform
+  }
+})()
+
+/** The view asked for by the panel's link, once (null when none). */
+export function takePendingView(): PendingView | null {
+  try {
+    const raw = sessionStorage.getItem(PENDING_KEY)
+    if (!raw) return null
+    sessionStorage.removeItem(PENDING_KEY)
+    return JSON.parse(raw) as PendingView
+  } catch {
+    return null
+  }
+}

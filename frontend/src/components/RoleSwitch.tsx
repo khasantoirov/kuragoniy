@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -11,7 +11,7 @@ import { errText } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
 import { homePathFor, teachesHere, useAuth } from '@/lib/auth/AuthContext'
-import { useViewAs, useViewAsUser } from '@/lib/viewAs'
+import { takePendingView, useViewAs, useViewAsUser, type ViewedPupil } from '@/lib/viewAs'
 import { useUIStore } from '@/store/uiStore'
 
 import './role.css'
@@ -74,6 +74,51 @@ function useSwitchView() {
       await reload()
     },
   }
+}
+
+/** A view the panel asked for (admin.kuragoniy.uz → Ko'rinish opens this
+ *  address with ?korinish=…): it starts here once the developer is signed
+ *  in — the person's or the pupil's window, read-only, with the way back on
+ *  top. Mounted in AppShell. */
+export function useViewFromLink() {
+  const { t } = useTranslation()
+  const toast = useToast()
+  const { user, refreshMe } = useAuth()
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const setView = useViewAsUser((s) => s.set)
+  const clearView = useViewAsUser((s) => s.clear)
+  const startPupil = useViewAs((s) => s.start)
+  const stopPupil = useViewAs((s) => s.stop)
+  const setSubject = useUIStore((s) => s.setSubject)
+  const isDev = !!user?.is_dev_superuser && !user.viewing
+  useEffect(() => {
+    if (!isDev) return
+    const ask = takePendingView()
+    if (!ask) return
+    void (async () => {
+      try {
+        if (ask.fan === 'fizika' || ask.fan === 'steam') setSubject(ask.fan)
+        if (ask.pupil) {
+          const pupil = (await api.post<ViewedPupil>(`/learning/students/${ask.pupil}/view-as/`)).data
+          clearView()
+          queryClient.removeQueries({ queryKey: ['student'] })
+          startPupil(pupil)
+          navigate('/s', { replace: true })
+        } else if (ask.key) {
+          const res = await api.post<{ key: string; label: string }>('/accounts/view-as/', { key: ask.key })
+          stopPupil()
+          setView(res.data)
+          queryClient.clear()
+          const me = await refreshMe()
+          navigate(homePathFor(me), { replace: true })
+        }
+      } catch (err) {
+        toast(t(errText(err)), 'error')
+      }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDev])
 }
 
 /** The top bar's "Rol" button — the developer's only (and, while looking

@@ -1,12 +1,13 @@
 import type { User } from '@/lib/api/types'
-import { isAdmin, useAuth } from '@/lib/auth/AuthContext'
+import { isAdmin, teachesHere, useAuth } from '@/lib/auth/AuthContext'
 import { useViewAs, type ViewedPupil } from '@/lib/viewAs'
 
 /** The pupil being looked through, for an administrator — null otherwise. */
 export function useViewedPupil(): ViewedPupil | null {
   const { user } = useAuth()
   const pupil = useViewAs((s) => s.pupil)
-  return pupil && isAdmin(user) ? pupil : null
+  // (an Admin / the developer counts as a teacher on kuragoniy.uz — teachesHere)
+  return pupil && (isAdmin(user) || teachesHere(user)) ? pupil : null
 }
 
 /** Who the student portal is about: the signed-in pupil — or, in the

@@ -1,0 +1,43 @@
+/* ══ Panel › Ko'rinish (features/console/ViewAsPanel.tsx) ══════════ */
+
+.vwp { display: grid; gap: 16px; }
+.vwp > .prose { margin: 0; }
+
+.vwp__roles { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.vwp__role {
+  display: flex; align-items: flex-start; gap: 12px; padding: 14px; text-align: left;
+  border: 1px solid var(--rule); border-radius: 12px; background: var(--surface); color: var(--ink);
+  font: inherit; cursor: pointer; transition: border-color .15s, background .15s, box-shadow .15s;
+}
+.vwp__role:hover { border-color: var(--ink-3); }
+.vwp__role.is-on {
+  border-color: var(--pick); background: color-mix(in srgb, var(--pick) 7%, var(--surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pick) 14%, transparent);
+}
+.vwp__role:focus-visible { outline: 2px solid var(--pick); outline-offset: 2px; }
+.vwp__ic {
+  display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 10px;
+  color: var(--pick); background: color-mix(in srgb, var(--pick) 11%, transparent);
+}
+.vwp__ic .svic { width: 18px; height: 18px; }
+.vwp__rt { display: grid; gap: 3px; min-width: 0; }
+.vwp__rt b { font-size: 14.5px; }
+.vwp__rt small { color: var(--ink-3); font-size: 12.5px; line-height: 1.4; }
+
+.vwp__pick { margin: 0; }
+.vwp__pick .panel__title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.vwp__fan {
+  padding: 3px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  color: var(--pick); background: color-mix(in srgb, var(--pick) 11%, transparent);
+}
+.vwp__search { max-width: 360px; margin-bottom: 10px; }
+.vwp__list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+.vwp__row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; }
+.vwp__row + .vwp__row { border-top: 1px solid var(--rule-2, var(--rule)); }
+.vwp__who { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.vwp__who b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vwp__who small { color: var(--ink-3); font-size: 12.5px; }
+.vwp__open { flex: none; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+.vwp__open .svic { width: 14px; height: 14px; }
+.vwp__one { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.vwp__one .prose { margin: 0; flex: 1 1 320px; }
