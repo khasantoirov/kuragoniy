@@ -29,16 +29,9 @@
 .fanswitch__b--steam.is-on { background: #6A73FA; }
 .fanswitch__b--fizika.is-on { background: #1E6FD9; }
 [data-theme="dark"] .fanswitch__b--fizika.is-on { background: #2672DE; }
-.fanpill {
-  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; flex: none;
-  border-radius: 999px; font: 600 13px/1 var(--f-body, inherit); white-space: nowrap;
-  color: var(--pick); background: color-mix(in srgb, var(--pick) 12%, transparent);
-}
-.fanpill .svic { width: 16px; height: 16px; }
 @media (max-width: 640px) {
   .fanswitch__b { padding: 0 9px; }
   .fanswitch__b span { display: none; }
-  .fanpill { padding: 0 9px; }
-}
+  }
 
 /* Kirishdagi tanlash ekrani */

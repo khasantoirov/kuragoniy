@@ -37,9 +37,9 @@ export function FanSwitch({ stay = false }: { stay?: boolean } = {}) {
   const lang = useUIStore((s) => s.lang)
   const { visible, current, mixed } = useSubjects()
   const enter = useEnterWindow()
-  if (!mixed) {
-    return <span className={`fanpill fanpill--${current}`} title={subjectLabel(current, lang)}>{IC[ICONS[current]]} {subjectShort(current, lang)}</span>
-  }
+  // one fan: nothing on the top bar (owner, 2026-11-27: "fanni ham ko'rsatmasin");
+  // the switch only for whoever sees both windows
+  if (!mixed) return null
   return (
     <div className="fanswitch" role="group" aria-label={t('Oyna')}>
       {visible.map((s) => (

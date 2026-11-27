@@ -1003,7 +1003,7 @@
 
 /* ── Yuqori panel: jiddiy va rasmiy uslub (egasi, 2026-11-27) ──────────
    Hammasi bir xil 40px balandlikda, "tabletka" o'rniga 10px burchak,
-   ingichka chiziq va sokin ranglar: ≡ · qidiruv · fan yorlig'i · mavzu ·
+   ingichka chiziq va sokin ranglar: ≡ · qidiruv · mavzu ·
    qo'ng'iroqcha · akkaunt. */
 @media (min-width: 761px) {
   /* (min-height stays 4.5rem: its bottom line meets the side menu's brand) */
@@ -1015,11 +1015,6 @@
   }
   [data-skin="r2"] .edtop .iconbtn:hover { background: var(--paper); border-color: var(--ink-3); color: var(--ink); }
   [data-skin="r2"] .edtop .iconbtn .svic, [data-skin="r2"] .edtop .iconbtn svg { width: 18px; height: 18px; }
-  [data-skin="r2"] .edtop .fanpill {
-    height: 40px; padding: 0 14px; border-radius: 10px; font-weight: 600;
-    border: 1px solid color-mix(in srgb, var(--pick) 30%, var(--rule));
-    background: color-mix(in srgb, var(--pick) 7%, var(--surface)); color: var(--pick);
-  }
   [data-skin="r2"] .edtop .fanswitch { border-radius: 10px; padding: 2px; }
   [data-skin="r2"] .edtop .fanswitch__b { border-radius: 8px; }
   [data-skin="r2"] .edtop .acct__btn {
