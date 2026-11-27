@@ -28,7 +28,7 @@ const ROLES: RoleInfo[] = [
   { key: 'dev', badge: { is_dev_superuser: true, role: 'teacher' }, tab: 'mamuriyat',
     sub: "Platformaning texnik egasi: hamma narsa, rollarni berish", count: (s) => s.filter((u) => u.is_dev_superuser).length },
   { key: 'admin', badge: { is_dev_superuser: false, role: 'admin' }, tab: 'mamuriyat',
-    sub: "Admin akkaunt: faqat admin.kuragoniy.uz, login va parol bilan; dars bermaydi", count: (s) => s.filter((u) => !u.is_dev_superuser && u.role === 'admin').length },
+    sub: "Boshqaruv admin.kuragoniy.uz'da; kuragoniy.uz'da o'qituvchi sifatida", count: (s) => s.filter((u) => !u.is_dev_superuser && u.role === 'admin').length },
   { key: 'boshliq', badge: { is_dev_superuser: false, role: 'boshliq' }, tab: 'mamuriyat',
     sub: "Rahbar: darslar va natijalarni nazorat qiladi", count: (s) => s.filter((u) => !u.is_dev_superuser && u.role === 'boshliq').length },
   { key: 'kuzatuvchi', badge: { is_dev_superuser: false, role: 'kuzatuvchi' }, tab: 'kuzatuvchilar',
@@ -141,7 +141,7 @@ export function RolesPage() {
       <section className="panel">
         <h3 className="panel__title">{t('Rollar')}</h3>
         <p className="prose prose--note">{t("Har bir rolda nechta odam borligi. Kartochkani bossangiz, o'sha roldagilar ro'yxati ochiladi.")}</p>
-        <p className="prose prose--note">{t("Admin va dasturchi ikki akkaunt bilan ishlaydi: boshqaruv uchun admin akkaunt (faqat admin.kuragoniy.uz) va dars berish uchun kundalik akkaunt (kuragoniy.uz, oddiy o'qituvchi).")}</p>
+        <p className="prose prose--note">{t("Admin va dasturchi bitta akkaunt bilan ishlaydi: admin.kuragoniy.uz'da boshqaradi, kuragoniy.uz'da dars beradi (u yerda faqat o'qituvchi sahifalari).")}</p>
         {isLoading ? <Skeleton lines={3} /> : (
           <div className="rcards">
             {ROLES.map((r) => {

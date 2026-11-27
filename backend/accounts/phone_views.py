@@ -72,7 +72,7 @@ class PhoneStartView(_Public):
         from .views import _is_locked, _locked_response
         if _is_locked(user):
             return _locked_response(user)
-        refused = refusal(request, user, phone=True)  # admin.kuragoniy.uz: no code for a non-admin; none for an admin account
+        refused = refusal(request, user)  # admin.kuragoniy.uz: no code for a non-admin
         if refused:
             return refused
         return _next_step(phone_auth.start(PhoneVerification.Purpose.LOGIN, phone, user=user))
@@ -132,7 +132,7 @@ class PhoneVerifyView(_Public):
         v.save(update_fields=['used_at'])
         if user is None or not user.is_active:
             return Response({'detail': EXPIRED}, status=status.HTTP_410_GONE)
-        refused = refusal(request, user, phone=True)  # a ticket from kuragoniy.uz brought to the panel
+        refused = refusal(request, user)  # a ticket from kuragoniy.uz brought to the panel
         if refused:
             return refused
         log_event('login_phone', actor=user, request=request)

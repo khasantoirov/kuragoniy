@@ -10,7 +10,9 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
 import { useToast } from '@/components/Toast'
+import { panelLinkFor } from '@/lib/adminHost'
 import { api } from '@/lib/api/client'
+import { mayUseAdminPanel, useAuth } from '@/lib/auth/AuthContext'
 import { useAnnouncementsSocket } from '@/lib/ws/useAnnouncementsSocket'
 
 import type { AppNotification, NotifySummary } from './api'
@@ -22,6 +24,7 @@ export function NotificationsLive() {
   const { t } = useTranslation()
   const toast = useToast()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const qc = useQueryClient()
   const lastSeen = useRef<number | null>(null)
   const setUnread = useNotifyLive((s) => s.setUnread)
@@ -41,7 +44,9 @@ export function NotificationsLive() {
     const device = getDeviceSettings()
     if (device.sound) playSound(soundFor(items[items.length - 1].kind))
     for (const n of items.slice(-3)) {
-      const open = () => navigate(n.url && n.url !== '/notifications' ? n.url : '/notifications')
+      const url = n.url && n.url !== '/notifications' ? n.url : '/notifications'
+      const panel = mayUseAdminPanel(user) ? panelLinkFor(url) : null
+      const open = () => (panel ? window.open(panel, '_blank', 'noopener') : navigate(url))
       const popped = device.popup && document.hidden && showPopup(t(n.title), t(n.body), open)
       if (!popped && !document.hidden) toast(t(n.title))
     }

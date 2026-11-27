@@ -192,7 +192,7 @@ class GuestRequestView(APIView):
             if not request.data.get('guest'):
                 raise ValidationError({'guest': "Mehmon ustozni tanlang."})
             guest = get_object_or_404(
-                User.objects.filter(is_active=True, is_panel_account=False).exclude(role__in=[User.Role.STUDENT, User.Role.MAKTAB]),
+                User.objects.filter(is_active=True).exclude(role__in=[User.Role.STUDENT, User.Role.MAKTAB]),
                 pk=request.data['guest'])
         prev_guest = g.guest
         g.status = new

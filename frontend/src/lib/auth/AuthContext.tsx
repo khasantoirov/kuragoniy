@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { IS_ADMIN_HOST, PANEL_ENABLED } from '@/lib/adminHost'
 import { useViewAs, useViewAsUser } from '@/lib/viewAs'
 import { api, refreshAccessToken, SESSION_ENDED_EVENT, setAccessToken } from '@/lib/api/client'
 import type { User } from '@/lib/api/types'
@@ -10,7 +11,7 @@ import { IDLE_LIMIT_MS, IDLE_WARN_MS, idleMs, markActive } from './idle'
 
 /** Why the app signed the user out — shown once on the login page. */
 export const LOGOUT_REASON_KEY = 'af-logout-reason'
-const REASONS = ['idle', 'expired', 'revoked', 'not_admin', 'panel_account']
+const REASONS = ['idle', 'expired', 'revoked', 'not_admin']
 
 function noteReason(code: string) {
   if (!REASONS.includes(code)) return
@@ -194,10 +195,18 @@ export function isApproved(user: User | null): boolean {
   return user.is_dev_superuser || user.approved || user.role === 'admin' || user.role === 'boshliq'
 }
 
+/** One account, two addresses (owner, 2026-11-27): an Admin and the
+ * developer run the platform at admin.kuragoniy.uz and teach at
+ * kuragoniy.uz, with the same login — here they are teachers only. */
+const TEACHING_HERE = PANEL_ENABLED && !IS_ADMIN_HOST
+
 /** Mirrors accounts.models.User.is_admin on the backend — Boshliq (a
- * non-teaching head) has the same admin-level oversight as Admin. */
+ * non-teaching head) has the same admin-level oversight as Admin. On
+ * kuragoniy.uz an Admin and the developer teach (TEACHING_HERE); the
+ * boshliq keeps the oversight there. */
 export function isAdmin(user: User | null): boolean {
   if (!user) return false
+  if (TEACHING_HERE && !user.viewing && (user.is_dev_superuser || user.role === 'admin')) return false
   return user.is_dev_superuser || user.role === 'admin' || user.role === 'boshliq'
 }
 
@@ -223,8 +232,8 @@ export function isOversight(user: User | null): boolean {
 
 /** Runs classes: approved staff that isn't the read-only observer. */
 export function isTeacherLike(user: User | null): boolean {
-  // an admin account (admin.kuragoniy.uz) never teaches
-  return isApproved(user) && !isStudent(user) && !isObserver(user) && !isSchoolAdmin(user) && !user?.is_panel_account
+  // admin.kuragoniy.uz is the administration's only: nobody teaches there
+  return !IS_ADMIN_HOST && isApproved(user) && !isStudent(user) && !isObserver(user) && !isSchoolAdmin(user)
 }
 
 /** Where a freshly logged-in user lands — each role has its own portal. */

@@ -69,7 +69,8 @@ const mainRoutes: RouteObject[] = [
         // Boshqaruv is the panel at admin.kuragoniy.uz (lib/adminHost.ts) —
         // here as tabs until that address has its DNS record and certificate
         path: '/admin',
-        element: <RequireAdmin>{PANEL_ENABLED ? <GoToPanel /> : page(<AdminTabsLegacy />)}</RequireAdmin>,
+        // (GoToPanel lets the panel's people through: an Admin, the developer)
+        element: PANEL_ENABLED ? <GoToPanel /> : <RequireAdmin>{page(<AdminTabsLegacy />)}</RequireAdmin>,
       },
       {
         path: '/equipment-sheet',

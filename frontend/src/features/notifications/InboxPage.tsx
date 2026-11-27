@@ -8,7 +8,8 @@ import { useToast } from '@/components/Toast'
 import { useAnnouncements, useDeleteAnnouncement } from '@/features/announcements/api'
 import { PageHead, fmtDateTime } from '@/features/portal/ui'
 import { IC } from '@/icons'
-import { isAdminInView, useAuth } from '@/lib/auth/AuthContext'
+import { panelLinkFor } from '@/lib/adminHost'
+import { isAdminInView, mayUseAdminPanel, useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore } from '@/store/uiStore'
 
 import { useInbox, useNotifyAction, type AppNotification, type NotifyKind } from './api'
@@ -64,10 +65,16 @@ export function InboxPage() {
 
   const rows = useMemo(() => list.data?.pages.flatMap((p) => p.results) ?? [], [list.data])
 
+  // the administration's work opens in the panel (admin.kuragoniy.uz)
+  const go = (url: string) => {
+    const panel = mayUseAdminPanel(user) ? panelLinkFor(url) : null
+    if (panel) window.open(panel, '_blank', 'noopener')
+    else navigate(url)
+  }
   const open = (n: AppNotification) => {
     if (!n.read_at) act.mutate({ id: n.id, action: 'read' })
     if (opensReader(n)) setReading(n)
-    else navigate(n.url)
+    else go(n.url)
   }
 
   const readerText = (n: AppNotification) => {
@@ -189,7 +196,7 @@ export function InboxPage() {
           footer={<>
             <button type="button" className="btn" onClick={() => copy(readerText(reading))}>{IC.copy} {t('Nusxa olish')}</button>
             {reading.url && reading.url !== '/notifications' && (
-              <button type="button" className="btn" onClick={() => { setReading(null); navigate(reading.url) }}>{IC.external} {t("Bo'limga o'tish")}</button>
+              <button type="button" className="btn" onClick={() => { setReading(null); go(reading.url) }}>{IC.external} {t("Bo'limga o'tish")}</button>
             )}
             <button type="button" className="btn btn--primary" onClick={() => setReading(null)}>{t('Yopish')}</button>
           </>}>

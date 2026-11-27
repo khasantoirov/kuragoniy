@@ -21,8 +21,8 @@ import './i18n'
    teaching (owner, 2026-11-26: "to'liq ajratish"): the Boshqaruv sections
    (the console's own, both fans at once) and the Ma'muriyat, content and
    requests pages of the platform, each in the Fizika or STEAM window
-   picked on top. An admin account signs in here only; kuragoniy.uz is
-   for teaching. */
+   picked on top. The same account teaches at kuragoniy.uz (owner,
+   2026-11-27: one login for both). */
 
 function named<T extends string>(load: () => Promise<Record<T, ComponentType>>, name: T) {
   return lazy(() => load().then((m) => ({ default: m[name] })))
@@ -217,13 +217,11 @@ export function AdminConsole() {
           ))}
         </nav>
 
-        {/* an admin account has no place on kuragoniy.uz */}
-        {!user?.is_panel_account && (
-          <a className="acon__site" href={MAIN_ORIGIN}>
-            <span className="acon__ic" aria-hidden="true">{IC.external}</span>
-            <span>{t("Platformaga o'tish")}</span>
-          </a>
-        )}
+        {/* the same account teaches there */}
+        <a className="acon__site" href={MAIN_ORIGIN}>
+          <span className="acon__ic" aria-hidden="true">{IC.external}</span>
+          <span>{t("Platformaga o'tish")}</span>
+        </a>
       </aside>
       <button type="button" className="acon__scrim" aria-label={t('Yopish')} tabIndex={-1} onClick={() => setMenuOpen(false)} />
 
@@ -254,16 +252,6 @@ export function AdminConsole() {
         </header>
 
         <main className="acon__page">
-          {user && !user.is_panel_account && (
-            <div className="acon-note" role="note">
-              <span className="acon-note__ic" aria-hidden="true">{IC.shield}</span>
-              <p>
-                {user.is_dev_superuser
-                  ? t("Siz kundalik akkauntingiz bilan kirdingiz. Boshqaruv uchun alohida admin akkaunt yarating: Foydalanuvchilar → «Admin akkaunt yaratish». U bilan kirib ko'rgach, kundalik akkauntdan dasturchi huquqini oling — u oddiy o'qituvchi bo'lib qoladi.")
-                  : t("Siz kundalik akkauntingiz bilan kirdingiz. Boshqaruv uchun dasturchidan alohida admin akkaunt so'rang — kundalik akkaunt keyin oddiy o'qituvchi bo'lib qoladi.")}
-              </p>
-            </div>
-          )}
           <Suspense fallback={<Skeleton lines={6} />}>{section ? section.page : <Outlet />}</Suspense>
         </main>
       </div>

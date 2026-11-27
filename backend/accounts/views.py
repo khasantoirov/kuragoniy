@@ -56,7 +56,6 @@ RESET_CODES_PER_DAY = 5
 RESET_CODE_COOLDOWN_SECONDS = 60
 
 GENERIC_LOGIN_ERROR = "Login yoki parol noto'g'ri."
-PANEL_ROLE_FIXED = "Admin akkauntning roli o'zgarmaydi — keraksiz bo'lsa, uni bloklang."
 
 # A login an administrator types for a staff member; never an "@" — that
 # is what tells an email from a login at sign-in.
@@ -249,8 +248,7 @@ class RefreshView(TokenRefreshView):
         from common.adminhost import refusal_reason
         why = refusal_reason(request, user)
         if why:
-            # no longer an Admin at the panel, or an admin account on
-            # kuragoniy.uz: the session ends here
+            # no longer an Admin: the panel's session ends here
             self._end(parsed, session_for_token(parsed))
             return self._reject(*why)
 
@@ -693,8 +691,7 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
         # plain admin promote/demote other admins.
         if self.action in ('list', 'retrieve'):
             return [IsApproved()]
-        if self.action in ('promote', 'demote', 'set_boshliq', 'set_kuzatuvchi', 'edit_profile', 'create_admin_account',
-                           'drop_dev'):
+        if self.action in ('promote', 'demote', 'set_boshliq', 'set_kuzatuvchi', 'edit_profile'):
             return [IsDevSuperuser()]
         return [IsAdminOrDevSuperuser()]
 
@@ -780,65 +777,6 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
                channels=('app', 'email'))
         return Response({'id': user.id, 'name': user.name, 'login': user.username, 'email': user.email,
                          'role': user.role, 'password': password}, status=status.HTTP_201_CREATED)
-
-    @action(detail=False, methods=['post'], url_path='create-admin-account')
-    def create_admin_account(self, request):
-        """An admin account (the developer only): signs in at
-        admin.kuragoniy.uz alone, with its login and password (it changes
-        the one-time one at the first sign-in). `dev` makes it a
-        developer's."""
-        from .profile import clean_first_name, clean_last_name, full_name
-
-        data = request.data
-        errors = {}
-        try:
-            first = clean_first_name(data.get('first_name'))
-        except ValidationError as exc:
-            errors['first_name'] = exc.detail
-        try:
-            last = clean_last_name(data.get('last_name'))
-        except ValidationError as exc:
-            errors['last_name'] = exc.detail
-        login = str(data.get('login') or '').strip().lower()
-        if not STAFF_LOGIN_RE.fullmatch(login):
-            errors['login'] = "Login 3–30 ta: lotin harfi bilan boshlanadi; harf, raqam, nuqta, pastki chiziq."
-        elif User.objects.filter(Q(username__iexact=login) | Q(previous_username__iexact=login)).exists():
-            errors['login'] = "Bu login band."
-        if errors:
-            raise ValidationError(errors)
-        dev = data.get('dev') in (True, 1, '1', 'true')
-        password = generate_readable_password()
-        user = User.objects.create_user(
-            email=None, password=password, name=full_name(first, last), first_name=first, last_name=last,
-            role=User.Role.ADMIN, username=login, approved=True, must_change_password=True,
-        )
-        user.is_panel_account = True
-        user.is_dev_superuser = dev
-        user.save(update_fields=['is_panel_account', 'is_dev_superuser'])
-        what = 'dasturchi admin akkaunti' if dev else 'admin akkaunt'
-        log_event('admin_account_created', actor=request.user, request=request, detail=f'{user.name} ({login}){" dev" if dev else ""}')
-        notify_admin_action(request.user, f"Yangi {what} yaratdi: {self._label(user)}")
-        return Response({'id': user.id, 'name': user.name, 'login': user.username, 'role': user.role, 'dev': dev,
-                         'password': password}, status=status.HTTP_201_CREATED)
-
-    @action(detail=True, methods=['post'], url_path='drop-dev')
-    def drop_dev(self, request, pk=None):
-        """Takes the developer's rights off an account — the daily one,
-        once the developer works from an admin account. Never one's own,
-        never the last developer's admin account."""
-        target = self.get_object()
-        if target.pk == request.user.pk:
-            raise PermissionDenied("O'zingizdan dasturchi huquqini olib bo'lmaydi.")
-        if not target.is_dev_superuser:
-            raise ValidationError({'detail': "Bu akkaunt dasturchi emas."})
-        others = User.objects.filter(is_active=True, is_dev_superuser=True, is_panel_account=True).exclude(pk=target.pk)
-        if not others.exists():
-            raise ValidationError({'detail': "Avval dasturchining admin akkauntini yarating va u bilan kiring."})
-        target.is_dev_superuser = False
-        target.save(update_fields=['is_dev_superuser'])
-        log_event('dev_rights_dropped', actor=request.user, request=request, detail=self._label(target))
-        notify_admin_action(request.user, f"Dasturchi huquqini oldi: {self._label(target)}")
-        return Response(UserSerializer(target).data)
 
     @action(detail=True, methods=['post'], url_path='edit-profile')
     def edit_profile(self, request, pk=None):
@@ -997,8 +935,6 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
         target = self.get_object()
         if target.is_student:
             raise PermissionDenied("O'quvchi hisobining roli o'zgartirilmaydi.")
-        if target.is_panel_account and role != User.Role.ADMIN:
-            raise PermissionDenied(PANEL_ROLE_FIXED)
         old_role = target.get_role_display()
         target.role = role
         target.approved = True
@@ -1026,8 +962,6 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
         target = self.get_object()
         if target.is_student:
             raise PermissionDenied("O'quvchi hisobining roli o'zgartirilmaydi.")
-        if target.is_panel_account:
-            raise PermissionDenied(PANEL_ROLE_FIXED)
         old_role = target.get_role_display()
         target.role = User.Role.TEACHER
         target.save(update_fields=['role'])

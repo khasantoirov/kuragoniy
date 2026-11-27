@@ -23,7 +23,7 @@ export const NAV_ITEMS: (NavItem & { adminOnly?: boolean; panelOnly?: boolean })
   { to: '/help', label: 'Yordam markazi', icon: 'help' },
   { to: '/about', label: 'Platforma haqida', icon: 'info' },
   // opens admin.kuragoniy.uz (an Admin's or the developer's only)
-  { to: '/admin', label: 'Boshqaruv', icon: 'settings', adminOnly: true, panelOnly: true },
+  { to: '/admin', label: 'Boshqaruv paneli', icon: 'settings', panelOnly: true },
   { to: '/equipment-sheet', label: 'Jihozlar jadvali', icon: 'grid', adminOnly: true },
 ]
 

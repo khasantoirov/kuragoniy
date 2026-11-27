@@ -34,8 +34,6 @@ export interface User {
   // plain teacher's own view of a colleague.
   telegram_chat_id?: number | null
   is_dev_superuser: boolean
-  /** an admin account: signs in at admin.kuragoniy.uz only, never teaches */
-  is_panel_account?: boolean
   created_at: string
   /** Fanlar the administration pointed this person to ('fizika', 'steam');
    *  empty = not set yet (sees both) — lib/subjects.ts. */

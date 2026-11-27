@@ -58,6 +58,22 @@ export function panelSendsFan(pathname: string): boolean {
   return PANEL_FAN_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))
 }
 
+/** The administration's links (its notifications') that live in the panel:
+ *  on kuragoniy.uz, where an Admin and the developer only teach, they open
+ *  admin.kuragoniy.uz instead (owner, 2026-11-27). Null for any other link. */
+export function panelLinkFor(url: string | null | undefined): string | null {
+  if (!url || IS_ADMIN_HOST || !PANEL_ENABLED) return null
+  const [path, query = ''] = url.split('?')
+  const has = (k: string, v: string) => new URLSearchParams(query).get(k) === v
+  if (path === '/admin') return panelUrl(new URLSearchParams(query).get('bolim'))
+  if (path === '/manage/reports') return `${ADMIN_ORIGIN}/reports`
+  if (path === '/staffroom' && has('bolim', 'sorovlar')) return `${ADMIN_ORIGIN}/mehmon`
+  const panelOnly = path.startsWith('/manage/') || path === '/statistics' || path === '/obuna'
+    || (path === '/help' && has('bolim', 'murojaatlar')) || (path === '/shop' && has('bolim', 'sotuv'))
+    || (path === '/reports' && has('bolim', 'baholash')) || (path === '/lessons' && has('sub', 'sorovlar'))
+  return panelOnly ? `${ADMIN_ORIGIN}${url}` : null
+}
+
 /** A page of the platform, from inside the panel. */
 export function siteUrl(path: string): string {
   return `${MAIN_ORIGIN}${path}`

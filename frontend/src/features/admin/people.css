@@ -67,13 +67,3 @@
   .urow .person__acts { grid-column: 1 / -1; justify-content: flex-start; }
   .ubar__search { max-width: none; }
 }
-
-/* an admin account (admin.kuragoniy.uz only) and the developer's actions */
-.thead__acts { display: inline-flex; flex-wrap: wrap; gap: 8px; }
-.urow__panel {
-  display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; padding: 2px 8px; border-radius: 999px;
-  vertical-align: middle; font-size: 11.5px; font-weight: 600;
-  color: var(--logo-blue, #1d3fae); background: color-mix(in srgb, var(--logo-blue, #1d3fae) 11%, transparent);
-}
-.urow__panel .svic { width: 12px; height: 12px; }
-[data-theme="dark"] .urow__panel { color: #8aa4ff; background: rgba(138, 164, 255, .14); }

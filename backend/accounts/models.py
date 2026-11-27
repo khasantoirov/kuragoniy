@@ -115,10 +115,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     # firestore.rules' isDev(); seeded once via a data migration for the
     # addresses in settings.DEV_SUPERUSER_EMAILS.
     is_dev_superuser = models.BooleanField(default=False)
-    # An admin account (owner, 2026-11-26): signs in only at
-    # admin.kuragoniy.uz, with its login and password, and never teaches —
-    # the Admin's / developer's daily account is a teacher's.
-    is_panel_account = models.BooleanField(default=False)
 
     approved = models.BooleanField(default=False)
     # Fanlar the administration pointed this person to — codes from

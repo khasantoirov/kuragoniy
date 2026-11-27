@@ -791,7 +791,7 @@ class TeachersListView(APIView):
 
     def get(self, request):
         rows = window_people(
-            User.objects.filter(is_active=True, is_panel_account=False).exclude(role__in=[User.Role.STUDENT, User.Role.KUZATUVCHI, User.Role.MAKTAB])
+            User.objects.filter(is_active=True).exclude(role__in=[User.Role.STUDENT, User.Role.KUZATUVCHI, User.Role.MAKTAB])
             .filter(Q(classes__isnull=False) | Q(lesson_reports__isnull=False) | Q(role=User.Role.TEACHER)),
             window(request),
         ).distinct().order_by('name').values('id', 'name', 'role')

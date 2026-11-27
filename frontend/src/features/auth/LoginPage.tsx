@@ -51,7 +51,6 @@ const REASON_TEXT: Record<string, string> = {
   expired: "Xavfsizlik uchun har 24 soatda login va parol bilan qaytadan kirish talab qilinadi.",
   revoked: "Bu qurilmadagi seans yakunlangan. Qaytadan kiring.",
   not_admin: "Boshqaruv paneliga faqat administratorlar kiradi. Platformaga kuragoniy.uz orqali kiring.",
-  panel_account: "Bu admin akkaunt — u faqat admin.kuragoniy.uz orqali kiradi. Dars berish uchun o'z kundalik akkauntingiz bilan kiring.",
 }
 
 /** Read once: why the app just signed this browser out. */
