@@ -200,13 +200,19 @@ export function isApproved(user: User | null): boolean {
  * kuragoniy.uz, with the same login — here they are teachers only. */
 const TEACHING_HERE = PANEL_ENABLED && !IS_ADMIN_HOST
 
+/** On kuragoniy.uz an Admin and the developer only teach — like any
+ * teacher: their own fan, no administration, no role switch. */
+export function teachesHere(user: User | null): boolean {
+  return TEACHING_HERE && !!user && !user.viewing && (user.is_dev_superuser || user.role === 'admin')
+}
+
 /** Mirrors accounts.models.User.is_admin on the backend — Boshliq (a
  * non-teaching head) has the same admin-level oversight as Admin. On
  * kuragoniy.uz an Admin and the developer teach (TEACHING_HERE); the
  * boshliq keeps the oversight there. */
 export function isAdmin(user: User | null): boolean {
   if (!user) return false
-  if (TEACHING_HERE && !user.viewing && (user.is_dev_superuser || user.role === 'admin')) return false
+  if (teachesHere(user)) return false
   return user.is_dev_superuser || user.role === 'admin' || user.role === 'boshliq'
 }
 

@@ -26,6 +26,15 @@ export function GlobalSearch() {
   const [open, setOpen] = useState(false)
   // closed it reads "Izlash" (a button); open, the full hint
   const [focused, setFocused] = useState(false)
+  // a computer: always the wide field, its full hint; a phone: the small
+  // «Izlash» button until it is tapped open (skin-edumin.css)
+  const [wide, setWide] = useState(() => window.matchMedia('(min-width: 641px)').matches)
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 641px)')
+    const on = () => setWide(mq.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
   const [active, setActive] = useState(0)
 
   const boxRef = useRef<HTMLDivElement>(null)
@@ -113,7 +122,7 @@ export function GlobalSearch() {
         className="gsearch__input"
         type="search"
         value={text}
-        placeholder={focused ? t('Dars, material, o‘quvchi yoki xodim izlash…') : t('Izlash')}
+        placeholder={wide || focused ? t('Dars, material, o‘quvchi yoki xodim izlash…') : t('Izlash')}
         aria-label={t('Platforma bo‘ylab qidirish')}
         role="combobox"
         aria-expanded={showPanel}

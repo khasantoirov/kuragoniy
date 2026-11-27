@@ -986,23 +986,49 @@
   [data-skin="r2"] .sportal__who { display: none; }
 }
 
-/* ── Kompyuterda ham qidiruv «🔍 Izlash» tugmasi (egasining rasmidagidek):
-   bosilganda to'liq qidiruv maydoniga kengayadi, yopilganda qaytadi. */
+/* ── Kompyuterda qidiruv doim keng maydon (egasi, 2026-11-27: "izlash
+   maydoni nega buncha kichkina") — torayganda o'zi qisqaradi. */
 @media (min-width: 641px) {
-  [data-skin="r2"] .edtop .gsearch {
-    flex: 0 0 140px; max-width: 140px;
-    transition: flex-basis .2s ease, max-width .2s ease;
-  }
+  [data-skin="r2"] .edtop .gsearch { flex: 1 1 560px; max-width: 560px; min-width: 0; }
   [data-skin="r2"] .edtop .gsearch__input {
-    height: 40px; padding-top: 0; padding-bottom: 0; border-radius: var(--r); cursor: pointer;
+    height: 40px; padding-top: 0; padding-bottom: 0; border-radius: 10px; cursor: text;
   }
-  [data-skin="r2"] .edtop .gsearch__input::placeholder { color: var(--ink-2); }
+  [data-skin="r2"] .edtop .gsearch__input::placeholder { color: var(--ink-3); }
   [data-skin="r2"] .edtop .gsearch:not(:focus-within) .gsearch__clear,
   [data-skin="r2"] .edtop .gsearch:not(:focus-within) .gsearch__kbd { display: none; }
-  [data-skin="r2"] .edtop .gsearch:focus-within { flex: 1 1 520px; max-width: 520px; min-width: 0; }
-  [data-skin="r2"] .edtop .gsearch:focus-within .gsearch__input { cursor: text; border-radius: 50rem; }
-  [data-skin="r2"] .edtop .gsearch:focus-within .gsearch__input::placeholder { color: var(--ink-3); }
 }
 @media (max-width: 640px) {
   [data-skin="r2"] .edtop .gsearch__input::placeholder { color: var(--ink-2); }
+}
+
+/* ── Yuqori panel: jiddiy va rasmiy uslub (egasi, 2026-11-27) ──────────
+   Hammasi bir xil 40px balandlikda, "tabletka" o'rniga 10px burchak,
+   ingichka chiziq va sokin ranglar: ≡ · qidiruv · fan yorlig'i · mavzu ·
+   qo'ng'iroqcha · akkaunt. */
+@media (min-width: 761px) {
+  /* (min-height stays 4.5rem: its bottom line meets the side menu's brand) */
+  [data-skin="r2"] .edtop__inner { gap: 16px; }
+  [data-skin="r2"] .edtop__acts { gap: 8px; }
+  [data-skin="r2"] .edtop .iconbtn {
+    width: 40px; height: 40px; border: 1px solid var(--rule); border-radius: 10px;
+    background: var(--surface); color: var(--ink-2);
+  }
+  [data-skin="r2"] .edtop .iconbtn:hover { background: var(--paper); border-color: var(--ink-3); color: var(--ink); }
+  [data-skin="r2"] .edtop .iconbtn .svic, [data-skin="r2"] .edtop .iconbtn svg { width: 18px; height: 18px; }
+  [data-skin="r2"] .edtop .fanpill {
+    height: 40px; padding: 0 14px; border-radius: 10px; font-weight: 600;
+    border: 1px solid color-mix(in srgb, var(--pick) 30%, var(--rule));
+    background: color-mix(in srgb, var(--pick) 7%, var(--surface)); color: var(--pick);
+  }
+  [data-skin="r2"] .edtop .fanswitch { border-radius: 10px; padding: 2px; }
+  [data-skin="r2"] .edtop .fanswitch__b { border-radius: 8px; }
+  [data-skin="r2"] .edtop .acct__btn {
+    height: 40px; padding: 0 14px 0 4px; gap: 10px; border-radius: 10px;
+    border: 1px solid var(--rule); background: var(--surface);
+  }
+  [data-skin="r2"] .edtop .acct__btn:hover { background: var(--paper); border-color: var(--ink-3); }
+  [data-skin="r2"] .edtop .acct__av, [data-skin="r2"] .edtop img.acct__av {
+    width: 32px; height: 32px; max-width: 32px; max-height: 32px; border-radius: 8px;
+  }
+  [data-skin="r2"] .edtop .acct__nm { font: 600 14px/1 var(--f-body); color: var(--ink); }
 }

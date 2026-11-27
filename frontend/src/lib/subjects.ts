@@ -2,14 +2,15 @@ import { useEffect } from 'react'
 
 import { gradeLabel, SUBJECT_GRADES, SUBJECTS, type Grade, type Subject } from '@/features/lessons/labels'
 import type { User } from '@/lib/api/types'
-import { isOversight, useAuth } from '@/lib/auth/AuthContext'
+import { isOversight, teachesHere, useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore } from '@/store/uiStore'
 
 /** The fanlar whose content this person sees — mirrors the backend's
  *  common/subjects.subjects_for: the administration sees both, anyone else
- *  their own, or both while the administration hasn't set one yet. */
+ *  their own, or both while the administration hasn't set one yet. On
+ *  kuragoniy.uz an Admin and the developer are teachers: their own fan. */
 export function subjectsFor(user: User | null): Subject[] {
-  if (!user || user.is_dev_superuser || isOversight(user)) return [...SUBJECTS]
+  if (!user || (user.is_dev_superuser && !teachesHere(user)) || isOversight(user)) return [...SUBJECTS]
   const mine = SUBJECTS.filter((s) => user.subjects?.includes(s))
   return mine.length ? mine : [...SUBJECTS]
 }

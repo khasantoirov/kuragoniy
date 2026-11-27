@@ -10,7 +10,7 @@ import { useToast } from '@/components/Toast'
 import { errText } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { api } from '@/lib/api/client'
-import { homePathFor, useAuth } from '@/lib/auth/AuthContext'
+import { homePathFor, teachesHere, useAuth } from '@/lib/auth/AuthContext'
 import { useViewAs, useViewAsUser } from '@/lib/viewAs'
 import { useUIStore } from '@/store/uiStore'
 
@@ -82,7 +82,8 @@ export function RoleSwitch() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
-  if (!user || !(user.is_dev_superuser || user.viewing)) return null
+  // kuragoniy.uz: the developer teaches there, no role switch (owner, 2026-11-27)
+  if (!user || !((user.is_dev_superuser && !teachesHere(user)) || user.viewing)) return null
   return (
     <>
       <button type="button" className={`roleswitch ${user.viewing ? 'is-viewing' : ''}`} onClick={() => setOpen(true)}
