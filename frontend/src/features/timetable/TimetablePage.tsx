@@ -1029,7 +1029,7 @@ export function TimetablePage() {
   // Jadval always opens on one's own timetable; everyone's is a click away.
   const [mode, setMode] = useState<'mine' | 'all'>('mine')
   const { t } = useTranslation()
-  // the administration's two ways through everyone's timetable
+  // two ways through everyone's timetable — for everyone (owner, 2026-11-27)
   const [version, setVersion] = useState<AllVersion>(() => {
     try {
       return localStorage.getItem(VERSION_KEY) === 'wide' ? 'wide' : 'pick'
@@ -1045,7 +1045,7 @@ export function TimetablePage() {
       // remembered only for this visit
     }
   }
-  const versions = admin ? (
+  const versions = (
     <div className="seg ttx__ver" role="group" aria-label={t("Ko'rinish")}>
       <button type="button" className={`seg__b ${version === 'pick' ? 'is-on' : ''}`} aria-pressed={version === 'pick'} onClick={() => pickVersion('pick')}>
         {t('Tanlab')}
@@ -1054,7 +1054,7 @@ export function TimetablePage() {
         {t('Hammasi birga')}
       </button>
     </div>
-  ) : null
+  )
 
   // "Barcha o'qituvchilar" is visible to every approved user (read-only
   // for non-admins — AllView itself gates cell editing on `admin`), not
@@ -1062,9 +1062,11 @@ export function TimetablePage() {
   // stays admin-only (see timetable/views.py's require_write_permission).
   const tabs = <ModeTabs mode={mode} onChange={setMode} />
 
-  // everyone's timetable: the readable picked view (one teacher's or one
-  // school's week) for everyone; the administration may also see all at once
-  if (mode === 'all' && admin && version === 'wide') return <AllView tabs={tabs} admin={admin} versions={versions} />
+  // everyone's timetable: one teacher's or one school's week (Tanlab), or
+  // every teacher at once (Hammasi birga) — both for everyone (owner,
+  // 2026-11-27: "hammasi birdaniga qismi o'qituvchilarda ko'rinsin"); only
+  // the administration writes (AllView/PickView gate the cells on `admin`)
+  if (mode === 'all' && version === 'wide') return <AllView tabs={tabs} admin={admin} versions={versions} />
   if (mode === 'all') return <PickView tabs={tabs} versions={versions} admin={admin} />
   return <MineView tabs={tabs} admin={admin} />
 }
