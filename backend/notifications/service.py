@@ -67,7 +67,8 @@ def notify(users, kind, title, body='', url='', *, telegram_text=None, channels=
                 data=data or {}, dedupe_key=dedupe_key, fan=fan or '',
             ))
         if 'telegram' in channels and allowed['telegram']:
-            notify_user(user, telegram_text or (f'{title}\n{body}' if body else title))
+            # with «Ochish» under it: the page in the bot's mini app
+            notify_user(user, telegram_text or (f'{title}\n{body}' if body else title), url=url)
         if 'email' in channels and allowed['email'] and email_on and user.email:
             emails.append((user.email, f'{_brand()}: {title}', f'{title}\n\n{body}'.strip()))
     created = []

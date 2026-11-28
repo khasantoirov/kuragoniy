@@ -22,6 +22,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from accounts.models import User
+from common.audit import app_link
 from common.subjects import one_fan
 from journal.models import ClassDay, JournalClass
 from notifications.models import Kind
@@ -60,7 +61,11 @@ def _once(kind: str, user_id, day) -> bool:
 
 
 def _open(label: str, path: str) -> str:
-    """The last line of a Telegram reminder: the page, one tap away."""
+    """The last line of a Telegram reminder: the page, one tap away — only
+    where the message can't carry the «Ochish» button (common/audit.py
+    app_link: an http site); with the button the line would repeat it."""
+    if app_link(path):
+        return ''
     return f"\n{label}: {settings.SITE_URL}{path}"
 
 
@@ -141,3 +146,28 @@ def send_evening(now: datetime | None = None) -> int:
 
 def send_due(now: datetime | None = None) -> int:
     return send_morning(now) + send_evening(now)
+
+
+NOT_TEACHING = (User.Role.STUDENT, User.Role.KUZATUVCHI, User.Role.MAKTAB)
+
+
+def today_for(user, now: datetime | None = None) -> str:
+    """The bot's «📅 Bugungi darslarim»: one teacher's lessons today, asked
+    for at any time (the morning reminder comes by itself). Plain text."""
+    now = timezone.localtime(now)
+    day = now.date()
+    when = day.strftime('%d.%m.%Y')
+    if user.role in NOT_TEACHING:
+        return "📅 Bu tugma o'qituvchilar uchun — dars jadvali o'qituvchida bo'ladi."
+    slots = [s for s in TimetableSlot.objects.filter(teacher=user, day_index=day.weekday(), band=False)
+             .select_related('school').order_by('period_index')
+             if s.maktab.strip() or s.sinf.strip() or s.xona.strip() or s.time_from]
+    school_day = _school_day(day)
+    if not slots:
+        if not school_day:
+            return f"📅 Bugun ({when}) dars kuni emas — dam olish kuni yoki ta'til."
+        return f"📅 Bugun ({when}) jadvalingizda dars yo'q."
+    text = f"📅 Bugun ({when}) {len(slots)} ta darsingiz bor:\n" + '\n'.join(_line(s) for s in slots)
+    if not school_day:
+        text += "\n\nℹ️ Bugun dars kuni emas (dam olish kuni yoki ta'til) — jadvaldagi odatiy darslar."
+    return text

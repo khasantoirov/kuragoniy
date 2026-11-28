@@ -16,13 +16,17 @@ import logging
 import os
 
 from aiogram import F, Router
-from aiogram.types import FSInputFile, KeyboardButton, Message, ReplyKeyboardMarkup
+from aiogram.types import (
+    FSInputFile, InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, Message, ReplyKeyboardMarkup, WebAppInfo,
+)
 from asgiref.sync import sync_to_async
 
 logger = logging.getLogger(__name__)
 router = Router(name="library")
 
 LIBRARY_BUTTON_TEXT = "📚 Kutubxona"
+# telegrambot/bot/today.py answers it
+TODAY_BUTTON_TEXT = "📅 Bugungi darslarim"
 
 _KIND_ICON = {'kitob': '📕', 'qollanma': '📗'}
 
@@ -35,10 +39,15 @@ _TELEGRAM_BOT_UPLOAD_LIMIT = 50 * 1024 * 1024
 
 
 def main_menu_keyboard() -> ReplyKeyboardMarkup:
-    return ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text=LIBRARY_BUTTON_TEXT)]], resize_keyboard=True)
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text=TODAY_BUTTON_TEXT), KeyboardButton(text=LIBRARY_BUTTON_TEXT)]],
+        resize_keyboard=True,
+    )
 
 
-def _files_sync() -> list[tuple[str, str]]:
+def _files_sync() -> list[tuple[str, str, str | None]]:
+    """(file path, caption, the reader in the mini app or None)."""
+    from common.audit import app_link
     from library.models import LibraryItem
 
     items = (
@@ -54,7 +63,7 @@ def _files_sync() -> list[tuple[str, str]]:
         label = f"{_KIND_ICON.get(item.kind, '📄')} {html.escape(item.title)}"
         if item.grade:
             label += f" ({item.grade}-sinf)"
-        out.append((item.file.path, label))
+        out.append((item.file.path, label, app_link(f'/library/{item.pk}/read')))
     return out
 
 
@@ -68,11 +77,21 @@ async def send_library(message: Message):
         await message.answer("Kutubxonada hozircha yuklangan fayl yo'q.")
         return
 
-    await message.answer(f"📚 Kutubxona — {len(files)} ta fayl:")
-    for path, label in files:
+    # the keyboard comes again: an old one (only «Kutubxona») gets the new buttons
+    await message.answer(f"📚 Kutubxona — {len(files)} ta fayl:", reply_markup=main_menu_keyboard())
+    for path, label, reader in files:
         try:
             if os.path.getsize(path) > _TELEGRAM_BOT_UPLOAD_LIMIT:
-                await message.answer(f"{label}\n⚠️ Fayl hajmi katta, Telegram orqali yuborib bo'lmaydi — ilovadagi Kutubxona bo'limidan yuklab oling.")
+                if reader:
+                    # too big for a bot to send: read it in the mini app instead
+                    await message.answer(
+                        f"{label}\n📖 Fayl Telegram orqali yuborish uchun juda katta — uni ilovada o'qing.",
+                        reply_markup=InlineKeyboardMarkup(inline_keyboard=[[
+                            InlineKeyboardButton(text="📖 Ilovada o'qish", web_app=WebAppInfo(url=reader)),
+                        ]]),
+                    )
+                else:
+                    await message.answer(f"{label}\n⚠️ Fayl hajmi katta, Telegram orqali yuborib bo'lmaydi — ilovadagi Kutubxona bo'limidan yuklab oling.")
                 continue
             await message.answer_document(FSInputFile(path), caption=label)
         except Exception:

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom'
+import { createBrowserRouter, Navigate, useLocation, type RouteObject } from 'react-router-dom'
 
 import { Skeleton } from '@/components/Skeleton'
 
@@ -105,8 +105,9 @@ const mainRoutes: RouteObject[] = [
   },
   ...topLevelPortalRoutes,
   { path: '/sayt', element: page(<LandingPage />) },
-  // the Telegram mini app's address (lib/telegram.ts): into the platform
-  { path: '/tg', element: <Navigate to="/" replace /> },
+  // the Telegram mini app's address (lib/telegram.ts): into the platform —
+  // or, from the bot's «Ochish» under a message, ?to= that page
+  { path: '/tg', element: <TgEntry /> },
   {
     path: '/pending-approval',
     element: (
@@ -132,6 +133,14 @@ const mainRoutes: RouteObject[] = [
     ],
   },
 ]
+
+/** /tg?to=/reports — a path on this site only (never another address). */
+function TgEntry() {
+  const { search } = useLocation()
+  const to = new URLSearchParams(search).get('to') ?? ''
+  const safe = to.startsWith('/') && !to.startsWith('//') && !to.includes('\\') && !to.startsWith('/tg')
+  return <Navigate to={safe ? to : '/'} replace />
+}
 
 // admin.kuragoniy.uz is the Boshqaruv paneli only (routes/adminRoutes.tsx)
 export const router = createBrowserRouter(IS_ADMIN_HOST ? adminRoutes : mainRoutes)

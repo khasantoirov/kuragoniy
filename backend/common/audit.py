@@ -16,6 +16,7 @@ import logging
 import os
 import threading
 import urllib.request
+from urllib.parse import urlencode
 
 import requests
 from django.utils import timezone
@@ -173,23 +174,48 @@ def send_document_to_admins(
     threading.Thread(target=run, daemon=True).start()
 
 
-def send_telegram_message(chat_id: int, text: str, *, background: bool = True) -> None:
+def app_link(path: str) -> str | None:
+    """The page `path` inside the Telegram mini app — kuragoniy.uz/tg?to=…
+    (frontend routes/index.tsx TgEntry opens it, signed in by Telegram).
+    None for anything but a path on this site, and when the site isn't
+    https (Telegram refuses web app buttons on http — local runs)."""
+    from django.conf import settings
+
+    site = str(getattr(settings, 'SITE_URL', '') or '').rstrip('/')
+    path = (path or '').strip()
+    if not site.startswith('https://') or not path.startswith('/') or path.startswith('//') or '\\' in path:
+        return None
+    return f"{site}/tg?{urlencode({'to': path})}"
+
+
+def open_button(path: str, text: str = '🚀 Ochish') -> dict | None:
+    """An inline «Ochish» under a message: `path` in the mini app."""
+    url = app_link(path)
+    return {'inline_keyboard': [[{'text': text, 'web_app': {'url': url}}]]} if url else None
+
+
+def send_telegram_message(chat_id: int, text: str, *, background: bool = True, open_path: str = '') -> None:
     """Plain-text DM to one chat (password-reset codes, security alerts,
     award notices). Runs in a background thread by default so a slow Bot
     API never stalls the request — and so the request takes the same time
     whether or not a message was actually sent (no account enumeration
-    through response timing)."""
+    through response timing). `open_path`: an «Ochish» button under it that
+    opens that page in the mini app."""
     token = os.environ.get('BOT_TOKEN')
     if not token or not chat_id:
         return
+    payload = {'chat_id': chat_id, 'text': text, 'disable_web_page_preview': True}
+    markup = open_button(open_path) if open_path else None
 
     def run():
         try:
-            requests.post(
-                f'https://api.telegram.org/bot{token}/sendMessage',
-                json={'chat_id': chat_id, 'text': text, 'disable_web_page_preview': True},
-                timeout=10,
-            )
+            url = f'https://api.telegram.org/bot{token}/sendMessage'
+            if markup:
+                resp = requests.post(url, json={**payload, 'reply_markup': markup}, timeout=10)
+                if resp.status_code != 400:
+                    return
+                # the button was refused (e.g. not a private chat): the text still goes
+            requests.post(url, json=payload, timeout=10)
         except Exception:
             logger.exception('Failed to send Telegram message')
 
@@ -199,8 +225,8 @@ def send_telegram_message(chat_id: int, text: str, *, background: bool = True) -
         run()
 
 
-def notify_user(user, text: str) -> None:
+def notify_user(user, text: str, *, url: str = '') -> None:
     """Telegram DM to `user` if they have linked the bot; silently a no-op
-    otherwise."""
+    otherwise. `url`: the page the message is about — an «Ochish» button."""
     if user is not None and user.telegram_linked and user.telegram_chat_id:
-        send_telegram_message(user.telegram_chat_id, text)
+        send_telegram_message(user.telegram_chat_id, text, open_path=url)

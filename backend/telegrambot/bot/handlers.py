@@ -14,11 +14,8 @@ from datetime import timedelta
 
 from aiogram import F, Router
 from aiogram.filters import CommandStart, Command
-from aiogram.types import (
-    InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, Message, ReplyKeyboardMarkup, WebAppInfo,
-)
+from aiogram.types import KeyboardButton, Message, ReplyKeyboardMarkup
 from asgiref.sync import sync_to_async
-from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
@@ -134,21 +131,16 @@ def _linked_name(chat_id: int) -> str | None:
     return (user.first_name or user.get_full_name() or user.username or '').strip() or user.username
 
 
-def open_app_markup() -> InlineKeyboardMarkup:
-    """«Ochish» under a message: the platform as the mini app (signed in)."""
-    return InlineKeyboardMarkup(inline_keyboard=[[
-        InlineKeyboardButton(text="🚀 Ochish", web_app=WebAppInfo(url=f"{settings.SITE_URL}/tg")),
-    ]])
-
-
 @router.message(CommandStart())
 async def start_plain(message: Message):
     name = await _linked_name(message.chat.id)
     if name:
         await message.answer(
             f"Salom, {html.escape(name)}! Hisobingiz shu Telegram'ga ulangan ✅\n\n"
-            "Platformani shu yerning o'zida ochish uchun «Ochish» tugmasini bosing — parol so'ralmaydi.",
-            reply_markup=open_app_markup(),
+            "🚀 <b>Ochish</b> (pastda chapda) — platforma shu yerning o'zida, parolsiz\n"
+            "📅 <b>Bugungi darslarim</b> — bugungi jadvalingiz\n"
+            "📚 <b>Kutubxona</b> — darsliklar va qo'llanmalar",
+            reply_markup=main_menu_keyboard(),
         )
         return
     await message.answer(

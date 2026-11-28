@@ -41,6 +41,3 @@ def test_start_knows_a_linked_chat():
                              telegram_linked=True, telegram_chat_id=4242)
     assert handlers._linked_name.func(4242) == 'Hasan'
     assert handlers._linked_name.func(1) is None
-    markup = handlers.open_app_markup()
-    button = markup.inline_keyboard[0][0]
-    assert button.web_app.url.endswith('/tg')

@@ -13,7 +13,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
-from telegrambot.bot import backup_commands, handlers, library, replies
+from telegrambot.bot import backup_commands, handlers, library, replies, today
 from telegrambot.bot.announcements import watch_announcements
 from telegrambot.bot.dars_reminders import watch_dars_reminders
 from telegrambot.bot.lessons_backup import watch_lessons_backup
@@ -49,6 +49,7 @@ async def run():
     dp.include_router(handlers.router)
     dp.include_router(backup_commands.router)
     dp.include_router(library.router)
+    dp.include_router(today.router)
     dp.include_router(replies.router)
 
     logger.info("Bot ishga tushmoqda...")
