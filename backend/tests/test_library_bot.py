@@ -29,14 +29,14 @@ def test_item_with_file_is_included_with_kind_icon_and_grade():
     _with_file(title='Fizika darsligi', kind='kitob', grade=8)
     files = _files_sync()
     assert len(files) == 1
-    path, label = files[0]
+    path, label, _reader = files[0]
     assert path.endswith('.pdf')
     assert '📕' in label and 'Fizika darsligi' in label and '8-sinf' in label
 
 
 def test_item_without_grade_has_no_grade_suffix():
     _with_file(title="Qo'llanma", kind='qollanma', grade=None)
-    _, label = _files_sync()[0]
+    _, label, _ = _files_sync()[0]
     assert '📗' in label and 'sinf' not in label
 
 
@@ -44,7 +44,7 @@ def test_results_ordered_by_grade_then_title():
     _with_file(title='Zebra', kind='kitob', grade=7)
     _with_file(title='Alpha', kind='kitob', grade=7)
     _with_file(title='Beta', kind='kitob', grade=9)
-    labels = [label for _, label in _files_sync()]
+    labels = [label for _, label, _ in _files_sync()]
     assert [('Alpha' in l, 'Zebra' in l, 'Beta' in l) for l in labels] == [
         (True, False, False),
         (False, True, False),
@@ -54,7 +54,7 @@ def test_results_ordered_by_grade_then_title():
 
 def test_title_html_is_escaped():
     _with_file(title='<b>Evil</b> & Co', kind='kitob')
-    _, label = _files_sync()[0]
+    _, label, _ = _files_sync()[0]
     assert '<b>Evil</b>' not in label
     assert '&lt;b&gt;Evil&lt;/b&gt;' in label
     assert '&amp; Co' in label
