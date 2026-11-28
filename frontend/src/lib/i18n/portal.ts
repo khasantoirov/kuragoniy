@@ -161,7 +161,7 @@ const ru: Record<string, string> = {
   "Kim sifatida": "В роли",
   "Platformani boshqalar ko'zi bilan ko'ring: tanlangan odamning oynasi kuragoniy.uz'da yangi varaqda, xuddi u ko'rgandek ochiladi. Faqat ko'rish — hech narsa o'zgartirilmaydi; tepadagi bandda «Chiqish» bor. kuragoniy.uz'ga shu akkaunt bilan kirgan bo'lishingiz kerak (kirmagan bo'lsangiz, avval kirish so'raladi).": "Посмотрите на платформу глазами других: окно выбранного человека откроется на kuragoniy.uz в новой вкладке — так, как видит он. Только просмотр — ничего не меняется; в полосе сверху есть «Выйти». Нужно войти на kuragoniy.uz с этой же учётной записью (если не вошли, сначала попросят войти).",
   "Admin kuragoniy.uz'da faqat o'qituvchi sahifalarini ko'radi (boshqaruv shu panelda). Oyna o'z hisobingizda, Admin roli bilan ochiladi.": "Администратор на kuragoniy.uz видит только страницы учителя (управление — в этой панели). Окно открывается с вашей учётной записью в роли администратора.",
-  "Boshliq kuragoniy.uz'da darslar va natijalarni nazorat qiladi. Oyna o'z hisobingizda, Boshliq roli bilan ochiladi.": "Руководитель на kuragoniy.uz контролирует уроки и результаты. Окно открывается с вашей учётной записью в роли руководителя.",
+  "Rahbar kuragoniy.uz'da darslar va natijalarni nazorat qiladi. Oyna o'z hisobingizda, Rahbar roli bilan ochiladi.": "Руководитель на kuragoniy.uz контролирует уроки и результаты. Окно открывается с вашей учётной записью в роли руководителя.",
   "Sizning o'z oynangiz — kuragoniy.uz'da dars beradigan sahifalar.": "Ваше собственное окно — страницы для уроков на kuragoniy.uz.",
   // Telegram mini ilovasi (2026-11-28)
   "Telegram hisobingiz hali kuragoniy.uz akkauntiga ulanmagan. Bir marta login va parol bilan kiring — keyingi safar ilova o'zi ochiladi.": "Ваш Telegram ещё не привязан к учётной записи kuragoniy.uz. Войдите один раз по логину и паролю — в следующий раз приложение откроется само.",
@@ -203,7 +203,7 @@ const ru: Record<string, string> = {
   "O'quvchi": 'Ученик', "O'qituvchi": 'Учитель', 'Login': 'Логин',
   "O'qituvchingiz bergan login yoki o'zingiz tanlagan login bilan kiring.": 'Войдите с логином, который выдал учитель или который вы выбрали.',
   'Email va parolingiz bilan kiring.': 'Войдите с email и паролем.',
-  'Administrator, boshliq, kuzatuvchi va dasturchi uchun.': 'Для администратора, руководителя, наблюдателя и разработчика.',
+  'Administrator, rahbar, kuzatuvchi va dasturchi uchun.': 'Для администратора, руководителя, наблюдателя и разработчика.',
   "Login yoki parol noto'g'ri": 'Неверный логин или пароль',
   "Sinf kodi bilan ro'yxatdan o'tish": 'Регистрация по коду класса',
   'Sinf kodi': 'Код класса', 'Davom etish': 'Продолжить', 'Familiya va ism': 'Фамилия и имя',
@@ -409,7 +409,7 @@ const ru: Record<string, string> = {
   'Ulanmagan': 'Не подключён',
   'Xabarlarni qanday va qayerdan olasiz': 'Как и где вы получаете сообщения',
   'Yangi parol saqlangach, boshqa barcha qurilmalardagi seanslar yopiladi.': 'После сохранения нового пароля сеансы на всех других устройствах закроются.',
-  'Yangi qurilmadan kirish, parol va ikki bosqichli tasdiqlash o\'zgarishlari, hisob bloklanishi': 'Вход с нового устройства, смена пароля и 2FA, блокировка аккаунта',
+  "Yangi qurilmadan kirish, parol o'zgarishi va hisob bloklanishi": 'Вход с нового устройства, смена пароля и блокировка аккаунта',
   'Yangi uyga vazifa berilganda': 'Когда задано новое домашнее задание',
   'Yoqilgan — ilova yopiq bo\'lsa ham e\'lonlar shu qurilmaga keladi.': 'Включено — объявления придут на это устройство даже при закрытом приложении.',
   'Yuborilgan e\'lonlar': 'Отправленные объявления',
@@ -1425,6 +1425,13 @@ const ru: Record<string, string> = {
   "Tanlangan ustozning haftasi — faqat ko'rish uchun.": "Неделя выбранного учителя — только для просмотра.",
   "Dars kunlari ertalab bot bugungi darslaringizni, kechqurun esa jurnalga yozilmagan darslarni eslatadi.": "В учебные дни бот утром напомнит о сегодняшних уроках, а вечером — об уроках, не записанных в журнал.",
   "Ertalab bugungi darslaringiz, kechqurun jurnalga yozilmagan darslar (dars kunlari)": "Утром — сегодняшние уроки, вечером — уроки, не записанные в журнал (в учебные дни)",
+  // Sozlamalar › Ko'rinish, Bildirishnomalar (2026-11-28)
+  "Yorug'": "Светлая",
+  "«Avtomatik» qurilmangizning kunduzgi va tungi rejimiga ergashadi": "«Автоматически» — следует дневному и ночному режиму устройства",
+  "Menyu, tugmalar va xabarlar shu tilda ko'rsatiladi": "Меню, кнопки и сообщения будут на этом языке",
+  "Oyna chiqmasa, sababi operatsion tizim yoki brauzer sozlamalarida": "Если окно не появилось — проверьте настройки системы или браузера",
+  "Telefonda xabar ilova ochiq turganda ko'rsatiladi. Ilova yopiq bo'lganda ham olish uchun «Push»ni yoqing (iPhone'da avval saytni «Bosh ekranga qo'shing»).": "На телефоне уведомления показываются, пока приложение открыто. Чтобы получать их и при закрытом приложении, включите «Push» (на iPhone сначала добавьте сайт на экран «Домой»).",
+  "O'zgarishlar avtomatik saqlanadi": "Изменения сохраняются автоматически",
 }
 
 const en: Record<string, string> = {
@@ -1581,7 +1588,7 @@ const en: Record<string, string> = {
   "Kim sifatida": "As whom",
   "Platformani boshqalar ko'zi bilan ko'ring: tanlangan odamning oynasi kuragoniy.uz'da yangi varaqda, xuddi u ko'rgandek ochiladi. Faqat ko'rish — hech narsa o'zgartirilmaydi; tepadagi bandda «Chiqish» bor. kuragoniy.uz'ga shu akkaunt bilan kirgan bo'lishingiz kerak (kirmagan bo'lsangiz, avval kirish so'raladi).": "See the platform through others' eyes: the chosen person's window opens at kuragoniy.uz in a new tab, just as they see it. View only — nothing changes; the strip on top has «Exit». You need to be signed in at kuragoniy.uz with this same account (if not, it asks you to sign in first).",
   "Admin kuragoniy.uz'da faqat o'qituvchi sahifalarini ko'radi (boshqaruv shu panelda). Oyna o'z hisobingizda, Admin roli bilan ochiladi.": "An admin sees only the teaching pages at kuragoniy.uz (running the platform is in this panel). The window opens on your own account with the Admin role.",
-  "Boshliq kuragoniy.uz'da darslar va natijalarni nazorat qiladi. Oyna o'z hisobingizda, Boshliq roli bilan ochiladi.": "The head oversees lessons and results at kuragoniy.uz. The window opens on your own account with the Head role.",
+  "Rahbar kuragoniy.uz'da darslar va natijalarni nazorat qiladi. Oyna o'z hisobingizda, Rahbar roli bilan ochiladi.": "The head oversees lessons and results at kuragoniy.uz. The window opens on your own account with the Head role.",
   "Sizning o'z oynangiz — kuragoniy.uz'da dars beradigan sahifalar.": "Your own window — the teaching pages at kuragoniy.uz.",
   // Telegram mini ilovasi (2026-11-28)
   "Telegram hisobingiz hali kuragoniy.uz akkauntiga ulanmagan. Bir marta login va parol bilan kiring — keyingi safar ilova o'zi ochiladi.": "Your Telegram isn't linked to a kuragoniy.uz account yet. Sign in once with your login and password — next time the app opens by itself.",
@@ -1620,7 +1627,7 @@ const en: Record<string, string> = {
   "O'quvchi": 'Student', "O'qituvchi": 'Teacher', 'Login': 'Username',
   "O'qituvchingiz bergan login yoki o'zingiz tanlagan login bilan kiring.": 'Sign in with the username your teacher gave you or the one you chose.',
   'Email va parolingiz bilan kiring.': 'Sign in with your email and password.',
-  'Administrator, boshliq, kuzatuvchi va dasturchi uchun.': 'For administrators, heads, observers and the developer.',
+  'Administrator, rahbar, kuzatuvchi va dasturchi uchun.': 'For administrators, heads, observers and the developer.',
   "Login yoki parol noto'g'ri": 'Wrong username or password',
   "Sinf kodi bilan ro'yxatdan o'tish": 'Sign up with a class code',
   'Sinf kodi': 'Class code', 'Davom etish': 'Continue', 'Familiya va ism': 'Surname and name',
@@ -1823,7 +1830,7 @@ const en: Record<string, string> = {
   'Ulanmagan': 'Not connected',
   'Xabarlarni qanday va qayerdan olasiz': 'How and where you get messages',
   'Yangi parol saqlangach, boshqa barcha qurilmalardagi seanslar yopiladi.': 'Saving a new password ends the sessions on all your other devices.',
-  'Yangi qurilmadan kirish, parol va ikki bosqichli tasdiqlash o\'zgarishlari, hisob bloklanishi': 'Sign-in from a new device, password and two-step changes, account lockout',
+  "Yangi qurilmadan kirish, parol o'zgarishi va hisob bloklanishi": 'Sign-in from a new device, password change and account lockout',
   'Yangi uyga vazifa berilganda': 'When new homework is set',
   'Yoqilgan — ilova yopiq bo\'lsa ham e\'lonlar shu qurilmaga keladi.': 'On — announcements reach this device even when the app is closed.',
   'Yuborilgan e\'lonlar': 'Sent announcements',
@@ -2839,6 +2846,13 @@ const en: Record<string, string> = {
   "Tanlangan ustozning haftasi — faqat ko'rish uchun.": "The chosen teacher's week, view only.",
   "Dars kunlari ertalab bot bugungi darslaringizni, kechqurun esa jurnalga yozilmagan darslarni eslatadi.": "On school days the bot reminds you of today's lessons in the morning, and of lessons not yet in the journal in the evening.",
   "Ertalab bugungi darslaringiz, kechqurun jurnalga yozilmagan darslar (dars kunlari)": "In the morning, today's lessons; in the evening, lessons not yet written in the journal (school days)",
+  // Sozlamalar › Ko'rinish, Bildirishnomalar (2026-11-28)
+  "Yorug'": "Light",
+  "«Avtomatik» qurilmangizning kunduzgi va tungi rejimiga ergashadi": "“Automatic” follows your device’s light and dark mode",
+  "Menyu, tugmalar va xabarlar shu tilda ko'rsatiladi": "Menus, buttons and messages appear in this language",
+  "Oyna chiqmasa, sababi operatsion tizim yoki brauzer sozlamalarida": "If nothing pops up, check your system or browser settings",
+  "Telefonda xabar ilova ochiq turganda ko'rsatiladi. Ilova yopiq bo'lganda ham olish uchun «Push»ni yoqing (iPhone'da avval saytni «Bosh ekranga qo'shing»).": "On a phone, notifications show while the app is open. To get them when it is closed, turn on “Push” (on iPhone, first add the site to the Home Screen).",
+  "O'zgarishlar avtomatik saqlanadi": "Changes are saved automatically",
 }
 
 i18n.addResourceBundle('ru', 'translation', ru, true, false)

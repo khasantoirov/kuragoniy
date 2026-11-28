@@ -1,4 +1,4 @@
-import { type ReactNode, Suspense, useEffect, useRef } from 'react'
+import { type ReactNode, type RefObject, Suspense, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
 
@@ -12,6 +12,34 @@ export interface PageTab {
   show?: boolean
 }
 
+/** A tab row that doesn't fit (a phone): it scrolls sideways, the open tab
+ *  is brought into view (sideways only — the page doesn't move), and the
+ *  side with more tabs fades out (data-fade, styles/settings.css). */
+export function useTabScroll(ref: RefObject<HTMLElement | null>, active: unknown) {
+  useEffect(() => {
+    const bar = ref.current
+    if (!bar) return
+    const on = bar.querySelector<HTMLElement>('.is-on')
+    if (on && bar.scrollWidth > bar.clientWidth) {
+      bar.scrollLeft = Math.max(0, on.offsetLeft - bar.offsetLeft - (bar.clientWidth - on.offsetWidth) / 2)
+    }
+    const mark = () => {
+      const more = bar.scrollWidth - bar.clientWidth
+      const l = bar.scrollLeft > 2
+      const r = more > 2 && bar.scrollLeft < more - 2
+      if (l || r) bar.dataset.fade = `${l ? 'l' : ''}${r ? 'r' : ''}`
+      else delete bar.dataset.fade
+    }
+    mark()
+    bar.addEventListener('scroll', mark, { passive: true })
+    window.addEventListener('resize', mark)
+    return () => {
+      bar.removeEventListener('scroll', mark)
+      window.removeEventListener('resize', mark)
+    }
+  }, [ref, active])
+}
+
 /** Sibling pages under one menu item: tabs on top, the open one in
  * ?bolim=<key> — the pages keep their own ?tab= and other params. `keep`:
  * params that stay when the tab changes (a filter shared by the tabs);
@@ -21,16 +49,8 @@ export function PageTabs({ tabs, keep = [], toolbar, aside }: { tabs: PageTab[];
   const [params, setParams] = useSearchParams()
   const shown = tabs.filter((x) => x.show !== false)
   const current = shown.find((x) => x.key === params.get('bolim')) ?? shown[0]
-  // On a phone the tabs are one row that scrolls sideways: bring the open
-  // one into view (sideways only — the page itself doesn't move).
   const barRef = useRef<HTMLDivElement>(null)
-  const currentKey = current?.key
-  useEffect(() => {
-    const bar = barRef.current
-    const on = bar?.querySelector<HTMLElement>('.is-on')
-    if (!bar || !on || bar.scrollWidth <= bar.clientWidth) return
-    bar.scrollLeft = Math.max(0, on.offsetLeft - bar.offsetLeft - 8)
-  }, [currentKey])
+  useTabScroll(barRef, current?.key)
   if (!current) return null
   const bar = shown.length > 1 && (
     <div ref={barRef} className="seg settabs" role="tablist">

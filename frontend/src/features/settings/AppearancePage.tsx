@@ -1,27 +1,42 @@
 import { useTranslation } from 'react-i18next'
 
 import { PageHead } from '@/features/portal/ui'
+import { IC } from '@/icons'
 import { useUIStore, type Lang, type ThemeMode } from '@/store/uiStore'
 
 
-const LANGS: { k: Lang; label: string }[] = [
-  { k: 'uz', label: "O'zbekcha" },
-  { k: 'ru', label: 'Ruscha' },
-  { k: 'en', label: 'Inglizcha' },
+/* Tillar o'z nomi bilan (Русский, English) — boshqa tildagi odam ham
+   o'z tilini topadi; ostida joriy tildagi nomi, agar farq qilsa. */
+const LANGS: { k: Lang; code: string; native: string; label: string }[] = [
+  { k: 'uz', code: 'UZ', native: "O'zbekcha", label: "O'zbekcha" },
+  { k: 'ru', code: 'RU', native: 'Русский', label: 'Ruscha' },
+  { k: 'en', code: 'EN', native: 'English', label: 'Inglizcha' },
 ]
 
-const THEMES: { k: ThemeMode; label: string; sub?: string }[] = [
-  { k: 'system', label: "Tizim bo'yicha", sub: 'Qurilma sozlamasiga ergashadi' },
-  { k: 'light', label: 'Och' },
+const THEMES: { k: ThemeMode; label: string }[] = [
+  { k: 'system', label: 'Avtomatik' },
+  { k: 'light', label: "Yorug'" },
   { k: 'dark', label: "Qorong'i" },
 ]
 
-function Choice({ on, onClick, title, sub }: { on: boolean; onClick: () => void; title: string; sub?: string }) {
+/** A small picture of the app in that theme (fixed colours — it shows the
+ *  theme, not the current one); «Avtomatik» is half light, half dark. */
+function ThemePreview({ mode }: { mode: ThemeMode }) {
+  const ui = (tone: 'light' | 'dark', half = false) => (
+    <span className={`thui is-${tone} ${half ? 'thui--half' : ''}`}>
+      <span className="thui__side"><i /><i /><i /><i /></span>
+      <span className="thui__main">
+        <span className="thui__bar" />
+        <span className="thui__card"><i /><i /><i /></span>
+        <span className="thui__row"><span className="thui__card" /><span className="thui__card" /></span>
+      </span>
+    </span>
+  )
   return (
-    <button type="button" className={`choice ${on ? 'is-on' : ''}`} onClick={onClick} aria-pressed={on}>
-      <span className="choice__t">{title}</span>
-      {sub && <span className="choice__s">{sub}</span>}
-    </button>
+    <span className="thprev" aria-hidden="true">
+      {ui(mode === 'dark' ? 'dark' : 'light')}
+      {mode === 'system' && ui('dark', true)}
+    </span>
   )
 }
 
@@ -34,29 +49,46 @@ export function AppearancePage() {
     <div className="setpg">
       <PageHead title={t("Ko'rinish")} sub={t('Tema va til — barcha qurilmalaringizda bir xil')} />
 
-      <section className="panel">
-        <h3 className="panel__title">{t('Tema')}</h3>
-        <p className="prose prose--note">{t('Ilovaning umumiy ranglari')}</p>
-        <div className="choices">
-          {THEMES.map((x) => (
-            <Choice key={x.k} on={s.themeMode === x.k} onClick={() => s.setThemeMode(x.k)} title={t(x.label)} sub={x.sub && t(x.sub)} />
-          ))}
-        </div>
-      </section>
+      <div className="setgrid">
+        <section className="panel">
+          <h3 className="panel__title">{t('Tema')}</h3>
+          <p className="prose prose--note">{t("«Avtomatik» qurilmangizning kunduzgi va tungi rejimiga ergashadi")}</p>
+          <div className="thpick" role="radiogroup" aria-label={t('Tema')}>
+            {THEMES.map((x) => {
+              const on = s.themeMode === x.k
+              return (
+                <button key={x.k} type="button" role="radio" aria-checked={on} className={`thcard ${on ? 'is-on' : ''}`}
+                  onClick={() => s.setThemeMode(x.k)}>
+                  <ThemePreview mode={x.k} />
+                  <span className="thcard__lb"><span className="thcard__radio" />{t(x.label)}</span>
+                </button>
+              )
+            })}
+          </div>
+        </section>
 
-      <section className="panel">
-        <h3 className="panel__title">{t('Til')}</h3>
-        <div className="settings__row">
-          {LANGS.map((l) => (
-            <button key={l.k} type="button" className={`chip settings__opt ${l.k === s.lang ? 'is-on' : ''}`} onClick={() => s.setLang(l.k)}>
-              {t(l.label)}
-            </button>
-          ))}
-        </div>
-      </section>
-
-
-
+        <section className="panel">
+          <h3 className="panel__title">{t('Til')}</h3>
+          <p className="prose prose--note">{t("Menyu, tugmalar va xabarlar shu tilda ko'rsatiladi")}</p>
+          <div className="optlist" role="radiogroup" aria-label={t('Til')}>
+            {LANGS.map((l) => {
+              const on = l.k === s.lang
+              const sub = t(l.label)
+              return (
+                <button key={l.k} type="button" role="radio" aria-checked={on} className={`optrow ${on ? 'is-on' : ''}`}
+                  onClick={() => s.setLang(l.k)}>
+                  <span className="optrow__code">{l.code}</span>
+                  <span className="optrow__txt">
+                    <span className="optrow__t" lang={l.k}>{l.native}</span>
+                    {sub !== l.native && <span className="optrow__s">{sub}</span>}
+                  </span>
+                  <span className="optrow__check">{on && IC.check}</span>
+                </button>
+              )
+            })}
+          </div>
+        </section>
+      </div>
     </div>
   )
 }

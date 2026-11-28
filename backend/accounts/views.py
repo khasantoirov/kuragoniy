@@ -1076,7 +1076,7 @@ class UserAdminViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='set-boshliq')
     def set_boshliq(self, request, pk=None):
-        return self._set_role(request, User.Role.BOSHLIQ, "Boshliq qildi")
+        return self._set_role(request, User.Role.BOSHLIQ, "Rahbar qildi")
 
     @action(detail=True, methods=['post'], url_path='set-kuzatuvchi')
     def set_kuzatuvchi(self, request, pk=None):

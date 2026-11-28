@@ -35,7 +35,7 @@ _SYSTEMS = (
 KIND_LABELS = {'phone': 'Telefon', 'tablet': 'Planshet', 'desktop': 'Kompyuter'}
 
 # Hint keys the client sends (lib/device.ts) and the session stores.
-_HINT_KEYS = ('model', 'pv', 'p', 'ff', 'tp')
+_HINT_KEYS = ('model', 'pv', 'p', 'ff', 'tp', 'app')
 
 
 def parse_hints(raw: str | None) -> dict:
@@ -161,6 +161,10 @@ def summarize(user_agent: str | None, hints: dict | None = None) -> dict:
             version = version_rx.search(ua) if version_rx else None
             browser_full = f'{name} {version.group(1)}' if version else name
             break
+    if hints.get('app') == 'telegram':
+        # the KE mini app inside Telegram (frontend lib/device.ts): its web
+        # view (Edge WebView2, Chrome, Safari) isn't what the person opened
+        browser, browser_full = 'Telegram', 'Telegram (mini ilova)'
     system = next((name for name, rx in _SYSTEMS if rx.search(ua)), "Noma'lum tizim")
     pv = hints.get('pv', '')
     form = hints.get('ff', '').lower()

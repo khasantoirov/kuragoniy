@@ -6,6 +6,8 @@
  * (backend common/useragent.py). Browsers without the API (Firefox,
  * Safari) send nothing and are described from the User-Agent alone.
  */
+import { IN_TELEGRAM } from '@/lib/telegram'
+
 type UAData = { getHighEntropyValues?: (hints: string[]) => Promise<Record<string, unknown>> }
 
 let header = ''
@@ -26,6 +28,8 @@ export const deviceReady: Promise<void> = (async () => {
   }
   // iPadOS asks for desktop sites and calls itself a Mac; touch gives it away.
   if (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent)) params.set('tp', String(navigator.maxTouchPoints))
+  // inside the Telegram mini app: its own app, whatever web view it runs in
+  if (IN_TELEGRAM) params.set('app', 'telegram')
   header = params.toString()
 })()
 

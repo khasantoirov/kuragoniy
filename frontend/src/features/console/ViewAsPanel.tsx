@@ -27,7 +27,7 @@ const WHO: { k: Who; label: string; sub: string; icon: keyof typeof IC }[] = [
   { k: 'student', label: "O'quvchi", sub: "Sinf → o'quvchi: uning portali", icon: 'cap' },
   { k: 'admin', label: 'Admin', sub: "Admin kuragoniy.uz'da ko'radigan oyna", icon: 'shield' },
   { k: 'dev', label: 'Dasturchi', sub: "O'zingiz — dars beradigan oynangiz", icon: 'settings' },
-  { k: 'boshliq', label: 'Boshliq', sub: 'Rahbar oynasi: nazorat va statistika', icon: 'chart' },
+  { k: 'boshliq', label: 'Rahbar', sub: 'Rahbar oynasi: nazorat va statistika', icon: 'chart' },
   { k: 'kuzatuvchi', label: 'Kuzatuvchi', sub: 'Inspektor yoki metodist', icon: 'eye' },
   { k: 'maktab', label: 'Direktor/zavuch', sub: "Hamkor maktab ma'muriyati", icon: 'school' },
 ]
@@ -161,7 +161,7 @@ export function ViewAsPanel() {
         )}
         {who === 'boshliq' && (
           <div className="vwp__one">
-            <p className="prose">{t("Boshliq kuragoniy.uz'da darslar va natijalarni nazorat qiladi. Oyna o'z hisobingizda, Boshliq roli bilan ochiladi.")}</p>
+            <p className="prose">{t("Rahbar kuragoniy.uz'da darslar va natijalarni nazorat qiladi. Oyna o'z hisobingizda, Rahbar roli bilan ochiladi.")}</p>
             <OpenButton href={viewLink({ korinish: 'role:boshliq', fan })} />
           </div>
         )}

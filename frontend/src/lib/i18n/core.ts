@@ -472,9 +472,9 @@ const ru = {
   "ta o'tkazib yuborildi": 'пропущено',
   "E'lon yuborish": 'Отправить объявление',
   'Adminlikni olish': 'Снять права администратора', 'Admin qilish': 'Сделать администратором',
-  'Boshliq qilish': 'Сделать руководителем', 'Boshliqlikni olish': 'Снять права руководителя',
-  'Boshliq qilindi': 'Назначен руководителем', 'Boshliqlik olindi': 'Права руководителя сняты',
-  "boshliq huquqlari beriladi (admin kabi nazorat qiladi, lekin dars/jurnal yuritmaydi).":
+  'Rahbar qilish': 'Сделать руководителем', 'Rahbarlikni olish': 'Снять права руководителя',
+  'Rahbar qilindi': 'Назначен руководителем', 'Rahbarlik olindi': 'Права руководителя сняты',
+  "rahbar huquqlari beriladi (admin kabi nazorat qiladi, lekin dars/jurnal yuritmaydi).":
     'получит права руководителя (контроль как у администратора, но без ведения уроков/журнала).',
   "Hali tasdiqlangan foydalanuvchi yo'q.": 'Подтверждённых пользователей пока нет.',
   'Tasdiqlandi': 'Подтверждено',
@@ -650,7 +650,7 @@ const ru = {
   'Push obunachilar': 'Push-подписчики',
   "So'nggi 30 kunlik e'lonlar": 'Объявления за последние 30 дней',
   'Kutayotgan tarjima ishlari': 'Ожидающие переводы',
-  'Boshliq': 'Руководитель',
+  'Rahbar': 'Руководитель',
   'Yakunlangan': 'Завершён',
   'Hozirgi dars': 'Идёт сейчас',
   'Kutilmoqda': 'Предстоит',
@@ -1181,9 +1181,9 @@ const en = {
   "ta o'tkazib yuborildi": 'skipped',
   "E'lon yuborish": 'Send announcement',
   'Adminlikni olish': 'Revoke admin', 'Admin qilish': 'Make admin',
-  'Boshliq qilish': 'Make head', 'Boshliqlikni olish': 'Revoke head',
-  'Boshliq qilindi': 'Made head', 'Boshliqlik olindi': 'Head rights revoked',
-  "boshliq huquqlari beriladi (admin kabi nazorat qiladi, lekin dars/jurnal yuritmaydi).":
+  'Rahbar qilish': 'Make head', 'Rahbarlikni olish': 'Revoke head',
+  'Rahbar qilindi': 'Made head', 'Rahbarlik olindi': 'Head rights revoked',
+  "rahbar huquqlari beriladi (admin kabi nazorat qiladi, lekin dars/jurnal yuritmaydi).":
     'will be given head rights (admin-level oversight, but no lessons/journal of their own).',
   "Hali tasdiqlangan foydalanuvchi yo'q.": 'No approved users yet.',
   'Tasdiqlandi': 'Approved',
@@ -1352,7 +1352,7 @@ const en = {
   'Push obunachilar': 'Push subscribers',
   "So'nggi 30 kunlik e'lonlar": 'Announcements in the last 30 days',
   'Kutayotgan tarjima ishlari': 'Pending translation jobs',
-  'Boshliq': 'Head',
+  'Rahbar': 'Head',
   'Yakunlangan': 'Finished',
   'Hozirgi dars': 'Now',
   'Kutilmoqda': 'Upcoming',

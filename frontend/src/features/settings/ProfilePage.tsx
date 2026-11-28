@@ -26,7 +26,7 @@ const TABS: { key: Tab; label: string; icon: keyof typeof IC }[] = [
 const ROLE_TITLE: Record<string, string> = {
   teacher: "O'qituvchi",
   admin: 'Administrator',
-  boshliq: 'Boshliq',
+  boshliq: 'Rahbar',
   kuzatuvchi: 'Kuzatuvchi',
   student: "O'quvchi",
 }

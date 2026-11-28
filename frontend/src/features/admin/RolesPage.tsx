@@ -57,7 +57,7 @@ const MATRIX: { area: string; sub?: string; cells: Cell[] }[] = [
     cells: ['edit', 'edit', 'none', 'none', 'none', 'none', 'none'] },
   { area: 'Xodim hisoblari', sub: "Yaratish, tasdiqlash, bloklash, parol",
     cells: ['edit', ['edit', "o'qituvchilarni"], 'none', 'none', 'none', 'none', 'none'] },
-  { area: 'Rol berish', sub: 'Admin, Boshliq, Kuzatuvchi qilish',
+  { area: 'Rol berish', sub: 'Admin, Rahbar, Kuzatuvchi qilish',
     cells: ['edit', 'none', 'none', 'none', 'none', 'none', 'none'] },
   { area: 'Darslar', cells: ['edit', 'edit', 'edit', 'view', 'view', ['view', 'ochiq choraklar'], ['view', "o'z sinfi"]] },
   { area: 'Jurnal', cells: [['own', 'hammasini ko\'radi'], ['own', "hammasini ko'radi"], ['view', 'hammasini'],
@@ -70,9 +70,9 @@ const MATRIX: { area: string; sub?: string; cells: Cell[] }[] = [
 
 const DETAILS: Record<RoleKey, string[]> = {
   dev: [
-    "Admin va Boshliqning barcha vakolatlariga ega",
-    "Boshqa foydalanuvchini Admin, Boshliq yoki Kuzatuvchi qilishi (va bu huquqni olishi) mumkin — faqat u",
-    "Boshqa admin, boshliq va dasturchi hisobini boshqaradi (bloklash, parolni tiklash, rad etish)",
+    "Admin va Rahbarning barcha vakolatlariga ega",
+    "Boshqa foydalanuvchini Admin, Rahbar yoki Kuzatuvchi qilishi (va bu huquqni olishi) mumkin — faqat u",
+    "Boshqa admin, rahbar va dasturchi hisobini boshqaradi (bloklash, parolni tiklash, rad etish)",
     "Yuqoridagi «Rol» tugmasi bilan platformani boshqa rol yoki aniq odam ko'zi bilan ko'radi (faqat ko'rish)",
   ],
   admin: [
@@ -81,7 +81,7 @@ const DETAILS: Record<RoleKey, string[]> = {
     "Darslarni qo'shish, tahrirlash, o'chirish (barcha choraklar), choraklarni ochish va yopish",
     "Kutubxonaga material qo'shish, e'lon yuborish, darslar va tarjimalarni import-eksport qilish",
     "Har qanday o'qituvchining dars jadvalini tahrirlaydi; barcha o'qituvchilarning jurnal statistikasini ko'radi",
-    "Boshqa admin, boshliq va dasturchini boshqara olmaydi — faqat dasturchi",
+    "Boshqa admin, rahbar va dasturchini boshqara olmaydi — faqat dasturchi",
   ],
   boshliq: [
     "Darslar, kutubxona, dars jadvali va hamkor maktablarda admin bilan bir xil vakolatga ega",

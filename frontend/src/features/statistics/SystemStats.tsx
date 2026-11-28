@@ -20,7 +20,7 @@ const SINGLE = 'var(--cat-1)'
 const ROLE_LABELS: Record<string, string> = {
   teacher: "O'qituvchi",
   admin: 'Admin',
-  boshliq: 'Boshliq',
+  boshliq: 'Rahbar',
   kuzatuvchi: 'Kuzatuvchi',
 }
 

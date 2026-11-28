@@ -422,17 +422,17 @@ export function AdminPage() {
     act.mutate({ id: u.id, action: 'promote' }, { onSuccess: () => toast(t('Admin qilindi')) })
   }
   const onSetBoshliq = async (u: User) => {
-    if (!(await confirm({ title: t('Boshliq qilish'), text: `${who(u)} — ${t("boshliq huquqlari beriladi (admin kabi nazorat qiladi, lekin dars/jurnal yuritmaydi).")}` }))) return
-    act.mutate({ id: u.id, action: 'set-boshliq' }, { onSuccess: () => toast(t('Boshliq qilindi')) })
+    if (!(await confirm({ title: t('Rahbar qilish'), text: `${who(u)} — ${t("rahbar huquqlari beriladi (admin kabi nazorat qiladi, lekin dars/jurnal yuritmaydi).")}` }))) return
+    act.mutate({ id: u.id, action: 'set-boshliq' }, { onSuccess: () => toast(t('Rahbar qilindi')) })
   }
   const onDemote = async (u: User) => {
     const isBoshliq = u.role === 'boshliq'
     if (!(await confirm({
-      title: isBoshliq ? t('Boshliqlikni olish') : t('Adminlikni olish'),
+      title: isBoshliq ? t('Rahbarlikni olish') : t('Adminlikni olish'),
       text: `${who(u)} — ${t("huquqlari olib tashlanadi (o'qituvchi bo'lib qoladi).")}`,
       danger: true,
     }))) return
-    act.mutate({ id: u.id, action: 'demote' }, { onSuccess: () => toast(isBoshliq ? t('Boshliqlik olindi') : t('Adminlik olindi')) })
+    act.mutate({ id: u.id, action: 'demote' }, { onSuccess: () => toast(isBoshliq ? t('Rahbarlik olindi') : t('Adminlik olindi')) })
   }
   const onSetKuzatuvchi = async (u: User) => {
     if (!(await confirm({ title: t('Kuzatuvchi qilish'), text: `${who(u)} — ${t("barcha ma'lumotlarni faqat ko'rish huquqi beriladi.")}` }))) return
@@ -495,12 +495,12 @@ export function AdminPage() {
             {me?.is_dev_superuser &&
               (targetIsAdm ? (
                 <button className="btn btn--sm btn--ghost" onClick={() => onDemote(u)}>
-                  {u.role === 'boshliq' ? t('Boshliqlikni olish') : u.role === 'kuzatuvchi' ? t('Kuzatuvchilikni olish') : t('Adminlikni olish')}
+                  {u.role === 'boshliq' ? t('Rahbarlikni olish') : u.role === 'kuzatuvchi' ? t('Kuzatuvchilikni olish') : t('Adminlikni olish')}
                 </button>
               ) : (
                 <>
                   <button className="btn btn--sm btn--ghost" onClick={() => onPromote(u)}>{t('Admin qilish')}</button>
-                  <button className="btn btn--sm btn--ghost" onClick={() => onSetBoshliq(u)}>{t('Boshliq qilish')}</button>
+                  <button className="btn btn--sm btn--ghost" onClick={() => onSetBoshliq(u)}>{t('Rahbar qilish')}</button>
                   <button className="btn btn--sm btn--ghost" onClick={() => onSetKuzatuvchi(u)}>{t('Kuzatuvchi qilish')}</button>
                 </>
               ))}

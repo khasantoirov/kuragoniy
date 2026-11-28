@@ -8,13 +8,17 @@ POST /api/accounts/me/telegram-link/, never the raw user id: ids are
 visible to colleagues, and a linked chat receives password-reset codes.
 """
 
+import html
 import logging
 from datetime import timedelta
 
 from aiogram import F, Router
 from aiogram.filters import CommandStart, Command
-from aiogram.types import KeyboardButton, Message, ReplyKeyboardMarkup
+from aiogram.types import (
+    InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, Message, ReplyKeyboardMarkup, WebAppInfo,
+)
 from asgiref.sync import sync_to_async
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
@@ -121,8 +125,32 @@ async def start_with_uid(message: Message, command):
         )
 
 
+@sync_to_async
+def _linked_name(chat_id: int) -> str | None:
+    """The linked account's first name, or None when this chat has none."""
+    user = User.objects.filter(telegram_chat_id=chat_id, telegram_linked=True, is_active=True).first()
+    if user is None:
+        return None
+    return (user.first_name or user.get_full_name() or user.username or '').strip() or user.username
+
+
+def open_app_markup() -> InlineKeyboardMarkup:
+    """«Ochish» under a message: the platform as the mini app (signed in)."""
+    return InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="🚀 Ochish", web_app=WebAppInfo(url=f"{settings.SITE_URL}/tg")),
+    ]])
+
+
 @router.message(CommandStart())
 async def start_plain(message: Message):
+    name = await _linked_name(message.chat.id)
+    if name:
+        await message.answer(
+            f"Salom, {html.escape(name)}! Hisobingiz shu Telegram'ga ulangan ✅\n\n"
+            "Platformani shu yerning o'zida ochish uchun «Ochish» tugmasini bosing — parol so'ralmaydi.",
+            reply_markup=open_app_markup(),
+        )
+        return
     await message.answer(
         "Salom! Bu KO'RAGONIY EDU platformasining rasmiy boti.\n\n"
         "Hisobingizni ulash uchun platformada «Telegramni ulash» tugmasini bosing.",

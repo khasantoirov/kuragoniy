@@ -44,7 +44,7 @@ const ru: Record<string, string> = {
   'Xodim hisoblari': 'Учётные записи сотрудников',
   'Yaratish, tasdiqlash, bloklash, parol': 'Создание, подтверждение, блокировка, пароль',
   'Rol berish': 'Назначение ролей',
-  'Admin, Boshliq, Kuzatuvchi qilish': 'Сделать админом, руководителем, наблюдателем',
+  'Admin, Rahbar, Kuzatuvchi qilish': 'Сделать админом, руководителем, наблюдателем',
   "o'qituvchilarni": 'учителей',
   'ochiq choraklar': 'открытые четверти',
   "o'z sinfi": 'свой класс',
@@ -63,10 +63,10 @@ const ru: Record<string, string> = {
   "Direktor yoki zavuch: faqat o'z maktabini ko'radi": 'Директор или завуч: видит только свою школу',
   "Darslar, o'z jurnali va dars jadvali": 'Уроки, свой журнал и расписание',
   "O'quvchi oynasi: darslar, vazifalar, natijalar": 'Окно ученика: уроки, задания, результаты',
-  'Admin va Boshliqning barcha vakolatlariga ega': 'Имеет все полномочия админа и руководителя',
-  "Boshqa foydalanuvchini Admin, Boshliq yoki Kuzatuvchi qilishi (va bu huquqni olishi) mumkin — faqat u":
+  'Admin va Rahbarning barcha vakolatlariga ega': 'Имеет все полномочия админа и руководителя',
+  "Boshqa foydalanuvchini Admin, Rahbar yoki Kuzatuvchi qilishi (va bu huquqni olishi) mumkin — faqat u":
     'Только он может сделать пользователя админом, руководителем или наблюдателем (и снять эту роль)',
-  "Boshqa admin, boshliq va dasturchi hisobini boshqaradi (bloklash, parolni tiklash, rad etish)":
+  "Boshqa admin, rahbar va dasturchi hisobini boshqaradi (bloklash, parolni tiklash, rad etish)":
     'Управляет учётными записями админов, руководителей и разработчиков (блокировка, сброс пароля, отклонение)',
   "Yuqoridagi «Rol» tugmasi bilan platformani boshqa rol yoki aniq odam ko'zi bilan ko'radi (faqat ko'rish)":
     'Кнопкой «Роль» вверху смотрит на платформу глазами другой роли или конкретного человека (только просмотр)',
@@ -80,7 +80,7 @@ const ru: Record<string, string> = {
     'Добавление материалов в библиотеку, объявления, импорт и экспорт уроков и переводов',
   "Har qanday o'qituvchining dars jadvalini tahrirlaydi; barcha o'qituvchilarning jurnal statistikasini ko'radi":
     'Изменяет расписание любого учителя; видит статистику журналов всех учителей',
-  "Boshqa admin, boshliq va dasturchini boshqara olmaydi — faqat dasturchi":
+  "Boshqa admin, rahbar va dasturchini boshqara olmaydi — faqat dasturchi":
     'Не управляет другими админами, руководителями и разработчиками — это делает только разработчик',
   "Darslar, kutubxona, dars jadvali va hamkor maktablarda admin bilan bir xil vakolatga ega":
     'В уроках, библиотеке, расписании и школах-партнёрах имеет те же полномочия, что и админ',
@@ -152,7 +152,7 @@ const en: Record<string, string> = {
   'Xodim hisoblari': 'Staff accounts',
   'Yaratish, tasdiqlash, bloklash, parol': 'Create, approve, block, password',
   'Rol berish': 'Granting roles',
-  'Admin, Boshliq, Kuzatuvchi qilish': 'Make admin, head or observer',
+  'Admin, Rahbar, Kuzatuvchi qilish': 'Make admin, head or observer',
   "o'qituvchilarni": "teachers'",
   'ochiq choraklar': 'open quarters',
   "o'z sinfi": 'own class',
@@ -171,10 +171,10 @@ const en: Record<string, string> = {
   "Direktor yoki zavuch: faqat o'z maktabini ko'radi": 'Principal or deputy: sees their own school only',
   "Darslar, o'z jurnali va dars jadvali": 'Lessons, their own gradebook and timetable',
   "O'quvchi oynasi: darslar, vazifalar, natijalar": "The pupil's window: lessons, assignments, results",
-  'Admin va Boshliqning barcha vakolatlariga ega': 'Has every power of an admin and a head',
-  "Boshqa foydalanuvchini Admin, Boshliq yoki Kuzatuvchi qilishi (va bu huquqni olishi) mumkin — faqat u":
+  'Admin va Rahbarning barcha vakolatlariga ega': 'Has every power of an admin and a head',
+  "Boshqa foydalanuvchini Admin, Rahbar yoki Kuzatuvchi qilishi (va bu huquqni olishi) mumkin — faqat u":
     'The only one who may make someone an admin, head or observer (and take it back)',
-  "Boshqa admin, boshliq va dasturchi hisobini boshqaradi (bloklash, parolni tiklash, rad etish)":
+  "Boshqa admin, rahbar va dasturchi hisobini boshqaradi (bloklash, parolni tiklash, rad etish)":
     "Manages other admins', heads' and developers' accounts (block, password reset, reject)",
   "Yuqoridagi «Rol» tugmasi bilan platformani boshqa rol yoki aniq odam ko'zi bilan ko'radi (faqat ko'rish)":
     'With the «Rol» button on top, sees the platform as another role or a chosen person (view only)',
@@ -188,7 +188,7 @@ const en: Record<string, string> = {
     'Adds library materials, sends announcements, imports and exports lessons and translations',
   "Har qanday o'qituvchining dars jadvalini tahrirlaydi; barcha o'qituvchilarning jurnal statistikasini ko'radi":
     "Edits any teacher's timetable; sees every teacher's gradebook statistics",
-  "Boshqa admin, boshliq va dasturchini boshqara olmaydi — faqat dasturchi":
+  "Boshqa admin, rahbar va dasturchini boshqara olmaydi — faqat dasturchi":
     'Cannot manage other admins, heads or developers — only the developer can',
   "Darslar, kutubxona, dars jadvali va hamkor maktablarda admin bilan bir xil vakolatga ega":
     'Has the same powers as an admin in lessons, the library, the timetable and partner schools',

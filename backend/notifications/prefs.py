@@ -36,7 +36,7 @@ DESCRIPTIONS = {
     Kind.OQUVCHI: "O'quvchi sinf kodi bilan ro'yxatdan o'tganda",
     Kind.VAZIFA: 'Yangi uyga vazifa berilganda',
     Kind.TUGILGAN: "Hamkasblarning tug'ilgan kunlari (bugun va 3 kun oldin)",
-    Kind.XAVFSIZLIK: "Yangi qurilmadan kirish, parol va ikki bosqichli tasdiqlash o'zgarishlari, hisob bloklanishi",
+    Kind.XAVFSIZLIK: "Yangi qurilmadan kirish, parol o'zgarishi va hisob bloklanishi",
     Kind.DOKON: "Buyurtmangiz holati o'zgarganda",
     Kind.JAMOA: "Jamoaga yangi xodim qo'shilganda",
     Kind.JURNAL: "O'tgan kun jurnalini tahrirlash uchun ruxsat so'ralganda, berilganda yoki rad etilganda; nazorat ishi natijalari kiritilganda",

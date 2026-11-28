@@ -30,7 +30,7 @@ type Pick = 'dev' | 'role:admin' | 'role:boshliq' | PersonRole | 'student'
 const CHOICES: { k: Pick; label: string; sub: string; icon: keyof typeof IC }[] = [
   { k: 'dev', label: 'Dasturchi', sub: "O'z hisobingiz — hamma narsa", icon: 'settings' },
   { k: 'role:admin', label: 'Admin', sub: "Ma'muriyat oynasi (o'z hisobingizda)", icon: 'shield' },
-  { k: 'role:boshliq', label: 'Boshliq', sub: "Rahbar oynasi (o'z hisobingizda)", icon: 'chart' },
+  { k: 'role:boshliq', label: 'Rahbar', sub: "Rahbar oynasi (o'z hisobingizda)", icon: 'chart' },
   { k: 'teacher', label: "O'qituvchi", sub: "Tanlangan o'qituvchi ko'rgandek", icon: 'user' },
   { k: 'student', label: "O'quvchi", sub: "Sinf → o'quvchi, uning oynasi", icon: 'cap' },
   { k: 'maktab', label: 'Direktor/zavuch', sub: "Hamkor maktab ma'muriyati", icon: 'school' },

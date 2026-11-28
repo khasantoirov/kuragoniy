@@ -23,7 +23,7 @@ ROLE_VIEWS = {'role:admin': 'admin', 'role:boshliq': 'boshliq'}
 # whom a developer may look through (pupils: view_as_pupil)
 PERSON_ROLES = ('teacher', 'admin', 'boshliq', 'kuzatuvchi', 'maktab')
 ROLE_LABELS = {
-    'admin': 'Admin', 'boshliq': 'Boshliq', 'teacher': "O'qituvchi",
+    'admin': 'Admin', 'boshliq': 'Rahbar', 'teacher': "O'qituvchi",
     'kuzatuvchi': 'Kuzatuvchi', 'maktab': 'Direktor/zavuch',
 }
 

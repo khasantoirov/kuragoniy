@@ -78,7 +78,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Role(models.TextChoices):
         TEACHER = 'teacher', "O'qituvchi"
         ADMIN = 'admin', 'Administrator'
-        BOSHLIQ = 'boshliq', 'Boshliq'
+        BOSHLIQ = 'boshliq', 'Rahbar'
         # Read-only oversight (inspector/methodist): sees every analytics,
         # results and report screen admins see, but every write is refused
         # server-side — see common/authentication.py and IsApproved.

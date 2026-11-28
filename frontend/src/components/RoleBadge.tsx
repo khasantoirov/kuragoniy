@@ -5,7 +5,7 @@ import { roleLabel } from './roleLabel'
 // Ported from js/auth.js roleBadges() — inline-styled pill, same colors.
 const COLORS: Record<string, [bg: string, fg: string]> = {
   Dasturchi: ['var(--pick)', '#fff'],
-  Boshliq: ['rgba(154,107,18,.16)', '#9A6B12'],
+  Rahbar: ['rgba(154,107,18,.16)', '#9A6B12'],
   Admin: ['rgba(76,141,246,.16)', 'var(--pick)'],
   Kuzatuvchi: ['rgba(9,189,60,.14)', '#0B7A2C'],
   "Maktab ma'muriyati": ['rgba(124,92,255,.14)', '#6A4BE0'],

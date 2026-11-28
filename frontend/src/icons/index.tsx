@@ -29,6 +29,7 @@ export const IC = {
   lock: wrap(<><rect x="4.5" y="11" width="15" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>),
   unlock: wrap(<><rect x="4.5" y="11" width="15" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 7.6-2.3" /></>),
   grip: wrap(<><circle cx="9" cy="6" r="1.1" fill="currentColor" stroke="none" /><circle cx="15" cy="6" r="1.1" fill="currentColor" stroke="none" /><circle cx="9" cy="12" r="1.1" fill="currentColor" stroke="none" /><circle cx="15" cy="12" r="1.1" fill="currentColor" stroke="none" /><circle cx="9" cy="18" r="1.1" fill="currentColor" stroke="none" /><circle cx="15" cy="18" r="1.1" fill="currentColor" stroke="none" /></>),
+  check: wrap(<path d="M5 12.5 9.5 17 19 7.5" />),
   check2: wrap(<><path d="M1.5 12.5 6 17 14.5 7.5" /><path d="m11.5 14.5 2 2.5L22 8" /></>),
   megaphone: wrap(<><path d="M3 11v2a1 1 0 0 0 1 1h2l4.5 4V6L6 10H4a1 1 0 0 0-1 1Z" /><path d="M14 8.5a4 4 0 0 1 0 7" /></>),
   chart: wrap(<><path d="M4 20V10" /><path d="M10 20V4" /><path d="M16 20v-7" /><path d="M22 20H2" /></>),
