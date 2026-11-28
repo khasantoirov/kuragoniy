@@ -1,0 +1,78 @@
+/* ══ Harakat: iOS'dagidek tirik interfeys (egasi, 2026-11-28: "ios
+   rejimidagidek animatsiyalar" — sayt va Telegram mini ilovasi) ══════════
+   - Tugma bosilgan zahoti biroz kichrayadi (0.97), qo'yib yuborilganda
+     yumshoq qaytadi — bosish "sezilsin".
+   - Yangi sahifa o'ngdan surilib kiradi, orqaga qaytganda chapdan — iOS
+     navigatsiyasidagi kabi, prujinaga yaqin egri bilan (sakramaydi).
+   - Oynalar: kompyuterda yumshoq kattalashib paydo bo'ladi, telefonda
+     pastki varaq bo'lib pastdan ko'tariladi.
+   - Harakatni kamaytirish so'ralgan bo'lsa (prefers-reduced-motion), faqat
+     yumshoq paydo bo'lish qoladi. Harakat faqat transform/opacity'da —
+     sahifa chizilishiga yuk tushmaydi. */
+
+:root {
+  --ease-ios: cubic-bezier(.32, .72, 0, 1);     /* surilish, varaqlar */
+  --ease-press: cubic-bezier(.2, 0, 0, 1);      /* bosish */
+}
+
+/* ── Bosish ─────────────────────────────────────────────────────────── */
+:where(.btn, .iconbtn, .icon-btn, .hh-q, .seg__b, .gx-tabs button, .bottomnav__item, .acct__btn, .pcard,
+  .vwp__role, .labhub__card, .ikind, .chip, .fanswitch__b, .acon__link, .rolepick__c, .viewbar__b, .rcard,
+  .acon__tool, .edtop__menu, .totop) {
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease,
+    opacity .15s ease, scale .18s var(--ease-press);
+}
+:where(.btn, .iconbtn, .icon-btn, .hh-q, .seg__b, .gx-tabs button, .bottomnav__item, .acct__btn, .pcard,
+  .vwp__role, .labhub__card, .ikind, .chip, .fanswitch__b, .acon__link, .rolepick__c, .viewbar__b, .rcard,
+  .acon__tool, .edtop__menu, .totop):active:not(:disabled) {
+  scale: .97;
+  transition-duration: .1s;
+}
+/* katta kartalar kamroq kichrayadi — butun sahifa "sakrab" ketmasin */
+:where(.hh-q, .pcard, .labhub__card, .vwp__role, .rcard):active { scale: .985; }
+
+/* ── Sahifa almashishi (components/PageFx.tsx) ───────────────────────── */
+@keyframes pagefx-in { from { opacity: 0; translate: 32px 0; } }
+@keyframes pagefx-back { from { opacity: 0; translate: -32px 0; } }
+.pagefx { animation: pagefx-in .42s var(--ease-ios) backwards; }
+.pagefx--back { animation-name: pagefx-back; }
+
+/* ── Oynalar ────────────────────────────────────────────────────────── */
+@keyframes sheet-pop { from { opacity: 0; scale: .96; translate: 0 8px; } }
+@keyframes sheet-up { from { translate: 0 100%; } }
+.overlay.is-open { animation: fade .22s ease-out; }
+.overlay.is-open > .modal { animation: sheet-pop .32s var(--ease-ios) backwards; }
+@media (max-width: 520px) {
+  /* telefonda: pastki varaq — ekran tagiga yopishgan, pastdan ko'tariladi */
+  .overlay.is-open { place-items: end stretch; padding: 0; }
+  .overlay.is-open > .modal {
+    width: 100%; max-height: 92dvh;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: sheet-up .44s var(--ease-ios) backwards;
+  }
+  .overlay.is-open > .modal::before {
+    content: ''; display: block; width: 38px; height: 5px; margin: 8px auto 0; border-radius: 3px;
+    background: var(--rule);
+  }
+}
+
+/* ── Yon menyu (telefonda tortma) va xabarlar ───────────────────────── */
+@media (max-width: 760px) {
+  [data-skin="r2"] .edside.is-open { transition: transform .4s var(--ease-ios); }
+}
+.toast { transition: opacity .25s ease, transform .4s var(--ease-ios); }
+
+/* ── Telegram mini ilovasi (lib/telegram.ts → html[data-tg]) ─────────── */
+/* Telegram o'z sarlavhasini va «Orqaga»sini ko'rsatadi; ilova uning
+   rangiga moslashadi, tanlash belgilari va uzoq bosish menyusi yo'q */
+[data-tg] body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
+[data-tg] :where(button, a, .seg__b, .bottomnav__item) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+
+/* ── Harakatni kamaytirish ──────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  :where(.btn, .iconbtn, .icon-btn, .hh-q, .seg__b, .gx-tabs button, .bottomnav__item, .acct__btn, .pcard,
+    .vwp__role, .labhub__card, .ikind, .chip, .fanswitch__b, .acon__link, .rolepick__c, .viewbar__b, .rcard,
+    .acon__tool, .edtop__menu, .totop):active { scale: none; }
+  .pagefx, .pagefx--back { animation-name: fade; animation-duration: .2s; }
+  .overlay.is-open > .modal { animation: fade .2s ease-out; }
+}

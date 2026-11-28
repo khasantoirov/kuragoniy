@@ -163,6 +163,10 @@ const ru: Record<string, string> = {
   "Admin kuragoniy.uz'da faqat o'qituvchi sahifalarini ko'radi (boshqaruv shu panelda). Oyna o'z hisobingizda, Admin roli bilan ochiladi.": "Администратор на kuragoniy.uz видит только страницы учителя (управление — в этой панели). Окно открывается с вашей учётной записью в роли администратора.",
   "Boshliq kuragoniy.uz'da darslar va natijalarni nazorat qiladi. Oyna o'z hisobingizda, Boshliq roli bilan ochiladi.": "Руководитель на kuragoniy.uz контролирует уроки и результаты. Окно открывается с вашей учётной записью в роли руководителя.",
   "Sizning o'z oynangiz — kuragoniy.uz'da dars beradigan sahifalar.": "Ваше собственное окно — страницы для уроков на kuragoniy.uz.",
+  // Telegram mini ilovasi (2026-11-28)
+  "Telegram hisobingiz hali kuragoniy.uz akkauntiga ulanmagan. Bir marta login va parol bilan kiring — keyingi safar ilova o'zi ochiladi.": "Ваш Telegram ещё не привязан к учётной записи kuragoniy.uz. Войдите один раз по логину и паролю — в следующий раз приложение откроется само.",
+  "Telegram ma'lumoti tasdiqlanmadi — ilovani @kuragoniybot orqali qayta oching.": "Данные Telegram не подтверждены — откройте приложение заново через @kuragoniybot.",
+  "Bu Telegram boshqa akkauntga ulangan.": "Этот Telegram привязан к другой учётной записи.",
   // Jurnal: amaliy ishlar, davomat, faollik (2026-11-26)
   "Amaliy ish": "Практическая работа",
   "Amaliy ish qo'shish": "Добавить практическую работу",
@@ -1579,6 +1583,10 @@ const en: Record<string, string> = {
   "Admin kuragoniy.uz'da faqat o'qituvchi sahifalarini ko'radi (boshqaruv shu panelda). Oyna o'z hisobingizda, Admin roli bilan ochiladi.": "An admin sees only the teaching pages at kuragoniy.uz (running the platform is in this panel). The window opens on your own account with the Admin role.",
   "Boshliq kuragoniy.uz'da darslar va natijalarni nazorat qiladi. Oyna o'z hisobingizda, Boshliq roli bilan ochiladi.": "The head oversees lessons and results at kuragoniy.uz. The window opens on your own account with the Head role.",
   "Sizning o'z oynangiz — kuragoniy.uz'da dars beradigan sahifalar.": "Your own window — the teaching pages at kuragoniy.uz.",
+  // Telegram mini ilovasi (2026-11-28)
+  "Telegram hisobingiz hali kuragoniy.uz akkauntiga ulanmagan. Bir marta login va parol bilan kiring — keyingi safar ilova o'zi ochiladi.": "Your Telegram isn't linked to a kuragoniy.uz account yet. Sign in once with your login and password — next time the app opens by itself.",
+  "Telegram ma'lumoti tasdiqlanmadi — ilovani @kuragoniybot orqali qayta oching.": "Telegram's data couldn't be confirmed — open the app again from @kuragoniybot.",
+  "Bu Telegram boshqa akkauntga ulangan.": "This Telegram is linked to another account.",
   // Jurnal: amaliy ishlar, davomat, faollik (2026-11-26)
   "Amaliy ish": "Practical work",
   "Amaliy ish qo'shish": "Add practical work",

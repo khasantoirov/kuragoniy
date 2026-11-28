@@ -2,6 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { useTranslation } from 'react-i18next'
 
 import { IS_ADMIN_HOST, PANEL_ENABLED } from '@/lib/adminHost'
+import { PANEL_TICKET } from '@/lib/panelTicket'
+import { IN_TELEGRAM, tgInitData } from '@/lib/telegram'
 import { useViewAs, useViewAsUser } from '@/lib/viewAs'
 import { api, refreshAccessToken, SESSION_ENDED_EVENT, setAccessToken } from '@/lib/api/client'
 import type { User } from '@/lib/api/types'
@@ -59,6 +61,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // On page load there's no access token in memory yet — silently try
     // the httpOnly refresh cookie before deciding the user is logged out.
     ;(async () => {
+      // admin.kuragoniy.uz opened from «Boshqaruv paneli»: its one-time ticket
+      if (PANEL_TICKET) {
+        try {
+          const res = await api.post('/auth/panel-ticket/redeem/', { ticket: PANEL_TICKET })
+          markActive(true)
+          setAccessToken(res.data.access)
+          setUser(res.data.user)
+          setLoading(false)
+          return
+        } catch {
+          // used or late: the panel's own session, else its sign-in
+        }
+      }
       const token = await refreshAccessToken()
       if (token) {
         try {
@@ -66,6 +81,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch {
           setAccessToken(null)
           setUser(null)
+        }
+      } else if (IN_TELEGRAM && tgInitData()) {
+        // the mini app: the account linked to this Telegram, no password
+        try {
+          const res = await api.post('/auth/telegram/', { init_data: tgInitData() })
+          markActive(true)
+          setAccessToken(res.data.access)
+          setUser(res.data.user)
+        } catch {
+          // not linked yet: the sign-in page, once (LoginPage says so)
         }
       }
       setLoading(false)
@@ -146,6 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     markActive(true)
     setAccessToken(res.data.access)
     setUser(res.data.user)
+    linkTelegram()
     return { user: res.data.user, renamedLogin: res.data.renamed_login }
   }, [])
 
@@ -163,6 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     markActive(true)
     setAccessToken(access)
     setUser(next)
+    linkTelegram()
   }, [])
 
   return (
@@ -199,6 +226,13 @@ export function isApproved(user: User | null): boolean {
  * developer run the platform at admin.kuragoniy.uz and teach at
  * kuragoniy.uz, with the same login — here they are teachers only. */
 const TEACHING_HERE = PANEL_ENABLED && !IS_ADMIN_HOST
+
+/** Signed in with the password (or a phone code) inside the mini app:
+ *  this Telegram becomes the account's, so next time it opens by itself. */
+function linkTelegram() {
+  const initData = IN_TELEGRAM ? tgInitData() : ''
+  if (initData) void api.post('/accounts/me/telegram-webapp/', { init_data: initData }).catch(() => {})
+}
 
 /** On kuragoniy.uz an Admin and the developer only teach — like any
  * teacher: their own fan, no administration, no role switch. */

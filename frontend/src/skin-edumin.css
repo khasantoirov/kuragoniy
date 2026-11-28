@@ -1027,3 +1027,17 @@
   }
   [data-skin="r2"] .edtop .acct__nm { font: 600 14px/1 var(--f-body); color: var(--ink); }
 }
+
+/* «Boshqaruv paneli» — menyuning eng oxirida, alohida (egasi, 2026-11-28):
+   ingichka chiziq bilan ajratilgan, ramkali; bosilganda admin.kuragoniy.uz
+   kirilgan holda ochiladi (lib/panelTicket.ts) */
+[data-skin="r2"] .edside__sec--panel { margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--rule); }
+[data-skin="r2"] .edside__sec--panel .edside__item {
+  border: 1px solid color-mix(in srgb, var(--logo-blue, #1d3fae) 28%, var(--rule));
+  background: color-mix(in srgb, var(--logo-blue, #1d3fae) 6%, var(--surface));
+  font-weight: 600;
+}
+[data-skin="r2"] .edside__sec--panel .edside__ic { color: var(--logo-gold, #e9ab06); }
+[data-skin="r2"][data-theme="dark"] .edside__sec--panel .edside__item {
+  border-color: rgba(138, 164, 255, .35); background: rgba(138, 164, 255, .08);
+}

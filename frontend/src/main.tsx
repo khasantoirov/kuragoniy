@@ -16,6 +16,9 @@ import './styles/settings.css'
 import './styles/protection.css'
 // menu and section icons in the logo's colours — after the skin
 import './styles/brand-icons.css'
+// iOS-like motion: taps, page changes, sheets (owner, 2026-11-28)
+import './styles/motion.css'
+import { IN_TELEGRAM, startTelegram } from './lib/telegram'
 import { startDeviceMode } from './lib/deviceMode'
 
 // Service-worker registration/update handling lives in <AutoUpdate>
@@ -28,7 +31,9 @@ startDeviceMode()
 
 // A saved Русский / English: its dictionary first, so the first paint is
 // already in that language (the UI store has picked it up by now).
-void languageReady().then(() => {
+// inside Telegram (the @kuragoniybot mini app) its script comes first: it
+// reads the launch data from the address before the router moves on
+void Promise.all([languageReady(), IN_TELEGRAM ? startTelegram() : null]).then(() => {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <App />

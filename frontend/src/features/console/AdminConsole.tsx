@@ -4,6 +4,7 @@ import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate, useParams } 
 
 import { Avatar } from '@/components/Avatar'
 import { FanSwitch } from '@/components/FanWindow'
+import { PageFx } from '@/components/PageFx'
 import { RoleBadge } from '@/components/RoleBadge'
 import { Skeleton } from '@/components/Skeleton'
 import type { Subject } from '@/features/lessons/labels'
@@ -264,7 +265,7 @@ export function AdminConsole() {
         </header>
 
         <main className="acon__page">
-          <Suspense fallback={<Skeleton lines={6} />}>{section ? section.page : <Outlet />}</Suspense>
+          <Suspense fallback={<Skeleton lines={6} />}><PageFx>{section ? section.page : <Outlet />}</PageFx></Suspense>
         </main>
       </div>
     </div>

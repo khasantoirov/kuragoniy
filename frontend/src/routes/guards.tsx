@@ -7,6 +7,7 @@ import { useSubjects } from '@/lib/subjects'
 import type { Subject } from '@/features/lessons/labels'
 import { useViewAs } from '@/lib/viewAs'
 import { useUIStore } from '@/store/uiStore'
+import { IN_TELEGRAM } from '@/lib/telegram'
 
 // kuragoniy.uz for a guest — its own chunk, never loaded once signed in
 const LandingPage = lazy(() => import('@/features/landing/LandingPage').then((m) => ({ default: m.LandingPage })))
@@ -23,8 +24,9 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
   const { pathname } = useLocation()
   if (loading) return <FullScreenSpinner />
-  // the site's front page for a guest; every other page asks to sign in
-  if (!user && pathname === '/') return <Suspense fallback={<FullScreenSpinner />}><LandingPage /></Suspense>
+  // the site's front page for a guest (not inside Telegram's mini app —
+  // there it is the sign-in); every other page asks to sign in
+  if (!user && pathname === '/' && !IN_TELEGRAM) return <Suspense fallback={<FullScreenSpinner />}><LandingPage /></Suspense>
   if (!user) return <Navigate to="/login" replace />
   // A teacher/admin-generated password must be replaced before anything
   // else — the backend refuses every other call until it is.

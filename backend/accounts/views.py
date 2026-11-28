@@ -9,6 +9,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.mail import send_mail
 from django.core.validators import EmailValidator
+from django.core import signing
+from django.core.cache import cache
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.dateparse import parse_date
@@ -559,6 +561,129 @@ class PasswordResetConfirmView(generics.GenericAPIView):
         notify(user, NotifyKind.XAVFSIZLIK, 'Parol tiklandi', 'Barcha qurilmalardagi seanslar yopildi.', '/settings/profile?tab=security',
                telegram_text="🔐 KO'RAGONIY EDU: parolingiz tiklandi. Agar bu siz bo'lmasangiz, darhol administratorga xabar bering.")
         return Response({'detail': "Parol yangilandi. Endi yangi parol bilan kiring."})
+
+
+PANEL_TICKET_SALT = 'accounts.panel-ticket'
+PANEL_TICKET_MAX_AGE = 60  # seconds from «Boshqaruv paneli» to the panel
+PANEL_TICKET_GONE = "Havola eskirgan — «Boshqaruv paneli»ni platformadan qaytadan oching."
+
+
+class PanelTicketView(generics.GenericAPIView):
+    """POST — kuragoniy.uz → «Boshqaruv paneli» (owner, 2026-11-28:
+    "to'g'ridan to'g'ri kirsin"): a one-time ticket, good for a minute,
+    that opens admin.kuragoniy.uz already signed in as the same Admin or
+    developer. The two addresses keep separate sessions; this only
+    spares the second sign-in."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        from common.adminhost import may_use_admin_panel
+        from common.viewas import viewing
+
+        user = request.user
+        if viewing(request) or not may_use_admin_panel(user):
+            raise PermissionDenied("Boshqaruv paneli faqat administratorlar uchun.")
+        ticket = signing.TimestampSigner(salt=PANEL_TICKET_SALT).sign(f'{user.pk}:{secrets.token_urlsafe(16)}')
+        return Response({'ticket': ticket})
+
+
+class PanelTicketRedeemView(generics.GenericAPIView):
+    """POST {ticket} at admin.kuragoniy.uz — the ticket's account signs
+    in there: once, within a minute, and only if it may use the panel."""
+
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+    throttle_classes = [LoginRateThrottle]
+
+    def post(self, request, *args, **kwargs):
+        from common.adminhost import is_admin_host, refusal
+
+        if not is_admin_host(request):
+            return Response({'detail': PANEL_TICKET_GONE, 'code': 'wrong_host'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            value = signing.TimestampSigner(salt=PANEL_TICKET_SALT).unsign(
+                str(request.data.get('ticket') or ''), max_age=PANEL_TICKET_MAX_AGE)
+        except signing.BadSignature:
+            return Response({'detail': PANEL_TICKET_GONE, 'code': 'expired'}, status=status.HTTP_401_UNAUTHORIZED)
+        user_id, _, nonce = value.partition(':')
+        # once only: a ticket seen in a history or a log opens nothing
+        if not nonce or not cache.add(f'panel-ticket:{nonce}', 1, PANEL_TICKET_MAX_AGE * 5):
+            return Response({'detail': PANEL_TICKET_GONE, 'code': 'used'}, status=status.HTTP_401_UNAUTHORIZED)
+        user = User.objects.filter(pk=user_id, is_active=True).first()
+        if user is None:
+            return Response({'detail': PANEL_TICKET_GONE, 'code': 'expired'}, status=status.HTTP_401_UNAUTHORIZED)
+        if _is_locked(user):
+            return _locked_response(user)
+        refused = refusal(request, user)
+        if refused:
+            return refused
+        log_event('login_panel_ticket', actor=user, request=request)
+        return _issue_tokens_response(user, request, remember=True)
+
+
+TG_BAD = "Telegram ma'lumoti tasdiqlanmadi — ilovani @kuragoniybot orqali qayta oching."
+TG_NOT_LINKED = ("Telegram hisobingiz hali kuragoniy.uz akkauntiga ulanmagan. Bir marta login va parol "
+                 "bilan kiring — keyingi safar ilova o'zi ochiladi.")
+
+
+class TelegramWebAppLoginView(generics.GenericAPIView):
+    """POST {init_data} — the platform opened as a Telegram mini app
+    (accounts/tg_webapp.py): the account linked to that Telegram signs in
+    without its password (owner, 2026-11-28). Not linked yet: 404
+    `not_linked` and the app asks for the login and password once."""
+
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+    throttle_classes = [LoginRateThrottle]
+
+    def post(self, request, *args, **kwargs):
+        from common.adminhost import refusal
+
+        from .tg_webapp import verify
+
+        tg = verify(str(request.data.get('init_data') or ''))
+        if tg is None:
+            return Response({'detail': TG_BAD, 'code': 'bad_init_data'}, status=status.HTTP_400_BAD_REQUEST)
+        people = list(User.objects.filter(telegram_chat_id=tg['id'], telegram_linked=True, is_active=True)[:2])
+        if len(people) != 1:
+            # none, or (should never be) two accounts on one Telegram: the password decides
+            return Response({'detail': TG_NOT_LINKED, 'code': 'not_linked'}, status=status.HTTP_404_NOT_FOUND)
+        user = people[0]
+        if _is_locked(user):
+            return _locked_response(user)
+        refused = refusal(request, user)
+        if refused:
+            return refused
+        log_event('login_telegram', actor=user, request=request)
+        return _issue_tokens_response(user, request, remember=True)
+
+
+class TelegramWebAppLinkView(generics.GenericAPIView):
+    """POST {init_data} — signed in with the password inside the mini
+    app: this Telegram becomes the account's (bot messages go there, the
+    next opening needs no password). Never takes over a Telegram that is
+    another account's."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        from .tg_webapp import verify
+
+        tg = verify(str(request.data.get('init_data') or ''))
+        if tg is None:
+            return Response({'detail': TG_BAD, 'code': 'bad_init_data'}, status=status.HTTP_400_BAD_REQUEST)
+        user = request.user
+        if User.objects.filter(telegram_chat_id=tg['id'], telegram_linked=True).exclude(pk=user.pk).exists():
+            return Response({'detail': "Bu Telegram boshqa akkauntga ulangan.", 'code': 'taken'},
+                            status=status.HTTP_409_CONFLICT)
+        if not (user.telegram_linked and user.telegram_chat_id == tg['id']):
+            user.telegram_chat_id = tg['id']
+            user.telegram_linked = True
+            user.telegram_username = str(tg.get('username') or '')[:64]
+            user.save(update_fields=['telegram_chat_id', 'telegram_linked', 'telegram_username'])
+            log_event('telegram_linked', actor=user, request=request, detail='mini app')
+        return Response(MeSerializer(user).data)
 
 
 class TelegramLinkView(generics.GenericAPIView):

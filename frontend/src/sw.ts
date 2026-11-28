@@ -33,7 +33,9 @@ cleanupOutdatedCaches()
 // request not in its denylist regardless of what's actually at that URL.
 registerRoute(
   new NavigationRoute(createHandlerBoundToURL('index.html'), {
-    denylist: [/^\/api\//, /^\/ws\//, /^\/media\//, /^\/static\//],
+    // /tg: the Telegram mini app's entry, always from the server (its
+    // headers let web.telegram.org frame it — a cached copy's wouldn't)
+    denylist: [/^\/api\//, /^\/ws\//, /^\/media\//, /^\/static\//, /^\/tg$/],
   }),
 )
 registerRoute(

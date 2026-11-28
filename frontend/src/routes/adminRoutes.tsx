@@ -7,6 +7,7 @@ import { SettingsTabs } from '@/features/settings/SettingsTabs'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { panelUrl } from '@/lib/adminHost'
 import { mayUseAdminPanel, useAuth } from '@/lib/auth/AuthContext'
+import { goToPanel } from '@/lib/panelTicket'
 
 import { FullScreenSpinner, RequireAdmin, RequireFan, RequireGuest, RequireModule, RequireOversight, RequirePasswordChange, RequireShop } from './guards'
 import { EquipmentTabs, LessonsTabs, ReportsTabs, ShopTabs } from './portalRoutes'
@@ -130,7 +131,7 @@ export function GoToPanel() {
   const bolim = params.get('bolim')
   const allowed = mayUseAdminPanel(user)
   useEffect(() => {
-    if (allowed) window.location.replace(panelUrl(bolim))
+    if (allowed) void goToPanel(panelUrl(bolim))  // signed in there too
   }, [allowed, bolim])
   if (!allowed) return <Navigate to="/" replace />
   return <FullScreenSpinner />

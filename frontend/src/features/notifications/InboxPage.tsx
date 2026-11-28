@@ -9,6 +9,7 @@ import { useAnnouncements, useDeleteAnnouncement } from '@/features/announcement
 import { PageHead, fmtDateTime } from '@/features/portal/ui'
 import { IC } from '@/icons'
 import { panelLinkFor } from '@/lib/adminHost'
+import { openPanel } from '@/lib/panelTicket'
 import { isAdminInView, mayUseAdminPanel, useAuth } from '@/lib/auth/AuthContext'
 import { useUIStore } from '@/store/uiStore'
 
@@ -68,7 +69,7 @@ export function InboxPage() {
   // the administration's work opens in the panel (admin.kuragoniy.uz)
   const go = (url: string) => {
     const panel = mayUseAdminPanel(user) ? panelLinkFor(url) : null
-    if (panel) window.open(panel, '_blank', 'noopener')
+    if (panel) openPanel(panel)
     else navigate(url)
   }
   const open = (n: AppNotification) => {

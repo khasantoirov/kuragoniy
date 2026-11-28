@@ -19,14 +19,16 @@ export interface EduminNavItem {
 /** 2-rejim yon menyusi bo'limlarga ajratilgan — 1-rejimdagi yagona
  *  tekis ro'yxatdan asosiy tuzilmaviy farqi shu. Ro'yxatga kirmagan
  *  yangi marshrut yo'qolib qolmasligi uchun Ma'muriyat bo'limiga tushadi. */
-const GROUPS: { title: string; paths: string[]; rest?: boolean }[] = [
+const GROUPS: { title: string; paths: string[]; rest?: boolean; cls?: string; key?: string }[] = [
   { title: 'Asosiy', paths: ['/', '/my-school'] },
   { title: "O'quv jarayoni", paths: ['/lessons', '/journal', '/timetable', '/assignments', '/reports', '/achievements', '/feed', '/library', '/lab'] },
   // the owner's mock-ups: preparation and subscriptions as a group of their own
   { title: 'Tayyorgarlik va obuna', paths: ['/staffroom', '/training', '/obuna', '/shop'] },
-  { title: "Ma'muriyat", paths: ['/statistics', '/manage/schools', '/admin', '/manage/equipment', '/equipment-sheet', '/guide'], rest: true },
+  { title: "Ma'muriyat", paths: ['/statistics', '/manage/schools', '/manage/equipment', '/equipment-sheet', '/guide'], rest: true },
   // no heading: these simply close the menu, at its bottom
   { title: '', paths: ['/qollanmalar', '/settings', '/about', '/help'] },
+  // the very last, apart (owner, 2026-11-28): over to admin.kuragoniy.uz, signed in
+  { title: '', paths: ['/admin'], cls: 'edside__sec--panel', key: '_panel' },
 ]
 
 function groupItems(items: EduminNavItem[]) {
@@ -34,6 +36,8 @@ function groupItems(items: EduminNavItem[]) {
   const leftovers = items.filter((item) => !known.has(item.to))
   return GROUPS.map((g) => ({
     title: g.title,
+    cls: g.cls,
+    key: g.key,
     items: [
       ...g.paths.flatMap((p) => items.filter((item) => item.to === p)),
       ...(g.rest ? leftovers : []),
@@ -67,6 +71,8 @@ export function EduminSidebar({ items, onNav }: { items: EduminNavItem[]; onNav:
   const unread = useNotifyLive((s) => s.unread)
   const groups = groupItems(items.filter((item) => !TOPBAR_ONLY.has(item.to))).map((g) => ({
     title: g.title,
+    cls: g.cls,
+    key: g.key,
     items: g.items.map((item) => ({
       ...item,
       end: item.to === '/' || item.to === '/manage',

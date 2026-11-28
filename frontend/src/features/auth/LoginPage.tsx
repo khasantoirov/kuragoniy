@@ -10,6 +10,7 @@ import { IS_ADMIN_HOST, MAIN_ORIGIN } from '@/lib/adminHost'
 import { api } from '@/lib/api/client'
 import { homePathFor, LOGOUT_REASON_KEY, useAuth } from '@/lib/auth/AuthContext'
 import { HoneypotField, useFormGuard } from '@/lib/formGuard'
+import { IN_TELEGRAM } from '@/lib/telegram'
 
 import { HelpLink } from './HelpLink'
 import { PhoneVerify, type VerifyDone, type VerifyStart } from './phone'
@@ -232,6 +233,11 @@ export function LoginPage() {
   return (
     <form className="form gx-form" onSubmit={onPassword}>
       {title}
+      {IN_TELEGRAM && (
+        <p className="form__note form__note--info gx-form__tgnote" role="note">
+          {IC.telegram} {t("Telegram hisobingiz hali kuragoniy.uz akkauntiga ulanmagan. Bir marta login va parol bilan kiring — keyingi safar ilova o'zi ochiladi.")}
+        </p>
+      )}
       <p className="gx-form__sub gx-form__sub--opt">
         {IS_ADMIN_HOST ? t('Faqat administratorlar uchun. Login va parolingiz bilan kiring.') : t('Login va parolingiz bilan kiring.')}
       </p>

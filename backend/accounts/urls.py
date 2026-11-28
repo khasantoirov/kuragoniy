@@ -11,6 +11,9 @@ router.register('users', views.UserAdminViewSet, basename='user-admin')
 
 auth_urlpatterns = [
     path('login/', views.LoginView.as_view(), name='auth-login'),
+    path('telegram/', views.TelegramWebAppLoginView.as_view(), name='auth-telegram-webapp'),
+    path('panel-ticket/', views.PanelTicketView.as_view(), name='auth-panel-ticket'),
+    path('panel-ticket/redeem/', views.PanelTicketRedeemView.as_view(), name='auth-panel-ticket-redeem'),
     # phone + a code from @kuragoniybot (accounts/phone_views.py) — sign-in only
     path('phone/start/', phone_views.PhoneStartView.as_view(), name='auth-phone-start'),
     path('phone/status/', phone_views.PhoneStatusView.as_view(), name='auth-phone-status'),
@@ -34,6 +37,7 @@ account_urlpatterns = [
     path('me/security-log/', sessions.SecurityLogView.as_view(), name='account-security-log'),
     path('me/overview/', sessions.OverviewView.as_view(), name='account-overview'),
     path('me/telegram-link/', views.TelegramLinkView.as_view(), name='account-telegram-link'),
+    path('me/telegram-webapp/', views.TelegramWebAppLinkView.as_view(), name='account-telegram-webapp'),
     path('me/telegram-unlink/', views.TelegramUnlinkView.as_view(), name='account-telegram-unlink'),
     path('audit-log/', views.AuditLogView.as_view(), name='account-audit-log'),
     path('', include(router.urls)),

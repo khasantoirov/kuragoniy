@@ -6,7 +6,9 @@ import { Avatar } from '@/components/Avatar'
 import { ContentGuard } from '@/components/ContentGuard'
 import { FanSwitch } from '@/components/FanWindow'
 import { RoleSwitch, useViewFromLink } from '@/components/RoleSwitch'
+import { useTelegramBack } from '@/lib/telegram'
 import { isAnyModalOpen } from '@/components/Modal'
+import { PageFx } from '@/components/PageFx'
 import { RoleBadge } from '@/components/RoleBadge'
 import { ScrollTopButton } from '@/components/ScrollTopButton'
 import { useToast } from '@/components/Toast'
@@ -44,6 +46,7 @@ export function AppShell() {
   useGradePalette()  // the platform's mark colours (the developer's pick)
   useSubjectGuard()  // the Darslar fan/grade stay inside what this person sees
   useViewFromLink()  // a view the panel asked for (admin.kuragoniy.uz → Ko'rinish)
+  useTelegramBack('/')  // the mini app: Telegram's Back button
   const lessonGrades = useSubjects().grades
 
   const [acctOpen, setAcctOpen] = useState(false)
@@ -237,7 +240,7 @@ export function AppShell() {
             )}
 
             <main className="main" onClick={closeAll}>
-              <Outlet />
+              <PageFx><Outlet /></PageFx>
             </main>
           </div>
         </div>
@@ -333,7 +336,7 @@ export function AppShell() {
                 <Link className="btn btn--sm btn--primary" to="/settings/profile?edit=1">{t("To'ldirish")}</Link>
               </div>
             )}
-            <Outlet />
+            <PageFx><Outlet /></PageFx>
           </main>
         </div>
       </div>

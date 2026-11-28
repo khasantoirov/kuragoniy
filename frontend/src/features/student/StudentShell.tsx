@@ -15,7 +15,9 @@ import { NavRail, type RailItem } from '@/layouts/NavRail'
 import { BrandMark } from '@/layouts/edumin/BrandMark'
 import { SidebarToggle } from '@/layouts/edumin/Sidebar'
 import { useAuth } from '@/lib/auth/AuthContext'
+import { useTelegramBack } from '@/lib/telegram'
 import { useViewAs } from '@/lib/viewAs'
+import { PageFx } from '@/components/PageFx'
 import { routeOn, useGradePalette, useModules } from '@/lib/modules'
 import { usePageScrolled, useScrollRestoration } from '@/lib/scroll'
 import { useUIStore } from '@/store/uiStore'
@@ -66,6 +68,7 @@ export function StudentShell() {
   const { t } = useTranslation()
   const { logout } = useAuth()
   const user = usePortalUser()
+  useTelegramBack('/s')  // the mini app: Telegram's Back button
   // the window colour of the pupil's own class (Fizika teal, STEAM violet)
   const pupilGrade = user?.student?.grade
   useEffect(() => {
@@ -138,7 +141,7 @@ export function StudentShell() {
               </div>
             )}
             {!viewing && <RenamedLoginNotice />}
-            <Outlet />
+            <PageFx><Outlet /></PageFx>
           </main>
         </div>
       </div>

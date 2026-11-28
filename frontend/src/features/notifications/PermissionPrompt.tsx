@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useToast } from '@/components/Toast'
 import { IC } from '@/icons'
 import { useAuth } from '@/lib/auth/AuthContext'
+import { IN_TELEGRAM } from '@/lib/telegram'
 import { getPushState, isPushSupported, subscribeToPush } from '@/lib/push/subscribe'
 
 import { setDeviceSettings, soundFor } from './device'
@@ -33,6 +34,11 @@ function markAsked() {
  *  arrive with the app closed) and the sound. "Keyinroq" hides it for three
  *  days; Sozlamalar → Bildirishnomalar has the same switches for later. */
 export function NotifyPermissionPrompt() {
+  if (IN_TELEGRAM) return null  // the mini app: messages come from the bot
+  return <PermissionPromptInner />
+}
+
+function PermissionPromptInner() {
   const { t } = useTranslation()
   const toast = useToast()
   const { user } = useAuth()

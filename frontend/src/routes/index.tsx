@@ -105,6 +105,8 @@ const mainRoutes: RouteObject[] = [
   },
   ...topLevelPortalRoutes,
   { path: '/sayt', element: page(<LandingPage />) },
+  // the Telegram mini app's address (lib/telegram.ts): into the platform
+  { path: '/tg', element: <Navigate to="/" replace /> },
   {
     path: '/pending-approval',
     element: (

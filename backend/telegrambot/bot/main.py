@@ -23,6 +23,21 @@ from telegrambot.bot.translation import watch_translation_jobs
 logger = logging.getLogger(__name__)
 
 
+async def set_app_button(bot: Bot) -> None:
+    """The chat's menu button opens the platform as a mini app (owner,
+    2026-11-28) — launched from here, it receives Telegram's initData and
+    signs the linked account in (accounts/tg_webapp.py). The chat-list
+    «Ochish» button is the bot's Main Mini App, set in @BotFather."""
+    from aiogram.types import MenuButtonWebApp, WebAppInfo
+    from django.conf import settings
+
+    try:
+        await bot.set_chat_menu_button(
+            menu_button=MenuButtonWebApp(text="Ochish", web_app=WebAppInfo(url=f"{settings.SITE_URL}/tg")))
+    except Exception:  # never keeps the bot from starting
+        logger.warning("Could not set the mini app menu button", exc_info=True)
+
+
 async def run():
     token = os.environ.get("BOT_TOKEN")
     if not token:
@@ -37,6 +52,7 @@ async def run():
     dp.include_router(replies.router)
 
     logger.info("Bot ishga tushmoqda...")
+    await set_app_button(bot)
     await asyncio.gather(
         dp.start_polling(bot),
         watch_announcements(bot),
